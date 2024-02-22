@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "modid",
+	"id": "neo-apoli",
 	"version": "${version}",
 	"name": "Example mod",
 	"description": "This is an example description! Tell everyone what your mod is about!",
@@ -12,20 +12,20 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
+	"icon": "assets/neo-apoli/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.example.ExampleMod"
+			"io.github.eggohito.neo_apoli.NeoApoli"
 		],
 		"client": [
-			"com.example.ExampleModClient"
+			"io.github.eggohito.neo_apoli.NeoApoliClient"
 		]
 	},
 	"mixins": [
-		"modid.mixins.json",
+		"neo-apoli.mixins.json",
 		{
-			"config": "modid.client.mixins.json",
+			"config": "neo-apoli.client.mixins.json",
 			"environment": "client"
 		}
 	],
@@ -34,8 +34,5 @@
 		"minecraft": "~1.20.4",
 		"java": ">=17",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }

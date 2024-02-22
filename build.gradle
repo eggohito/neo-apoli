@@ -22,7 +22,7 @@ loom {
     splitEnvironmentSourceSets()
 
 	mods {
-		"modid" {
+		"neo-apoli" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
