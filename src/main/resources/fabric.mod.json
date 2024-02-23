@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"io.github.eggohito.neo_apoli.NeoApoliClient"
+		],
+		"rdpr": [
+			"io.github.eggohito.neo_apoli.NeoApoliRDPRPlugin"
 		]
 	},
 	"mixins": [
