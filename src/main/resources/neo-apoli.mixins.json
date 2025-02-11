@@ -1,9 +1,9 @@
 {
 	"required": true,
-	"package": "com.example.mixin.client",
+	"package": "io.github.eggohito.neo_apoli.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"ExampleClientMixin"
+	"mixins": [
+
 	],
 	"injectors": {
 		"defaultRequire": 1
