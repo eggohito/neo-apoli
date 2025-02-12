@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.PowerTypes;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,13 @@ public class NeoApoli implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+
+		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
+		NeoApoliArgumentTypes.registerAll();
+
 		PowerTypes.registerAll();
 		PowerManager.init();
+
 	}
 
 	public static Identifier id(String path) {
