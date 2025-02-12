@@ -9,8 +9,10 @@ import net.minecraft.registry.Registry;
 
 public class PowerTypes {
 
-	public static final PowerType<DummyPower> DUMMY = register("dummy", DummyPower.CODEC);
-	public static final PowerType<MultiplePower> MULTIPLE = register("multiple", MultiplePower.CODEC);
+	public static final PowerType<DummyPower> DUMMY = register("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
+	public static final PowerType<MultiplePower> MULTIPLE = register("multiple", MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
+
+	public static final PowerType<GiveItemsPower> GIVE_ITEMS = register("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
 
 	public static void registerAll() {
 
