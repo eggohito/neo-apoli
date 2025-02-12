@@ -1,26 +1,42 @@
 package io.github.eggohito.neo_apoli.power;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class MultiplePower extends Power {
 
+	//	TODO: This set of filters should be controllable via config
+	public static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
+
+		Metadata.CODEC.keys(JavaOps.INSTANCE)
+			.map(Object::toString)
+			.distinct()
+			.map(Pattern::compile)
+			.forEach(filters::add);
+
+		filters.add(Pattern.compile("type"));
+		filters.add(Pattern.compile("^\\$"));
+
+	});
+
 	private static final Codec<String> SUB_POWER_NAME_CODEC = PrimitiveCodec.STRING.validate(MultiplePower::validateSubPowerName);
 
-	private static final Codec<Map<String, Power>> SUB_POWERS_CODEC = CodecUtil.filteredUnboundedMap(SUB_POWER_NAME_CODEC, Power.BASE_CODEC, "type", "name", "description", "hidden").validate(
+	private static final Codec<Map<String, Power>> SUB_POWERS_CODEC = CodecUtil.filteredUnboundedMap(SUB_POWER_NAME_CODEC, Power.BASE_CODEC, MultiplePower::isKeyIgnored).validate(
 		subPowers -> {
 
 			for (Map.Entry<String, Power> subPower : subPowers.entrySet()) {
@@ -109,9 +125,16 @@ public class MultiplePower extends Power {
 		}
 
 		else {
-			return DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: " + name);
+			DataResult<String> result = DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: " + name);
+			return result.setPartial(name);
 		}
 
+	}
+
+	private static boolean isKeyIgnored(String key) {
+		return SUB_POWER_KEY_FILTERS
+			.stream()
+			.anyMatch(pattern -> pattern.matcher(key).find());
 	}
 
 }

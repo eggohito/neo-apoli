@@ -10,10 +10,10 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elementCodec, Set<K> excludedKeys) implements BaseMapCodec<K, V>, Codec<Map<K, V>> {
+public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elementCodec, Predicate<K> ignoreKeyFilter) implements BaseMapCodec<K, V>, Codec<Map<K, V>> {
 
 	@Override
 	public <T> DataResult<Pair<Map<K, V>, T>> decode(DynamicOps<T> ops, T input) {
@@ -35,7 +35,7 @@ public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elemen
 			(r, pair) -> {
 
 				DataResult<K> key = keyCodec().parse(ops, pair.getFirst());
-				if (key.mapOrElse(k -> excludedKeys().contains(k), kError -> false)) {
+				if (key.resultOrPartial().map(k -> ignoreKeyFilter().test(k)).orElse(false)) {
 					return r;
 				}
 
@@ -79,7 +79,7 @@ public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elemen
 			K key = entry.getKey();
 			V value = entry.getValue();
 
-			if (!excludedKeys().contains(key)) {
+			if (!ignoreKeyFilter().test(key)) {
 				prefix.add(keyCodec().encodeStart(ops, key), elementCodec().encodeStart(ops, value));
 			}
 
