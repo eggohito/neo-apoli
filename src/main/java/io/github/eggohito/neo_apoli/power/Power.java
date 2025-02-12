@@ -5,9 +5,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
+import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.Validatable;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryElementCodec;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -48,8 +53,26 @@ public abstract class Power implements Validatable {
 		return getMetadata().hidden();
 	}
 
-	protected static <T extends Power> Products.P1<RecordCodecBuilder.Mu<T>, Metadata> addMetadataFields(RecordCodecBuilder.Instance<T> instance) {
+	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Metadata> addCommonFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(Metadata.CODEC.forGetter(Power::getMetadata));
+	}
+
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonPacketCodec(PowerPacketEncoder<P> encoder, PowerPacketDecoder<P> decoder) {
+		return new PacketCodec<>() {
+
+			@Override
+			public P decode(RegistryByteBuf buf) {
+				Metadata metadata = Metadata.PACKET_CODEC.decode(buf);
+				return decoder.decode(buf, metadata);
+			}
+
+			@Override
+			public void encode(RegistryByteBuf buf, P value) {
+				Metadata.PACKET_CODEC.encode(buf, value.getMetadata());
+				encoder.encode(buf, value);
+			}
+
+		};
 	}
 
 	public record Metadata(Text name, Text description, boolean hidden) {
@@ -59,6 +82,13 @@ public abstract class Power implements Validatable {
 			TextCodecs.CODEC.optionalFieldOf("description", Text.empty()).forGetter(Metadata::description),
 			PrimitiveCodec.BOOL.optionalFieldOf("hidden", false).forGetter(Metadata::hidden)
 		).apply(instance, Metadata::new));
+
+		public static final PacketCodec<RegistryByteBuf, Metadata> PACKET_CODEC = PacketCodec.tuple(
+			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Metadata::name,
+			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Metadata::description,
+			PacketCodecs.BOOLEAN, Metadata::hidden,
+			Metadata::new
+		);
 
 	}
 

@@ -6,7 +6,12 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 
 import java.util.Map;
@@ -31,9 +36,51 @@ public class MultiplePower extends Power {
 		}
 	);
 
-	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addMetadataFields(instance).and(
+	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).and(
 		MapCodec.assumeMapUnsafe(SUB_POWERS_CODEC).forGetter(MultiplePower::getSubPowers)
 	).apply(instance, MultiplePower::new));
+
+	@SuppressWarnings("unchecked")
+	public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = createCommonPacketCodec(
+		(buf, multiplePower) -> {
+
+			Map<String, Power> subPowers = multiplePower.getSubPowers();
+			buf.writeVarInt(subPowers.size());
+
+			subPowers.forEach((name, subPower) -> {
+
+				PowerType<Power> subPowerType = (PowerType<Power>) subPower.getType();
+				RegistryKey<PowerType<?>> subPowerTypeId = NeoApoliRegistries.POWER_TYPE.getKey(subPowerType).orElseThrow(() -> new IllegalStateException("Sub-power \"" + name + "\" has a power type that isn't registered in the power type registry!"));
+
+				buf.writeString(name);
+				buf.writeRegistryKey(subPowerTypeId);
+
+				subPowerType.packetCodec().encode(buf, subPower);
+
+			});
+
+		},
+		(buf, metadata) -> {
+
+			Map<String, Power> subPowers = new Object2ObjectOpenHashMap<>();
+			int size = buf.readVarInt();
+
+			for (int i = 0; i < size; i++) {
+
+				String name = buf.readString();
+				RegistryKey<PowerType<?>> subPowerTypeKey = buf.readRegistryKey(NeoApoliRegistryKeys.POWER_TYPE);
+
+				PowerType<Power> subPowerType = (PowerType<Power>) NeoApoliRegistries.POWER_TYPE.getValueOrThrow(subPowerTypeKey);
+				Power power = subPowerType.packetCodec().decode(buf);
+
+				subPowers.put(name, power);
+
+			}
+
+			return new MultiplePower(metadata, subPowers);
+
+		}
+	);
 
 	private final Map<String, Power> subPowers;
 

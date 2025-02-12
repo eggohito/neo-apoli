@@ -3,6 +3,8 @@ package io.github.eggohito.neo_apoli.power;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
 
 public class PowerTypes {
@@ -14,8 +16,8 @@ public class PowerTypes {
 
 	}
 
-	private static <P extends Power> PowerType<P> register(String path, MapCodec<P> codec) {
-		return Registry.register(NeoApoliRegistries.POWER_TYPE, NeoApoli.id(path), new PowerType<>(codec));
+	private static <P extends Power> PowerType<P> register(String path, MapCodec<P> codec, PacketCodec<RegistryByteBuf, P> packetCodec) {
+		return Registry.register(NeoApoliRegistries.POWER_TYPE, NeoApoli.id(path), new PowerType<>(codec, packetCodec));
 	}
 
 }

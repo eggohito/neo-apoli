@@ -7,9 +7,12 @@ import com.google.gson.JsonParseException;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.registry.RegistryOps;
@@ -17,6 +20,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SinglePreparationResourceReloader;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.profiler.Profiler;
@@ -69,8 +73,12 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		}
 
 		else {
+
 			ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+			ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendPayload(player));
+
 			init = true;
+
 		}
 
 	}
@@ -173,7 +181,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 		profiler.pop();
 
-		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Contains {} power(s).", POWERS_BY_ID.size());
+		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", POWERS_BY_ID.size());
 		POWERS_BY_ID.trim();
 
 	}
@@ -211,6 +219,26 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		return JSON_FORMATS.keySet()
 			.stream()
 			.anyMatch(suffix -> fileId.getPath().endsWith(suffix));
+	}
+
+	@ApiStatus.Internal
+	public static void sendPayload(ServerPlayerEntity player) {
+
+		if (player.server.isRemote()) {
+			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", POWERS_BY_ID.size(), player.getName().getString());
+			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(POWERS_BY_ID));
+		}
+
+	}
+
+	@ApiStatus.Internal
+	public static void receivePayload(SynchronizePowersS2CPacket payload) {
+
+		POWERS_BY_ID.clear();
+		POWERS_BY_ID.putAll(payload.powersById());
+
+		POWERS_BY_ID.trim();
+
 	}
 
 	public record PackData(String source, JsonElement element) {

@@ -2,7 +2,13 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.PrimitiveCodec;
 import io.github.eggohito.neo_apoli.power.MultiplePower;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public final class PowerIdentifier {
+
+	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::validate, PowerIdentifier::toString);
+	public static final PacketCodec<ByteBuf, PowerIdentifier> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerIdentifier::of, PowerIdentifier::toString);
 
 	private static final String SUB_POWER_SEPARATOR = "@";
 
@@ -104,6 +113,18 @@ public final class PowerIdentifier {
 		catch (InvalidIdentifierException iie) {
 			reader.setCursor(prevCursor);
 			throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getLocalizedMessage());
+		}
+
+	}
+
+	private static DataResult<PowerIdentifier> validate(String value) {
+
+		try {
+			return DataResult.success(of(value));
+		}
+
+		catch (Exception e) {
+			return DataResult.error(() -> "Invalid power identifier: " + value + " (" + e.getMessage() + ")");
 		}
 
 	}

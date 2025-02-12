@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
+import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.PowerTypes;
 import net.fabricmc.api.ModInitializer;
@@ -24,6 +25,8 @@ public class NeoApoli implements ModInitializer {
 
 		PowerTypes.registerAll();
 		PowerManager.init();
+
+		NeoApoliPackets.registerAll();
 
 	}
 
