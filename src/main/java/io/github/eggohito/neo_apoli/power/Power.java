@@ -21,7 +21,9 @@ import net.minecraft.text.TextCodecs;
 
 public abstract class Power implements Validatable {
 
-	public static final Codec<Power> BASE_CODEC = NeoApoliRegistries.POWER_TYPE.getCodec().dispatch("type", Power::getType, PowerType::mapCodec);
+	public static final String TYPE_KEY = "type";
+
+	public static final Codec<Power> BASE_CODEC = NeoApoliRegistries.POWER_TYPE.getCodec().dispatch(TYPE_KEY, Power::getType, PowerType::mapCodec);
 	public static final Codec<RegistryEntry<Power>> ENTRY_CODEC = RegistryElementCodec.of(NeoApoliRegistryKeys.POWER, BASE_CODEC);
 
 	private final Metadata metadata;

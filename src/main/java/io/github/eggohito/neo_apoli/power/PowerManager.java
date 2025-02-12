@@ -1,13 +1,11 @@
 package io.github.eggohito.neo_apoli.power;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
+import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -15,6 +13,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
+import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.resource.ResourceManager;
@@ -31,9 +31,7 @@ import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 
 import java.io.BufferedReader;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PowerManager extends SinglePreparationResourceReloader<Map<Identifier, PowerManager.PackData>> implements IdentifiableResourceReloadListener {
 	
@@ -59,10 +57,12 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> POWERS_BY_ID = new Object2ObjectOpenHashMap<>();
 	private static boolean init;
 
-	private final RegistryOps<JsonElement> jsonOps;
+	private final RegistryWrapper.WrapperLookup wrapperLookup;
+	private final RegistryOps<JsonElement> registryOps;
 
 	PowerManager(RegistryWrapper.WrapperLookup wrapperLookup) {
-		this.jsonOps = wrapperLookup.getOps(JsonOps.INSTANCE);
+		this.wrapperLookup = wrapperLookup;
+		this.registryOps = wrapperLookup.getOps(JsonOps.INSTANCE);
 	}
 
 	@ApiStatus.Internal
@@ -83,10 +83,13 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	}
 
+	@SuppressWarnings("UnstableApiUsage")
 	@Override
 	protected Map<Identifier, PackData> prepare(ResourceManager manager, Profiler profiler) {
 
 		Map<Identifier, PackData> prepared = new Object2ObjectOpenHashMap<>();
+		RegistryOps.RegistryInfoGetter registryInfoGetter = ((RegistryOpsAccessor) registryOps).getRegistryInfoGetter();
+
 		profiler.push("neo-apoli::preparePowers");
 
 		for (String directoryPath : DIRECTORY_PATHS) {
@@ -114,9 +117,25 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 							throw new JsonParseException("JSON cannot be empty!");
 						}
 
-						else {
-							prepared.put(resourceId, new PackData(packName, jsonElement));
+						if (jsonElement instanceof JsonObject jsonObject) {
+
+							if (!ResourceConditionsImpl.applyResourceConditions(jsonObject, directoryPath, resourceId, registryInfoGetter)) {
+								return;
+							}
+
+							JsonElement typeJsonElement = jsonObject.get(Power.TYPE_KEY);
+							PowerType<?> powerType = Identifier.CODEC.parse(registryOps, typeJsonElement)
+								.result()
+								.map(NeoApoliRegistries.POWER_TYPE::get)
+								.orElse(null);
+
+							if (Objects.equals(powerType, PowerTypes.MULTIPLE)) {
+								jsonObject.entrySet().removeIf(jsonEntry -> jsonEntry.getValue() instanceof JsonObject jsonObjectEntry && !ResourceConditionsImpl.applyResourceConditions(jsonObjectEntry, directoryPath, resourceId, registryInfoGetter));
+							}
+
 						}
+
+						prepared.put(resourceId, new PackData(packName, jsonElement));
 
 					}
 
@@ -154,7 +173,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			try {
 
 				PowerIdentifier powerId = PowerIdentifier.of(id);
-				Power power = Power.BASE_CODEC.decode(jsonOps, packData.element())
+				Power power = Power.BASE_CODEC.decode(registryOps, packData.element())
 					.getOrThrow()
 					.getFirst();
 
