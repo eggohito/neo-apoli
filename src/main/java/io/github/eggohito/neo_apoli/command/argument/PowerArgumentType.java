@@ -23,7 +23,7 @@ public class PowerArgumentType implements ArgumentType<PowerIdentifier> {
 
 	@Override
 	public PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
-		return PowerIdentifier.fromCommandInput(reader);
+		return PowerIdentifier.parse(reader);
 	}
 
 	@Override

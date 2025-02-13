@@ -59,34 +59,71 @@ public final class PowerIdentifier {
 
 	public static PowerIdentifier of(String value) {
 
-		if (value.isEmpty()) {
-			throw new InvalidIdentifierException("Power identifier cannot be empty!");
+		try {
+			return parse(new StringReader(value));
 		}
 
-		else if (value.contains(SUB_POWER_SEPARATOR)) {
+		catch (CommandSyntaxException cse) {
+			throw new InvalidIdentifierException(cse.getMessage());
+		}
 
-			String[] split = value.split(SUB_POWER_SEPARATOR);
+	}
 
-			if (split.length > 2) {
-				throw new InvalidIdentifierException("Invalid amount of sub-power separators (" + SUB_POWER_SEPARATOR + ") for power identifier: " + value + " (should only have one!)");
+	public static PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
+
+		int prevCursor = reader.getCursor();
+		while (reader.canRead() && (String.valueOf(reader.peek()).equals(SUB_POWER_SEPARATOR) || Identifier.isCharValid(reader.peek()))) {
+			reader.skip();
+		}
+
+		String value = reader.getString().substring(prevCursor, reader.getCursor());
+		int separatorIndex = value.indexOf(SUB_POWER_SEPARATOR);
+
+		if (value.isEmpty()) {
+			throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.create("Power identifier cannot be empty!");
+		}
+
+		else if (separatorIndex >= 0) {
+
+			int subBeginIndex = separatorIndex + 1;
+
+			String superPowerId = value.substring(0, separatorIndex);
+			String subPowerName = value.substring(subBeginIndex);
+
+			if (superPowerId.isEmpty()) {
+				reader.setCursor(prevCursor);
+				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, "Disallowed empty super-power identifier in power identifier \"" + value + "\"");
 			}
 
-			else if (split[0].isEmpty()) {
-				throw new InvalidIdentifierException("Disallowed empty super-power identifier in power identifier: " + value);
-			}
-
-			else if (split[1].isEmpty()) {
-				throw new InvalidIdentifierException("Disallowed empty sub-power name in power identifier: " + value);
+			else if (subPowerName.isEmpty()) {
+				reader.setCursor(prevCursor + subBeginIndex);
+				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, "Disallowed empty sub-power name in power identifier \"" + value + "\"");
 			}
 
 			else {
-				return subPower(IdentifierUtil.emptyStrictSplit(split[0]), split[1]);
+
+				try {
+					return subPower(IdentifierUtil.emptyStrictSplit(superPowerId), subPowerName);
+				}
+
+				catch (InvalidIdentifierException iie) {
+					throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getMessage());
+				}
+
 			}
 
 		}
 
 		else {
-			return of(IdentifierUtil.emptyStrictSplit(value));
+
+			try {
+				return of(IdentifierUtil.emptyStrictSplit(value));
+			}
+
+			catch (InvalidIdentifierException iie) {
+				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getMessage());
+			}
+
 		}
 
 	}
@@ -97,24 +134,6 @@ public final class PowerIdentifier {
 
 	public static PowerIdentifier subPower(Identifier id, @NotNull String name) {
 		return MultiplePower.validateSubPowerName(name).map(str -> new PowerIdentifier(id, str)).getOrThrow();
-	}
-
-	public static PowerIdentifier fromCommandInput(StringReader reader) throws CommandSyntaxException {
-
-		int prevCursor = reader.getCursor();
-		while (reader.canRead() && (reader.peek() == '@' || Identifier.isCharValid(reader.peek()))) {
-			reader.skip();
-		}
-
-		try {
-			return of(reader.getString().substring(prevCursor, reader.getCursor()));
-		}
-
-		catch (InvalidIdentifierException iie) {
-			reader.setCursor(prevCursor);
-			throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getLocalizedMessage());
-		}
-
 	}
 
 	private static DataResult<PowerIdentifier> validate(String value) {

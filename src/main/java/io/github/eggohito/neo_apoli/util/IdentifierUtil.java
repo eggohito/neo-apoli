@@ -37,7 +37,7 @@ public class IdentifierUtil {
 	public static Identifier emptyStrictOf(String namespace, String path) {
 
 		if (namespace.isEmpty() || path.isEmpty()) {
-			throw new InvalidIdentifierException("Disallowed empty " + (namespace.isEmpty() ? "namespace" : "path") + " in resource location: " + namespace + ":" + path);
+			throw new InvalidIdentifierException("Disallowed empty " + (namespace.isEmpty() ? "namespace" : "path") + " in resource location \"" + namespace + ":" + path + "\"");
 		}
 
 		else {
