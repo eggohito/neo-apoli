@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.event.PowerLoadingEvents;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
@@ -31,7 +32,10 @@ import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 
 import java.io.BufferedReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class PowerManager extends SinglePreparationResourceReloader<Map<Identifier, PowerManager.PackData>> implements IdentifiableResourceReloadListener {
 	
@@ -75,7 +79,23 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		else {
 
 			ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+
 			ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendPayload(player));
+			PowerLoadingEvents.BEFORE.register(ID, (id, packData, directoryPath, registryOps) -> {
+
+				if (packData.element() instanceof JsonObject jsonObject) {
+
+					PowerType<?> powerType = Identifier.CODEC
+						.parse(registryOps, jsonObject.get(Power.TYPE_KEY))
+						.mapOrElse(NeoApoliRegistries.POWER_TYPE::get, error -> null);
+
+					if (Objects.equals(powerType, PowerTypes.MULTIPLE)) {
+						jsonObject.entrySet().removeIf(entry -> !MultiplePower.isKeyIgnored(entry.getKey()) && !isResourceConditionFulfilled(id, entry.getValue(), directoryPath, registryOps));
+					}
+
+				}
+
+			});
 
 			init = true;
 
@@ -83,69 +103,53 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
 	@Override
 	protected Map<Identifier, PackData> prepare(ResourceManager manager, Profiler profiler) {
 
 		Map<Identifier, PackData> prepared = new Object2ObjectOpenHashMap<>();
-		RegistryOps.RegistryInfoGetter registryInfoGetter = ((RegistryOpsAccessor) registryOps).getRegistryInfoGetter();
-
 		profiler.push("neo-apoli::preparePowers");
 
 		for (String directoryPath : DIRECTORY_PATHS) {
 
 			profiler.push("neo-apoli::preparePowers::scan->" + directoryPath);
-			manager.findAllResources(directoryPath, PowerManager::hasValidFormat).forEach((fileId, resources) -> {
+			manager.findResources(directoryPath, PowerManager::hasValidFormat).forEach((fileId, resource) -> {
 
 				Identifier resourceId = trimExtension(fileId, directoryPath);
 				String fileExtension = "." + FilenameUtils.getExtension(fileId.getPath());
 
 				JsonFormat jsonFormat = JSON_FORMATS.get(fileExtension);
-				profiler.push("neo-apoli::preparePowers::find->" + fileId);
+				String packName = resource.getPackId();
 
-				resources.forEach(resource -> {
+				if (prepared.containsKey(resourceId)) {
+					NeoApoli.LOGGER.warn("Duplicate power JSON ignored with ID \"{}\"", resourceId);
+					return;
+				}
 
-					String packName = resource.getPackId();
-					profiler.push("neo-apoli::preparePowers::startPrep->" + fileId + "::[" + packName + "]");
+				profiler.push("neo-apoli::preparePowers::startPrep->" + fileId + "::[" + packName + "]");
 
-					try (BufferedReader reader = resource.getReader()) {
+				try (BufferedReader reader = resource.getReader()) {
 
-						GsonReader gsonReader = new GsonReader(JsonReader.create(reader, jsonFormat));
-						JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
+					GsonReader gsonReader = new GsonReader(JsonReader.create(reader, jsonFormat));
+					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
-						if (jsonElement == null) {
-							throw new JsonParseException("JSON cannot be empty!");
-						}
+					if (jsonElement == null) {
+						throw new JsonParseException("JSON cannot be empty!");
+					}
 
-						if (jsonElement instanceof JsonObject jsonObject) {
+					else if (isResourceConditionFulfilled(resourceId, jsonElement, directoryPath, registryOps)) {
 
-							if (!ResourceConditionsImpl.applyResourceConditions(jsonObject, directoryPath, resourceId, registryInfoGetter)) {
-								return;
-							}
+						PackData packData = new PackData(packName, jsonElement);
 
-							JsonElement typeJsonElement = jsonObject.get(Power.TYPE_KEY);
-							PowerType<?> powerType = Identifier.CODEC.parse(registryOps, typeJsonElement)
-								.result()
-								.map(NeoApoliRegistries.POWER_TYPE::get)
-								.orElse(null);
-
-							if (Objects.equals(powerType, PowerTypes.MULTIPLE)) {
-								jsonObject.entrySet().removeIf(jsonEntry -> jsonEntry.getValue() instanceof JsonObject jsonObjectEntry && !ResourceConditionsImpl.applyResourceConditions(jsonObjectEntry, directoryPath, resourceId, registryInfoGetter));
-							}
-
-						}
-
-						prepared.put(resourceId, new PackData(packName, jsonElement));
+						PowerLoadingEvents.BEFORE.invoker().beforeLoad(resourceId, packData, directoryPath, registryOps);
+						prepared.put(resourceId, packData);
 
 					}
 
-					catch (Exception e) {
-						NeoApoli.LOGGER.error("Error trying to prepare JSON of power \"{}\" from data pack [{}] (skipping): {}", resourceId, packName, e);
-					}
+				}
 
-					profiler.pop();
-
-				});
+				catch (Exception e) {
+					NeoApoli.LOGGER.error("Error trying to prepare JSON of power \"{}\" from data pack [{}] (skipping): {}", resourceId, packName, e);
+				}
 
 				profiler.pop();
 
@@ -177,15 +181,19 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 					.getOrThrow()
 					.getFirst();
 
-				if (!POWERS_BY_ID.containsKey(powerId)) {
+				if (power instanceof MultiplePower multiplePower) {
+					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
-					if (power instanceof MultiplePower multiplePower) {
-						multiplePower.getSubPowers().forEach((name, subPower) -> POWERS_BY_ID.put(PowerIdentifier.subPower(id, name), subPower));
-					}
+						PowerIdentifier subPowerId = PowerIdentifier.subPower(id, name);
+						JsonElement subPowerJson = Objects.requireNonNull(((JsonObject) packData.element()).get(name));
 
-					POWERS_BY_ID.put(powerId, power);
+						PackData subPackData = new PackData(packData.source(), subPowerJson);
+						register(subPowerId, subPower, subPackData, registryOps);
 
+					});
 				}
+
+				register(powerId, power, packData, registryOps);
 
 			}
 
@@ -215,6 +223,26 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		return DEPENDENCIES;
 	}
 
+	@ApiStatus.Internal
+	public static void sendPayload(ServerPlayerEntity player) {
+
+		if (player.server.isRemote()) {
+			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", POWERS_BY_ID.size(), player.getName().getString());
+			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(POWERS_BY_ID));
+		}
+
+	}
+
+	@ApiStatus.Internal
+	public static void receivePayload(SynchronizePowersS2CPacket payload) {
+
+		POWERS_BY_ID.clear();
+		POWERS_BY_ID.putAll(payload.powersById());
+
+		POWERS_BY_ID.trim();
+
+	}
+
 	public static DataResult<Power> getAsResult(PowerIdentifier powerId) {
 		return contains(powerId)
 			? DataResult.success(POWERS_BY_ID.get(powerId))
@@ -240,24 +268,15 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			.anyMatch(suffix -> fileId.getPath().endsWith(suffix));
 	}
 
-	@ApiStatus.Internal
-	public static void sendPayload(ServerPlayerEntity player) {
-
-		if (player.server.isRemote()) {
-			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", POWERS_BY_ID.size(), player.getName().getString());
-			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(POWERS_BY_ID));
-		}
-
+	@SuppressWarnings("UnstableApiUsage")
+	private static boolean isResourceConditionFulfilled(Identifier id, JsonElement jsonElement, String directoryPath, RegistryOps<JsonElement> registryOps) {
+		return !(jsonElement instanceof JsonObject jsonObject)
+			|| ResourceConditionsImpl.applyResourceConditions(jsonObject, directoryPath, id, ((RegistryOpsAccessor) registryOps).getRegistryInfoGetter());
 	}
 
-	@ApiStatus.Internal
-	public static void receivePayload(SynchronizePowersS2CPacket payload) {
-
-		POWERS_BY_ID.clear();
-		POWERS_BY_ID.putAll(payload.powersById());
-
-		POWERS_BY_ID.trim();
-
+	private static void register(PowerIdentifier id, Power power, PackData packData, RegistryOps<JsonElement> registryOps) {
+		POWERS_BY_ID.put(id, power);
+		PowerLoadingEvents.AFTER.invoker().afterLoad(id, power, packData, registryOps);
 	}
 
 	public record PackData(String source, JsonElement element) {

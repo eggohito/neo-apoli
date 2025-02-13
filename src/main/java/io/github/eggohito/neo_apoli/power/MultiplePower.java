@@ -1,6 +1,9 @@
 package io.github.eggohito.neo_apoli.power;
 
-import com.mojang.serialization.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JavaOps;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -131,7 +134,7 @@ public class MultiplePower extends Power {
 
 	}
 
-	private static boolean isKeyIgnored(String key) {
+	public static boolean isKeyIgnored(String key) {
 		return SUB_POWER_KEY_FILTERS
 			.stream()
 			.anyMatch(pattern -> pattern.matcher(key).find());
