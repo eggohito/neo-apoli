@@ -5,15 +5,24 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
+import io.github.eggohito.neo_apoli.attachment.NeoApoliAttachmentTypes;
+import io.github.eggohito.neo_apoli.attachment.PowerHolderAttachment;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgumentType;
 import io.github.eggohito.neo_apoli.power.Power;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import joptsimple.internal.Strings;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.IdentifierArgumentType;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.visitor.NbtTextFormatter;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+
+import java.util.List;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -26,8 +35,87 @@ public class PowerCommand {
 			.requires(source -> source.hasPermissionLevel(2))
 			.build();
 
+		baseNode.addChild(new GrantNode().build());
+		baseNode.addChild(new RevokeNode().build());
 		baseNode.addChild(new DumpNode().build());
+
 		rootNode.addChild(baseNode);
+
+	}
+
+	public static final class GrantNode extends LiteralArgumentBuilder<ServerCommandSource> {
+
+		GrantNode() {
+			super("grant");
+			this.then(
+				argument("targets", EntityArgumentType.entities())
+					.then(argument("power", PowerArgumentType.power())
+						.then(argument("source", IdentifierArgumentType.identifier())
+							.executes(this::execute)))
+			);
+		}
+
+		private int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+
+			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
+			List<Entity> processedTargets = new ObjectArrayList<>();
+
+			Power power = PowerArgumentType.getPower(context, "power");
+			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
+
+			for (Entity target : targets) {
+
+				PowerHolderAttachment powerHolderAttachment = target.getAttachedOrCreate(NeoApoliAttachmentTypes.POWER_HOLDER);
+				if (!powerHolderAttachment.grantPower(target, power, source)) {
+					continue;
+				}
+
+				powerHolderAttachment.fullSync(target);
+				processedTargets.add(target);
+
+			}
+
+			return processedTargets.size();
+
+		}
+
+	}
+
+	public static final class RevokeNode extends LiteralArgumentBuilder<ServerCommandSource> {
+
+		RevokeNode() {
+			super("revoke");
+			this.then(
+				argument("targets", EntityArgumentType.entities())
+					.then(argument("power", PowerArgumentType.power())
+						.then(argument("source", IdentifierArgumentType.identifier())
+							.executes(this::execute)))
+			);
+		}
+
+		private int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+
+			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
+			List<Entity> processedTargets = new ObjectArrayList<>();
+
+			Power power = PowerArgumentType.getPower(context, "power");
+			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
+
+			for (Entity target : targets) {
+
+				PowerHolderAttachment powerHolderAttachment = target.getAttachedOrCreate(NeoApoliAttachmentTypes.POWER_HOLDER);
+				if (!powerHolderAttachment.revokePower(target, power, source)) {
+					continue;
+				}
+
+				powerHolderAttachment.fullSync(target);
+				processedTargets.add(target);
+
+			}
+
+			return processedTargets.size();
+
+		}
 
 	}
 
@@ -35,10 +123,12 @@ public class PowerCommand {
 
 		DumpNode() {
 			super("dump");
-			this.then(argument("power", PowerArgumentType.power())
-				.executes(context -> execute(context, false))
-				.then(argument("indent", IntegerArgumentType.integer(0))
-					.executes(context -> execute(context, true))));
+			this.then(
+				argument("power", PowerArgumentType.power())
+					.executes(context -> execute(context, false))
+					.then(argument("indent", IntegerArgumentType.integer(0))
+						.executes(context -> execute(context, true)))
+			);
 		}
 
 		private int execute(CommandContext<ServerCommandSource> context, boolean specifiedIndent) throws CommandSyntaxException {

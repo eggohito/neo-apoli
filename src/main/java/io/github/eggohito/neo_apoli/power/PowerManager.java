@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power;
 
+import com.google.common.collect.HashBiMap;
 import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -58,7 +59,9 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Identifier ID = NeoApoli.id("powers");
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
-	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> POWERS_BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> ID_TO_POWER = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Power, PowerIdentifier> POWER_TO_ID = new Object2ObjectOpenHashMap<>();
+
 	private static boolean init;
 
 	private final RegistryWrapper.WrapperLookup wrapperLookup;
@@ -167,7 +170,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	@Override
 	protected void apply(Map<Identifier, PackData> prepared, ResourceManager manager, Profiler profiler) {
 
-		POWERS_BY_ID.clear();
+		ID_TO_POWER.clear();
 		NeoApoli.LOGGER.info("Parsing powers from data packs...");
 
 		profiler.push("neo-apoli::parsePowers");
@@ -208,8 +211,10 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 		profiler.pop();
 
-		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", POWERS_BY_ID.size());
-		POWERS_BY_ID.trim();
+		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", ID_TO_POWER.size());
+
+		ID_TO_POWER.trim();
+		POWER_TO_ID.trim();
 
 	}
 
@@ -227,8 +232,8 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	public static void sendPayload(ServerPlayerEntity player) {
 
 		if (player.server.isRemote()) {
-			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", POWERS_BY_ID.size(), player.getName().getString());
-			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(POWERS_BY_ID));
+			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", ID_TO_POWER.size(), player.getName().getString());
+			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(HashBiMap.create(ID_TO_POWER)));
 		}
 
 	}
@@ -236,25 +241,41 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	@ApiStatus.Internal
 	public static void receivePayload(SynchronizePowersS2CPacket payload) {
 
-		POWERS_BY_ID.clear();
-		POWERS_BY_ID.putAll(payload.powersById());
+		ID_TO_POWER.clear();
+		POWER_TO_ID.clear();
 
-		POWERS_BY_ID.trim();
+		ID_TO_POWER.putAll(payload.powers());
+		POWER_TO_ID.putAll(payload.powers().inverse());
+
+		ID_TO_POWER.trim();
+		POWER_TO_ID.trim();
 
 	}
 
 	public static DataResult<Power> getAsResult(PowerIdentifier powerId) {
 		return contains(powerId)
-			? DataResult.success(POWERS_BY_ID.get(powerId))
+			? DataResult.success(ID_TO_POWER.get(powerId))
 			: DataResult.error(() -> "No powers with power identifier \"" + powerId + "\" were found!");
 	}
 
+	public static PowerIdentifier getId(Power power) {
+
+		if (POWER_TO_ID.containsKey(power)) {
+			return POWER_TO_ID.get(power);
+		}
+
+		else {
+			throw new IllegalArgumentException();
+		}
+
+	}
+
 	public static Set<PowerIdentifier> getIds() {
-		return POWERS_BY_ID.keySet();
+		return ID_TO_POWER.keySet();
 	}
 
 	public static boolean contains(PowerIdentifier powerId) {
-		return POWERS_BY_ID.containsKey(powerId);
+		return ID_TO_POWER.containsKey(powerId);
 	}
 
 	private static Identifier trimExtension(Identifier fileId, String directoryPath) {
@@ -275,8 +296,12 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	private static void register(PowerIdentifier id, Power power, PackData packData, RegistryOps<JsonElement> registryOps) {
-		POWERS_BY_ID.put(id, power);
+
+		ID_TO_POWER.put(id, power);
+		POWER_TO_ID.put(power, id);
+
 		PowerLoadingEvents.AFTER.invoker().afterLoad(id, power, packData, registryOps);
+
 	}
 
 	public record PackData(String source, JsonElement element) {

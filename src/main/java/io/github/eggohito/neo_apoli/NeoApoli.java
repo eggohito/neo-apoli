@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli;
 
+import io.github.eggohito.neo_apoli.attachment.NeoApoliAttachmentTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.PowerTypes;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -27,6 +27,7 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
+		NeoApoliAttachmentTypes.registerAll();
 
 	}
 

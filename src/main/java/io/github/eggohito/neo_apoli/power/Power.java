@@ -10,9 +10,13 @@ import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.Validatable;
+import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryElementCodec;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -38,6 +42,30 @@ public abstract class Power implements Validatable {
 	}
 
 	public abstract PowerType<? extends Power> getType();
+
+	public void onAdded(Entity entity) {
+
+	}
+
+	public void onGained(Entity entity) {
+
+	}
+
+	public void onRemoved(Entity entity) {
+
+	}
+
+	public void onLost(Entity entity) {
+
+	}
+
+	public NbtElement toNbt(RegistryOps<NbtElement> registryOps) {
+		return new NbtCompound();
+	}
+
+	public void fromNbt(RegistryOps<NbtElement> registryOps, NbtElement nbtElement) {
+
+	}
 
 	public Metadata getMetadata() {
 		return metadata;
@@ -92,10 +120,6 @@ public abstract class Power implements Validatable {
 			Metadata::new
 		);
 
-	}
-
-	public interface DataContainer {
-		Codec<? extends DataContainer> codec();
 	}
 
 	public interface Builder {
