@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -37,7 +38,7 @@ public class PowerArgumentType implements ArgumentType<PowerIdentifier> {
 
 	public static Power getPower(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
 		PowerIdentifier powerId = context.getArgument(argumentName, PowerIdentifier.class);
-		return PowerManager.getAsResult(powerId).getOrThrow(MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE::create);
+		return PowerManager.getAsResult(powerId).getOrThrow(str -> MiscUtil.createCommandException(Text.literal(str)));
 	}
 
 }

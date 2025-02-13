@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.power.MultiplePower;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +81,7 @@ public final class PowerIdentifier {
 		int separatorIndex = value.indexOf(SUB_POWER_SEPARATOR);
 
 		if (value.isEmpty()) {
-			throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.create("Power identifier cannot be empty!");
+			throw MiscUtil.createCommandException(Text.literal("Power identifier cannot be empty!"));
 		}
 
 		else if (separatorIndex >= 0) {
@@ -92,12 +93,12 @@ public final class PowerIdentifier {
 
 			if (superPowerId.isEmpty()) {
 				reader.setCursor(prevCursor);
-				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, "Disallowed empty super-power identifier in power identifier \"" + value + "\"");
+				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal("Disallowed empty super-power identifier in power identifier \"" + value + "\""));
 			}
 
 			else if (subPowerName.isEmpty()) {
 				reader.setCursor(prevCursor + subBeginIndex);
-				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, "Disallowed empty sub-power name in power identifier \"" + value + "\"");
+				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal("Disallowed empty sub-power name in power identifier \"" + value + "\""));
 			}
 
 			else {
@@ -107,7 +108,7 @@ public final class PowerIdentifier {
 				}
 
 				catch (InvalidIdentifierException iie) {
-					throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getMessage());
+					throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal(iie.getMessage()));
 				}
 
 			}
@@ -121,7 +122,7 @@ public final class PowerIdentifier {
 			}
 
 			catch (InvalidIdentifierException iie) {
-				throw MiscUtil.PASSTHROUGH_COMMAND_EXCEPTION_TYPE.createWithContext(reader, iie.getMessage());
+				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal(iie.getMessage()));
 			}
 
 		}
