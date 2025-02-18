@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.registry;
 
-import io.github.eggohito.neo_apoli.power.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;

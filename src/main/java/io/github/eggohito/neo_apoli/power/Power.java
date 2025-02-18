@@ -7,6 +7,7 @@ import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.Validatable;
@@ -22,6 +23,8 @@ import net.minecraft.registry.entry.RegistryElementCodec;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
+
+import java.util.function.Function;
 
 public abstract class Power implements Validatable {
 
@@ -81,6 +84,14 @@ public abstract class Power implements Validatable {
 
 	public boolean isHidden() {
 		return getMetadata().hidden();
+	}
+
+	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Metadata, P> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).apply(instance, constructor));
+	}
+
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createSimplePacketCodec(Function<Metadata, P> constructor) {
+		return createCommonPacketCodec((buf, power) -> {}, (buf, metadata) -> constructor.apply(metadata));
 	}
 
 	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Metadata> addCommonFields(RecordCodecBuilder.Instance<P> instance) {

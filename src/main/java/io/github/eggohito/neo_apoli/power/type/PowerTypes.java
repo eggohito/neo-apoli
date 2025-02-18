@@ -1,7 +1,11 @@
-package io.github.eggohito.neo_apoli.power;
+package io.github.eggohito.neo_apoli.power.type;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.custom.DummyPower;
+import io.github.eggohito.neo_apoli.power.custom.GiveItemsPower;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
