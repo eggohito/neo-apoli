@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -12,7 +13,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryOps;
@@ -78,14 +78,15 @@ public class GiveItemsPower extends Power {
 
 	}
 
+
 	@Override
-	public void fromNbt(RegistryOps<NbtElement> registryOps, NbtElement nbtElement) {
-		this.stuff = PrimitiveCodec.INT.parse(registryOps, nbtElement).getOrThrow();
+	public <I> DataResult<I> encodeData(RegistryOps<I> registryOps) {
+		return PrimitiveCodec.INT.encodeStart(registryOps, stuff);
 	}
 
 	@Override
-	public NbtElement toNbt(RegistryOps<NbtElement> registryOps) {
-		return registryOps.createInt(stuff);
+	public <I> void decodeData(RegistryOps<I> registryOps, I data) {
+		this.stuff = PrimitiveCodec.INT.parse(registryOps, data).getOrThrow();
 	}
 
 	public List<IndexedStack> getIndexedStacks() {

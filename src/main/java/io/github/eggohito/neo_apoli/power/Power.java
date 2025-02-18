@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -12,8 +13,6 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.Validatable;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -62,11 +61,11 @@ public abstract class Power implements Validatable {
 
 	}
 
-	public NbtElement toNbt(RegistryOps<NbtElement> registryOps) {
-		return new NbtCompound();
+	public <I> DataResult<I> encodeData(RegistryOps<I> registryOps) {
+		return DataResult.success(registryOps.emptyMap());
 	}
 
-	public void fromNbt(RegistryOps<NbtElement> registryOps, NbtElement nbtElement) {
+	public <I> void decodeData(RegistryOps<I> registryOps, I data) {
 
 	}
 

@@ -1,10 +1,7 @@
 package io.github.eggohito.neo_apoli.attachment;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.ListBuilder;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
@@ -30,6 +27,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -43,14 +41,14 @@ public class PowerHolderAttachment {
 			if (ops instanceof RegistryOps<T> registryOps) {
 
 				RegistryOps<NbtElement> nbtOps = registryOps.withDelegate(NbtOps.INSTANCE);
-				DataResult<Pair<List<Entry>, T>> entriesResult = Entry.CODEC.listOf().decode(ops, input);
+				DataResult<Pair<List<Entry<?>>, T>> entriesResult = Entry.CODEC.listOf().decode(ops, input);
 
 				return entriesResult.map(entriesAndInput -> {
 
 					Map<PowerIdentifier, Power> powers = new Object2ObjectOpenHashMap<>();
 					Map<PowerIdentifier, Set<Identifier>> sources = new Object2ObjectOpenHashMap<>();
 
-					for (Entry entry : entriesAndInput.getFirst()) {
+					for (Entry<?> entry : entriesAndInput.getFirst()) {
 
 						PowerIdentifier id = entry.powerId();
 						DataResult<Power> powerResult = PowerManager.getAsResult(id)
@@ -61,14 +59,22 @@ public class PowerHolderAttachment {
 							case DataResult.Success<Power> success -> {
 
 								Power power = success.value();
-								NbtElement powerData = entry.data();
+								Dynamic<NbtElement> powerData = entry.data().convert(nbtOps);
 
 								try {
-									power.fromNbt(nbtOps, powerData);
+
+									if (Objects.equals(entry.powerType(), power.getType())) {
+										power.decodeData(nbtOps, powerData.getValue());
+									}
+
+									else {
+										NeoApoli.LOGGER.warn("Power type of power \"{}\" has changed and couldn't be recovered. Skipping data...", id);
+									}
+
 								}
 
 								catch (Exception e) {
-									NeoApoli.LOGGER.warn("Power type of power \"{}\" has changed. Skipping data...", id);
+									NeoApoli.LOGGER.warn("There was a problem decoding power data while receiving power \"{}\" (skipping): {}", id, e);
 								}
 
 								powers.put(id, power);
@@ -107,7 +113,7 @@ public class PowerHolderAttachment {
 					Power power = powerEntry.getValue();
 
 					Set<Identifier> sources = input.sources.get(id);
-					listBuilder.add(Entry.CODEC.encodeStart(registryOps, new Entry(id, power.getType(), sources, power.toNbt(nbtOps))));
+					listBuilder.add(Entry.CODEC.encodeStart(registryOps, new Entry<>(id, power.getType(), sources, new Dynamic<>(nbtOps, power.encodeData(nbtOps).getOrThrow()))));
 
 				}
 
@@ -136,7 +142,7 @@ public class PowerHolderAttachment {
 
 			for (int i = 0; i < size; i++) {
 
-				Entry entry = Entry.PACKET_CODEC.decode(buf);
+				Entry<?> entry = Entry.PACKET_CODEC.decode(buf);
 				PowerIdentifier id = entry.powerId();
 
 				DataResult<Power> powerResult = PowerManager.getAsResult(entry.powerId())
@@ -147,14 +153,22 @@ public class PowerHolderAttachment {
 					case DataResult.Success<Power> success -> {
 
 						Power power = success.value();
-						NbtElement powerData = entry.data();
+						Dynamic<NbtElement> powerData = entry.data().convert(nbtOps);
 
 						try {
-							power.fromNbt(nbtOps, powerData);
+
+							if (Objects.equals(entry.powerType(), power.getType())) {
+								power.decodeData(nbtOps, powerData.getValue());
+							}
+
+							else {
+								NeoApoli.LOGGER.warn("Power type of power \"{}\" has changed and couldn't be recovered. Skipping data...", id);
+							}
+
 						}
 
 						catch (Exception e) {
-							NeoApoli.LOGGER.warn("Power type of power \"{}\" has changed. Skipping data...", id);
+							NeoApoli.LOGGER.warn("There was a problem decoding data while receiving power \"{}\" (skipping): {}", id, e);
 						}
 
 						powers.put(id, power);
@@ -185,7 +199,7 @@ public class PowerHolderAttachment {
 				Power power = powerEntry.getValue();
 
 				Set<Identifier> sources = value.sources.get(id);
-				Entry.PACKET_CODEC.encode(buf, new Entry(id, power.getType(), sources, power.toNbt(nbtOps)));
+				Entry.PACKET_CODEC.encode(buf, new Entry<>(id, power.getType(), sources, new Dynamic<>(nbtOps, power.encodeData(nbtOps).getOrThrow())));
 
 			}
 
@@ -293,20 +307,20 @@ public class PowerHolderAttachment {
 		entity.setAttached(NeoApoliAttachmentTypes.POWER_HOLDER, this);
 	}
 
-	public record Entry(PowerIdentifier powerId, PowerType<?> powerType, Set<Identifier> sources, NbtElement data) {
+	public record Entry<T>(PowerIdentifier powerId, PowerType<?> powerType, Set<Identifier> sources, Dynamic<T> data) {
 
-		public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+		public static final Codec<Entry<?>> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			PowerIdentifier.CODEC.fieldOf("id").forGetter(Entry::powerId),
 			NeoApoliRegistries.POWER_TYPE.getCodec().fieldOf("type").forGetter(Entry::powerType),
 			NeoApoliCodecs.MUTABLE_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
-			NeoApoliCodecs.NBT_ELEMENT.fieldOf("data").forGetter(Entry::data)
+			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));
 
-		public static final PacketCodec<RegistryByteBuf, Entry> PACKET_CODEC = PacketCodec.tuple(
+		public static final PacketCodec<RegistryByteBuf, Entry<?>> PACKET_CODEC = PacketCodec.tuple(
 			PowerIdentifier.PACKET_CODEC, Entry::powerId,
 			PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE), Entry::powerType,
 			NeoApoliPacketCodecs.MUTABLE_IDENTIFIER_SET, Entry::sources,
-			PacketCodecs.UNLIMITED_NBT_ELEMENT, Entry::data,
+			PacketCodecs.unlimitedCodec(Codec.PASSTHROUGH), Entry::data,
 			Entry::new
 		);
 
