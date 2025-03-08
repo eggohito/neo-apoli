@@ -19,6 +19,9 @@
 		],
 		"client": [
 			"io.github.eggohito.neo_apoli.NeoApoliClient"
+		],
+		"cardinal-components": [
+			"io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents"
 		]
 	},
 	"mixins": [
@@ -28,6 +31,11 @@
 			"environment": "client"
 		}
 	],
+	"custom": {
+		"cardinal-components": [
+			"neo-apoli:powers"
+		]
+	},
 	"depends": {
 		"fabricloader": ">=0.16.9",
 		"minecraft": "~1.21.4",

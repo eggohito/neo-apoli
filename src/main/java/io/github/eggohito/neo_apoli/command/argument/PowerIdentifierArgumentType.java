@@ -6,19 +6,17 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
 import java.util.concurrent.CompletableFuture;
 
-public class PowerArgumentType implements ArgumentType<PowerIdentifier> {
+public class PowerIdentifierArgumentType implements ArgumentType<PowerIdentifier> {
 
-	private PowerArgumentType() {
+	private PowerIdentifierArgumentType() {
 
 	}
 
@@ -32,13 +30,19 @@ public class PowerArgumentType implements ArgumentType<PowerIdentifier> {
 		return CommandSource.suggestMatching(PowerManager.getIds().stream().map(PowerIdentifier::toString), builder);
 	}
 
-	public static PowerArgumentType power() {
-		return new PowerArgumentType();
+	public static PowerIdentifierArgumentType powerId() {
+		return new PowerIdentifierArgumentType();
 	}
 
-	public static Power getPower(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
-		PowerIdentifier powerId = context.getArgument(argumentName, PowerIdentifier.class);
-		return PowerManager.getAsResult(powerId).getOrThrow(str -> MiscUtil.createCommandException(Text.literal(str)));
+	public static PowerIdentifier getPowerId(CommandContext<ServerCommandSource> context, String argumentName) {
+		return context.getArgument(argumentName, PowerIdentifier.class);
+	}
+	
+	public static PowerIdentifier getExistingPowerId(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
+		PowerIdentifier id = getPowerId(context, argumentName);
+		return PowerManager.getAsResult(id)
+			.map(power -> id)
+			.getOrThrow(err -> MiscUtil.createCommandException(() -> err));
 	}
 
 }

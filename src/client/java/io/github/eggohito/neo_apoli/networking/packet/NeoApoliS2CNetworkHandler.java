@@ -11,12 +11,12 @@ public class NeoApoliS2CNetworkHandler {
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((clientPlayNetworkHandler, minecraftClient) -> {
-			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onSynchronizedPowers);
+			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowersSynchronized);
 		});
 
 	}
 
-	private static void onSynchronizedPowers(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
+	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
 		NeoApoli.LOGGER.info("Received {} power(s) from server!", payload.powers().size());
 		PowerManager.receivePayload(payload);
 	}

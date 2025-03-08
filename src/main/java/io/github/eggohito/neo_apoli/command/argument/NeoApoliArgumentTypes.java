@@ -7,7 +7,7 @@ import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 public class NeoApoliArgumentTypes {
 
 	public static void registerAll() {
-		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("power"), PowerArgumentType.class, ConstantArgumentSerializer.of(PowerArgumentType::power));
+		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("power"), PowerIdentifierArgumentType.class, ConstantArgumentSerializer.of(PowerIdentifierArgumentType::powerId));
 	}
 
 }

@@ -1,0 +1,10 @@
+{
+	"commands.neo-apoli.power.grant.success.multiple": "%s entities were granted power '%s' from source '%s'",
+	"commands.neo-apoli.power.grant.success.single": "Entity %s was successfully granted the power '%s' from source '%s'",
+	"commands.neo-apoli.power.grant.fail.multiple": "%s entities already had the power '%s' from source '%s'",
+	"commands.neo-apoli.power.grant.fail.single": "Entity %s already had the power '%s' from source '%s'",
+	"commands.neo-apoli.power.revoke.success.multiple": "%s entities had power '%s' from source '%s' revoked",
+	"commands.neo-apoli.power.revoke.success.single": "Entity %s had power '%s' from source '%s' revoked",
+	"commands.neo-apoli.power.revoke.fail.multiple": "%s entities didn't have the power '%s' from source '%s'",
+	"commands.neo-apoli.power.revoke.fail.single": "Entity %s didn't have the power '%s' from source '%s'"
+}

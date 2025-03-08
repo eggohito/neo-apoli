@@ -17,7 +17,7 @@ public class NeoApoliCodecs {
 		nbtElement -> new Dynamic<>(NbtOps.INSTANCE, nbtElement)
 	);
 
-	public static final Codec<Set<Identifier>> MUTABLE_IDENTIFIER_SET = Identifier.CODEC.listOf(1, Integer.MAX_VALUE).xmap(
+	public static final Codec<Set<Identifier>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = Identifier.CODEC.listOf(1, Integer.MAX_VALUE).xmap(
 		ObjectOpenHashSet::new,
 		ObjectArrayList::new
 	);

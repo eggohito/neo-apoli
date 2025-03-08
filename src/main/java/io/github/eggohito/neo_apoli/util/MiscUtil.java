@@ -8,11 +8,11 @@ import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 public class MiscUtil {
 
 	public static CommandSyntaxException createCommandException(Message message) {
-		return DummyCommandExceptionType.INSTANCE.create(message);
+		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message);
 	}
 
 	public static CommandSyntaxException createCommandExceptionWithContext(ImmutableStringReader reader, Message message) {
-		return DummyCommandExceptionType.INSTANCE.createWithContext(reader, message);
+		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message, reader.getString(), reader.getCursor());
 	}
 
 }

@@ -5,10 +5,12 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.attachment.NeoApoliAttachmentTypes;
-import io.github.eggohito.neo_apoli.attachment.PowerHolderAttachment;
-import io.github.eggohito.neo_apoli.command.argument.PowerArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.PowerIdentifierArgumentType;
+import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import joptsimple.internal.Strings;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -22,7 +24,9 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -49,7 +53,7 @@ public class PowerCommand {
 			super("grant");
 			this.then(
 				argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerArgumentType.power())
+					.then(argument("power", PowerIdentifierArgumentType.powerId())
 						.then(argument("source", IdentifierArgumentType.identifier())
 							.executes(this::execute)))
 			);
@@ -60,18 +64,45 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			Power power = PowerArgumentType.getPower(context, "power");
+			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
 			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
+
+			ServerCommandSource commandSource = context.getSource();
+			Map<Identifier, Collection<PowerIdentifier>> grantedPowers = Map.of(source, List.of(id));
 
 			for (Entity target : targets) {
 
-				PowerHolderAttachment powerHolderAttachment = target.getAttachedOrCreate(NeoApoliAttachmentTypes.POWER_HOLDER);
-				if (!powerHolderAttachment.grantPower(target, power, source)) {
+				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				if (!powersComponent.grantPower(id, source)) {
 					continue;
 				}
 
-				powerHolderAttachment.fullSync(target);
+				PowersComponent.Synchronizer.GRANT.sync(target, grantedPowers);
 				processedTargets.add(target);
+
+			}
+
+			if (processedTargets.isEmpty()) {
+
+				if (targets.size() == 1) {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.single", targets.getFirst().getName(), id.toString(), source.toString()));
+				}
+
+				else {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.multiple", targets.size(), id.toString(), source.toString()));
+				}
+
+			}
+
+			else {
+
+				if (processedTargets.size() == 1) {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.single", processedTargets.getFirst().getName(), id.toString(), source.toString()), true);
+				}
+
+				else {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.multiple", processedTargets.size(), id.toString(), source.toString()), true);
+				}
 
 			}
 
@@ -87,7 +118,7 @@ public class PowerCommand {
 			super("revoke");
 			this.then(
 				argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerArgumentType.power())
+					.then(argument("power", PowerIdentifierArgumentType.powerId())
 						.then(argument("source", IdentifierArgumentType.identifier())
 							.executes(this::execute)))
 			);
@@ -98,18 +129,45 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			Power power = PowerArgumentType.getPower(context, "power");
+			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
 			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
+
+			ServerCommandSource commandSource = context.getSource();
+			Map<Identifier, Collection<PowerIdentifier>> revokedPowers = Map.of(source, List.of(id));
 
 			for (Entity target : targets) {
 
-				PowerHolderAttachment powerHolderAttachment = target.getAttachedOrCreate(NeoApoliAttachmentTypes.POWER_HOLDER);
-				if (!powerHolderAttachment.revokePower(target, power, source)) {
+				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				if (!powersComponent.revokePower(id, source)) {
 					continue;
 				}
 
-				powerHolderAttachment.fullSync(target);
+				PowersComponent.Synchronizer.REVOKE.sync(target, revokedPowers);
 				processedTargets.add(target);
+
+			}
+
+			if (processedTargets.isEmpty()) {
+
+				if (targets.size() == 1) {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), id.toString(), source.toString()));
+				}
+
+				else {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), id.toString(), source.toString()));
+				}
+
+			}
+
+			else {
+
+				if (processedTargets.size() == 1) {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), id.toString(), source.toString()), true);
+				}
+
+				else {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), id.toString(), source.toString()), true);
+				}
 
 			}
 
@@ -124,7 +182,7 @@ public class PowerCommand {
 		DumpNode() {
 			super("dump");
 			this.then(
-				argument("power", PowerArgumentType.power())
+				argument("power", PowerIdentifierArgumentType.powerId())
 					.executes(context -> execute(context, false))
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(context -> execute(context, true)))
@@ -133,7 +191,9 @@ public class PowerCommand {
 
 		private int execute(CommandContext<ServerCommandSource> context, boolean specifiedIndent) throws CommandSyntaxException {
 
-			Power power = PowerArgumentType.getPower(context, "power");
+			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
+			Power power = PowerManager.get(id);
+
 			int indent = specifiedIndent
 				? IntegerArgumentType.getInteger(context, "indent")
 				: 4;

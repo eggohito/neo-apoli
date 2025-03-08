@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.attachment.NeoApoliAttachmentTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
@@ -27,7 +26,6 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
-		NeoApoliAttachmentTypes.registerAll();
 
 	}
 

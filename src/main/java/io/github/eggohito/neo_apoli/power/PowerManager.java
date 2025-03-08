@@ -67,11 +67,9 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	private static boolean init;
 
-	private final RegistryWrapper.WrapperLookup wrapperLookup;
 	private final RegistryOps<JsonElement> registryOps;
 
 	PowerManager(RegistryWrapper.WrapperLookup wrapperLookup) {
-		this.wrapperLookup = wrapperLookup;
 		this.registryOps = wrapperLookup.getOps(JsonOps.INSTANCE);
 	}
 
@@ -173,8 +171,8 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	@Override
 	protected void apply(Map<Identifier, PackData> prepared, ResourceManager manager, Profiler profiler) {
 
-		ID_TO_POWER.clear();
 		NeoApoli.LOGGER.info("Parsing powers from data packs...");
+		startReload();
 
 		profiler.push("neo-apoli::parsePowers");
 		prepared.forEach((id, packData) -> {
@@ -215,9 +213,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		profiler.pop();
 
 		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", ID_TO_POWER.size());
-
-		ID_TO_POWER.trim();
-		POWER_TO_ID.trim();
+		endReload();
 
 	}
 
@@ -261,16 +257,28 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			: DataResult.error(() -> "No powers with power identifier \"" + powerId + "\" were found!");
 	}
 
-	public static PowerIdentifier getId(Power power) {
+	public static Power get(PowerIdentifier powerId) {
+		return getAsResult(powerId).getOrThrow(IllegalArgumentException::new);
+	}
 
-		if (POWER_TO_ID.containsKey(power)) {
-			return POWER_TO_ID.get(power);
+	public static DataResult<PowerIdentifier> getIdAsResult(Power power) {
+
+		if (containsId(power)) {
+			return DataResult.success(POWER_TO_ID.get(power));
 		}
 
 		else {
-			throw new IllegalArgumentException();
+			return DataResult.error(() -> "Power " + power.toString() + " didn't have a power identifier as it wasn't registered!");
 		}
 
+	}
+
+	public static PowerIdentifier getId(Power power) {
+		return getIdAsResult(power).getOrThrow(IllegalArgumentException::new);
+	}
+
+	public static Set<Power> getPowers() {
+		return POWER_TO_ID.keySet();
 	}
 
 	public static Set<PowerIdentifier> getIds() {
@@ -279,6 +287,10 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	public static boolean contains(PowerIdentifier powerId) {
 		return ID_TO_POWER.containsKey(powerId);
+	}
+
+	public static boolean containsId(Power power) {
+		return POWER_TO_ID.containsKey(power);
 	}
 
 	private static Identifier trimExtension(Identifier fileId, String directoryPath) {
@@ -305,6 +317,16 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 		PowerLoadingEvents.AFTER.invoker().afterLoad(id, power, packData, registryOps);
 
+	}
+
+	private static void startReload() {
+		ID_TO_POWER.clear();
+		POWER_TO_ID.clear();
+	}
+
+	private static void endReload() {
+		ID_TO_POWER.trim();
+		POWER_TO_ID.trim();
 	}
 
 	public record PackData(String source, JsonElement element) {
