@@ -18,7 +18,7 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
 		NeoApoli.LOGGER.info("Received {} power(s) from server!", payload.powers().size());
-		PowerManager.receivePayload(payload);
+		PowerManager.receiveSyncPayload(payload);
 	}
 
 }

@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.power;
 
-import com.google.common.collect.HashBiMap;
 import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -40,6 +39,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class PowerManager extends SinglePreparationResourceReloader<Map<Identifier, PowerManager.PackData>> implements IdentifiableResourceReloadListener {
 	
@@ -62,10 +62,8 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Identifier ID = NeoApoli.id("powers");
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
-	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> ID_TO_POWER = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Power, PowerIdentifier> POWER_TO_ID = new Object2ObjectOpenHashMap<>();
-
-	private static boolean init;
+	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> POWERS_BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Power, PowerIdentifier> IDS_BY_POWER = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> registryOps;
 
@@ -76,34 +74,24 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	@ApiStatus.Internal
 	public static void init() {
 
-		if (init) {
-			throw new RuntimeException("Power manager is already initialized!!");
-		}
+		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 
-		else {
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+		PowerLoadingEvents.BEFORE.register(ID, (id, packData, directoryPath, registryOps) -> {
 
-			ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+			if (packData.element() instanceof JsonObject jsonObject) {
 
-			ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendPayload(player));
-			PowerLoadingEvents.BEFORE.register(ID, (id, packData, directoryPath, registryOps) -> {
+				PowerType<?> powerType = Identifier.CODEC
+					.parse(registryOps, jsonObject.get(Power.TYPE_KEY))
+					.mapOrElse(NeoApoliRegistries.POWER_TYPE::get, error -> null);
 
-				if (packData.element() instanceof JsonObject jsonObject) {
-
-					PowerType<?> powerType = Identifier.CODEC
-						.parse(registryOps, jsonObject.get(Power.TYPE_KEY))
-						.mapOrElse(NeoApoliRegistries.POWER_TYPE::get, error -> null);
-
-					if (Objects.equals(powerType, PowerTypes.MULTIPLE)) {
-						jsonObject.entrySet().removeIf(entry -> !MultiplePower.isKeyIgnored(entry.getKey()) && !isResourceConditionFulfilled(id, entry.getValue(), directoryPath, registryOps));
-					}
-
+				if (powerType != null && powerType == PowerTypes.MULTIPLE) {
+					jsonObject.entrySet().removeIf(entry -> !MultiplePower.isKeyIgnored(entry.getKey()) && !isResourceConditionFulfilled(id, entry.getValue(), directoryPath, registryOps));
 				}
 
-			});
+			}
 
-			init = true;
-
-		}
+		});
 
 	}
 
@@ -172,7 +160,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	protected void apply(Map<Identifier, PackData> prepared, ResourceManager manager, Profiler profiler) {
 
 		NeoApoli.LOGGER.info("Parsing powers from data packs...");
-		startReload();
+		startLoading();
 
 		profiler.push("neo-apoli::parsePowers");
 		prepared.forEach((id, packData) -> {
@@ -180,7 +168,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			profiler.push("neo-apoli::parsePowers::startParse->" + id + "::[" + packData.source() + "]");
 			try {
 
-				PowerIdentifier powerId = PowerIdentifier.of(id);
+				PowerIdentifier powerId = PowerIdentifier.ofPower(id);
 				Power power = Power.BASE_CODEC.decode(registryOps, packData.element())
 					.getOrThrow()
 					.getFirst();
@@ -188,7 +176,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 				if (power instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
-						PowerIdentifier subPowerId = PowerIdentifier.subPower(id, name);
+						PowerIdentifier subPowerId = PowerIdentifier.ofSubPower(id, name);
 						JsonElement subPowerJson = Objects.requireNonNull(((JsonObject) packData.element()).get(name));
 
 						PackData subPackData = new PackData(packData.source(), subPowerJson);
@@ -212,8 +200,8 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 		profiler.pop();
 
-		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", ID_TO_POWER.size());
-		endReload();
+		NeoApoli.LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s).", POWERS_BY_ID.size());
+		endLoading();
 
 	}
 
@@ -228,43 +216,65 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	@ApiStatus.Internal
-	public static void sendPayload(ServerPlayerEntity player) {
+	public static void sendSyncPayload(ServerPlayerEntity player) {
 
-		if (player.server.isRemote()) {
-			NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", ID_TO_POWER.size(), player.getName().getString());
-			ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(HashBiMap.create(ID_TO_POWER)));
+		if (!player.server.isRemote()) {
+			return;
 		}
+
+		Map<Identifier, Power> filteredPowers = new Object2ObjectOpenHashMap<>();
+		for (Map.Entry<PowerIdentifier, Power> entry : POWERS_BY_ID.entrySet()) {
+
+			PowerIdentifier id = entry.getKey();
+			Power power = entry.getValue();
+
+			if (id instanceof PowerIdentifier.Power powerId) {
+				filteredPowers.put(powerId.value(), power);
+			}
+
+		}
+
+		NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", filteredPowers.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(filteredPowers));
 
 	}
 
 	@ApiStatus.Internal
-	public static void receivePayload(SynchronizePowersS2CPacket payload) {
+	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload) {
 
-		ID_TO_POWER.clear();
-		POWER_TO_ID.clear();
+		startLoading();
 
-		ID_TO_POWER.putAll(payload.powers());
-		POWER_TO_ID.putAll(payload.powers().inverse());
+		for (Map.Entry<Identifier, Power> entry : payload.powers().entrySet()) {
 
-		ID_TO_POWER.trim();
-		POWER_TO_ID.trim();
+			Identifier id = entry.getKey();
+			Power power = entry.getValue();
+
+			if (power instanceof MultiplePower multiplePower) {
+				multiplePower.getSubPowers().forEach((name, subPower) -> register(PowerIdentifier.ofSubPower(id, name), subPower));
+			}
+
+			register(PowerIdentifier.ofPower(id), power);
+
+		}
+
+		endLoading();
 
 	}
 
-	public static DataResult<Power> getAsResult(PowerIdentifier powerId) {
-		return contains(powerId)
-			? DataResult.success(ID_TO_POWER.get(powerId))
-			: DataResult.error(() -> "No powers with power identifier \"" + powerId + "\" were found!");
+	public static DataResult<Power> getAsResult(PowerIdentifier id) {
+		return contains(id)
+			? DataResult.success(POWERS_BY_ID.get(id))
+			: DataResult.error(() -> "No powers with power identifier \"" + id + "\" were found!");
 	}
 
-	public static Power get(PowerIdentifier powerId) {
-		return getAsResult(powerId).getOrThrow(IllegalArgumentException::new);
+	public static Power get(PowerIdentifier id) {
+		return getAsResult(id).getOrThrow(IllegalArgumentException::new);
 	}
 
 	public static DataResult<PowerIdentifier> getIdAsResult(Power power) {
 
 		if (containsId(power)) {
-			return DataResult.success(POWER_TO_ID.get(power));
+			return DataResult.success(IDS_BY_POWER.get(power));
 		}
 
 		else {
@@ -277,20 +287,20 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		return getIdAsResult(power).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static Set<Power> getPowers() {
-		return POWER_TO_ID.keySet();
+	public static Stream<Power> streamPowers() {
+		return IDS_BY_POWER.keySet().stream();
 	}
 
-	public static Set<PowerIdentifier> getIds() {
-		return ID_TO_POWER.keySet();
+	public static Stream<PowerIdentifier> streamIds() {
+		return POWERS_BY_ID.keySet().stream();
 	}
 
 	public static boolean contains(PowerIdentifier powerId) {
-		return ID_TO_POWER.containsKey(powerId);
+		return POWERS_BY_ID.containsKey(powerId);
 	}
 
 	public static boolean containsId(Power power) {
-		return POWER_TO_ID.containsKey(power);
+		return IDS_BY_POWER.containsKey(power);
 	}
 
 	private static Identifier trimExtension(Identifier fileId, String directoryPath) {
@@ -311,22 +321,23 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	private static void register(PowerIdentifier id, Power power, PackData packData, RegistryOps<JsonElement> registryOps) {
-
-		ID_TO_POWER.put(id, power);
-		POWER_TO_ID.put(power, id);
-
+		register(id, power);
 		PowerLoadingEvents.AFTER.invoker().afterLoad(id, power, packData, registryOps);
-
 	}
 
-	private static void startReload() {
-		ID_TO_POWER.clear();
-		POWER_TO_ID.clear();
+	private static void register(PowerIdentifier id, Power power) {
+		POWERS_BY_ID.put(id, power);
+		IDS_BY_POWER.put(power, id);
 	}
 
-	private static void endReload() {
-		ID_TO_POWER.trim();
-		POWER_TO_ID.trim();
+	private static void startLoading() {
+		POWERS_BY_ID.clear();
+		IDS_BY_POWER.clear();
+	}
+
+	private static void endLoading() {
+		POWERS_BY_ID.trim();
+		IDS_BY_POWER.trim();
 	}
 
 	public record PackData(String source, JsonElement element) {

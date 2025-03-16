@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 
 public class PowerTypes {
@@ -25,10 +24,6 @@ public class PowerTypes {
 
 	private static <P extends Power> PowerType<P> register(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 		return Registry.register(NeoApoliRegistries.POWER_TYPE, NeoApoli.id(path), new PowerType<>(mapCodec, packetCodec));
-	}
-
-	private static <P extends Power> PowerType<P> register(String path, MapCodec<P> mapCodec) {
-		return register(path, mapCodec, PacketCodecs.unlimitedRegistryCodec(mapCodec.codec()));
 	}
 
 }

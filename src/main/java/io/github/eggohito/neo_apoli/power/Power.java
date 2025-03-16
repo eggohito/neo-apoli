@@ -18,8 +18,6 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryElementCodec;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 
@@ -30,7 +28,7 @@ public abstract class Power implements Validatable {
 	public static final String TYPE_KEY = "type";
 
 	public static final Codec<Power> BASE_CODEC = NeoApoliRegistries.POWER_TYPE.getCodec().dispatch(TYPE_KEY, Power::getType, PowerType::mapCodec);
-	public static final Codec<RegistryEntry<Power>> ENTRY_CODEC = RegistryElementCodec.of(NeoApoliRegistryKeys.POWER, BASE_CODEC);
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE).dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Metadata metadata;
 
@@ -130,10 +128,6 @@ public abstract class Power implements Validatable {
 			Metadata::new
 		);
 
-	}
-
-	public interface Builder {
-		Power build();
 	}
 
 }

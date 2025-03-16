@@ -5,7 +5,7 @@ import net.minecraft.util.InvalidIdentifierException;
 
 public class IdentifierUtil {
 
-	public static Identifier emptyStrictSplit(String value) {
+	public static Identifier nonEmptySplit(String value) {
 
 		if (value.isEmpty()) {
 			throw new InvalidIdentifierException("Empty resource locations are not allowed!");
@@ -22,19 +22,19 @@ public class IdentifierUtil {
 					? value.substring(0, separatorIndex)
 					: Identifier.DEFAULT_NAMESPACE;
 
-				return emptyStrictOf(namespace, path);
+				return nonEmptyOf(namespace, path);
 
 			}
 
 			else {
-				return emptyStrictOf(Identifier.DEFAULT_NAMESPACE, value);
+				return nonEmptyOf(Identifier.DEFAULT_NAMESPACE, value);
 			}
 
 		}
 
 	}
 
-	public static Identifier emptyStrictOf(String namespace, String path) {
+	public static Identifier nonEmptyOf(String namespace, String path) {
 
 		if (namespace.isEmpty() || path.isEmpty()) {
 			throw new InvalidIdentifierException("Disallowed empty " + (namespace.isEmpty() ? "namespace" : "path") + " in resource location \"" + namespace + ":" + path + "\"");

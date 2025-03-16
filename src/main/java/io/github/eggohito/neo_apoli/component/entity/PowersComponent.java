@@ -32,6 +32,7 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.StringUtils;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
@@ -45,9 +46,9 @@ import java.util.function.Function;
 
 public final class PowersComponent implements Component, AutoSyncedComponent, ClientTickingComponent, ServerTickingComponent {
 
-	public static final int FULL_SYNC_ID = 0;
-	public static final int GRANT_SYNC_ID = 1;
-	public static final int REVOKE_SYNC_ID = 2;
+	private static final int FULL_SYNC_ID = 0;
+	private static final int GRANT_SYNC_ID = 1;
+	private static final int REVOKE_SYNC_ID = 2;
 
 	private final Map<PowerIdentifier, Power> powers;
 	private final Map<PowerIdentifier, Set<Identifier>> sources;
@@ -185,11 +186,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 	}
 
 	public boolean grantPower(PowerIdentifier id, Identifier source) {
-		return grantPower(id, PowerManager.get(id), source);
+		return !holder.getWorld().isClient()
+			&& grantPowerSideAgnostic(id, source);
 	}
 
-	public boolean grantPower(Power power, Identifier source) {
-		return grantPower(PowerManager.getId(power), power, source);
+	private boolean grantPowerSideAgnostic(PowerIdentifier id, Identifier source) {
+		return PowerManager.getAsResult(id)
+			.ifError(error -> NeoApoli.LOGGER.warn("Error trying to grant {} from source '{}' to entity {} (skipping): {}", StringUtils.uncapitalize(id.toString()), source, (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")"), error.message()))
+			.mapOrElse(power -> grantPower(id, power, source), error -> false);
 	}
 
 	private boolean grantPower(PowerIdentifier id, Power power, Identifier source) {
@@ -241,11 +245,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 	}
 
 	public boolean revokePower(PowerIdentifier id, Identifier source) {
-		return revokePower(id, PowerManager.get(id), source);
+		return !holder.getWorld().isClient()
+			&& revokePowerSideAgnostic(id, source);
 	}
 
-	public boolean revokePower(Power power, Identifier source) {
-		return revokePower(PowerManager.getId(power), power, source);
+	private boolean revokePowerSideAgnostic(PowerIdentifier id, Identifier source) {
+		return PowerManager.getAsResult(id)
+			.ifError(error -> NeoApoli.LOGGER.warn("Error trying to revoke {} from source '{}' on entity {} (skipping): {}", StringUtils.uncapitalize(id.toString()), source, (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")"), error.message()))
+			.mapOrElse(power -> revokePower(id, power, source), error -> false);
 	}
 
 	private boolean revokePower(PowerIdentifier id, Power power, Identifier source) {
@@ -326,7 +333,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 				valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerIdentifier.PACKET_CODEC)
 			),
 			(powersComponent, map) -> map.forEach((source, ids) ->
-				ids.forEach(id -> powersComponent.grantPower(id, source))
+				ids.forEach(id -> powersComponent.grantPowerSideAgnostic(id, source))
 			)
 		);
 
@@ -335,7 +342,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 			GRANT.encoder,
 			GRANT.decoder,
 			(powersComponent, map) -> map.forEach((source, ids) ->
-				ids.forEach(id -> powersComponent.revokePower(id, source))
+				ids.forEach(id -> powersComponent.revokePowerSideAgnostic(id, source))
 			)
 		);
 

@@ -9,106 +9,80 @@ import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.util.StringIdentifiable;
 
 import java.util.Objects;
 
-public final class PowerIdentifier {
+public sealed interface PowerIdentifier extends StringIdentifiable permits PowerIdentifier.Power, PowerIdentifier.SubPower {
 
-	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::validate, PowerIdentifier::toString);
-	public static final PacketCodec<ByteBuf, PowerIdentifier> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerIdentifier::of, PowerIdentifier::toString);
+	Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::validate, PowerIdentifier::asString);
+	PacketCodec<ByteBuf, PowerIdentifier> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerIdentifier::of, PowerIdentifier::asString);
 
-	private static final String SUB_POWER_SEPARATOR = "@";
-
-	private final Identifier id;
-	private final String subName;
-
-	PowerIdentifier(Identifier id, String subName) {
-		this.id = id;
-		this.subName = subName;
+	static PowerIdentifier ofPower(Identifier id) {
+		return new Power(id);
 	}
 
-	@Override
-	public String toString() {
-		return id + (subName.isEmpty() ? "" : SUB_POWER_SEPARATOR) + subName;
+	static PowerIdentifier ofSubPower(Identifier superPowerId, String value) {
+		return new SubPower(superPowerId, value);
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-
-		if (this == obj) {
-			return true;
-		}
-
-		else if (obj instanceof PowerIdentifier that) {
-			return Objects.equals(this.toString(), that.toString());
-		}
-
-		else {
-			return false;
-		}
-
+	static PowerIdentifier of(String value) {
+		return validate(value).getOrThrow(InvalidIdentifierException::new);
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, subName);
-	}
-
-	public static PowerIdentifier of(String value) {
+	static DataResult<PowerIdentifier> validate(String value) {
 
 		try {
-			return parse(new StringReader(value));
+			return DataResult.success(parse(new StringReader(value)));
 		}
 
 		catch (CommandSyntaxException cse) {
-			throw new InvalidIdentifierException(cse.getMessage());
+			return DataResult.error(cse::getMessage);
 		}
 
 	}
 
-	public static PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
+	static PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
 
-		int prevCursor = reader.getCursor();
-		while (reader.canRead() && (String.valueOf(reader.peek()).equals(SUB_POWER_SEPARATOR) || Identifier.isCharValid(reader.peek()))) {
+		int startIndex = reader.getCursor();
+		while (reader.canRead() && isValidChar(reader.peek())) {
 			reader.skip();
 		}
 
-		String value = reader.getString().substring(prevCursor, reader.getCursor());
-		int separatorIndex = value.indexOf(SUB_POWER_SEPARATOR);
+		String value = reader.getString().substring(startIndex, reader.getCursor());
+		int separatorIndex = value.indexOf(SubPower.SEPARATOR);
 
 		if (value.isEmpty()) {
-			throw MiscUtil.createCommandException(Text.literal("Power identifier cannot be empty!"));
+			throw MiscUtil.createCommandException(() -> "Power identifier cannot be empty!");
 		}
 
 		else if (separatorIndex >= 0) {
 
-			int subBeginIndex = separatorIndex + 1;
+			int subStartIndex = separatorIndex + 1;
 
 			String superPowerId = value.substring(0, separatorIndex);
-			String subPowerName = value.substring(subBeginIndex);
+			String subPowerId = value.substring(subStartIndex);
 
 			if (superPowerId.isEmpty()) {
-				reader.setCursor(prevCursor);
-				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal("Disallowed empty super-power identifier in power identifier \"" + value + "\""));
+				reader.setCursor(startIndex);
+				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty super-power identifier in power identifier \"" + value + "\"");
 			}
 
-			else if (subPowerName.isEmpty()) {
-				reader.setCursor(prevCursor + subBeginIndex);
-				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal("Disallowed empty sub-power name in power identifier \"" + value + "\""));
+			else if (subPowerId.isEmpty()) {
+				reader.setCursor(startIndex);
+				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty sub-power identifier in power identifier \"" + value + "\"");
 			}
 
 			else {
 
 				try {
-					return subPower(IdentifierUtil.emptyStrictSplit(superPowerId), subPowerName);
+					return ofSubPower(IdentifierUtil.nonEmptySplit(superPowerId), subPowerId);
 				}
 
 				catch (InvalidIdentifierException iie) {
-					throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal(iie.getMessage()));
+					throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
 				}
 
 			}
@@ -118,33 +92,97 @@ public final class PowerIdentifier {
 		else {
 
 			try {
-				return of(IdentifierUtil.emptyStrictSplit(value));
+				return ofPower(IdentifierUtil.nonEmptySplit(value));
 			}
 
 			catch (InvalidIdentifierException iie) {
-				throw MiscUtil.createCommandExceptionWithContext(reader, Text.literal(iie.getMessage()));
+				throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
 			}
 
 		}
 
 	}
 
-	public static PowerIdentifier of(Identifier id) {
-		return new PowerIdentifier(id, "");
+	static boolean isValidChar(char ch) {
+		return ch == SubPower.SEPARATOR
+			|| Identifier.isCharValid(ch);
 	}
 
-	public static PowerIdentifier subPower(Identifier id, @NotNull String name) {
-		return MultiplePower.validateSubPowerName(name).map(str -> new PowerIdentifier(id, str)).getOrThrow();
-	}
+	record Power(Identifier value) implements PowerIdentifier {
 
-	private static DataResult<PowerIdentifier> validate(String value) {
-
-		try {
-			return DataResult.success(of(value));
+		@Override
+		public String asString() {
+			return value().toString();
 		}
 
-		catch (Exception e) {
-			return DataResult.error(() -> "Invalid power identifier: " + value + " (" + e.getMessage() + ")");
+		@Override
+		public String toString() {
+			return "Power \"" + value() + "\"";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			else if (obj instanceof Power that) {
+				return Objects.equals(value, that.value);
+			}
+
+			else {
+				return false;
+			}
+
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(value);
+		}
+
+	}
+
+	record SubPower(Identifier superPowerId, String value) implements PowerIdentifier {
+
+		public static final char SEPARATOR = '@';
+
+		public SubPower {
+			MultiplePower.validateSubPowerName(value).getOrThrow();
+		}
+
+		@Override
+		public String asString() {
+			return superPowerId() + String.valueOf(SEPARATOR) + value();
+		}
+
+		@Override
+		public String toString() {
+			return "Sub-power \"" + value() + "\" of power \"" + superPowerId() + "\"";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			else if (obj instanceof SubPower that) {
+				return Objects.equals(this.superPowerId, that.superPowerId)
+					&& Objects.equals(this.value, that.value);
+			}
+
+			else {
+				return false;
+			}
+
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(superPowerId, value);
 		}
 
 	}

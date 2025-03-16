@@ -27,7 +27,7 @@ public class PowerIdentifierArgumentType implements ArgumentType<PowerIdentifier
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestMatching(PowerManager.getIds().stream().map(PowerIdentifier::toString), builder);
+		return CommandSource.suggestMatching(PowerManager.streamIds().map(PowerIdentifier::toString), builder);
 	}
 
 	public static PowerIdentifierArgumentType powerId() {
