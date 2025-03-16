@@ -27,7 +27,7 @@ public class MultiplePower extends Power {
 	//	TODO: This set of filters should be controllable via config
 	public static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
 
-		Metadata.CODEC.keys(JavaOps.INSTANCE)
+		Properties.CODEC.keys(JavaOps.INSTANCE)
 			.map(Object::toString)
 			.distinct()
 			.map(Pattern::compile)
@@ -93,8 +93,8 @@ public class MultiplePower extends Power {
 
 	private final Map<String, Power> subPowers;
 
-	public MultiplePower(Metadata metadata, Map<String, Power> subPowers) {
-		super(metadata);
+	public MultiplePower(Properties properties, Map<String, Power> subPowers) {
+		super(properties);
 		this.subPowers = subPowers;
 	}
 

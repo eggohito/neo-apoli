@@ -35,8 +35,8 @@ public class GiveItemsPower extends Power {
 	private final List<IndexedStack> indexedStacks;
 	private int stuff = Random.create().nextInt();
 
-	public GiveItemsPower(Metadata metadata, List<IndexedStack> indexedStacks) {
-		super(metadata);
+	public GiveItemsPower(Properties properties, List<IndexedStack> indexedStacks) {
+		super(properties);
 		this.indexedStacks = indexedStacks;
 	}
 

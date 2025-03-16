@@ -12,8 +12,8 @@ public class DummyPower extends Power {
 	public static final MapCodec<DummyPower> CODEC = createSimpleCodec(DummyPower::new);
 	public static final PacketCodec<RegistryByteBuf, DummyPower> PACKET_CODEC = createSimplePacketCodec(DummyPower::new);
 
-	public DummyPower(Metadata metadata) {
-		super(metadata);
+	public DummyPower(Properties properties) {
+		super(properties);
 	}
 
 	@Override

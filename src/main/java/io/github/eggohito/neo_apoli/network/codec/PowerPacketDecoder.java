@@ -5,5 +5,5 @@ import net.minecraft.network.RegistryByteBuf;
 
 @FunctionalInterface
 public interface PowerPacketDecoder<P extends Power> {
-	P decode(RegistryByteBuf buf, Power.Metadata metadata);
+	P decode(RegistryByteBuf buf, Power.Properties properties);
 }

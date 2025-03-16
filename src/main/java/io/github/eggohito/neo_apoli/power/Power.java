@@ -30,10 +30,10 @@ public abstract class Power implements Validatable {
 	public static final Codec<Power> BASE_CODEC = NeoApoliRegistries.POWER_TYPE.getCodec().dispatch(TYPE_KEY, Power::getType, PowerType::mapCodec);
 	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE).dispatch(Power::getType, PowerType::packetCodec);
 
-	private final Metadata metadata;
+	private final Properties properties;
 
-	public Power(Metadata metadata) {
-		this.metadata = metadata;
+	public Power(Properties properties) {
+		this.properties = properties;
 	}
 
 	@Override
@@ -67,32 +67,32 @@ public abstract class Power implements Validatable {
 
 	}
 
-	public Metadata getMetadata() {
-		return metadata;
+	public Properties getProperties() {
+		return properties;
 	}
 
 	public Text getName() {
-		return getMetadata().name();
+		return getProperties().name();
 	}
 
 	public Text getDescription() {
-		return getMetadata().description();
+		return getProperties().description();
 	}
 
 	public boolean isHidden() {
-		return getMetadata().hidden();
+		return getProperties().hidden();
 	}
 
-	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Metadata, P> constructor) {
+	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).apply(instance, constructor));
 	}
 
-	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createSimplePacketCodec(Function<Metadata, P> constructor) {
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createSimplePacketCodec(Function<Properties, P> constructor) {
 		return createCommonPacketCodec((buf, power) -> {}, (buf, metadata) -> constructor.apply(metadata));
 	}
 
-	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Metadata> addCommonFields(RecordCodecBuilder.Instance<P> instance) {
-		return instance.group(Metadata.CODEC.forGetter(Power::getMetadata));
+	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Properties> addCommonFields(RecordCodecBuilder.Instance<P> instance) {
+		return instance.group(Properties.CODEC.forGetter(Power::getProperties));
 	}
 
 	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonPacketCodec(PowerPacketEncoder<P> encoder, PowerPacketDecoder<P> decoder) {
@@ -100,32 +100,32 @@ public abstract class Power implements Validatable {
 
 			@Override
 			public P decode(RegistryByteBuf buf) {
-				Metadata metadata = Metadata.PACKET_CODEC.decode(buf);
-				return decoder.decode(buf, metadata);
+				Properties properties = Properties.PACKET_CODEC.decode(buf);
+				return decoder.decode(buf, properties);
 			}
 
 			@Override
 			public void encode(RegistryByteBuf buf, P value) {
-				Metadata.PACKET_CODEC.encode(buf, value.getMetadata());
+				Properties.PACKET_CODEC.encode(buf, value.getProperties());
 				encoder.encode(buf, value);
 			}
 
 		};
 	}
 
-	public record Metadata(Text name, Text description, boolean hidden) {
+	public record Properties(Text name, Text description, boolean hidden) {
 
-		public static final MapCodec<Metadata> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			TextCodecs.CODEC.optionalFieldOf("name", Text.empty()).forGetter(Metadata::name),
-			TextCodecs.CODEC.optionalFieldOf("description", Text.empty()).forGetter(Metadata::description),
-			PrimitiveCodec.BOOL.optionalFieldOf("hidden", false).forGetter(Metadata::hidden)
-		).apply(instance, Metadata::new));
+		public static final MapCodec<Properties> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+			TextCodecs.CODEC.optionalFieldOf("name", Text.empty()).forGetter(Properties::name),
+			TextCodecs.CODEC.optionalFieldOf("description", Text.empty()).forGetter(Properties::description),
+			PrimitiveCodec.BOOL.optionalFieldOf("hidden", false).forGetter(Properties::hidden)
+		).apply(instance, Properties::new));
 
-		public static final PacketCodec<RegistryByteBuf, Metadata> PACKET_CODEC = PacketCodec.tuple(
-			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Metadata::name,
-			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Metadata::description,
-			PacketCodecs.BOOLEAN, Metadata::hidden,
-			Metadata::new
+		public static final PacketCodec<RegistryByteBuf, Properties> PACKET_CODEC = PacketCodec.tuple(
+			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::name,
+			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::description,
+			PacketCodecs.BOOLEAN, Properties::hidden,
+			Properties::new
 		);
 
 	}
