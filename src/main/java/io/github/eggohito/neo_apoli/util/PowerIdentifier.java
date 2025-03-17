@@ -11,28 +11,36 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.util.StringIdentifiable;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
-public sealed interface PowerIdentifier extends StringIdentifiable permits PowerIdentifier.Power, PowerIdentifier.SubPower {
+public sealed abstract class PowerIdentifier permits PowerIdentifier.Power, PowerIdentifier.SubPower {
 
-	Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::validate, PowerIdentifier::asString);
-	PacketCodec<ByteBuf, PowerIdentifier> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerIdentifier::of, PowerIdentifier::asString);
+	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::validate, PowerIdentifier::toString);
+	public static final PacketCodec<ByteBuf, PowerIdentifier> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerIdentifier::of, PowerIdentifier::toString);
 
-	static PowerIdentifier ofPower(Identifier id) {
+	public String asDisplayString(boolean capitalized) {
+		return capitalized
+			? asDisplayString()
+			: StringUtils.uncapitalize(asDisplayString());
+	}
+
+	public abstract String asDisplayString();
+
+	public static PowerIdentifier ofPower(Identifier id) {
 		return new Power(id);
 	}
 
-	static PowerIdentifier ofSubPower(Identifier superPowerId, String value) {
+	public static PowerIdentifier ofSubPower(PowerIdentifier superPowerId, String value) {
 		return new SubPower(superPowerId, value);
 	}
 
-	static PowerIdentifier of(String value) {
+	public static PowerIdentifier of(String value) {
 		return validate(value).getOrThrow(InvalidIdentifierException::new);
 	}
 
-	static DataResult<PowerIdentifier> validate(String value) {
+	public static DataResult<PowerIdentifier> validate(String value) {
 
 		try {
 			return DataResult.success(parse(new StringReader(value)));
@@ -44,7 +52,7 @@ public sealed interface PowerIdentifier extends StringIdentifiable permits Power
 
 	}
 
-	static PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
+	public static PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
 
 		int startIndex = reader.getCursor();
 		while (reader.canRead() && isValidChar(reader.peek())) {
@@ -62,15 +70,15 @@ public sealed interface PowerIdentifier extends StringIdentifiable permits Power
 
 			int subStartIndex = separatorIndex + 1;
 
-			String superPowerId = value.substring(0, separatorIndex);
-			String subPowerId = value.substring(subStartIndex);
+			String power = value.substring(0, separatorIndex);
+			String subPower = value.substring(subStartIndex);
 
-			if (superPowerId.isEmpty()) {
+			if (power.isEmpty()) {
 				reader.setCursor(startIndex);
 				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty super-power identifier in power identifier \"" + value + "\"");
 			}
 
-			else if (subPowerId.isEmpty()) {
+			else if (subPower.isEmpty()) {
 				reader.setCursor(startIndex);
 				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty sub-power identifier in power identifier \"" + value + "\"");
 			}
@@ -78,7 +86,8 @@ public sealed interface PowerIdentifier extends StringIdentifiable permits Power
 			else {
 
 				try {
-					return ofSubPower(IdentifierUtil.nonEmptySplit(superPowerId), subPowerId);
+					Identifier powerId = IdentifierUtil.nonEmptySplit(power);
+					return ofSubPower(ofPower(powerId), subPower);
 				}
 
 				catch (InvalidIdentifierException iie) {
@@ -103,21 +112,27 @@ public sealed interface PowerIdentifier extends StringIdentifiable permits Power
 
 	}
 
-	static boolean isValidChar(char ch) {
+	public static boolean isValidChar(char ch) {
 		return ch == SubPower.SEPARATOR
 			|| Identifier.isCharValid(ch);
 	}
 
-	record Power(Identifier value) implements PowerIdentifier {
+	static final class Power extends PowerIdentifier {
 
-		@Override
-		public String asString() {
-			return value().toString();
+		private final Identifier value;
+
+		public Power(Identifier value) {
+			this.value = value;
 		}
 
 		@Override
 		public String toString() {
-			return "Power \"" + value() + "\"";
+			return value.toString();
+		}
+
+		@Override
+		public String asDisplayString() {
+			return "Power \"" + value + "\"";
 		}
 
 		@Override
@@ -144,22 +159,32 @@ public sealed interface PowerIdentifier extends StringIdentifiable permits Power
 
 	}
 
-	record SubPower(Identifier superPowerId, String value) implements PowerIdentifier {
+	static final class SubPower extends PowerIdentifier {
 
 		public static final char SEPARATOR = '@';
 
-		public SubPower {
-			MultiplePower.validateSubPowerName(value).getOrThrow();
-		}
+		private final PowerIdentifier superPowerId;
+		private final String value;
 
-		@Override
-		public String asString() {
-			return superPowerId() + String.valueOf(SEPARATOR) + value();
+		public SubPower(PowerIdentifier superPowerId, String value) {
+
+			if (superPowerId instanceof SubPower subPowerId) {
+				throw new IllegalArgumentException(subPowerId + " cannot be a super-power of another sub-power!");
+			}
+
+			this.superPowerId = superPowerId;
+			this.value = MultiplePower.validateSubPowerName(value).getOrThrow();
+
 		}
 
 		@Override
 		public String toString() {
-			return "Sub-power \"" + value() + "\" of power \"" + superPowerId() + "\"";
+			return superPowerId + String.valueOf(SEPARATOR) + value;
+		}
+
+		@Override
+		public String asDisplayString() {
+			return "Sub-power \"" + value + "\" of power \"" + superPowerId + "\"";
 		}
 
 		@Override

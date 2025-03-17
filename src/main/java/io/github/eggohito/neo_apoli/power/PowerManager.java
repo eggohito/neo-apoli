@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -39,6 +40,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PowerManager extends SinglePreparationResourceReloader<Map<Identifier, PowerManager.PackData>> implements IdentifiableResourceReloadListener {
@@ -62,7 +65,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Identifier ID = NeoApoli.id("powers");
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
-	private static final Object2ObjectOpenHashMap<PowerIdentifier, Power> POWERS_BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<PowerIdentifier, PowerEntry<?>> POWERS_BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Power, PowerIdentifier> IDS_BY_POWER = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> registryOps;
@@ -169,23 +172,21 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			try {
 
 				PowerIdentifier powerId = PowerIdentifier.ofPower(id);
-				Power power = Power.BASE_CODEC.decode(registryOps, packData.element())
-					.getOrThrow()
-					.getFirst();
+				Power power = Power.BASE_CODEC.parse(registryOps, packData.element()).getOrThrow();
 
 				if (power instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
-						PowerIdentifier subPowerId = PowerIdentifier.ofSubPower(id, name);
+						PowerIdentifier subPowerId = PowerIdentifier.ofSubPower(powerId, name);
 						JsonElement subPowerJson = Objects.requireNonNull(((JsonObject) packData.element()).get(name));
 
 						PackData subPackData = new PackData(packData.source(), subPowerJson);
-						register(subPowerId, subPower, subPackData, registryOps);
+						registerWithCallback(new PowerEntry<>(subPowerId, subPower), subPackData, registryOps);
 
 					});
 				}
 
-				register(powerId, power, packData, registryOps);
+				registerWithCallback(new PowerEntry<>(powerId, power), packData, registryOps);
 
 			}
 
@@ -222,49 +223,35 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			return;
 		}
 
-		Map<Identifier, Power> filteredPowers = new Object2ObjectOpenHashMap<>();
-		for (Map.Entry<PowerIdentifier, Power> entry : POWERS_BY_ID.entrySet()) {
+		Set<PowerEntry<?>> entries = POWERS_BY_ID.values()
+			.stream()
+			.filter(Predicate.not(PowerEntry::isSubPower))
+			.collect(Collectors.toCollection(ObjectOpenHashSet::new));
 
-			PowerIdentifier id = entry.getKey();
-			Power power = entry.getValue();
-
-			if (id instanceof PowerIdentifier.Power powerId) {
-				filteredPowers.put(powerId.value(), power);
-			}
-
-		}
-
-		NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", filteredPowers.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(filteredPowers));
+		NeoApoli.LOGGER.info("Sent {} power(s) to player {}!", entries.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(entries));
 
 	}
 
 	@ApiStatus.Internal
 	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload) {
-
 		startLoading();
-
-		for (Map.Entry<Identifier, Power> entry : payload.powers().entrySet()) {
-
-			Identifier id = entry.getKey();
-			Power power = entry.getValue();
-
-			if (power instanceof MultiplePower multiplePower) {
-				multiplePower.getSubPowers().forEach((name, subPower) -> register(PowerIdentifier.ofSubPower(id, name), subPower));
-			}
-
-			register(PowerIdentifier.ofPower(id), power);
-
-		}
-
+		payload.powers().forEach(PowerManager::register);
 		endLoading();
-
 	}
 
-	public static DataResult<Power> getAsResult(PowerIdentifier id) {
+	public static DataResult<PowerEntry<?>> getEntryAsResult(PowerIdentifier id) {
 		return contains(id)
 			? DataResult.success(POWERS_BY_ID.get(id))
 			: DataResult.error(() -> "No powers with power identifier \"" + id + "\" were found!");
+	}
+
+	public static PowerEntry<?> getEntry(PowerIdentifier id) {
+		return getEntryAsResult(id).getOrThrow(IllegalArgumentException::new);
+	}
+
+	public static DataResult<Power> getAsResult(PowerIdentifier id) {
+		return getEntryAsResult(id).map(PowerEntry::value);
 	}
 
 	public static Power get(PowerIdentifier id) {
@@ -320,14 +307,14 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			|| ResourceConditionsImpl.applyResourceConditions(jsonObject, directoryPath, id, ((RegistryOpsAccessor) registryOps).getRegistryInfoGetter());
 	}
 
-	private static void register(PowerIdentifier id, Power power, PackData packData, RegistryOps<JsonElement> registryOps) {
-		register(id, power);
-		PowerLoadingEvents.AFTER.invoker().afterLoad(id, power, packData, registryOps);
+	private static void registerWithCallback(PowerEntry<?> entry, PackData packData, RegistryOps<JsonElement> registryOps) {
+		register(entry);
+		PowerLoadingEvents.AFTER.invoker().afterLoad(entry, packData, registryOps);
 	}
 
-	private static void register(PowerIdentifier id, Power power) {
-		POWERS_BY_ID.put(id, power);
-		IDS_BY_POWER.put(power, id);
+	private static void register(PowerEntry<?> entry) {
+		POWERS_BY_ID.put(entry.id(), entry);
+		IDS_BY_POWER.put(entry.value(), entry.id());
 	}
 
 	private static void startLoading() {

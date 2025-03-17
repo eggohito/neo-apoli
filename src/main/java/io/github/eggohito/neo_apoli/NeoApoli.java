@@ -2,11 +2,13 @@ package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
+import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
+
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).streamPowers(true).forEach(power -> power.onAdded(entity)));
+		ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).streamPowers(true).forEach(power -> power.onRemoved(entity)));
 
 	}
 

@@ -46,7 +46,7 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public void onGained(Entity entity) {
+	public void onGranted(Entity entity) {
 
 		if (!(entity.getWorld() instanceof ServerWorld serverWorld)) {
 			return;

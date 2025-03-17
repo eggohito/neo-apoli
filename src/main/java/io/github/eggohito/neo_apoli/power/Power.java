@@ -47,7 +47,7 @@ public abstract class Power implements Validatable {
 
 	}
 
-	public void onGained(Entity entity) {
+	public void onGranted(Entity entity) {
 
 	}
 
@@ -55,7 +55,7 @@ public abstract class Power implements Validatable {
 
 	}
 
-	public void onLost(Entity entity) {
+	public void onRevoked(Entity entity) {
 
 	}
 

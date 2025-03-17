@@ -1,9 +1,8 @@
 package io.github.eggohito.neo_apoli.event;
 
 import com.google.gson.JsonElement;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.util.PowerIdentifier;
+import io.github.eggohito.neo_apoli.util.PowerEntry;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.registry.RegistryOps;
@@ -24,10 +23,10 @@ public final class PowerLoadingEvents {
 
 	public static final Event<After> AFTER = EventFactory.createArrayBacked(
 		After.class,
-		callbacks -> (id, power, packData, registryOps) -> {
+		callbacks -> (entry, packData, registryOps) -> {
 
 			for (var callback : callbacks) {
-				callback.afterLoad(id, power, packData, registryOps);
+				callback.afterLoad(entry, packData, registryOps);
 			}
 
 		}
@@ -38,7 +37,7 @@ public final class PowerLoadingEvents {
 	}
 
 	public interface After {
-		void afterLoad(PowerIdentifier id, Power power, PowerManager.PackData packData, RegistryOps<JsonElement> registryOps);
+		void afterLoad(PowerEntry<?> entry, PowerManager.PackData packData, RegistryOps<JsonElement> registryOps);
 	}
 
 }
