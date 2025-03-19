@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -347,7 +347,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerIdentifier.CODEC.fieldOf("id").forGetter(Entry::powerId),
-			NeoApoliRegistries.POWER_TYPE.getCodec().fieldOf("type").forGetter(Entry::powerType),
+			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::powerType),
 			NeoApoliCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));

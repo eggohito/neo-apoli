@@ -7,9 +7,6 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.event.PowerLoadingEvents;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -80,21 +77,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
-		PowerLoadingEvents.BEFORE.register(ID, (id, packData, directoryPath, registryOps) -> {
-
-			if (packData.element() instanceof JsonObject jsonObject) {
-
-				PowerType<?> powerType = Identifier.CODEC
-					.parse(registryOps, jsonObject.get(Power.TYPE_KEY))
-					.mapOrElse(NeoApoliRegistries.POWER_TYPE::get, error -> null);
-
-				if (powerType != null && powerType == PowerTypes.MULTIPLE) {
-					jsonObject.entrySet().removeIf(entry -> !MultiplePower.isKeyIgnored(entry.getKey()) && !isResourceConditionFulfilled(id, entry.getValue(), directoryPath, registryOps));
-				}
-
-			}
-
-		});
+		PowerLoadingEvents.BEFORE.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 
 	}
 
@@ -302,7 +285,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	@SuppressWarnings("UnstableApiUsage")
-	private static boolean isResourceConditionFulfilled(Identifier id, JsonElement jsonElement, String directoryPath, RegistryOps<JsonElement> registryOps) {
+	public static boolean isResourceConditionFulfilled(Identifier id, JsonElement jsonElement, String directoryPath, RegistryOps<JsonElement> registryOps) {
 		return !(jsonElement instanceof JsonObject jsonObject)
 			|| ResourceConditionsImpl.applyResourceConditions(jsonObject, directoryPath, id, ((RegistryOpsAccessor) registryOps).getRegistryInfoGetter());
 	}
