@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.util.PowerIdentifier;
+import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import joptsimple.internal.Strings;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -64,11 +64,11 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
+			PowerReference id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
 			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
 
 			ServerCommandSource commandSource = context.getSource();
-			Map<Identifier, Collection<PowerIdentifier>> grantedPowers = Map.of(source, List.of(id));
+			Map<Identifier, Collection<PowerReference>> grantedPowers = Map.of(source, List.of(id));
 
 			for (Entity target : targets) {
 
@@ -129,11 +129,11 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
+			PowerReference id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
 			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
 
 			ServerCommandSource commandSource = context.getSource();
-			Map<Identifier, Collection<PowerIdentifier>> revokedPowers = Map.of(source, List.of(id));
+			Map<Identifier, Collection<PowerReference>> revokedPowers = Map.of(source, List.of(id));
 
 			for (Entity target : targets) {
 
@@ -191,7 +191,7 @@ public class PowerCommand {
 
 		private int execute(CommandContext<ServerCommandSource> context, boolean specifiedIndent) throws CommandSyntaxException {
 
-			PowerIdentifier id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
+			PowerReference id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
 			Power power = PowerManager.get(id);
 
 			int indent = specifiedIndent

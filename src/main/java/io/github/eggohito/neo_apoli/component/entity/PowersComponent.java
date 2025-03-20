@@ -14,7 +14,7 @@ import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
-import io.github.eggohito.neo_apoli.util.PowerIdentifier;
+import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.entity.Entity;
@@ -46,8 +46,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 	private static final int GRANT_SYNC_ID = 1;
 	private static final int REVOKE_SYNC_ID = 2;
 
-	private final Map<PowerIdentifier, PowerEntry<?>> powers;
-	private final Map<PowerIdentifier, Set<Identifier>> sources;
+	private final Map<PowerReference, PowerEntry<?>> powers;
+	private final Map<PowerReference, Set<Identifier>> sources;
 
 	private final Entity holder;
 
@@ -107,8 +107,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 					.parse(nbtOps, powerNbt)
 					.getOrThrow();
 
-				PowerIdentifier powerId = entry.powerId();
-				DataResult<Power> powerResult = PowerManager.getAsResult(powerId).flatMap(this::deepCopy);
+				PowerReference powerReference = entry.powerReference();
+				DataResult<Power> powerResult = PowerManager.getAsResult(powerReference).flatMap(this::deepCopy);
 
 				switch (powerResult) {
 					case DataResult.Success<Power> success -> {
@@ -116,7 +116,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 						Power power = success.value();
 						Dynamic<NbtElement> data = entry.data().convert(nbtOps);
 
-						PowerEntry<?> powerEntry = new PowerEntry<>(powerId, power);
+						PowerEntry<?> powerEntry = new PowerEntry<>(powerReference, power);
 						Set<Identifier> sources = entry.sources();
 
 						try {
@@ -126,21 +126,21 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 							}
 
 							else {
-								NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered and will be skipped.", powerId.asDisplayString(false));
+								NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered and will be skipped.", powerReference.asDisplayString(false));
 							}
 
 						}
 
 						catch (Exception e) {
-							NeoApoli.LOGGER.warn("There was a problem decoding data of {} from NBT (skipping): {}", powerId.asDisplayString(false), e);
+							NeoApoli.LOGGER.warn("There was a problem decoding data of {} from NBT (skipping): {}", powerReference.asDisplayString(false), e);
 						}
 
-						this.powers.put(powerId, powerEntry);
-						this.sources.put(powerId, sources);
+						this.powers.put(powerReference, powerEntry);
+						this.sources.put(powerReference, sources);
 
 					}
 					case DataResult.Error<Power> error ->
-						NeoApoli.LOGGER.warn("Error decoding {} from cardinal_components.\"{}\".powers[{}] of entity {} (skipping): {}", powerId.asDisplayString(false), NeoApoliEntityComponents.POWERS.getId(), index, holder.getName().getString(), error.message());
+						NeoApoli.LOGGER.warn("Error decoding {} from cardinal_components.\"{}\".powers[{}] of entity {} (skipping): {}", powerReference.asDisplayString(false), NeoApoliEntityComponents.POWERS.getId(), index, holder.getName().getString(), error.message());
 				}
 
 			}
@@ -185,14 +185,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	}
 
-	public boolean grantPower(PowerIdentifier id, Identifier source) {
+	public boolean grantPower(PowerReference reference, Identifier source) {
 		return !holder.getWorld().isClient()
-			&& grantPowerSideAgnostic(id, source);
+			&& grantPowerSideAgnostic(reference, source);
 	}
 
-	private boolean grantPowerSideAgnostic(PowerIdentifier id, Identifier source) {
-		return PowerManager.getEntryAsResult(id)
-			.mapError(error -> "Error trying to grant " + id.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
+	private boolean grantPowerSideAgnostic(PowerReference reference, Identifier source) {
+		return PowerManager.getEntryAsResult(reference)
+			.mapError(error -> "Error trying to grant " + reference.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
 			.resultOrPartial(NeoApoli.LOGGER::warn)
 			.map(entry -> grantPower(entry, source))
 			.orElse(false);
@@ -214,8 +214,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power> addedAction, Consumer<Power> grantedAction) {
 
-		PowerIdentifier id = entry.id();
-		Set<Identifier> sources = this.sources.computeIfAbsent(id, k -> new ObjectOpenHashSet<>());
+		PowerReference reference = entry.reference();
+		Set<Identifier> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
 
 		if (sources.contains(source)) {
 			return false;
@@ -227,16 +227,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		sources.add(source);
 		addedAction.accept(copiedPower);
 
-		if (!powers.containsKey(id)) {
+		if (!powers.containsKey(reference)) {
 			grantedAction.accept(copiedPower);
 		}
 
-		this.powers.put(id, new PowerEntry<>(id, copiedPower));
+		this.powers.put(reference, new PowerEntry<>(reference, copiedPower));
 
 		if (originalPower instanceof MultiplePower multiplePower) {
 			multiplePower.getSubPowers().values()
 				.stream()
-				.map(PowerManager::getId)
+				.map(PowerManager::getReference)
 				.map(PowerManager::getEntry)
 				.forEach(subEntry -> grantPower(subEntry, source, addedAction, grantedAction));
 		}
@@ -245,12 +245,12 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	}
 
-	public boolean revokePower(PowerIdentifier id, Identifier source) {
+	public boolean revokePower(PowerReference id, Identifier source) {
 		return !holder.getWorld().isClient()
 			&& revokePowerSideAgnostic(id, source);
 	}
 
-	private boolean revokePowerSideAgnostic(PowerIdentifier id, Identifier source) {
+	private boolean revokePowerSideAgnostic(PowerReference id, Identifier source) {
 		return PowerManager.getEntryAsResult(id)
 			.mapError(error -> "Error trying to revoke " + id.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
 			.resultOrPartial(NeoApoli.LOGGER::warn)
@@ -260,20 +260,20 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	private boolean revokePower(PowerEntry<?> entry, Identifier source) {
 
-		List<PowerIdentifier> revokedPowerIds = new ObjectArrayList<>();
-		boolean result = this.revokePower(entry, source, revokedPowerIds::add);
+		List<PowerReference> revokedPowers = new ObjectArrayList<>();
+		boolean result = this.revokePower(entry, source, revokedPowers::add);
 
-		powers.keySet().removeIf(revokedPowerIds::contains);
-		sources.keySet().removeIf(revokedPowerIds::contains);
+		powers.keySet().removeIf(revokedPowers::contains);
+		sources.keySet().removeIf(revokedPowers::contains);
 
 		return result;
 
 	}
 
-	private boolean revokePower(PowerEntry<?> entry, Identifier source, Consumer<PowerIdentifier> revokedAction) {
+	private boolean revokePower(PowerEntry<?> entry, Identifier source, Consumer<PowerReference> revokedAction) {
 
-		PowerIdentifier id = entry.id();
-		Set<Identifier> sources = this.sources.getOrDefault(id, new ObjectOpenHashSet<>());
+		PowerReference reference = entry.reference();
+		Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
 
 		if (!sources.contains(source)) {
 			return false;
@@ -282,14 +282,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		Power originalPower = entry.value();
 		sources.remove(source);
 
-		if (powers.containsKey(id)) {
+		if (powers.containsKey(reference)) {
 
-			Power storedPower = powers.get(id).value();
+			Power storedPower = powers.get(reference).value();
 			storedPower.onRemoved(holder);
 
 			if (sources.isEmpty()) {
 				storedPower.onRevoked(holder);
-				revokedAction.accept(id);
+				revokedAction.accept(reference);
 			}
 
 		}
@@ -297,7 +297,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		if (originalPower instanceof MultiplePower multiplePower) {
 			multiplePower.getSubPowers().values()
 				.stream()
-				.map(PowerManager::getId)
+				.map(PowerManager::getReference)
 				.map(PowerManager::getEntry)
 				.forEach(subEntry -> revokePower(subEntry, source, revokedAction));
 		}
@@ -316,26 +316,26 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		return streamPowerEntries(includeSubPowers).map(PowerEntry::value);
 	}
 
-	public PowerEntry<?> getPowerEntry(PowerIdentifier id) {
-		return Objects.requireNonNull(powers.get(id), "Entity " + holder.getName().getString() + " didn't have " + id.asDisplayString(false) + " granted!");
+	public PowerEntry<?> getPowerEntry(PowerReference reference) {
+		return Objects.requireNonNull(powers.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
 	}
 
-	public Power getPower(PowerIdentifier id) {
-		return getPowerEntry(id).value();
+	public Power getPower(PowerReference reference) {
+		return getPowerEntry(reference).value();
 	}
 
-	public Set<Identifier> getSources(PowerIdentifier id) {
-		return Objects.requireNonNull(sources.get(id), "Entity " + holder.getName().getString() + " didn't have any sources for " + id.asDisplayString(false) + "!");
+	public Set<Identifier> getSources(PowerReference reference) {
+		return Objects.requireNonNull(sources.get(reference), "Entity " + holder.getName().getString() + " didn't have any sources for " + reference.asDisplayString(false) + "!");
 	}
 
-	public boolean hasPower(PowerIdentifier id) {
-		return powers.containsKey(id)
-			&& sources.containsKey(id);
+	public boolean hasPower(PowerReference reference) {
+		return powers.containsKey(reference)
+			&& sources.containsKey(reference);
 	}
 
-	public boolean hasPower(PowerIdentifier id, Identifier source) {
-		return hasPower(id)
-			&& sources.get(id).contains(source);
+	public boolean hasPower(PowerReference reference, Identifier source) {
+		return hasPower(reference)
+			&& sources.get(reference).contains(source);
 	}
 
 	private DataResult<Power> deepCopy(Power power) {
@@ -343,10 +343,10 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		return Power.BASE_CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.BASE_CODEC.parse(nbtOps, nbtElement));
 	}
 
-	public record Entry<T>(PowerIdentifier powerId, PowerType<?> powerType, Set<Identifier> sources, Dynamic<T> data) {
+	public record Entry<T>(PowerReference powerReference, PowerType<?> powerType, Set<Identifier> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			PowerIdentifier.CODEC.fieldOf("id").forGetter(Entry::powerId),
+			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
 			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::powerType),
 			NeoApoliCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
@@ -356,23 +356,23 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	public static final class Synchronizer<T> {
 
-		public static final Synchronizer<Map<Identifier, Collection<PowerIdentifier>>> GRANT = new Synchronizer<>(
+		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> GRANT = new Synchronizer<>(
 			GRANT_SYNC_ID,
 			(buf, map) -> buf.writeMap(
 				map,
 				PacketByteBuf::writeIdentifier,
-				(valueBuf, ids) -> valueBuf.writeCollection(ids, PowerIdentifier.PACKET_CODEC)
+				(valueBuf, ids) -> valueBuf.writeCollection(ids, PowerReference.PACKET_CODEC)
 			),
 			buf -> buf.readMap(
 				PacketByteBuf::readIdentifier,
-				valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerIdentifier.PACKET_CODEC)
+				valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerReference.PACKET_CODEC)
 			),
 			(powersComponent, map) -> map.forEach((source, ids) ->
 				ids.forEach(id -> powersComponent.grantPowerSideAgnostic(id, source))
 			)
 		);
 
-		public static final Synchronizer<Map<Identifier, Collection<PowerIdentifier>>> REVOKE = new Synchronizer<>(
+		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> REVOKE = new Synchronizer<>(
 			REVOKE_SYNC_ID,
 			GRANT.encoder,
 			GRANT.decoder,

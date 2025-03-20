@@ -6,16 +6,16 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Objects;
 
-public record PowerEntry<P extends Power>(PowerIdentifier id, P value) {
+public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 
 	public static final PacketCodec<RegistryByteBuf, PowerEntry<?>> PACKET_CODEC = PacketCodec.tuple(
-		PowerIdentifier.PACKET_CODEC, PowerEntry::id,
+		PowerReference.PACKET_CODEC, PowerEntry::reference,
 		Power.BASE_PACKET_CODEC, PowerEntry::value,
 		PowerEntry::new
 	);
 
 	public boolean isSubPower() {
-		return id() instanceof PowerIdentifier.SubPower;
+		return reference() instanceof PowerReference.SubPower;
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public record PowerEntry<P extends Power>(PowerIdentifier id, P value) {
 		}
 
 		else if (obj instanceof PowerEntry<?> that) {
-			return Objects.equals(this.id(), that.id());
+			return Objects.equals(this.reference(), that.reference());
 		}
 
 		else {
@@ -37,7 +37,7 @@ public record PowerEntry<P extends Power>(PowerIdentifier id, P value) {
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(this.id());
+		return Objects.hashCode(this.reference());
 	}
 
 }

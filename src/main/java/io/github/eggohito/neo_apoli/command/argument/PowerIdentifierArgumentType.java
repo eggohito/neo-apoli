@@ -8,38 +8,38 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.PowerIdentifier;
+import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.concurrent.CompletableFuture;
 
-public class PowerIdentifierArgumentType implements ArgumentType<PowerIdentifier> {
+public class PowerIdentifierArgumentType implements ArgumentType<PowerReference> {
 
 	private PowerIdentifierArgumentType() {
 
 	}
 
 	@Override
-	public PowerIdentifier parse(StringReader reader) throws CommandSyntaxException {
-		return PowerIdentifier.parse(reader);
+	public PowerReference parse(StringReader reader) throws CommandSyntaxException {
+		return PowerReference.parse(reader);
 	}
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestMatching(PowerManager.streamIds().map(PowerIdentifier::toString), builder);
+		return CommandSource.suggestMatching(PowerManager.streamIds().map(PowerReference::toString), builder);
 	}
 
 	public static PowerIdentifierArgumentType powerId() {
 		return new PowerIdentifierArgumentType();
 	}
 
-	public static PowerIdentifier getPowerId(CommandContext<ServerCommandSource> context, String argumentName) {
-		return context.getArgument(argumentName, PowerIdentifier.class);
+	public static PowerReference getPowerId(CommandContext<ServerCommandSource> context, String argumentName) {
+		return context.getArgument(argumentName, PowerReference.class);
 	}
 	
-	public static PowerIdentifier getExistingPowerId(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
-		PowerIdentifier id = getPowerId(context, argumentName);
+	public static PowerReference getExistingPowerId(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
+		PowerReference id = getPowerId(context, argumentName);
 		return PowerManager.getAsResult(id)
 			.map(power -> id)
 			.getOrThrow(err -> MiscUtil.createCommandException(() -> err));
