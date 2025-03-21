@@ -5,17 +5,19 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.command.argument.PowerIdentifierArgumentType;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import joptsimple.internal.Strings;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.visitor.NbtTextFormatter;
@@ -192,7 +194,7 @@ public class PowerCommand {
 		private int execute(CommandContext<ServerCommandSource> context, boolean specifiedIndent) throws CommandSyntaxException {
 
 			PowerReference id = PowerIdentifierArgumentType.getExistingPowerId(context, "power");
-			Power power = PowerManager.get(id);
+			PowerEntry<?> entry = PowerManager.getEntry(id);
 
 			int indent = specifiedIndent
 				? IntegerArgumentType.getInteger(context, "indent")
@@ -201,7 +203,9 @@ public class PowerCommand {
 			ServerCommandSource source = context.getSource();
 			RegistryOps<NbtElement> nbtOps = source.getRegistryManager().getOps(NbtOps.INSTANCE);
 
-			return Power.BASE_CODEC.encodeStart(nbtOps, power)
+			return PowerEntry.CODEC.encodeStart(nbtOps, entry)
+				.flatMap(nbtElement -> nbtElement instanceof NbtCompound nbtCompound ? DataResult.success(nbtCompound) : DataResult.error(() -> "Not an NBT compound: " + nbtElement))
+				.map(nbtCompound -> nbtCompound.get(PowerEntry.VALUE_KEY))
 				.ifSuccess(nbtElement -> source.sendFeedback(() -> new NbtTextFormatter(Strings.repeat(' ', indent)).apply(nbtElement), false))
 				.ifError(error -> source.sendError(Text.literal(error.message())))
 				.mapOrElse(nbtElement -> 1, error -> 0);

@@ -26,8 +26,9 @@ import java.util.function.Function;
 public abstract class Power implements Validatable {
 
 	public static final String TYPE_KEY = "type";
+	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
-	public static final Codec<Power> BASE_CODEC = PowerTypes.CODEC.dispatch(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final Codec<Power> BASE_CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE).dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;

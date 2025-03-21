@@ -36,7 +36,6 @@ import org.quiltmc.parsers.json.gson.GsonReader;
 import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -152,17 +151,23 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		profiler.push("neo-apoli::parsePowers");
 		prepared.forEach((id, packData) -> {
 
+			PowerReference powerReference = PowerReference.ofPower(id);
 			profiler.push("neo-apoli::parsePowers::startParse->" + id + "::[" + packData.source() + "]");
+
 			try {
 
-				PowerReference powerReference = PowerReference.ofPower(id);
-				Power power = Power.BASE_CODEC.parse(registryOps, packData.element()).getOrThrow();
+				JsonObject jsonObject = new JsonObject();
 
-				if (power instanceof MultiplePower multiplePower) {
+				jsonObject.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
+				jsonObject.add(PowerEntry.VALUE_KEY, packData.element());
+
+				PowerEntry<?> entry = PowerEntry.CODEC.parse(registryOps, jsonObject).getOrThrow();
+
+				if (entry.value() instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
 						PowerReference subPowerReference = PowerReference.ofSubPower(id, name);
-						JsonElement subPowerJson = Objects.requireNonNull(((JsonObject) packData.element()).get(name));
+						JsonElement subPowerJson = jsonObject.getAsJsonObject(PowerEntry.VALUE_KEY).get(name);
 
 						PackData subPackData = new PackData(packData.source(), subPowerJson);
 						registerWithCallback(new PowerEntry<>(subPowerReference, subPower), subPackData, registryOps);
@@ -170,13 +175,13 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 					});
 				}
 
-				registerWithCallback(new PowerEntry<>(powerReference, power), packData, registryOps);
+				registerWithCallback(entry, packData, registryOps);
 
 			}
 
 			catch (Exception e) {
 				String message = e.getMessage();
-				NeoApoli.LOGGER.error("Error trying to parse power \"{}\" from data pack [{}] (skipping): {}", id, packData.source(), (message == null || message.isEmpty() ? e : message));
+				NeoApoli.LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference, packData.source(), (message == null || message.isEmpty() ? e : message));
 			}
 
 			profiler.pop();
