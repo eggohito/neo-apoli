@@ -28,6 +28,8 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 
 	String asDisplayString();
 
+	boolean isSubPower();
+
 	static PowerReference ofPower(Identifier id) {
 		return new Power(id);
 	}
@@ -127,6 +129,11 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 		}
 
 		@Override
+		public boolean isSubPower() {
+			return false;
+		}
+
+		@Override
 		public boolean equals(Object obj) {
 
 			if (this == obj) {
@@ -166,6 +173,11 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 		@Override
 		public String asDisplayString() {
 			return "Sub-power \"" + name() + "\" of power \"" + parentId() + "\"";
+		}
+
+		@Override
+		public boolean isSubPower() {
+			return true;
 		}
 
 		@Override

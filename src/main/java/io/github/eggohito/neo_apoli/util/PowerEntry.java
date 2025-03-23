@@ -57,7 +57,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 	);
 
 	public boolean isSubPower() {
-		return reference() instanceof PowerReference.SubPower;
+		return reference().isSubPower();
 	}
 
 	@Override
