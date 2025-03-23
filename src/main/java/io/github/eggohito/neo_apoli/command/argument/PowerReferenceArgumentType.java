@@ -14,9 +14,9 @@ import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.concurrent.CompletableFuture;
 
-public class PowerIdentifierArgumentType implements ArgumentType<PowerReference> {
+public class PowerReferenceArgumentType implements ArgumentType<PowerReference> {
 
-	private PowerIdentifierArgumentType() {
+	private PowerReferenceArgumentType() {
 
 	}
 
@@ -30,18 +30,18 @@ public class PowerIdentifierArgumentType implements ArgumentType<PowerReference>
 		return CommandSource.suggestMatching(PowerManager.streamIds().map(PowerReference::toString), builder);
 	}
 
-	public static PowerIdentifierArgumentType powerId() {
-		return new PowerIdentifierArgumentType();
+	public static PowerReferenceArgumentType powerReference() {
+		return new PowerReferenceArgumentType();
 	}
 
-	public static PowerReference getPowerId(CommandContext<ServerCommandSource> context, String argumentName) {
+	public static PowerReference getPowerReference(CommandContext<ServerCommandSource> context, String argumentName) {
 		return context.getArgument(argumentName, PowerReference.class);
 	}
 	
-	public static PowerReference getExistingPowerId(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
-		PowerReference id = getPowerId(context, argumentName);
-		return PowerManager.getAsResult(id)
-			.map(power -> id)
+	public static PowerReference getExistingPowerReference(CommandContext<ServerCommandSource> context, String argumentName) throws CommandSyntaxException {
+		PowerReference reference = getPowerReference(context, argumentName);
+		return PowerManager.getAsResult(reference)
+			.map(power -> reference)
 			.getOrThrow(err -> MiscUtil.createCommandException(() -> err));
 	}
 

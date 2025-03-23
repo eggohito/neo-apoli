@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.*;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -17,32 +16,23 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 	public static final String REFERENCE_KEY = "reference";
 	public static final String VALUE_KEY = "value";
 
-	private static final MapCodec<PowerEntry<?>> BASE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf(REFERENCE_KEY).forGetter(PowerEntry::reference),
-		Power.BASE_CODEC.fieldOf(VALUE_KEY).forGetter(PowerEntry::value)
-	).apply(instance, PowerEntry::new));
+	private static final MapCodec<PowerReference> REFERENCE_MAP_CODEC = PowerReference.CODEC.fieldOf(REFERENCE_KEY);
+	private static final MapCodec<PowerType<?>> POWER_TYPE_MAP_CODEC = PowerTypes.CODEC.fieldOf(Power.TYPE_KEY);
 
-	private static final MapCodec<PowerEntry<?>> MAP_CODEC = new MapCodec<>() {
+	public static final MapCodec<PowerEntry<?>> MAP_CODEC = new MapCodec<>() {
 
 		@Override
 		public <T> Stream<T> keys(DynamicOps<T> ops) {
-			return BASE_CODEC.keys(ops);
+			return Stream.of(REFERENCE_KEY, VALUE_KEY).map(ops::createString);
 		}
 
 		@Override
 		public <T> DataResult<PowerEntry<?>> decode(DynamicOps<T> ops, MapLike<T> mapInput) {
-
-			DataResult<PowerReference> powerReferenceResult = PowerReference.CODEC.fieldOf(REFERENCE_KEY).decode(ops, mapInput);
-			DataResult<MapLike<T>> powerInputResult = ops.getMap(mapInput.get(VALUE_KEY));
-
-			DataResult<PowerType<?>> powerTypeResult = powerInputResult.flatMap(powerInput -> PowerTypes.CODEC.parse(ops, powerInput.get(Power.TYPE_KEY)));
-
-			return powerReferenceResult
-				.flatMap(powerReference -> powerInputResult
-					.flatMap(powerInput -> powerTypeResult
-						.flatMap(powerType -> PowerParsingEvents.DECODING.invoker().decode(powerReference, powerType, ops, powerInput))
-						.map(power -> new PowerEntry<>(powerReference, power))));
-
+			return REFERENCE_MAP_CODEC.decode(ops, mapInput)
+				.flatMap(reference -> ops.getMap(mapInput.get(VALUE_KEY))
+					.flatMap(input -> POWER_TYPE_MAP_CODEC.decode(ops, input)
+						.flatMap(type -> PowerParsingEvents.DECODING.invoker().decode(reference, type, ops, input)
+							.map(power -> new PowerEntry<>(reference, power)))));
 		}
 
 		@Override
