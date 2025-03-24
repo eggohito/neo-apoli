@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.power.custom;
+package io.github.eggohito.neo_apoli.power.internal;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.power.Power;

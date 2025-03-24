@@ -6,7 +6,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.event.PowerLoadingEvents;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
-import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;

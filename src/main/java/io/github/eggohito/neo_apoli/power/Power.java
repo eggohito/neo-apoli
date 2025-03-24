@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.Validatable;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -29,7 +28,7 @@ public abstract class Power implements Validatable {
 	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
 	public static final Codec<Power> BASE_CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE).dispatch(Power::getType, PowerType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 

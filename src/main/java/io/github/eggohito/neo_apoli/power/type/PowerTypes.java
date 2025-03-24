@@ -4,12 +4,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.custom.DummyPower;
 import io.github.eggohito.neo_apoli.power.custom.GiveItemsPower;
-import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.internal.DummyPower;
+import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
@@ -17,6 +19,7 @@ public class PowerTypes {
 
 	//	TODO: Integrate identifier aliasing to this codec
 	public static final Codec<PowerType<?>> CODEC = NeoApoliRegistries.POWER_TYPE.getCodec();
+	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<DummyPower> DUMMY = register("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);

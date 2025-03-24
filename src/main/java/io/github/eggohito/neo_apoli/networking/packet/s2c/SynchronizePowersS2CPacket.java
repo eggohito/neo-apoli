@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
