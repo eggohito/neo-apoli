@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.power.internal.DummyPower;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.IdentifierAlias;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -17,8 +19,9 @@ import net.minecraft.util.Identifier;
 
 public class PowerTypes {
 
-	//	TODO: Integrate identifier aliasing to this codec
-	public static final Codec<PowerType<?>> CODEC = NeoApoliRegistries.POWER_TYPE.getCodec();
+	public static final IdentifierAlias ALIASES = new IdentifierAlias();
+
+	public static final Codec<PowerType<?>> CODEC = RegistryUtil.getAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<DummyPower> DUMMY = register("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
