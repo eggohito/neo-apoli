@@ -4,6 +4,8 @@ import net.minecraft.registry.RegistryWrapper;
 
 public interface Validatable {
 
-	void validate(RegistryWrapper.WrapperLookup wrapperLookup);
+	default void validate(RegistryWrapper.WrapperLookup wrapperLookup) {
+
+	}
 
 }

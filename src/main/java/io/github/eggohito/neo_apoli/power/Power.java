@@ -16,7 +16,6 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 
@@ -34,11 +33,6 @@ public abstract class Power implements Validatable {
 
 	public Power(Properties properties) {
 		this.properties = properties;
-	}
-
-	@Override
-	public void validate(RegistryWrapper.WrapperLookup wrapperLookup) {
-
 	}
 
 	public abstract PowerType<? extends Power> getType();
