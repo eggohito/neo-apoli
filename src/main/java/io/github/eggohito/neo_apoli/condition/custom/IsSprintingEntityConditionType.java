@@ -8,18 +8,18 @@ import io.github.eggohito.neo_apoli.condition.type.EntityConditionTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public class SprintingEntityCondition extends EntityCondition {
+public class IsSprintingEntityConditionType extends EntityCondition {
 
-	public static final MapCodec<SprintingEntityCondition> CODEC = createSimpleCodec(SprintingEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, SprintingEntityCondition> PACKET_CODEC = createSimplePacketCodec(SprintingEntityCondition::new);
+	public static final MapCodec<IsSprintingEntityConditionType> CODEC = createSimpleCodec(IsSprintingEntityConditionType::new);
+	public static final PacketCodec<RegistryByteBuf, IsSprintingEntityConditionType> PACKET_CODEC = createSimplePacketCodec(IsSprintingEntityConditionType::new);
 
-	public SprintingEntityCondition(boolean inverted) {
+	public IsSprintingEntityConditionType(boolean inverted) {
 		super(inverted);
 	}
 
 	@Override
 	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.SPRINTING;
+		return EntityConditionTypes.IS_SPRINTING;
 	}
 
 	@Override

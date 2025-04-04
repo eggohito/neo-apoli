@@ -32,8 +32,8 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliPackets.registerAll();
 
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).streamPowers(true).forEach(power -> power.onAdded(entity)));
-		ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).streamPowers(true).forEach(power -> power.onRemoved(entity)));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onAdded(entity)));
+		ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onRemoved(entity)));
 
 	}
 

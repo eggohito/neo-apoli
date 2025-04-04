@@ -11,6 +11,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.util.Util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -27,6 +28,8 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 	}
 
 	String asDisplayString();
+
+	String createTranslationKey();
 
 	boolean isSubPower();
 
@@ -129,6 +132,11 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 		}
 
 		@Override
+		public String createTranslationKey() {
+			return Util.createTranslationKey("power", id());
+		}
+
+		@Override
 		public boolean isSubPower() {
 			return false;
 		}
@@ -173,6 +181,11 @@ public sealed interface PowerReference permits PowerReference.Power, PowerRefere
 		@Override
 		public String asDisplayString() {
 			return "Sub-power \"" + name() + "\" of power \"" + parentId() + "\"";
+		}
+
+		@Override
+		public String createTranslationKey() {
+			return Util.createTranslationKey("power", parentId()) + SEPARATOR + name();
 		}
 
 		@Override

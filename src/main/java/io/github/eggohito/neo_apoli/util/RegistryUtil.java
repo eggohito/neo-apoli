@@ -9,9 +9,11 @@ import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 
+import java.util.Objects;
+
 public final class RegistryUtil {
 
-	public static <T> Codec<T> getAliasedCodec(Registry<T> registry, IdentifierAlias aliases) {
+	public static <T> Codec<T> createAliasedCodec(Registry<T> registry, IdentifierAlias aliases) {
 
 		Codec<RegistryEntry.Reference<T>> entryCodec = Identifier.CODEC.comapFlatMap(
 			id -> registry.getEntry(aliases.resolve(id, registry::containsId))
@@ -34,6 +36,18 @@ public final class RegistryUtil {
 				: DataResult.error(() -> "Unregistered holder in " + registry.getKey() + ": " + registry.getEntry(t))
 		);
 
+	}
+
+	public static <T> Identifier getId(Registry<T> registry, T obj) {
+		return Objects.requireNonNull(registry.getId(obj));
+	}
+
+	public static <T> String getIdNamespace(Registry<T> registry, T obj) {
+		return getId(registry, obj).getNamespace();
+	}
+
+	public static <T> String getIdPath(Registry<T> registry, T obj) {
+		return getId(registry, obj).getPath();
 	}
 
 }

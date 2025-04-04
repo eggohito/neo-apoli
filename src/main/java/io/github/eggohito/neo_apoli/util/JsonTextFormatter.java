@@ -30,12 +30,20 @@ public class JsonTextFormatter {
 		this.root = root;
 	}
 
-	public JsonTextFormatter(char indent, int size) {
+	protected JsonTextFormatter(char indent, int size) {
 		this(Strings.repeat(String.valueOf(indent), size), 1, true);
 	}
 
-	public JsonTextFormatter(int size) {
+	protected JsonTextFormatter(int size) {
 		this(' ', size);
+	}
+
+	public static Text format(JsonElement jsonElement, char ch, int indent) {
+		return new JsonTextFormatter(ch, indent).apply(jsonElement);
+	}
+
+	public static Text format(JsonElement jsonElement, int indent) {
+		return new JsonTextFormatter(indent).apply(jsonElement);
 	}
 
 	public Text apply(JsonElement jsonElement) {

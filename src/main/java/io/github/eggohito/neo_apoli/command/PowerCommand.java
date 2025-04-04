@@ -2,74 +2,95 @@ package io.github.eggohito.neo_apoli.command;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.argument.PowerReferenceArgumentType;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class PowerCommand {
 
-	public static void register(CommandNode<ServerCommandSource> rootNode) {
+	public static final Identifier DEFAULT_SOURCE = NeoApoli.id("command");
+	public static final CommandNode<ServerCommandSource> NODE = literal("power")
+		.requires(commandSource -> commandSource.hasPermissionLevel(2))
+		.build();
 
-		CommandNode<ServerCommandSource> baseNode = literal("power")
-			.requires(source -> source.hasPermissionLevel(2))
-			.build();
+	public static void register(CommandNode<ServerCommandSource> baseNode) {
 
-		baseNode.addChild(new GrantNode().build());
-		baseNode.addChild(new RevokeNode().build());
-		baseNode.addChild(new DumpNode().build());
+		NODE.addChild(GrantSubCommand.NODE);
+		NODE.addChild(RevokeSubCommand.NODE);
+		NODE.addChild(RemoveSubCommand.NODE);
+		NODE.addChild(ClearSubCommand.NODE);
+		NODE.addChild(ListSubCommand.NODE);
+		NODE.addChild(DumpSubCommand.NODE);
 
-		rootNode.addChild(baseNode);
+		baseNode.addChild(NODE);
 
 	}
 
-	public static final class GrantNode extends LiteralArgumentBuilder<ServerCommandSource> {
+	static final class GrantSubCommand {
 
-		GrantNode() {
-			super("grant");
-			this.then(
-				argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerReferenceArgumentType.powerReference())
-						.then(argument("source", IdentifierArgumentType.identifier())
-							.executes(this::execute)))
-			);
+		static final CommandNode<ServerCommandSource> NODE = literal("grant")
+			.then(argument("targets", EntityArgumentType.entities())
+				.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.executes(GrantSubCommand::withDefaultSource)
+					.then(argument("source", IdentifierArgumentType.identifier())
+						.executes(GrantSubCommand::withSpecificSource))))
+			.build();
+
+		static int withDefaultSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, DEFAULT_SOURCE);
 		}
 
-		private int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+		static int withSpecificSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, IdentifierArgumentType.getIdentifier(commandContext, "source"));
+		}
 
-			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
+		static int execute(CommandContext<ServerCommandSource> commandContext, Identifier source) throws CommandSyntaxException {
+
+			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(context, "power");
-			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
+			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power");
 
-			ServerCommandSource commandSource = context.getSource();
+			Power power = PowerManager.get(reference);
+			Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(reference.toString()))));
+
 			Map<Identifier, Collection<PowerReference>> grantedPowers = Map.of(source, List.of(reference));
+			ServerCommandSource commandSource = commandContext.getSource();
 
 			for (Entity target : targets) {
 
@@ -78,19 +99,19 @@ public class PowerCommand {
 					continue;
 				}
 
-				PowersComponent.Synchronizer.GRANT.sync(target, grantedPowers);
 				processedTargets.add(target);
+				PowersComponent.Synchronizer.GRANT.sync(target, grantedPowers);
 
 			}
 
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.single", targets.getFirst().getName(), reference.toString(), source.toString()));
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.single", targets.getFirst().getName(), powerName, source.toString()));
 				}
 
 				else {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.multiple", targets.size(), reference.toString(), source.toString()));
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.multiple", targets.size(), powerName, source.toString()));
 				}
 
 			}
@@ -98,11 +119,11 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.single", processedTargets.getFirst().getName(), reference.toString(), source.toString()), true);
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
 				}
 
 				else {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.multiple", processedTargets.size(), reference.toString(), source.toString()), true);
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.multiple", processedTargets.size(), powerName, source.toString()), true);
 				}
 
 			}
@@ -113,49 +134,140 @@ public class PowerCommand {
 
 	}
 
-	public static final class RevokeNode extends LiteralArgumentBuilder<ServerCommandSource> {
+	static final class RevokeSubCommand {
 
-		RevokeNode() {
-			super("revoke");
-			this.then(
-				argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerReferenceArgumentType.powerReference())
-						.then(argument("source", IdentifierArgumentType.identifier())
-							.executes(this::execute)))
+		static final CommandNode<ServerCommandSource> NODE = literal("revoke")
+			.then(argument("targets", EntityArgumentType.entities())
+				.then(literal("all")
+					.executes(RevokeSubCommand::allFromDefaultSource)
+					.then(argument("source", IdentifierArgumentType.identifier())
+						.executes(RevokeSubCommand::allFromSpecificSource)))
+				.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.executes(RevokeSubCommand::oneFromDefaultSource)
+					.then(argument("source", IdentifierArgumentType.identifier())
+						.executes(RevokeSubCommand::oneFromSpecificSource))))
+			.build();
+
+		static int allFromDefaultSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(
+				commandContext,
+				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
+				null,
+				DEFAULT_SOURCE
 			);
 		}
 
-		private int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+		static int allFromSpecificSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(
+				commandContext,
+				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
+				null,
+				IdentifierArgumentType.getIdentifier(commandContext, "source")
+			);
+		}
 
-			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(context, "targets"));
+		static int oneFromDefaultSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(
+				commandContext,
+				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
+				PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power"),
+				DEFAULT_SOURCE
+			);
+		}
+
+		static int oneFromSpecificSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(
+				commandContext,
+				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
+				PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power"),
+				IdentifierArgumentType.getIdentifier(commandContext, "source")
+			);
+		}
+
+		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets, @Nullable PowerReference powerReference, Identifier source) throws CommandSyntaxException {
+
+			ServerCommandSource commandSource = commandContext.getSource();
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(context, "power");
-			Identifier source = IdentifierArgumentType.getIdentifier(context, "source");
-
-			ServerCommandSource commandSource = context.getSource();
-			Map<Identifier, Collection<PowerReference>> revokedPowers = Map.of(source, List.of(reference));
+			AtomicInteger revokedPowersCount = new AtomicInteger();
 
 			for (Entity target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				if (!powersComponent.revokePower(reference, source)) {
-					continue;
+				Map<Identifier, Collection<PowerReference>> revokedPowers = new Object2ObjectOpenHashMap<>();
+
+				if (powerReference != null) {
+
+					if (powersComponent.revokePower(powerReference, source)) {
+						revokedPowers.put(source, List.of(powerReference));
+					}
+
 				}
 
-				PowersComponent.Synchronizer.REVOKE.sync(target, revokedPowers);
-				processedTargets.add(target);
+				else {
+
+					Set<PowerReference> matchingReferences = new ObjectOpenHashSet<>();
+					for (PowerEntry<?> entry : powersComponent.getPowerEntriesFromSource(source)) {
+
+						PowerReference reference = entry.reference();
+
+						if (powersComponent.revokePower(reference, source)) {
+							matchingReferences.add(reference);
+						}
+
+					}
+
+					if (!matchingReferences.isEmpty()) {
+						revokedPowers.put(source, matchingReferences);
+					}
+
+				}
+
+				if (!revokedPowers.isEmpty()) {
+
+					processedTargets.add(target);
+					PowersComponent.Synchronizer.REVOKE.sync(target, revokedPowers);
+
+					revokedPowersCount.addAndGet(revokedPowers.size());
+
+				}
 
 			}
 
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), reference.toString(), source.toString()));
+
+					if (powerReference != null) {
+
+						Power power = PowerManager.get(powerReference);
+						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(powerReference.toString()))));
+
+						commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), powerName, source));
+
+					}
+
+					else {
+						commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.all.fail.single", targets.getFirst().getName(), source.toString()));
+					}
+
 				}
 
 				else {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), reference.toString(), source.toString()));
+
+					if (powerReference != null) {
+
+						Power power = PowerManager.get(powerReference);
+						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(powerReference.toString()))));
+
+						commandSource.sendError(Text.stringifiedTranslatable("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), powerName, source.toString()));
+
+					}
+
+					else {
+						commandSource.sendError(Text.stringifiedTranslatable("commands.neo-apoli.power.revoke.all.fail.multiple", targets.size(), source));
+					}
+
 				}
 
 			}
@@ -163,11 +275,37 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), reference.toString(), source.toString()), true);
+
+					if (powerReference != null) {
+
+						Power power = PowerManager.get(powerReference);
+						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(powerReference.toString()))));
+
+						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
+
+					}
+
+					else {
+						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.all.success.single", processedTargets.getFirst().getName(), revokedPowersCount.get(), source.toString()), true);
+					}
+
 				}
 
 				else {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), reference.toString(), source.toString()), true);
+
+					if (powerReference != null) {
+
+						Power power = PowerManager.get(powerReference);
+						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(powerReference.toString()))));
+
+						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), powerName, source.toString()), true);
+
+					}
+
+					else {
+						commandSource.sendFeedback(() -> Text.stringifiedTranslatable("commands.neo-apoli.power.revoke.all.success.multiple", processedTargets.size(), revokedPowersCount.get(), source), true);
+					}
+
 				}
 
 			}
@@ -178,35 +316,249 @@ public class PowerCommand {
 
 	}
 
-	public static final class DumpNode extends LiteralArgumentBuilder<ServerCommandSource> {
+	static final class RemoveSubCommand {
 
-		DumpNode() {
-			super("dump");
-			this.then(
-				argument("power", PowerReferenceArgumentType.powerReference())
-					.executes(context -> execute(context, false))
-					.then(argument("indent", IntegerArgumentType.integer(0))
-						.executes(context -> execute(context, true)))
-			);
+		static final CommandNode<ServerCommandSource> NODE = literal("remove")
+			.then(argument("targets", EntityArgumentType.entities())
+				.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.executes(RemoveSubCommand::execute)))
+			.build();
+
+		static int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+
+			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets"));
+			List<Entity> processedTargets = new ObjectArrayList<>();
+
+			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power");
+			List<PowerReference> references = List.of(reference);
+
+			ServerCommandSource commandSource = commandContext.getSource();
+			Text powerName = PowerManager.get(reference).getName().copy().styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(reference.toString()))));
+
+			for (Entity target : targets) {
+
+				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				Map<Identifier, Collection<PowerReference>> removedPowers = new Object2ObjectOpenHashMap<>();
+
+				for (Identifier source : powersComponent.getSources(reference)) {
+
+					if (powersComponent.revokePower(reference, source)) {
+						removedPowers.put(source, references);
+					}
+
+				}
+
+				if (!removedPowers.isEmpty()) {
+					processedTargets.add(target);
+					PowersComponent.Synchronizer.REVOKE.sync(target, removedPowers);
+				}
+
+			}
+
+			if (processedTargets.isEmpty()) {
+
+				if (targets.size() == 1) {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.remove.fail.single", targets.getFirst().getName(), powerName));
+				}
+
+				else {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.remove.fail.multiple", targets.size(), powerName));
+				}
+
+			}
+
+			else {
+
+				if (processedTargets.size() == 1) {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.remove.success.single", processedTargets.getFirst().getName(), powerName), true);
+				}
+
+				else {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.remove.success.multiple", processedTargets.size(), powerName), true);
+				}
+
+			}
+
+			return processedTargets.size();
+
 		}
 
-		private int execute(CommandContext<ServerCommandSource> context, boolean specifiedIndent) throws CommandSyntaxException {
+	}
+
+	static final class ClearSubCommand {
+
+		static final CommandNode<ServerCommandSource> NODE = literal("clear")
+			.executes(ClearSubCommand::fromSelf)
+			.then(argument("targets", EntityArgumentType.entities())
+				.executes(ClearSubCommand::fromSpecified))
+			.build();
+
+		static int fromSelf(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, ObjectArrayList.of(commandContext.getSource().getEntityOrThrow()));
+		}
+
+		static int fromSpecified(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")));
+		}
+
+		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets) throws CommandSyntaxException {
+
+			List<Entity> processedTargets = new ObjectArrayList<>();
+			ServerCommandSource commandSource = commandContext.getSource();
+
+			AtomicInteger totalClearedPowers = new AtomicInteger(0);
+			for (Entity target : targets) {
+
+				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				Map<Identifier, Collection<PowerReference>> clearedPowers = new Object2ObjectOpenHashMap<>();
+
+				for (PowerReference reference : powersComponent.collectAndMapPowerEntries(ObjectOpenHashSet::new, PowerEntry::reference, false)) {
+
+					for (Identifier source : powersComponent.getSources(reference)) {
+
+						if (powersComponent.revokePower(reference, source)) {
+							clearedPowers.computeIfAbsent(source, k -> new ObjectOpenHashSet<>()).add(reference);
+						}
+
+					}
+
+				}
+
+				if (!clearedPowers.isEmpty()) {
+					processedTargets.add(target);
+					PowersComponent.Synchronizer.REVOKE.sync(target, clearedPowers);
+				}
+
+				totalClearedPowers.addAndGet(clearedPowers.size());
+
+			}
+
+			if (processedTargets.isEmpty()) {
+
+				if (targets.size() == 1) {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.clear.fail.single", targets.getFirst().getName()));
+				}
+
+				else {
+					commandSource.sendError(Text.translatable("commands.neo-apoli.power.clear.fail.multiple", targets.size()));
+				}
+
+			}
+
+			else {
+
+				if (processedTargets.size() == 1) {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.clear.success.single", processedTargets.getFirst().getName(), totalClearedPowers.get()), true);
+				}
+
+				else {
+					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.clear.success.multiple", processedTargets.size(), totalClearedPowers.get()), true);
+				}
+
+			}
+
+			return totalClearedPowers.get();
+
+		}
+
+	}
+
+	static final class ListSubCommand {
+
+		static final CommandNode<ServerCommandSource> NODE = literal("list")
+			.executes(ListSubCommand::fromSelf)
+			.then(argument("target", EntityArgumentType.entity())
+				.executes(ListSubCommand::fromSpecified)
+				.then(argument("includeSubPowers", BoolArgumentType.bool())
+					.executes(ListSubCommand::fromSpecifiedWithSubPowerOption)))
+			.build();
+
+		static int fromSelf(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, commandContext.getSource().getEntityOrThrow(), false);
+		}
+
+		static int fromSpecified(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, EntityArgumentType.getEntity(commandContext, "target"), false);
+		}
+
+		static int fromSpecifiedWithSubPowerOption(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, EntityArgumentType.getEntity(commandContext, "target"), BoolArgumentType.getBool(commandContext, "includeSubPowers"));
+		}
+
+		static int execute(CommandContext<ServerCommandSource> commandContext, Entity target, boolean includeSubPowers) throws CommandSyntaxException {
+
+			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+			ServerCommandSource commandSource = commandContext.getSource();
+
+			List<Text> powerTooltips = new ObjectArrayList<>();
+
+			for (PowerEntry<?> entry : powersComponent.getPowerEntries(includeSubPowers)) {
+
+				PowerReference reference = entry.reference();
+				Power power = entry.value();
+
+				List<MutableText> sourceTooltips = powersComponent.getSources(reference)
+					.stream()
+					.map(Text::of)
+					.map(Text::copy)
+					.map(text -> text.formatted(Formatting.YELLOW))
+					.toList();
+
+				Text idTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.id", Text.literal("\"" + reference.toString() + "\"").formatted(Formatting.GREEN));
+				Text sourcesTooltip = Text.translatable("commands.neo-apoli.power.list.info.sources", Texts.join(sourceTooltips, Text.of(", ")));
+				Text typeTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.type", Text.literal("\"" + Objects.requireNonNull(NeoApoliRegistries.POWER_TYPE.getId(power.getType())) + "\"").formatted(Formatting.GOLD));
+
+				Text hoverTooltip = Text.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, sourcesTooltip);
+				HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverTooltip);
+
+				powerTooltips.add(power.getName().copy().styled(style -> style.withHoverEvent(hoverEvent)));
+
+			}
+
+			if (powerTooltips.isEmpty()) {
+				commandSource.sendError(Text.translatable("commands.neo-apoli.power.list.fail", target.getName()));
+			}
+
+			else {
+				commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.list.success", target.getName(), powerTooltips.size(), Texts.join(powerTooltips, Text.of(", "))), false);
+			}
+
+			return powerTooltips.size();
+
+		}
+
+	}
+
+	static final class DumpSubCommand {
+
+		static final CommandNode<ServerCommandSource> NODE = literal("dump")
+			.then(argument("power", PowerReferenceArgumentType.powerReference())
+				.executes(DumpSubCommand::withDefaultIndent)
+				.then(argument("indent", IntegerArgumentType.integer(0))
+					.executes(DumpSubCommand::withSpecificIndent)))
+			.build();
+
+		static int withDefaultIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, 4);
+		}
+
+		static int withSpecificIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+			return execute(commandContext, IntegerArgumentType.getInteger(commandContext, "indent"));
+		}
+
+		static int execute(CommandContext<ServerCommandSource> context, int indent) throws CommandSyntaxException {
 
 			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(context, "power");
 			PowerEntry<?> entry = PowerManager.getEntry(reference);
 
-			int indent = specifiedIndent
-				? IntegerArgumentType.getInteger(context, "indent")
-				: 4;
-
-			ServerCommandSource source = context.getSource();
-			RegistryOps<JsonElement> jsonOps = source.getRegistryManager().getOps(JsonOps.INSTANCE);
+			ServerCommandSource commandSource = context.getSource();
+			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
 			return PowerEntry.CODEC.encodeStart(jsonOps, entry)
 				.flatMap(jsonElement -> jsonElement instanceof JsonObject jsonObject ? DataResult.success(jsonObject) : DataResult.error(() -> "Not a JSON object: " + jsonElement))
 				.map(jsonObject -> jsonObject.get(PowerEntry.VALUE_KEY))
-				.ifSuccess(jsonElement -> source.sendFeedback(() -> new JsonTextFormatter(indent).apply(jsonElement), false))
-				.ifError(error -> source.sendError(Text.literal(error.message())))
+				.ifSuccess(jsonElement -> commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false))
+				.ifError(error -> commandSource.sendError(Text.literal(error.message())))
 				.mapOrElse(jsonElement -> 1, error -> 0);
 
 		}

@@ -21,7 +21,7 @@ public class PowerTypes {
 
 	public static final IdentifierAlias ALIASES = new IdentifierAlias();
 
-	public static final Codec<PowerType<?>> CODEC = RegistryUtil.getAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
+	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);

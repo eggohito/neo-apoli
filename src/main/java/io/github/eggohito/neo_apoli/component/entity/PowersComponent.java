@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 public final class PowersComponent implements Component, AutoSyncedComponent, ClientTickingComponent, ServerTickingComponent {
 
@@ -250,9 +250,9 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 			&& revokePowerSideAgnostic(id, source);
 	}
 
-	private boolean revokePowerSideAgnostic(PowerReference id, Identifier source) {
-		return PowerManager.getEntryAsResult(id)
-			.mapError(error -> "Error trying to revoke " + id.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
+	private boolean revokePowerSideAgnostic(PowerReference reference, Identifier source) {
+		return PowerManager.getEntryAsResult(reference)
+			.mapError(error -> "Error trying to revoke " + reference.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
 			.resultOrPartial(NeoApoli.LOGGER::warn)
 			.map(entry -> revokePower(entry, source))
 			.orElse(false);
@@ -306,14 +306,46 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 	}
 
-	public Stream<PowerEntry<?>> streamPowerEntries(boolean includeSubPowers) {
-		return powers.values()
-			.stream()
-			.filter(entry -> includeSubPowers || !entry.isSubPower());
+
+	public <T, C extends Collection<T>> C collectAndMapPowerEntries(Supplier<C> collectionConstructor, Function<PowerEntry<?>, T> mapper, boolean includeSubPowers) {
+
+		C collected = collectionConstructor.get();
+		for (PowerEntry<?> entry : this.powers.values()) {
+
+			if (includeSubPowers || !entry.isSubPower()) {
+				collected.add(mapper.apply(entry));
+			}
+
+		}
+
+		return collected;
+
 	}
 
-	public Stream<Power> streamPowers(boolean includeSubPowers) {
-		return streamPowerEntries(includeSubPowers).map(PowerEntry::value);
+	public <T, C extends Collection<T>> C collectAndMapPowerEntriesFromSource(Supplier<C> collectionConstructor, Function<PowerEntry<?>, T> mapper, Identifier source) {
+
+		C collected = collectionConstructor.get();
+		for (var sourceEntry : this.sources.entrySet()) {
+
+			PowerReference reference = sourceEntry.getKey();
+			Set<Identifier> sources = sourceEntry.getValue();
+
+			if (sources.contains(source) && this.powers.containsKey(reference)) {
+				collected.add(mapper.apply(this.powers.get(reference)));
+			}
+
+		}
+
+		return collected;
+
+	}
+
+	public Set<PowerEntry<?>> getPowerEntries(boolean includeSubPowers) {
+		return collectAndMapPowerEntries(ObjectOpenHashSet::new, Function.identity(), includeSubPowers);
+	}
+
+	public Set<Power> getPowers(boolean includeSubPowers) {
+		return collectAndMapPowerEntries(ObjectOpenHashSet::new, PowerEntry::value, includeSubPowers);
 	}
 
 	public PowerEntry<?> getPowerEntry(PowerReference reference) {
@@ -324,8 +356,18 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 		return getPowerEntry(reference).value();
 	}
 
+	public Set<PowerEntry<?>> getPowerEntriesFromSource(Identifier source) {
+		return collectAndMapPowerEntriesFromSource(ObjectOpenHashSet::new, Function.identity(), source);
+	}
+
+	public Set<Power> getPowersFromSource(Identifier source) {
+		return collectAndMapPowerEntriesFromSource(ObjectOpenHashSet::new, PowerEntry::value, source);
+	}
+
 	public Set<Identifier> getSources(PowerReference reference) {
-		return Objects.requireNonNull(sources.get(reference), "Entity " + holder.getName().getString() + " didn't have any sources for " + reference.asDisplayString(false) + "!");
+		return sources.containsKey(reference)
+			? new ObjectOpenHashSet<>(sources.get(reference))
+			: ObjectOpenHashSet.of();
 	}
 
 	public boolean hasPower(PowerReference reference) {
