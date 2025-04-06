@@ -3,7 +3,7 @@
 	"package": "io.github.eggohito.neo_apoli.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-
+		"power.PowerMixin$Callbacks"
 	],
 	"injectors": {
 		"defaultRequire": 1

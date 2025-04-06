@@ -6,19 +6,25 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.context.EntityConditionContext;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.Validatable;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
+import org.apache.commons.lang3.function.TriFunction;
 
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public abstract class Power implements Validatable {
@@ -30,26 +36,36 @@ public abstract class Power implements Validatable {
 	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
+	private final Optional<EntityCondition> activeCondition;
+
+	public Power(Properties properties, Optional<EntityCondition> activeCondition) {
+		this.properties = properties;
+		this.activeCondition = activeCondition;
+	}
 
 	public Power(Properties properties) {
-		this.properties = properties;
+		this(properties, Optional.empty());
 	}
 
 	public abstract PowerType<? extends Power> getType();
 
-	public void onAdded(Entity entity) {
+	public void onAdded(Entity holder) {
 
 	}
 
-	public void onGranted(Entity entity) {
+	public void onGranted(Entity holder) {
 
 	}
 
-	public void onRemoved(Entity entity) {
+	public void onRemoved(Entity holder) {
 
 	}
 
-	public void onRevoked(Entity entity) {
+	public void onRevoked(Entity holder) {
+
+	}
+
+	public void onRespawn(PlayerEntity holder) {
 
 	}
 
@@ -65,6 +81,10 @@ public abstract class Power implements Validatable {
 		return properties;
 	}
 
+	public Optional<EntityCondition> getActiveCondition() {
+		return activeCondition;
+	}
+
 	public Text getName() {
 		return getProperties().name();
 	}
@@ -75,6 +95,12 @@ public abstract class Power implements Validatable {
 
 	public boolean isHidden() {
 		return getProperties().hidden();
+	}
+
+	public boolean isActive(Entity holder) {
+		return getActiveCondition()
+			.map(condition -> condition.test(new EntityConditionContext(holder)))
+			.orElse(true);
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -105,6 +131,26 @@ public abstract class Power implements Validatable {
 			}
 
 		};
+	}
+
+	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, Optional<EntityCondition>> addCommonAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
+		return instance.group(
+			Properties.CODEC.forGetter(Power::getProperties),
+			EntityCondition.BASE_CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition)
+		);
+	}
+
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, TriFunction<RegistryByteBuf, Properties, Optional<EntityCondition>, P> decoder) {
+		return createCommonPacketCodec(
+			(buf, power) -> {
+				buf.writeOptional(power.getActiveCondition(), EntityCondition.BASE_PACKET_CODEC.mapBuf(ignored -> buf));
+				encoder.accept(buf, power);
+			},
+			(buf, properties) -> {
+				Optional<EntityCondition> activeCondition = buf.readOptional(EntityCondition.BASE_PACKET_CODEC.mapBuf(ignored -> buf));
+				return decoder.apply(buf, properties, activeCondition);
+			}
+		);
 	}
 
 	public record Properties(Text name, Text description, boolean hidden) {

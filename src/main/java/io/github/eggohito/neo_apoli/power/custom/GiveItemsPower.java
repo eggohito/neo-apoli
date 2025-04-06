@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -8,6 +7,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
+import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.Entity;
@@ -15,29 +15,38 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.random.Random;
 
 import java.util.List;
 
 public class GiveItemsPower extends Power {
 
-	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).and(
-		IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks)
-	).apply(instance, GiveItemsPower::new));
+	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
+		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
+		.and(PrimitiveCodec.BOOL.optionalFieldOf("recurrent", false).forGetter(GiveItemsPower::isRecurrent))
+		.apply(instance, GiveItemsPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, GiveItemsPower> PACKET_CODEC = createCommonPacketCodec(
-		(buf, power) -> IndexedStack.LIST_PACKET_CODEC.encode(buf, power.getIndexedStacks()),
-		(buf, metadata) -> new GiveItemsPower(metadata, IndexedStack.LIST_PACKET_CODEC.decode(buf))
+		(buf, power) -> {
+			IndexedStack.LIST_PACKET_CODEC.encode(buf, power.getIndexedStacks());
+			buf.writeBoolean(power.isRecurrent());
+		},
+		(buf, properties) -> {
+
+			List<IndexedStack> indexedStacks = IndexedStack.LIST_PACKET_CODEC.decode(buf);
+			boolean recurrent = buf.readBoolean();
+
+			return new GiveItemsPower(properties, indexedStacks, recurrent);
+
+		}
 	);
 
 	private final List<IndexedStack> indexedStacks;
-	private int stuff = Random.create().nextInt();
+	private final boolean recurrent;
 
-	public GiveItemsPower(Properties properties, List<IndexedStack> indexedStacks) {
+	public GiveItemsPower(Properties properties, List<IndexedStack> indexedStacks, boolean recurrent) {
 		super(properties);
 		this.indexedStacks = indexedStacks;
+		this.recurrent = recurrent;
 	}
 
 	@Override
@@ -46,21 +55,42 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public void onGranted(Entity entity) {
+	public void onRespawn(PlayerEntity holder) {
 
-		if (!(entity.getWorld() instanceof ServerWorld serverWorld)) {
+		if (this.isRecurrent()) {
+			this.give(holder);
+		}
+
+	}
+
+	@Override
+	public void onGranted(Entity entity) {
+		this.give(entity);
+	}
+
+	public List<IndexedStack> getIndexedStacks() {
+		return indexedStacks;
+	}
+
+	public boolean isRecurrent() {
+		return recurrent;
+	}
+
+	public void give(Entity entity) {
+
+		if (entity.getWorld().isClient()) {
 			return;
 		}
 
-		for (IndexedStack indexedStack : indexedStacks) {
+		for (IndexedStack indexedStack : getIndexedStacks()) {
 
 			ItemStack stack = indexedStack.stack().copy();
 			IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
 
-			boolean given = slots.intStream()
-				.boxed()
-				.map(entity::getStackReference)
-				.anyMatch(stackReference -> stackReference.set(stack));
+			boolean given = false;
+			for (int slot : slots) {
+				given |= entity.getStackReference(slot).set(stack);
+			}
 
 			if (!given) {
 
@@ -69,28 +99,13 @@ public class GiveItemsPower extends Power {
 				}
 
 				else {
-					entity.dropStack(serverWorld, stack);
+					InventoryUtil.dropItem(entity, stack, true, false, 0);
 				}
 
 			}
 
 		}
 
-	}
-
-
-	@Override
-	public <I> DataResult<I> encodeData(RegistryOps<I> registryOps) {
-		return PrimitiveCodec.INT.encodeStart(registryOps, stuff);
-	}
-
-	@Override
-	public <I> void decodeData(RegistryOps<I> registryOps, I data) {
-		this.stuff = PrimitiveCodec.INT.parse(registryOps, data).getOrThrow();
-	}
-
-	public List<IndexedStack> getIndexedStacks() {
-		return indexedStacks;
 	}
 
 }
