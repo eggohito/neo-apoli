@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.condition.type.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -27,6 +28,8 @@ public class NeoApoli implements ModInitializer {
 
 		PowerTypes.registerAll();
 		EntityConditionTypes.registerAll();
+
+		ValueProviderTypes.registerAll();
 
 		PowerManager.init();
 
