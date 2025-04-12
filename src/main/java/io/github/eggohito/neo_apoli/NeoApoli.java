@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.condition.type.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -27,7 +27,7 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliArgumentTypes.registerAll();
 
 		PowerTypes.registerAll();
-		EntityConditionTypes.registerAll();
+		ConditionTypes.registerAll();
 
 		ValueProviderTypes.registerAll();
 

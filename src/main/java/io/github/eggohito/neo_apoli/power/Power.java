@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.context.EntityConditionContext;
+import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.power.type.PowerType;

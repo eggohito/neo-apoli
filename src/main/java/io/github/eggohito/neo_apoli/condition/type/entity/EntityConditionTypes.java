@@ -1,11 +1,15 @@
-package io.github.eggohito.neo_apoli.condition.type;
+package io.github.eggohito.neo_apoli.condition.type.entity;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.custom.IsSneakingEntityConditionType;
-import io.github.eggohito.neo_apoli.condition.custom.IsSprintingEntityConditionType;
+import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.entity.IsSprintingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.entity.AllOfEntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.entity.AnyOfEntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.entity.InvertedEntityCondition;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.IdentifierAlias;
@@ -23,12 +27,22 @@ public final class EntityConditionTypes {
 	public static final Codec<EntityConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.ENTITY_CONDITION_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, EntityConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 
-	public static final EntityConditionType<IsSneakingEntityConditionType> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityConditionType.CODEC, IsSneakingEntityConditionType.PACKET_CODEC);
-	public static final EntityConditionType<IsSprintingEntityConditionType> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityConditionType.CODEC, IsSprintingEntityConditionType.PACKET_CODEC);
+	public static final EntityConditionType<AllOfEntityCondition> ALL_OF = registerInternal("all_of", AllOfEntityCondition.CODEC, AllOfEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<AnyOfEntityCondition> ANY_OF = registerInternal("any_of", AnyOfEntityCondition.CODEC, AnyOfEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<ConstantEntityCondition> CONSTANT = registerInternal("constant", ConstantEntityCondition.CODEC, ConstantEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.PACKET_CODEC);
+
+	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
 
 	public static void registerAll() {
+
+		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_CONDITION_TYPE, ALL_OF));
+		ALIASES.addPathAlias("or", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_CONDITION_TYPE, ANY_OF));
+
 		ALIASES.addPathAlias("sneaking", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_CONDITION_TYPE, IS_SNEAKING));
 		ALIASES.addPathAlias("sprinting", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_CONDITION_TYPE, IS_SPRINTING));
+
 	}
 
 	private static <C extends EntityCondition> EntityConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {

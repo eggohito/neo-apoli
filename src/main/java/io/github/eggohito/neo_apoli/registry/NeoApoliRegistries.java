@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.registry;
 
-import io.github.eggohito.neo_apoli.condition.type.EntityConditionType;
+import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
