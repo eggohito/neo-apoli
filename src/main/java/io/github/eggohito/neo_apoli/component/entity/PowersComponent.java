@@ -90,7 +90,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 
 		RegistryOps<NbtElement> nbtOps = wrapperLookup.getOps(NbtOps.INSTANCE);
 
-		NbtList powersNbt = rootNbt.getList("powers", NbtElement.COMPOUND_TYPE);
+		NbtList powersNbt = rootNbt.getListOrEmpty("powers");
 		ListIterator<NbtElement> powersNbtIterator = powersNbt.listIterator();
 
 		this.powers.clear();

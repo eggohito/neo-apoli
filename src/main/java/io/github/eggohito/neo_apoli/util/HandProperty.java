@@ -39,7 +39,7 @@ public enum HandProperty implements Supplier<Hand>, StringIdentifiable {
 
 	};
 
-	private static final IntFunction<HandProperty> FROM_ORDINAL = ValueLists.createIdToValueFunction(HandProperty::ordinal, HandProperty.values(), ValueLists.OutOfBoundsHandling.WRAP);
+	private static final IntFunction<HandProperty> FROM_ORDINAL = ValueLists.createIndexToValueFunction(HandProperty::ordinal, HandProperty.values(), ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static final Codec<HandProperty> CODEC = StringIdentifiable.createBasicCodec(HandProperty::values);
 	public static final PacketCodec<ByteBuf, HandProperty> PACKET_CODEC = PacketCodecs.indexed(FROM_ORDINAL, HandProperty::ordinal);
