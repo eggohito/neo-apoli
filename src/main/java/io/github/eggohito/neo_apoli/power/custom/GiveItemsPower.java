@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -90,7 +91,9 @@ public class GiveItemsPower extends Power {
 
 			for (int slot : slots) {
 
-				if (entity.getStackReference(slot).set(stack)) {
+				StackReference stackReference = entity.getStackReference(slot);
+
+				if (stackReference.get().isEmpty() && stackReference.set(stack)) {
 					continue loopingStacks;
 				}
 
