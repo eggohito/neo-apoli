@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.networking.packet.NeoApoliS2CNetworkHandler;
+import io.github.eggohito.neo_apoli.networking.NeoApoliS2CNetworkHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 

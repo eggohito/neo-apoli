@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.networking.packet;
+package io.github.eggohito.neo_apoli.networking;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;

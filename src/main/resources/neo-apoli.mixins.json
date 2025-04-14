@@ -6,6 +6,9 @@
 		"access.WeightedListAccessor",
 		"power.PowerMixin$Callbacks"
 	],
+	"client": [
+
+	],
 	"injectors": {
 		"defaultRequire": 1
 	}

@@ -28,15 +28,6 @@ repositories {
 
 loom {
 
-	splitEnvironmentSourceSets()
-
-	mods {
-		"neo-apoli" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
-	}
-
 }
 
 dependencies {
