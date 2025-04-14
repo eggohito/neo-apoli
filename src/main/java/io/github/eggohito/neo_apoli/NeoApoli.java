@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli;
 
+import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
@@ -29,9 +30,11 @@ public class NeoApoli implements ModInitializer {
 		ValueProviderTypes.registerAll();
 
 		ConditionTypes.registerAll();
-		PowerTypes.registerAll();
+		ActionTypes.registerAll();
 
+		PowerTypes.registerAll();
 		PowerManager.init();
+
 		NeoApoliPackets.registerAll();
 
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onAdded(entity)));
