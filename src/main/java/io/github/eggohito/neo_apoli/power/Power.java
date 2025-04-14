@@ -8,6 +8,7 @@ import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
+import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -24,7 +25,6 @@ import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
 import org.apache.commons.lang3.function.TriFunction;
 
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -37,15 +37,15 @@ public abstract class Power implements Validatable {
 	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
-	private final Optional<EntityCondition> activeCondition;
+	private final EntityCondition activeCondition;
 
-	public Power(Properties properties, Optional<EntityCondition> activeCondition) {
+	public Power(Properties properties, EntityCondition activeCondition) {
 		this.properties = properties;
 		this.activeCondition = activeCondition;
 	}
 
 	public Power(Properties properties) {
-		this(properties, Optional.empty());
+		this(properties, new ConstantEntityCondition(true));
 	}
 
 	public abstract PowerType<? extends Power> getType();
@@ -82,7 +82,7 @@ public abstract class Power implements Validatable {
 		return properties;
 	}
 
-	public Optional<EntityCondition> getActiveCondition() {
+	public EntityCondition getActiveCondition() {
 		return activeCondition;
 	}
 
@@ -99,9 +99,7 @@ public abstract class Power implements Validatable {
 	}
 
 	public boolean isActive(Entity holder) {
-		return getActiveCondition()
-			.map(condition -> condition.test(new EntityConditionContext(holder)))
-			.orElse(true);
+		return getActiveCondition().test(new EntityConditionContext(holder));
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -134,21 +132,21 @@ public abstract class Power implements Validatable {
 		};
 	}
 
-	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, Optional<EntityCondition>> addCommonAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
+	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, EntityCondition> addCommonAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
 			Properties.CODEC.forGetter(Power::getProperties),
-			EntityCondition.CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition)
+			EntityCondition.CODEC.optionalFieldOf("active_condition", new ConstantEntityCondition(true)).forGetter(Power::getActiveCondition)
 		);
 	}
 
-	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, TriFunction<RegistryByteBuf, Properties, Optional<EntityCondition>, P> decoder) {
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, TriFunction<RegistryByteBuf, Properties, EntityCondition, P> decoder) {
 		return createCommonPacketCodec(
 			(buf, power) -> {
-				buf.writeOptional(power.getActiveCondition(), EntityCondition.PACKET_CODEC.mapBuf(ignored -> buf));
+				EntityCondition.PACKET_CODEC.encode(buf, power.getActiveCondition());
 				encoder.accept(buf, power);
 			},
 			(buf, properties) -> {
-				Optional<EntityCondition> activeCondition = buf.readOptional(EntityCondition.PACKET_CODEC.mapBuf(ignored -> buf));
+				EntityCondition activeCondition = EntityCondition.PACKET_CODEC.decode(buf);
 				return decoder.apply(buf, properties, activeCondition);
 			}
 		);
