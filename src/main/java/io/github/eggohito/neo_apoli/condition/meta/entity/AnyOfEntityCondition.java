@@ -14,8 +14,8 @@ import java.util.List;
 
 public record AnyOfEntityCondition(List<EntityCondition> conditions) implements EntityCondition, AnyOfMetaCondition<EntityConditionContext, EntityCondition, EntityConditionType<?>> {
 
-	public static final MapCodec<AnyOfEntityCondition> CODEC = MultiMetaCondition.createCodec(EntityCondition.BASE_CODEC, AnyOfEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, AnyOfEntityCondition> PACKET_CODEC = MultiMetaCondition.createPacketCodec(EntityCondition.BASE_PACKET_CODEC, AnyOfEntityCondition::new);
+	public static final MapCodec<AnyOfEntityCondition> CODEC = MultiMetaCondition.createCodec(EntityCondition.CODEC, AnyOfEntityCondition::new);
+	public static final PacketCodec<RegistryByteBuf, AnyOfEntityCondition> PACKET_CODEC = MultiMetaCondition.createPacketCodec(EntityCondition.PACKET_CODEC, AnyOfEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {

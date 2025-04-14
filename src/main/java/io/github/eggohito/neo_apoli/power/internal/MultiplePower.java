@@ -49,7 +49,7 @@ public class MultiplePower extends Power {
 
 	private static final Codec<String> SUB_POWER_NAME_CODEC = PrimitiveCodec.STRING.validate(MultiplePower::validateSubPowerName);
 
-	private static final Codec<Map<String, Power>> SUB_POWERS_CODEC = CodecUtil.filteredUnboundedMap(SUB_POWER_NAME_CODEC, Power.BASE_CODEC, MultiplePower::isKeyIgnored).validate(
+	private static final Codec<Map<String, Power>> SUB_POWERS_CODEC = CodecUtil.filteredUnboundedMap(SUB_POWER_NAME_CODEC, Power.CODEC, MultiplePower::isKeyIgnored).validate(
 		subPowers -> {
 
 			for (Map.Entry<String, Power> subPower : subPowers.entrySet()) {
@@ -77,7 +77,7 @@ public class MultiplePower extends Power {
 
 			subPowers.forEach((name, subPower) -> {
 				buf.writeString(name);
-				Power.BASE_PACKET_CODEC.encode(buf, subPower);
+				Power.PACKET_CODEC.encode(buf, subPower);
 			});
 
 		},
@@ -89,7 +89,7 @@ public class MultiplePower extends Power {
 			for (int i = 0; i < size; i++) {
 
 				String name = buf.readString();
-				Power subPower = Power.BASE_PACKET_CODEC.decode(buf);
+				Power subPower = Power.PACKET_CODEC.decode(buf);
 
 				subPowers.put(name, subPower);
 

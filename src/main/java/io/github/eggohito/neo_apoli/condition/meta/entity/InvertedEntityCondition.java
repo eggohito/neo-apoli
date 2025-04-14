@@ -11,8 +11,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record InvertedEntityCondition(EntityCondition condition) implements EntityCondition, InvertedMetaCondition<EntityConditionContext, EntityConditionType<?>, EntityCondition> {
 
-	public static final MapCodec<InvertedEntityCondition> CODEC = InvertedMetaCondition.createCodec(EntityCondition.BASE_CODEC, InvertedEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = InvertedMetaCondition.createPacketCodec(EntityCondition.BASE_PACKET_CODEC, InvertedEntityCondition::new);
+	public static final MapCodec<InvertedEntityCondition> CODEC = InvertedMetaCondition.createCodec(EntityCondition.CODEC, InvertedEntityCondition::new);
+	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = InvertedMetaCondition.createPacketCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {

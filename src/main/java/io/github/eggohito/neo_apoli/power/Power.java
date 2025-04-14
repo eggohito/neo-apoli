@@ -32,8 +32,8 @@ public abstract class Power implements Validatable {
 	public static final String TYPE_KEY = "type";
 	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
-	public static final Codec<Power> BASE_CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final Codec<Power> CODEC = MAP_CODEC.codec();
+	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 	private final Optional<EntityCondition> activeCondition;
@@ -136,18 +136,18 @@ public abstract class Power implements Validatable {
 	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, Optional<EntityCondition>> addCommonAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
 			Properties.CODEC.forGetter(Power::getProperties),
-			EntityCondition.BASE_CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition)
+			EntityCondition.CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition)
 		);
 	}
 
 	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, TriFunction<RegistryByteBuf, Properties, Optional<EntityCondition>, P> decoder) {
 		return createCommonPacketCodec(
 			(buf, power) -> {
-				buf.writeOptional(power.getActiveCondition(), EntityCondition.BASE_PACKET_CODEC.mapBuf(ignored -> buf));
+				buf.writeOptional(power.getActiveCondition(), EntityCondition.PACKET_CODEC.mapBuf(ignored -> buf));
 				encoder.accept(buf, power);
 			},
 			(buf, properties) -> {
-				Optional<EntityCondition> activeCondition = buf.readOptional(EntityCondition.BASE_PACKET_CODEC.mapBuf(ignored -> buf));
+				Optional<EntityCondition> activeCondition = buf.readOptional(EntityCondition.PACKET_CODEC.mapBuf(ignored -> buf));
 				return decoder.apply(buf, properties, activeCondition);
 			}
 		);

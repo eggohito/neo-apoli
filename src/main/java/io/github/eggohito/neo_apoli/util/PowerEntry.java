@@ -52,7 +52,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 	public static final Codec<PowerEntry<?>> CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, PowerEntry<?>> PACKET_CODEC = PacketCodec.tuple(
 		PowerReference.PACKET_CODEC, PowerEntry::reference,
-		Power.BASE_PACKET_CODEC, PowerEntry::value,
+		Power.PACKET_CODEC, PowerEntry::value,
 		PowerEntry::new
 	);
 
