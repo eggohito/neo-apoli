@@ -26,13 +26,12 @@ public class NeoApoli implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
 		NeoApoliArgumentTypes.registerAll();
 
-		PowerTypes.registerAll();
-		ConditionTypes.registerAll();
-
 		ValueProviderTypes.registerAll();
 
-		PowerManager.init();
+		ConditionTypes.registerAll();
+		PowerTypes.registerAll();
 
+		PowerManager.init();
 		NeoApoliPackets.registerAll();
 
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onAdded(entity)));
