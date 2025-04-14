@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.custom.CallbackPower;
 import io.github.eggohito.neo_apoli.power.custom.GiveItemsPower;
 import io.github.eggohito.neo_apoli.power.internal.DummyPower;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
@@ -27,6 +28,7 @@ public class PowerTypes {
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 
+	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
 
 	public static void registerAll() {
