@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -22,7 +23,7 @@ public class GiveItemsPower extends Power {
 
 	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
 		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
-		.and(PrimitiveCodec.BOOL.optionalFieldOf("recurrent", false).forGetter(GiveItemsPower::isRecurrent))
+		.and(Codec.BOOL.optionalFieldOf("recurrent", false).forGetter(GiveItemsPower::isRecurrent))
 		.apply(instance, GiveItemsPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, GiveItemsPower> PACKET_CODEC = createCommonPacketCodec(
@@ -82,26 +83,26 @@ public class GiveItemsPower extends Power {
 			return;
 		}
 
+		loopingStacks:
 		for (IndexedStack indexedStack : getIndexedStacks()) {
 
 			ItemStack stack = indexedStack.stack().copy();
 			IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
 
-			boolean given = false;
 			for (int slot : slots) {
-				given |= entity.getStackReference(slot).set(stack);
+
+				if (entity.getStackReference(slot).set(stack)) {
+					continue loopingStacks;
+				}
+
 			}
 
-			if (!given) {
+			if (entity instanceof PlayerEntity player) {
+				player.getInventory().offerOrDrop(stack);
+			}
 
-				if (entity instanceof PlayerEntity player) {
-					player.getInventory().offerOrDrop(stack);
-				}
-
-				else {
-					InventoryUtil.dropItem(entity, stack, true, false, 0);
-				}
-
+			else {
+				InventoryUtil.dropItem(entity, stack, true, false, 0);
 			}
 
 		}
