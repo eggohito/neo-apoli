@@ -21,6 +21,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
+import net.minecraft.util.Unit;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Optional;
@@ -73,8 +74,8 @@ public abstract class Power implements Validatable {
 		return DataResult.success(registryOps.emptyMap());
 	}
 
-	public <I> void decodeData(RegistryOps<I> registryOps, I data) {
-
+	public <I> DataResult<Unit> decodeData(RegistryOps<I> registryOps, I data) {
+		return DataResult.success(Unit.INSTANCE);
 	}
 
 	public Properties getProperties() {

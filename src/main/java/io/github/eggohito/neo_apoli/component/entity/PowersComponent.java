@@ -119,20 +119,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 						PowerEntry<?> powerEntry = new PowerEntry<>(powerReference, power);
 						Set<Identifier> sources = entry.sources();
 
-						try {
-
-							if (Objects.equals(entry.powerType(), power.getType())) {
-								power.decodeData(nbtOps, data.getValue());
-							}
-
-							else {
-								NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered and will be skipped.", powerReference.asDisplayString(false));
-							}
-
+						if (Objects.equals(entry.powerType(), power.getType())) {
+							power.decodeData(nbtOps, data.getValue())
+								.mapError(error -> "Error decoding data of " + powerReference.asDisplayString(false) + " from NBT (skipping): " + error)
+								.error()
+								.map(DataResult.Error::message)
+								.ifPresent(NeoApoli.LOGGER::warn);
 						}
 
-						catch (Exception e) {
-							NeoApoli.LOGGER.warn("There was a problem decoding data of {} from NBT (skipping): {}", powerReference.asDisplayString(false), e);
+						else {
+							NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered!", powerReference.asDisplayString(false));
 						}
 
 						this.powers.put(powerReference, powerEntry);
