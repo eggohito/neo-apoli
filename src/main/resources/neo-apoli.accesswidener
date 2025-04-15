@@ -1,0 +1,5 @@
+accessWidener v2 named
+
+extendable method net/minecraft/text/TranslatableTextContent updateTranslations ()V
+accessible field net/minecraft/text/TranslatableTextContent languageCache Lnet/minecraft/util/Language;
+accessible field net/minecraft/text/TranslatableTextContent translations Ljava/util/List;

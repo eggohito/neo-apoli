@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -120,7 +119,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 						PowerEntry<?> powerEntry = new PowerEntry<>(powerReference, power);
 						Set<Identifier> sources = entry.sources();
 
-						if (Objects.equals(entry.powerType(), power.getType())) {
+						if (Objects.equals(entry.type(), power.getType())) {
 							power.decodeData(nbtOps, data.getValue())
 								.mapError(error -> "Error decoding data of " + powerReference.asDisplayString(false) + " from NBT (skipping): " + error)
 								.error()
@@ -382,11 +381,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement));
 	}
 
-	public record Entry<T>(PowerReference powerReference, PowerType<?> powerType, Set<Identifier> sources, Dynamic<T> data) {
+	public record Entry<T>(PowerReference powerReference, Power.Type<?> type, Set<Identifier> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
-			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::powerType),
+			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::type),
 			NeoApoliCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));

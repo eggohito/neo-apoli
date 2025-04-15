@@ -3,11 +3,13 @@
 	"package": "io.github.eggohito.neo_apoli.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
+		"misc.TextCodecsMixin",
+		"misc.TextCodecsMixin$DispatchingCodecMixin",
 		"power.PowerMixin$Callbacks"
 	],
 	"client": [
-
 	],
 	"injectors": {
 		"defaultRequire": 1

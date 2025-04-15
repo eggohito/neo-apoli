@@ -11,8 +11,9 @@ import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionCont
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
 import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.Validatable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +25,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -31,12 +33,12 @@ import java.util.function.Function;
 public abstract class Power implements Validatable {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
 
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, Type::packetCodec);
 
-	private final Properties properties;
+	private Properties properties;
 	private final EntityCondition activeCondition;
 
 	public Power(Properties properties, EntityCondition activeCondition) {
@@ -48,7 +50,7 @@ public abstract class Power implements Validatable {
 		this(properties, new ConstantEntityCondition(true));
 	}
 
-	public abstract PowerType<? extends Power> getType();
+	public abstract Type<? extends Power> getType();
 
 	public void onAdded(Entity holder) {
 
@@ -80,6 +82,10 @@ public abstract class Power implements Validatable {
 
 	public Properties getProperties() {
 		return properties;
+	}
+
+	public void setProperties(@NotNull Properties properties) {
+		this.properties = properties;
 	}
 
 	public EntityCondition getActiveCondition() {
@@ -166,6 +172,19 @@ public abstract class Power implements Validatable {
 			PacketCodecs.BOOLEAN, Properties::hidden,
 			Properties::new
 		);
+
+		public Properties withReference(PowerReference reference) {
+			String translationKey = reference.createTranslationKey();
+			return new Properties(
+				TextUtil.forceTranslatable(translationKey + ".name", this.name()),
+				TextUtil.forceTranslatable(translationKey + ".description", this.description()),
+				this.hidden()
+			);
+		}
+
+	}
+
+	public record Type<P extends Power>(MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 
 	}
 

@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
@@ -51,7 +50,7 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public PowerType<? extends Power> getType() {
+	public Type<? extends Power> getType() {
 		return PowerTypes.GIVE_ITEMS;
 	}
 

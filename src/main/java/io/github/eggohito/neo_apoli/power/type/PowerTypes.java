@@ -22,25 +22,25 @@ public class PowerTypes {
 
 	public static final IdentifierAlias ALIASES = new IdentifierAlias();
 
-	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
+	public static final Codec<Power.Type<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
+	public static final PacketCodec<RegistryByteBuf, Power.Type<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
-	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
-	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
+	public static final Power.Type<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
+	public static final Power.Type<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 
-	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
-	public static final PowerType<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
+	public static final Power.Type<CallbackPower> CALLBACK = registerInternal("callback", CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
+	public static final Power.Type<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
 
 	public static void registerAll() {
 
 	}
 
-	private static <P extends Power> PowerType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
+	private static <P extends Power> Power.Type<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 		return register(NeoApoli.id(path), mapCodec, packetCodec);
 	}
 
-	public static <P extends Power> PowerType<P> register(Identifier id, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.POWER_TYPE, id, new PowerType<>(mapCodec, packetCodec));
+	public static <P extends Power> Power.Type<P> register(Identifier id, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
+		return Registry.register(NeoApoliRegistries.POWER_TYPE, id, new Power.Type<>(mapCodec, packetCodec));
 	}
 
 }

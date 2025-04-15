@@ -27,7 +27,7 @@ repositories {
 }
 
 loom {
-
+	accessWidenerPath = file("src/main/resources/neo-apoli.accesswidener")
 }
 
 dependencies {

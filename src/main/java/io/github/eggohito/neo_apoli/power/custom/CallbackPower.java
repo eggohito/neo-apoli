@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +58,7 @@ public class CallbackPower extends Power {
 	}
 
 	@Override
-	public PowerType<? extends Power> getType() {
+	public Type<? extends Power> getType() {
 		return PowerTypes.CALLBACK;
 	}
 

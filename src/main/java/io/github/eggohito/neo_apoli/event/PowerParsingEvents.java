@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.event;
 
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.fabricmc.fabric.api.event.Event;
@@ -17,7 +16,7 @@ public final class PowerParsingEvents {
 		callbacks -> new Decoding() {
 
 			@Override
-			public <I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
+			public <I> DataResult<Power> decode(PowerReference reference, Power.Type<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
 
 				for (var callback : callbacks) {
 
@@ -54,7 +53,7 @@ public final class PowerParsingEvents {
 	);
 
 	public interface Decoding {
-		<I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
+		<I> DataResult<Power> decode(PowerReference reference, Power.Type<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
 	}
 
 	public interface Encoding {

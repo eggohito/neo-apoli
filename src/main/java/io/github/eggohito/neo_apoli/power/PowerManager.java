@@ -162,8 +162,12 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 				jsonObject.add(PowerEntry.VALUE_KEY, packData.element());
 
 				PowerEntry<?> entry = PowerEntry.CODEC.parse(registryOps, jsonObject).getOrThrow();
+				Power power = entry.value();
 
-				if (entry.value() instanceof MultiplePower multiplePower) {
+				Power.Properties properties = power.getProperties().withReference(entry.reference());
+				power.setProperties(properties);
+
+				if (power instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
 						PowerReference subPowerReference = PowerReference.ofSubPower(id, name);

@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.power.internal;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -17,7 +16,7 @@ public class DummyPower extends Power {
 	}
 
 	@Override
-	public PowerType<? extends Power> getType() {
+	public Type<? extends Power> getType() {
 		return PowerTypes.DUMMY;
 	}
 
