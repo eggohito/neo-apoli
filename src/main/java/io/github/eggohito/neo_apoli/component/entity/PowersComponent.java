@@ -30,8 +30,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
-import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
+import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
+import org.ladysnake.cca.api.v3.entity.RespawnableComponent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +40,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class PowersComponent implements Component, AutoSyncedComponent, ClientTickingComponent, ServerTickingComponent {
+@SuppressWarnings("UnstableApiUsage")
+public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
 
 	private static final int FULL_SYNC_ID = 0;
 	private static final int GRANT_SYNC_ID = 1;
@@ -172,13 +173,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Cl
 	}
 
 	@Override
-	public void clientTick() {
+	public void tick() {
 
 	}
 
 	@Override
-	public void serverTick() {
-
+	public boolean shouldCopyForRespawn(boolean lossless, boolean keepInventory, boolean sameCharacter) {
+		return true;
 	}
 
 	public boolean grantPower(PowerReference reference, Identifier source) {
