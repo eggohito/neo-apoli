@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.provider.custom.string;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
@@ -10,10 +9,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.context.ContextParameter;
 
 import java.util.List;
-import java.util.Set;
 
 public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
 
@@ -45,14 +42,6 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	@Override
 	public Type<?> getType() {
 		return StringProviderTypes.JOIN;
-	}
-
-	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
-		return ImmutableSet.<ContextParameter<?>>builder()
-			.addAll(strings().stream().flatMap(string -> string.getAllowedParameters().stream()).toList())
-			.addAll(separator().getAllowedParameters())
-			.build();
 	}
 
 	@Override

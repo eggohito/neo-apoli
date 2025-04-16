@@ -51,7 +51,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	public static final Set<String> DIRECTORY_PATHS = Util.make(new ObjectOpenHashSet<>(), set -> {
 		set.add("power");
-		set.add("apoli/power");
+		set.add("neo-apoli/power");
 	});
 
 	private static final Gson GSON = new GsonBuilder()
@@ -63,7 +63,6 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> POWERS_BY_REFERENCE = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Power, PowerReference> REFERENCE_BY_POWER = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> registryOps;
 
@@ -255,36 +254,12 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		return getAsResult(reference).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static DataResult<PowerReference> getReferenceAsResult(Power power) {
-
-		if (containsReference(power)) {
-			return DataResult.success(REFERENCE_BY_POWER.get(power));
-		}
-
-		else {
-			return DataResult.error(() -> "Power " + power.toString() + " didn't have a power identifier as it wasn't registered!");
-		}
-
-	}
-
-	public static PowerReference getReference(Power power) {
-		return getReferenceAsResult(power).getOrThrow(IllegalArgumentException::new);
-	}
-
-	public static Stream<Power> streamPowers() {
-		return REFERENCE_BY_POWER.keySet().stream();
-	}
-
 	public static Stream<PowerReference> streamIds() {
 		return POWERS_BY_REFERENCE.keySet().stream();
 	}
 
 	public static boolean contains(PowerReference reference) {
 		return POWERS_BY_REFERENCE.containsKey(reference);
-	}
-
-	public static boolean containsReference(Power power) {
-		return REFERENCE_BY_POWER.containsKey(power);
 	}
 
 	private static Identifier trimExtension(Identifier fileId, String directoryPath) {
@@ -314,22 +289,16 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	private static void register(PowerEntry<?> entry) {
-
 		PowerReference reference = entry.reference();
-
 		POWERS_BY_REFERENCE.put(reference, entry);
-		REFERENCE_BY_POWER.put(entry.value(), reference);
-
 	}
 
 	private static void startLoading() {
 		POWERS_BY_REFERENCE.clear();
-		REFERENCE_BY_POWER.clear();
 	}
 
 	private static void endLoading() {
 		POWERS_BY_REFERENCE.trim();
-		REFERENCE_BY_POWER.trim();
 	}
 
 	public record PackData(String source, JsonObject element) {

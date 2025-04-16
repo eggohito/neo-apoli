@@ -24,6 +24,7 @@ public interface ContextAware {
 
 	class ErrorReporter implements net.minecraft.util.ErrorReporter {
 
+		private final String name;
 		private final Supplier<String> pathSupplier;
 
 		private final ContextType contextType;
@@ -32,7 +33,8 @@ public interface ContextAware {
 		private final Multimap<String, String> errors;
 		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
 
-		protected ErrorReporter(Supplier<String> pathSupplier, ContextType contextType, Set<RegistryKey<?>> referenceStack, Multimap<String, String> errors, Optional<RegistryWrapper.WrapperLookup> wrapperLookup) {
+		protected ErrorReporter(String name, Supplier<String> pathSupplier, ContextType contextType, Set<RegistryKey<?>> referenceStack, Multimap<String, String> errors, Optional<RegistryWrapper.WrapperLookup> wrapperLookup) {
+			this.name = name;
 			this.pathSupplier = Suppliers.memoize(pathSupplier::get);
 			this.contextType = contextType;
 			this.referenceStack = referenceStack;
@@ -41,13 +43,13 @@ public interface ContextAware {
 		}
 
 		public ErrorReporter(ContextType contextType) {
-			this(() -> "", contextType, Set.of(), HashMultimap.create(), Optional.empty());
+			this("", () -> "", contextType, Set.of(), HashMultimap.create(), Optional.empty());
 		}
 
 		@Override
 		public ErrorReporter makeChild(String name) {
 			String path = this.getPath();
-			return new ErrorReporter(() -> path + (path.isEmpty() ? "" : ".") + (name.contains(".") ? "'" + name + "'" : name), contextType, this.referenceStack, this.errors, this.wrapperLookup);
+			return new ErrorReporter(name, () -> appendPath(path, name), this.contextType, this.referenceStack, this.errors, this.wrapperLookup);
 		}
 
 		public ErrorReporter makeChild(String name, RegistryKey<?> key) {
@@ -58,16 +60,16 @@ public interface ContextAware {
 				.add(key)
 				.build();
 
-			return new ErrorReporter(() -> path + (path.isEmpty() ? "" : ".") + (name.contains(".") ? "'" + name + "'" : name), contextType, referenceStack, this.errors, this.wrapperLookup);
+			return new ErrorReporter(name, () -> appendPath(path, name), this.contextType, referenceStack, this.errors, this.wrapperLookup);
 
 		}
 
 		public ErrorReporter withContextType(ContextType contextType) {
-			return new ErrorReporter(this.pathSupplier, contextType, this.referenceStack, this.errors, this.wrapperLookup);
+			return new ErrorReporter(this.name, this.pathSupplier, contextType, this.referenceStack, this.errors, this.wrapperLookup);
 		}
 
 		public ErrorReporter withWrapperLookup(@NotNull RegistryWrapper.WrapperLookup wrapperLookup) {
-			return new ErrorReporter(this.pathSupplier, this.contextType, this.referenceStack, this.errors, Optional.of(wrapperLookup));
+			return new ErrorReporter(this.name, this.pathSupplier, this.contextType, this.referenceStack, this.errors, Optional.of(wrapperLookup));
 		}
 
 		@Override
@@ -131,6 +133,10 @@ public interface ContextAware {
 				this.report("Parameters " + missingParameters + " are not provided in this context!");
 			}
 
+		}
+
+		private static String appendPath(String path, String name) {
+			return path + (path.isEmpty() ? "" : ".") + (name.contains(".") ? "'" + name + "'" : name);
 		}
 
 	}

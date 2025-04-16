@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.provider.custom.string;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
@@ -10,10 +9,8 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 
 import java.util.Locale;
-import java.util.Set;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
@@ -47,14 +44,6 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	@Override
 	public Type<?> getType() {
 		return StringProviderTypes.NUMBER;
-	}
-
-	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
-		return ImmutableSet.<ContextParameter<?>>builder()
-			.addAll(number().getAllowedParameters())
-			.addAll(decimals().getAllowedParameters())
-			.build();
 	}
 
 	@Override

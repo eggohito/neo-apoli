@@ -232,7 +232,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		if (originalPower instanceof MultiplePower multiplePower) {
 			multiplePower.getSubPowers().values()
 				.stream()
-				.map(PowerManager::getReference)
+				.map(Power::getReference)
+				.filter(PowerManager::contains)
 				.map(PowerManager::getEntry)
 				.forEach(subEntry -> grantPower(subEntry, source, addedAction, grantedAction));
 		}
@@ -293,7 +294,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		if (originalPower instanceof MultiplePower multiplePower) {
 			multiplePower.getSubPowers().values()
 				.stream()
-				.map(PowerManager::getReference)
+				.map(Power::getReference)
+				.filter(PowerManager::contains)
 				.map(PowerManager::getEntry)
 				.forEach(subEntry -> revokePower(subEntry, source, revokedAction));
 		}
@@ -378,10 +380,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	private DataResult<Power> deepCopy(Power power) {
 		RegistryOps<NbtElement> nbtOps = holder.getRegistryManager().getOps(NbtOps.INSTANCE);
-		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement)).map(parsedPower -> {
-			power.getReference().ifPresent(parsedPower::setReference);
-			return parsedPower;
-		});
+		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement));
 	}
 
 	public record Entry<T>(PowerReference powerReference, Power.Type<?> type, Set<Identifier> sources, Dynamic<T> data) {

@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
@@ -53,14 +52,12 @@ public record AttributeNumberProvider(LootContext.EntityTarget source, RegistryE
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return ImmutableSet.<ContextParameter<?>>builder()
-			.add(source().getParameter())
-			.addAll(scale().getAllowedParameters())
-			.build();
+		return Set.of(source().getParameter());
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+		NumberProvider.super.validate(reporter.makeChild("source"));
 		scale().validate(reporter.makeChild("scale"));
 	}
 

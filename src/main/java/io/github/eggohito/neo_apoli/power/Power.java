@@ -9,8 +9,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
-import io.github.eggohito.neo_apoli.network.codec.PowerPacketDecoder;
-import io.github.eggohito.neo_apoli.network.codec.PowerPacketEncoder;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
@@ -29,6 +27,7 @@ import net.minecraft.util.Unit;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class Power implements Validatable {
@@ -130,19 +129,19 @@ public abstract class Power implements Validatable {
 		return instance.group(Properties.CODEC.forGetter(Power::getProperties));
 	}
 
-	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonPacketCodec(PowerPacketEncoder<P> encoder, PowerPacketDecoder<P> decoder) {
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, BiFunction<RegistryByteBuf, Properties, P> decoder) {
 		return new PacketCodec<>() {
 
 			@Override
 			public P decode(RegistryByteBuf buf) {
 				Properties properties = Properties.PACKET_CODEC.decode(buf);
-				return decoder.decode(buf, properties);
+				return decoder.apply(buf, properties);
 			}
 
 			@Override
 			public void encode(RegistryByteBuf buf, P value) {
 				Properties.PACKET_CODEC.encode(buf, value.getProperties());
-				encoder.encode(buf, value);
+				encoder.accept(buf, value);
 			}
 
 		};
