@@ -27,7 +27,7 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	).cast();
 
 	@Override
-	public String get(ValueProviderContext context) {
+	public String get(ErrorReporter reporter, ValueProviderContext context) {
 		return this.value();
 	}
 

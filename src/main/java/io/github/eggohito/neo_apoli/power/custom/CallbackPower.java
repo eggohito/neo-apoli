@@ -66,7 +66,7 @@ public class CallbackPower extends Power {
 	public void onAdded(Entity holder) {
 
 		if (isActive(holder)) {
-			addedAction.accept(new EntityActionContext(holder));
+			addedAction.execute(this.getReporter().makeChild("on_added_action"), new EntityActionContext(holder));
 		}
 
 	}
@@ -75,7 +75,7 @@ public class CallbackPower extends Power {
 	public void onGranted(Entity holder) {
 
 		if (isActive(holder)) {
-			grantedAction.accept(new EntityActionContext(holder));
+			grantedAction.execute(this.getReporter().makeChild("on_granted_action"), new EntityActionContext(holder));
 		}
 
 	}
@@ -84,7 +84,7 @@ public class CallbackPower extends Power {
 	public void onRemoved(Entity holder) {
 
 		if (isActive(holder)) {
-			removedAction.accept(new EntityActionContext(holder));
+			removedAction.execute(this.getReporter().makeChild("on_removed_action"), new EntityActionContext(holder));
 		}
 
 	}
@@ -93,7 +93,7 @@ public class CallbackPower extends Power {
 	public void onRevoked(Entity holder) {
 
 		if (isActive(holder)) {
-			revokedAction.accept(new EntityActionContext(holder));
+			revokedAction.execute(this.getReporter().makeChild("on_revoked_action"), new EntityActionContext(holder));
 		}
 
 	}
@@ -102,7 +102,7 @@ public class CallbackPower extends Power {
 	public void onRespawn(PlayerEntity holder) {
 
 		if (isActive(holder)) {
-			respawnAction.accept(new EntityActionContext(holder));
+			respawnAction.execute(this.getReporter().makeChild("on_respawn_action"), new EntityActionContext(holder));
 		}
 
 	}

@@ -20,13 +20,24 @@ public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends 
 	WeightedList<AA> actions();
 
 	@Override
-	default void accept(AX context) {
+	default void execute(ErrorReporter reporter, AX context) {
 
 		actions().shuffle();
 		Iterator<AA> iterator = actions().iterator();
 
 		if (iterator.hasNext())	{
-			iterator.next().accept(context);
+			iterator.next().execute(reporter, context);
+		}
+
+	}
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+		List<AA> actions = actions().stream().toList();
+
+		for (int i = 0; i < actions.size(); i++) {
+			actions.get(i).validate(reporter.makeChild("actions[" + i + "]"));
 		}
 
 	}

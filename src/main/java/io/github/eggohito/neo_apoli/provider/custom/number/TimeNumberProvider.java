@@ -25,7 +25,7 @@ public record TimeNumberProvider(Optional<Long> modulo) implements NumberProvide
 	);
 
 	@Override
-	public Number get(ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, ValueProviderContext context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();

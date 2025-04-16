@@ -23,16 +23,22 @@ public interface RandomChanceMetaAction<AX extends ActionContext<?>, AA extends 
 	float chance();
 
 	@Override
-	default void accept(AX context) {
+	default void execute(ErrorReporter reporter, AX context) {
 
 		if (Random.create().nextFloat() < chance()) {
-			successAction().accept(context);
+			successAction().execute(reporter, context);
 		}
 
 		else {
-			failAction().ifPresent(failAction -> failAction.accept(context));
+			failAction().ifPresent(failAction -> failAction.execute(reporter, context));
 		}
 
+	}
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+		successAction().validate(reporter.makeChild("success_action"));
+		failAction().ifPresent(failAction -> failAction.validate(reporter.makeChild("fail_action")));
 	}
 
 	static <AA extends Action<?, ?>, RCMA extends RandomChanceMetaAction<?, AA, ?>> MapCodec<RCMA> createCodec(Codec<AA> elementCodec, TriFunction<AA, Optional<AA>, Float, RCMA> constructor) {

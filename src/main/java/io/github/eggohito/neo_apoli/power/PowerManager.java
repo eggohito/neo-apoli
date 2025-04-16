@@ -114,13 +114,21 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 						throw new JsonParseException("JSON cannot be empty!");
 					}
 
-					else if (isResourceConditionFulfilled(resourceId, jsonElement, directoryPath, registryOps)) {
+					else if (jsonElement instanceof JsonObject jsonObject) {
 
-						PackData packData = new PackData(packName, jsonElement);
+						if (isResourceConditionFulfilled(resourceId, jsonObject, directoryPath, registryOps)) {
 
-						PowerLoadingEvents.BEFORE.invoker().beforeLoad(resourceId, packData, directoryPath, registryOps);
-						prepared.put(resourceId, packData);
+							PackData packData = new PackData(packName, jsonObject);
 
+							PowerLoadingEvents.BEFORE.invoker().beforeLoad(resourceId, packData, directoryPath, registryOps);
+							prepared.put(resourceId, packData);
+
+						}
+
+					}
+
+					else {
+						throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
 					}
 
 				}
@@ -157,21 +165,17 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			try {
 
 				JsonObject jsonObject = new JsonObject();
+				packData.element().addProperty("id", powerReference.toString());
 
 				jsonObject.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 				jsonObject.add(PowerEntry.VALUE_KEY, packData.element());
 
 				PowerEntry<?> entry = PowerEntry.CODEC.parse(registryOps, jsonObject).getOrThrow();
-				Power power = entry.value();
-
-				Power.Properties properties = power.getProperties().withReference(entry.reference());
-				power.setProperties(properties);
-
-				if (power instanceof MultiplePower multiplePower) {
+				if (entry.value() instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
 						PowerReference subPowerReference = PowerReference.ofSubPower(id, name);
-						JsonElement subPowerJson = jsonObject.getAsJsonObject(PowerEntry.VALUE_KEY).get(name);
+						JsonObject subPowerJson = jsonObject.getAsJsonObject(PowerEntry.VALUE_KEY).getAsJsonObject(name);
 
 						PackData subPackData = new PackData(packData.source(), subPowerJson);
 						registerWithCallback(new PowerEntry<>(subPowerReference, subPower), subPackData, registryOps);
@@ -328,7 +332,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		REFERENCE_BY_POWER.trim();
 	}
 
-	public record PackData(String source, JsonElement element) {
+	public record PackData(String source, JsonObject element) {
 
 	}
 

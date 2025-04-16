@@ -31,7 +31,7 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 	}
 
 	@Override
-	public void accept(EntityActionContext context) {
+	public void execute(ErrorReporter reporter, EntityActionContext context) {
 		context.entity().ifPresent(entity -> entity.emitGameEvent(gameEvent(), entity));
 	}
 

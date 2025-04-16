@@ -20,7 +20,7 @@ public record ExtinguishEntityAction() implements EntityAction {
 	}
 
 	@Override
-	public void accept(EntityActionContext context) {
+	public void execute(ErrorReporter reporter, EntityActionContext context) {
 		context.entity().ifPresent(Entity::extinguishWithSound);
 	}
 

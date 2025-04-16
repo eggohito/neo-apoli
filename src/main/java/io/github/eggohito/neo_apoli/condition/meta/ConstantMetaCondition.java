@@ -8,13 +8,14 @@ import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.booleans.Boolean2ObjectFunction;
+import net.minecraft.loot.LootTableReporter;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
 public interface ConstantMetaCondition<CX extends ConditionContext, CT extends ConditionType<?>> extends Condition<CX, CT> {
 
 	@Override
-	default boolean test(CX context) {
+	default boolean test(ErrorReporter reporter, CX context) {
 		return value();
 	}
 

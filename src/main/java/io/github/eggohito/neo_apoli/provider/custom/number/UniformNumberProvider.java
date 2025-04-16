@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
@@ -11,8 +12,6 @@ import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public record UniformNumberProvider(NumberProvider min, NumberProvider max) implements NumberProvider {
 
@@ -28,10 +27,10 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max) impl
 	);
 
 	@Override
-	public Number get(ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, ValueProviderContext context) {
 
-		double min = min().get(context).doubleValue();
-		double max = max().get(context).doubleValue();
+		double min = min().get(reporter, context).doubleValue();
+		double max = max().get(reporter, context).doubleValue();
 
 		return MathHelper.nextDouble(context.getWorld().getRandom(), min, max);
 
@@ -44,7 +43,16 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max) impl
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Stream.concat(min().getAllowedParameters().stream(), max().getAllowedParameters().stream()).collect(Collectors.toSet());
+		return ImmutableSet.<ContextParameter<?>>builder()
+			.addAll(min().getAllowedParameters())
+			.addAll(max().getAllowedParameters())
+			.build();
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		min().validate(reporter.makeChild("min"));
+		max().validate(reporter.makeChild("max"));
 	}
 
 }

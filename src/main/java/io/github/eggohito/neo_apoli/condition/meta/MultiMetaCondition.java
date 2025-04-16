@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.loot.LootTableReporter;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
@@ -17,6 +18,15 @@ import java.util.function.Function;
 public interface MultiMetaCondition<CX extends ConditionContext, CC extends Condition<CX, CT>, CT extends ConditionType<?>> extends Condition<CX, CT> {
 
 	List<CC> conditions();
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+		for (int i = 0; i < conditions().size(); i++) {
+			conditions().get(i).validate(reporter.makeChild("conditions[" + i + "]"));
+		}
+
+	}
 
 	static <CC extends Condition<?, ?>, MC extends MultiMetaCondition<?, CC, ?>> MapCodec<MC> createCodec(Codec<CC> elementCodec, Function<List<CC>, MC> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(

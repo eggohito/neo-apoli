@@ -378,7 +378,10 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	private DataResult<Power> deepCopy(Power power) {
 		RegistryOps<NbtElement> nbtOps = holder.getRegistryManager().getOps(NbtOps.INSTANCE);
-		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement));
+		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement)).map(parsedPower -> {
+			power.getReference().ifPresent(parsedPower::setReference);
+			return parsedPower;
+		});
 	}
 
 	public record Entry<T>(PowerReference powerReference, Power.Type<?> type, Set<Identifier> sources, Dynamic<T> data) {

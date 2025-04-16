@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.string;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
@@ -13,8 +14,6 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
@@ -30,10 +29,10 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	);
 
 	@Override
-	public String get(ValueProviderContext context) {
+	public String get(ErrorReporter reporter, ValueProviderContext context) {
 
-		Number number = number().get(context);
-		int decimals = decimals().get(context).intValue();
+		Number number = number().get(reporter, context);
+		int decimals = decimals().get(reporter, context).intValue();
 
 		if (decimals == 0) {
 			return Long.toString(number.longValue());
@@ -52,7 +51,16 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Stream.concat(number().getAllowedParameters().stream(), decimals().getAllowedParameters().stream()).collect(Collectors.toSet());
+		return ImmutableSet.<ContextParameter<?>>builder()
+			.addAll(number().getAllowedParameters())
+			.addAll(decimals().getAllowedParameters())
+			.build();
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		number().validate(reporter.makeChild("number"));
+		decimals().validate(reporter.makeChild("decimals"));
 	}
 
 }

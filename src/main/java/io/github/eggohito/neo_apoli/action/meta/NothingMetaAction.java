@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.action.type.ActionType;
 public interface NothingMetaAction<AX extends ActionContext<?>, AT extends ActionType<?>> extends Action<AX, AT> {
 
 	@Override
-	default void accept(AX context) {
+	default void execute(ErrorReporter reporter, AX context) {
 
 	}
 

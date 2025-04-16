@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli.provider.custom.string;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -29,13 +29,13 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public String get(ValueProviderContext context) {
+	public String get(ErrorReporter reporter, ValueProviderContext context) {
 
 		StringBuilder result = new StringBuilder();
-		String separator = this.separator().get(context);
+		String separator = this.separator().get(reporter, context);
 
 		for (var string : strings()) {
-			result.append(string.get(context)).append(separator);
+			result.append(string.get(reporter, context)).append(separator);
 		}
 
 		return result.toString();
@@ -49,14 +49,20 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
+		return ImmutableSet.<ContextParameter<?>>builder()
+			.addAll(strings().stream().flatMap(string -> string.getAllowedParameters().stream()).toList())
+			.addAll(separator().getAllowedParameters())
+			.build();
+	}
 
-		Set<ContextParameter<?>> params = new ObjectOpenHashSet<>();
-		for (var string : strings()) {
-			params.addAll(string.getAllowedParameters());
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+		for (int i = 0; i < strings().size(); i++) {
+			strings().get(i).validate(reporter.makeChild("strings[" + i + "]"));
 		}
 
-		params.addAll(separator().getAllowedParameters());
-		return params;
+		separator().validate(reporter.makeChild("separator"));
 
 	}
 

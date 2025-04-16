@@ -19,10 +19,19 @@ public interface SequenceMetaAction<AX extends ActionContext<?>, AA extends Acti
 	List<AA> actions();
 
 	@Override
-	default void accept(AX context) {
+	default void execute(ErrorReporter reporter, AX context) {
 
 		for (AA action : actions()) {
-			action.accept(context);
+			action.execute(reporter, context);
+		}
+
+	}
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+		for (int i = 0; i < actions().size(); i++) {
+			actions().get(i).validate(reporter.makeChild("actions[" + i + "]"));
 		}
 
 	}

@@ -28,7 +28,7 @@ public record ConstantNumberProvider(Number value) implements NumberProvider {
 	).cast();
 
 	@Override
-	public Number get(ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, ValueProviderContext context) {
 		return this.value();
 	}
 

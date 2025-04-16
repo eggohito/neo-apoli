@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.loot.LootTableReporter;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.function.Function;
@@ -14,8 +15,13 @@ import java.util.function.Function;
 public interface InvertedMetaCondition<CX extends ConditionContext, CT extends ConditionType<?>, CC extends Condition<CX, CT>> extends Condition<CX, CT> {
 
 	@Override
-	default boolean test(CX context) {
-		return !condition().test(context);
+	default boolean test(ErrorReporter reporter, CX context) {
+		return !condition().test(reporter, context);
+	}
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+		condition().validate(reporter.makeChild("condition"));
 	}
 
 	CC condition();

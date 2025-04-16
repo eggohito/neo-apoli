@@ -2,17 +2,19 @@ package io.github.eggohito.neo_apoli.action;
 
 import io.github.eggohito.neo_apoli.action.context.ActionContext;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.util.Validatable;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import net.minecraft.loot.context.LootContextTypes;
 
-import java.util.function.Consumer;
-
-public interface Action<AX extends ActionContext<?>, AT extends ActionType<?>> extends Consumer<AX>, Validatable {
+public interface Action<AX extends ActionContext<?>, AT extends ActionType<?>> extends ContextAware {
 
 	String TYPE_KEY = "type";
 
 	AT getType();
 
-	@Override
-	void accept(AX context);
+	void execute(ErrorReporter reporter, AX context);
+
+	default void execute(AX context) {
+		this.execute(new ErrorReporter(LootContextTypes.EMPTY), context);
+	}
 
 }

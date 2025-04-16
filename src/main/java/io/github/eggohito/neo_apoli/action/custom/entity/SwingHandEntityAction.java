@@ -35,7 +35,7 @@ public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction
 	}
 
 	@Override
-	public void accept(EntityActionContext context) {
+	public void execute(ErrorReporter reporter, EntityActionContext context) {
 
 		Optional<Entity> entity = context.entity();
 

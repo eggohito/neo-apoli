@@ -15,8 +15,10 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.Validatable;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -25,7 +27,6 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
 import org.apache.commons.lang3.function.TriFunction;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -38,12 +39,17 @@ public abstract class Power implements Validatable {
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, Type::packetCodec);
 
-	private Properties properties;
+	private final PowerReference reference;
+	private final Properties properties;
+
 	private final EntityCondition activeCondition;
+	private final ContextAware.ErrorReporter reporter;
 
 	public Power(Properties properties, EntityCondition activeCondition) {
+		this.reference = properties.reference();
 		this.properties = properties;
 		this.activeCondition = activeCondition;
+		this.reporter = new ContextAware.ErrorReporter(LootContextTypes.EMPTY).makeChild("{'" + reference + "'}");
 	}
 
 	public Power(Properties properties) {
@@ -80,32 +86,36 @@ public abstract class Power implements Validatable {
 		return DataResult.success(Unit.INSTANCE);
 	}
 
-	public Properties getProperties() {
+	public final Properties getProperties() {
 		return properties;
 	}
 
-	public void setProperties(@NotNull Properties properties) {
-		this.properties = properties;
-	}
-
-	public EntityCondition getActiveCondition() {
+	public final EntityCondition getActiveCondition() {
 		return activeCondition;
 	}
 
-	public Text getName() {
+	public final ContextAware.ErrorReporter getReporter() {
+		return reporter;
+	}
+
+	public final PowerReference getReference() {
+		return reference;
+	}
+
+	public final Text getName() {
 		return getProperties().name();
 	}
 
-	public Text getDescription() {
+	public final Text getDescription() {
 		return getProperties().description();
 	}
 
-	public boolean isHidden() {
+	public final boolean isHidden() {
 		return getProperties().hidden();
 	}
 
 	public boolean isActive(Entity holder) {
-		return getActiveCondition().test(new EntityConditionContext(holder));
+		return getActiveCondition().test(this.getReporter(), new EntityConditionContext(holder));
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -158,29 +168,31 @@ public abstract class Power implements Validatable {
 		);
 	}
 
-	public record Properties(Text name, Text description, boolean hidden) {
+	public record Properties(PowerReference reference, Text name, Text description, boolean hidden) {
+
+		public Properties {
+
+			String translationKey = reference.createTranslationKey();
+
+			name = TextUtil.forceTranslatable(translationKey + ".name", name);
+			description = TextUtil.forceTranslatable(translationKey + ".description", description);
+
+		}
 
 		public static final MapCodec<Properties> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+			PowerReference.CODEC.fieldOf("id").forGetter(Properties::reference),
 			TextCodecs.CODEC.optionalFieldOf("name", Text.empty()).forGetter(Properties::name),
 			TextCodecs.CODEC.optionalFieldOf("description", Text.empty()).forGetter(Properties::description),
 			PrimitiveCodec.BOOL.optionalFieldOf("hidden", false).forGetter(Properties::hidden)
 		).apply(instance, Properties::new));
 
 		public static final PacketCodec<RegistryByteBuf, Properties> PACKET_CODEC = PacketCodec.tuple(
+			PowerReference.PACKET_CODEC, Properties::reference,
 			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::name,
 			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::description,
 			PacketCodecs.BOOLEAN, Properties::hidden,
 			Properties::new
 		);
-
-		public Properties withReference(PowerReference reference) {
-			String translationKey = reference.createTranslationKey();
-			return new Properties(
-				TextUtil.forceTranslatable(translationKey + ".name", this.name()),
-				TextUtil.forceTranslatable(translationKey + ".description", this.description()),
-				this.hidden()
-			);
-		}
 
 	}
 

@@ -22,16 +22,31 @@ public interface IfElseListMetaAction<AX extends ActionContext<CX>, CX extends C
 	List<Entry<CC, AA>> entries();
 
 	@Override
-	default void accept(AX context) {
+	default void execute(ErrorReporter reporter, AX context) {
 
 		CX convertedContext = context.convert();
 
 		for (Entry<CC, AA> entry : entries()) {
 
-			if (entry.condition().test(convertedContext)) {
-				entry.action().accept(context);
+			if (entry.condition().test(reporter, convertedContext)) {
+				entry.action().execute(reporter, context);
 				break;
 			}
+
+		}
+
+	}
+
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+		for (int i = 0; i < entries().size(); i++) {
+
+			Entry<CC, AA> entry = entries().get(i);
+			ErrorReporter entryReporter = reporter.makeChild("actions[" + i + "]");
+
+			entry.condition().validate(entryReporter.makeChild("condition"));
+			entry.action().validate(entryReporter.makeChild("action"));
 
 		}
 

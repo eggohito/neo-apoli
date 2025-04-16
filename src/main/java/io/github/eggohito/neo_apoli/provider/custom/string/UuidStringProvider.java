@@ -25,7 +25,7 @@ public record UuidStringProvider(LootContext.EntityTarget source) implements Str
 	);
 
 	@Override
-	public String get(ValueProviderContext context) {
+	public String get(ErrorReporter reporter, ValueProviderContext context) {
 		return context.requireParameter(source.getParameter()).getUuidAsString();
 	}
 
