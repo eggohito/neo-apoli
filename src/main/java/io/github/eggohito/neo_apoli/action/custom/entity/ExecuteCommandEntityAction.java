@@ -14,7 +14,10 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextType;
 
@@ -53,8 +56,10 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			return;
 		}
 
-		//	TODO: Create a config for customizing the permission level and command output of this entity action
-		ServerCommandSource commandSource = entity.getCommandSource(serverWorld);
+		ServerCommandSource commandSource = entity.getCommandSource(serverWorld)
+			.withLevel(NeoApoli.getConfig().command().permissionLevel())
+			.withOutput(getOutput(entity, serverWorld.getServer()));
+
 		ValueProviderContext providerContext = ValueProviderContext.builder(CONTEXT_TYPE)
 			.add(LootContextParameters.THIS_ENTITY, entity)
 			.add(LootContextParameters.ORIGIN, entity.getPos())
@@ -75,6 +80,26 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 	@Override
 	public void validate(ErrorReporter reporter) {
 		command().validate(reporter.makeChild("command"));
+	}
+
+	private static CommandOutput getOutput(Entity entity, MinecraftServer server) {
+
+		if (NeoApoli.getConfig().command().showOutput()) {
+
+			if (entity instanceof ServerPlayerEntity serverPlayer && serverPlayer.networkHandler != null) {
+				return serverPlayer.getCommandOutput();
+			}
+
+			else {
+				return server;
+			}
+
+		}
+
+		else {
+			return CommandOutput.DUMMY;
+		}
+
 	}
 
 }
