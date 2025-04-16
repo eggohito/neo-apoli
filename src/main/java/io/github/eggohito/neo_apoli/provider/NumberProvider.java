@@ -13,7 +13,7 @@ public interface NumberProvider extends ValueProvider<Number> {
 	PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, Type::packetCodec);
 
 	MapCodec<NumberProvider> MAP_CODEC = NumberProviderTypes.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, Type::mapCodec);
-	Codec<NumberProvider> CODEC = Codec.withAlternative(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC);
+	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> Codec.withAlternative(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
 
 	Type<?> getType();
 

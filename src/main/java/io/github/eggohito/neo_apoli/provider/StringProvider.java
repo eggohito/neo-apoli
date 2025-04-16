@@ -13,7 +13,7 @@ public interface StringProvider extends ValueProvider<String> {
 	PacketCodec<RegistryByteBuf, StringProvider> PACKET_CODEC = StringProviderTypes.PACKET_CODEC.dispatch(StringProvider::getType, Type::packetCodec);
 
 	MapCodec<StringProvider> MAP_CODEC = StringProviderTypes.CODEC.dispatchMap(TYPE_KEY, StringProvider::getType, Type::mapCodec);
-	Codec<StringProvider> CODEC = Codec.withAlternative(MAP_CODEC.codec(), ConstantStringProvider.INLINE_CODEC);
+	Codec<StringProvider> CODEC = Codec.lazyInitialized(() -> Codec.withAlternative(MAP_CODEC.codec(), ConstantStringProvider.INLINE_CODEC));
 
 	@Override
 	Type<?> getType();
