@@ -45,6 +45,7 @@ public class NeoApoli implements ModInitializer {
 		.setPrettyPrinting()
 		.create();
 
+	private static MinecraftServer server;
 	private static NeoApoliConfig config;
 
 	@Override
@@ -68,6 +69,11 @@ public class NeoApoli implements ModInitializer {
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onAdded(entity)));
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(power -> power.onRemoved(entity)));
 
+		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
+
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
+
 	}
 
 	public static Identifier id(String path) {
@@ -82,6 +88,11 @@ public class NeoApoli implements ModInitializer {
 
 		return config;
 
+	}
+
+	public static boolean serverSide() {
+		return server != null
+			&& server.isOnThread();
 	}
 
 	private static void saveConfig() {
