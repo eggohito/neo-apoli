@@ -25,6 +25,7 @@ public final class NumberProviderTypes {
 	public static final NumberProvider.Type<AttributeNumberProvider> ATTRIBUTE = registerInternal("attribute", AttributeNumberProvider.CODEC, AttributeNumberProvider.PACKET_CODEC);
 	public static final NumberProvider.Type<BinomialNumberProvider> BINOMIAL = registerInternal("binomial", BinomialNumberProvider.CODEC, BinomialNumberProvider.PACKET_CODEC);
 	public static final NumberProvider.Type<ConstantNumberProvider> CONSTANT = registerInternal("constant", ConstantNumberProvider.CODEC, ConstantNumberProvider.PACKET_CODEC);
+	public static final NumberProvider.Type<StorageNumberProvider> STORAGE = registerInternal("storage", StorageNumberProvider.CODEC, StorageNumberProvider.PACKET_CODEC);
 	public static final NumberProvider.Type<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.PACKET_CODEC);
 	public static final NumberProvider.Type<UniformNumberProvider> UNIFORM = registerInternal("uniform", UniformNumberProvider.CODEC, UniformNumberProvider.PACKET_CODEC);
 

@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
+import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -18,7 +19,10 @@ import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.JsonWriter;
@@ -28,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class NeoApoli implements ModInitializer {
 
@@ -84,7 +90,10 @@ public class NeoApoli implements ModInitializer {
 
 		try {
 
-			File configFile = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5").toFile();
+			Path configPath = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
+			Files.createDirectories(configPath);
+
+			File configFile = Files.createFile(configPath).toFile();
 			BufferedWriter writer = new BufferedWriter(new FileWriter(configFile));
 
 			GsonWriter gsonWriter = new GsonWriter(JsonWriter.json5(writer));

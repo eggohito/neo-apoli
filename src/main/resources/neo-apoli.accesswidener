@@ -5,3 +5,5 @@ accessible field net/minecraft/text/TranslatableTextContent languageCache Lnet/m
 accessible field net/minecraft/text/TranslatableTextContent translations Ljava/util/List;
 
 accessible method net/minecraft/util/ErrorReporter$Impl <init> (Lcom/google/common/collect/Multimap;Ljava/util/function/Supplier;)V
+
+accessible class net/minecraft/command/DataCommandStorage$PersistentState

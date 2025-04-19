@@ -4,6 +4,7 @@ import com.google.gson.internal.LazilyParsedNumber;
 import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -41,9 +42,8 @@ public class NeoApoliPacketCodecs {
 					buf.readShort();
 				case 6 ->
 					new LazilyParsedNumber(buf.readString());
-				default -> {
+				default ->
 					throw new IllegalArgumentException("Unsupported number type: " + type);
-				}
 			};
 		}
 
@@ -84,5 +84,7 @@ public class NeoApoliPacketCodecs {
 		}
 
 	};
+
+	public static final PacketCodec<ByteBuf, NbtPathArgumentType.NbtPath> NBT_PATH = PacketCodecs.unlimitedCodec(NbtPathArgumentType.NbtPath.CODEC);
 
 }

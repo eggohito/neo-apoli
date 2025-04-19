@@ -25,7 +25,11 @@
 		]
 	},
 	"mixins": [
-		"neo-apoli.mixins.json"
+		"neo-apoli.mixins.json",
+		{
+			"environment": "client",
+			"config": "neo-apoli.mixins.client.json"
+		}
 	],
 	"custom": {
 		"cardinal-components": [

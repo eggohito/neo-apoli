@@ -113,6 +113,10 @@ public interface ContextAware {
 			return wrapperLookup.orElseThrow(() -> new UnsupportedOperationException("Registry wrapper lookup is not present!"));
 		}
 
+		public String getName() {
+			return name;
+		}
+
 		public String getPath() {
 			return pathSupplier.get();
 		}

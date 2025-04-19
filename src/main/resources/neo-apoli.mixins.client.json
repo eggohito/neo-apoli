@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "io.github.eggohito.neo_apoli.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"misc.ClientWorldMixin",
+		"misc.MinecraftClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
