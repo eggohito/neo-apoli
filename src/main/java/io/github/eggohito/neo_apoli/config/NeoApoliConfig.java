@@ -2,6 +2,9 @@ package io.github.eggohito.neo_apoli.config;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.registry.RegistryWrapper;
 
 public record NeoApoliConfig(Command command) {
 
@@ -11,6 +14,30 @@ public record NeoApoliConfig(Command command) {
 
 	public NeoApoliConfig() {
 		this(new Command());
+	}
+
+	public static void init() {
+
+		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+
+			RegistryWrapper.WrapperLookup wrapperLookup = server.getRegistryManager();
+			if (NeoApoli.loadConfig(wrapperLookup)) {
+				return;
+			}
+
+			NeoApoli.LOGGER.info("Loading and saving config with default values...");
+			NeoApoli.saveConfig(wrapperLookup, new NeoApoliConfig());
+
+		});
+
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, manager, success) -> {
+
+			if (success) {
+				NeoApoli.loadConfig(server.getRegistryManager());
+			}
+
+		});
+
 	}
 
 	public record Command(int permissionLevel, boolean showOutput) {

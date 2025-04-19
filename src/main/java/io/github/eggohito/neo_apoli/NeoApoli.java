@@ -22,6 +22,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import org.quiltmc.parsers.json.JsonReader;
@@ -34,18 +35,19 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class NeoApoli implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "neo-apoli";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
+	private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
+
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
-
-	private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
 
 	private static MinecraftServer server;
 	private static NeoApoliConfig config;
@@ -73,13 +75,7 @@ public class NeoApoli implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
-
-		if (!loadConfig()) {
-			LOGGER.info("Loading and saving config with default values...");
-			saveConfig();
-		}
-
-		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, manager) -> loadConfig());
+		NeoApoliConfig.init();
 
 	}
 
@@ -87,14 +83,8 @@ public class NeoApoli implements ModInitializer {
 		return Identifier.of(MOD_NAMESPACE, path);
 	}
 
-	public static NeoApoliConfig getOrCreateConfig() {
-
-		if (config == null) {
-			config = new NeoApoliConfig();
-		}
-
-		return config;
-
+	public static NeoApoliConfig getConfig() {
+		return Objects.requireNonNull(config, MOD_NAMESPACE + "'s config wasn't initialized properly!");
 	}
 
 	public static boolean serverSide() {
@@ -102,52 +92,52 @@ public class NeoApoli implements ModInitializer {
 			&& server.isOnThread();
 	}
 
-	private static void saveConfig() {
+	public static void saveConfig(RegistryWrapper.WrapperLookup wrapperLookup, NeoApoliConfig config) {
 
 		try {
 
-			LOGGER.info("Saving neo-apoli's config...");
+			LOGGER.info("Saving {}'s config...", MOD_NAMESPACE);
 			Files.createDirectories(CONFIG_PATH.getParent());
 
 			File configFile = CONFIG_PATH.toFile();
 			try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
 
 				GsonWriter gsonWriter = new GsonWriter(JsonWriter.json5(writer));
-				JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(JsonOps.INSTANCE, getOrCreateConfig()).getOrThrow(JsonParseException::new);
+				JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(wrapperLookup.getOps(JsonOps.INSTANCE), config).getOrThrow(JsonParseException::new);
 
 				GSON.toJson(jsonElement, gsonWriter);
 
 			}
 
-			LOGGER.info("Saved neo-apoli's config!");
+			LOGGER.info("Saved {}'s config!", MOD_NAMESPACE);
 
 		}
 
 		catch (Exception e) {
-			LOGGER.warn("Error trying to save neo-apoli config file: ", e);
+			LOGGER.warn("Error trying to save {} config file: ", MOD_NAMESPACE, e);
 		}
 
 	}
 
-	private static boolean loadConfig() {
+	public static boolean loadConfig(RegistryWrapper.WrapperLookup wrapperLookup) {
 
 		try {
 
-			LOGGER.info("Loading neo-apoli's config...");
+			LOGGER.info("Loading {}'s config...", MOD_NAMESPACE);
 
 			File configFile = CONFIG_PATH.toFile();
 			BufferedReader reader = new BufferedReader(new FileReader(configFile));
 
 			GsonReader gsonReader = new GsonReader(JsonReader.json5(reader));
-			config = NeoApoliConfig.CODEC.parse(JsonOps.INSTANCE, GSON.fromJson(gsonReader, JsonElement.class)).getOrThrow(JsonParseException::new);
+			config = NeoApoliConfig.CODEC.parse(wrapperLookup.getOps(JsonOps.INSTANCE), GSON.fromJson(gsonReader, JsonElement.class)).getOrThrow(JsonParseException::new);
 
-			LOGGER.info("Loaded neo-apoli's config!");
+			LOGGER.info("Loaded {}'s config!", MOD_NAMESPACE);
 			return true;
 
 		}
 
 		catch (Exception e) {
-			LOGGER.error("Error trying to load neo-apoli config file: ", e);
+			LOGGER.error("Error trying to load {} config file: ", MOD_NAMESPACE, e);
 			return false;
 		}
 
