@@ -57,7 +57,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		}
 
 		ServerCommandSource commandSource = entity.getCommandSource(serverWorld)
-			.withLevel(NeoApoli.getConfig().command().permissionLevel())
+			.withLevel(NeoApoli.getOrCreateConfig().command().permissionLevel())
 			.withOutput(getOutput(entity, serverWorld.getServer()));
 
 		ValueProviderContext providerContext = ValueProviderContext.builder(CONTEXT_TYPE)
@@ -84,7 +84,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 
 	private static CommandOutput getOutput(Entity entity, MinecraftServer server) {
 
-		if (NeoApoli.getConfig().command().showOutput()) {
+		if (NeoApoli.getOrCreateConfig().command().showOutput()) {
 
 			if (entity instanceof ServerPlayerEntity serverPlayer && serverPlayer.networkHandler != null) {
 				return serverPlayer.getCommandOutput();

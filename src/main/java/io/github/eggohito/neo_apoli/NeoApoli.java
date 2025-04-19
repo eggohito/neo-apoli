@@ -45,13 +45,13 @@ public class NeoApoli implements ModInitializer {
 		.setPrettyPrinting()
 		.create();
 
+	private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
+
 	private static MinecraftServer server;
 	private static NeoApoliConfig config;
 
 	@Override
 	public void onInitialize() {
-
-		loadConfig();
 
 		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
 		NeoApoliArgumentTypes.registerAll();
@@ -74,13 +74,20 @@ public class NeoApoli implements ModInitializer {
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 
+		if (!loadConfig()) {
+			LOGGER.info("Loading and saving config with default values...");
+			saveConfig();
+		}
+
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, manager) -> loadConfig());
+
 	}
 
 	public static Identifier id(String path) {
 		return Identifier.of(MOD_NAMESPACE, path);
 	}
 
-	public static NeoApoliConfig getConfig() {
+	public static NeoApoliConfig getOrCreateConfig() {
 
 		if (config == null) {
 			config = new NeoApoliConfig();
@@ -97,20 +104,22 @@ public class NeoApoli implements ModInitializer {
 
 	private static void saveConfig() {
 
-		LOGGER.info("Saving neo-apoli's config...");
-
 		try {
 
-			Path configPath = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
-			Files.createDirectories(configPath);
+			LOGGER.info("Saving neo-apoli's config...");
+			Files.createDirectories(CONFIG_PATH.getParent());
 
-			File configFile = Files.createFile(configPath).toFile();
-			BufferedWriter writer = new BufferedWriter(new FileWriter(configFile));
+			File configFile = CONFIG_PATH.toFile();
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
 
-			GsonWriter gsonWriter = new GsonWriter(JsonWriter.json5(writer));
-			JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(JsonOps.INSTANCE, getConfig()).getOrThrow(JsonParseException::new);
+				GsonWriter gsonWriter = new GsonWriter(JsonWriter.json5(writer));
+				JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(JsonOps.INSTANCE, getOrCreateConfig()).getOrThrow(JsonParseException::new);
 
-			GSON.toJson(jsonElement, gsonWriter);
+				GSON.toJson(jsonElement, gsonWriter);
+
+			}
+
+			LOGGER.info("Saved neo-apoli's config!");
 
 		}
 
@@ -120,30 +129,27 @@ public class NeoApoli implements ModInitializer {
 
 	}
 
-	private static void loadConfig() {
-
-		LOGGER.info("Loading neo-apoli's config...");
+	private static boolean loadConfig() {
 
 		try {
 
-			File configFile = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5").toFile();
+			LOGGER.info("Loading neo-apoli's config...");
+
+			File configFile = CONFIG_PATH.toFile();
 			BufferedReader reader = new BufferedReader(new FileReader(configFile));
 
 			GsonReader gsonReader = new GsonReader(JsonReader.json5(reader));
 			config = NeoApoliConfig.CODEC.parse(JsonOps.INSTANCE, GSON.fromJson(gsonReader, JsonElement.class)).getOrThrow(JsonParseException::new);
 
+			LOGGER.info("Loaded neo-apoli's config!");
+			return true;
+
 		}
 
 		catch (Exception e) {
-
-			LOGGER.error("Error trying to load neo-apoli config file (loading config with default values...): ", e);
-			config = new NeoApoliConfig();
-
-			saveConfig();
-
+			LOGGER.error("Error trying to load neo-apoli config file: ", e);
+			return false;
 		}
-
-		LOGGER.info("Loaded neo-apoli's config!");
 
 	}
 
