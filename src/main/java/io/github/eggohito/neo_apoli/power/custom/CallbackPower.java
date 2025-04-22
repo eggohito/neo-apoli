@@ -9,11 +9,14 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.context.ContextType;
+import org.jetbrains.annotations.NotNull;
 
 public class CallbackPower extends Power {
+
+	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
 
 	public static final MapCodec<CallbackPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonAndConditionFields(instance)
 		.and(EntityAction.CODEC.optionalFieldOf("on_added_action", new NothingEntityAction()).forGetter(CallbackPower::getAddedAction))
@@ -58,53 +61,13 @@ public class CallbackPower extends Power {
 	}
 
 	@Override
-	public Type<? extends Power> getType() {
+	public Type<?> getType() {
 		return PowerTypes.CALLBACK;
 	}
 
 	@Override
-	public void onAdded(Entity holder) {
-
-		if (isActive(holder)) {
-			addedAction.execute(this.getReporter().makeChild("on_added_action"), new EntityActionContext(holder));
-		}
-
-	}
-
-	@Override
-	public void onGranted(Entity holder) {
-
-		if (isActive(holder)) {
-			grantedAction.execute(this.getReporter().makeChild("on_granted_action"), new EntityActionContext(holder));
-		}
-
-	}
-
-	@Override
-	public void onRemoved(Entity holder) {
-
-		if (isActive(holder)) {
-			removedAction.execute(this.getReporter().makeChild("on_removed_action"), new EntityActionContext(holder));
-		}
-
-	}
-
-	@Override
-	public void onRevoked(Entity holder) {
-
-		if (isActive(holder)) {
-			revokedAction.execute(this.getReporter().makeChild("on_revoked_action"), new EntityActionContext(holder));
-		}
-
-	}
-
-	@Override
-	public void onRespawn(PlayerEntity holder) {
-
-		if (isActive(holder)) {
-			respawnAction.execute(this.getReporter().makeChild("on_respawn_action"), new EntityActionContext(holder));
-		}
-
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder);
 	}
 
 	public EntityAction getAddedAction() {
@@ -125,6 +88,64 @@ public class CallbackPower extends Power {
 
 	public EntityAction getRespawnAction() {
 		return respawnAction;
+	}
+
+	public class Impl extends Power.Impl<CallbackPower> {
+
+		public Impl(@NotNull Entity holder) {
+			super(holder, CallbackPower.this);
+		}
+
+		@Override
+		public ContextType getContextType() {
+			return CONTEXT_TYPE;
+		}
+
+		@Override
+		public void onAdded() {
+
+			if (isActive()) {
+				executeAndReport(power.getAddedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_added_action"), new EntityActionContext(holder)));
+			}
+
+		}
+
+		@Override
+		public void onGranted() {
+
+			if (isActive()) {
+				executeAndReport(power.getGrantedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_granted_action"), new EntityActionContext(holder)));
+			}
+
+		}
+
+		@Override
+		public void onRemoved() {
+
+			if (isActive()) {
+				executeAndReport(power.getRemovedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_removed_action"), new EntityActionContext(holder)));
+			}
+
+		}
+
+		@Override
+		public void onRevoked() {
+
+			if (isActive()) {
+				executeAndReport(power.getRevokedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_revoked_action"), new EntityActionContext(holder)));
+			}
+
+		}
+
+		@Override
+		public void onRespawn() {
+
+			if (isActive()) {
+				executeAndReport(power.getRespawnAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_respawn_action"), new EntityActionContext(holder)));
+			}
+
+		}
+
 	}
 
 }

@@ -63,6 +63,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> POWERS_BY_REFERENCE = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Power, PowerReference> REFERENCES_BY_POWER = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> registryOps;
 
@@ -164,13 +165,16 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 			try {
 
 				JsonObject jsonObject = new JsonObject();
-				packData.element().addProperty("id", powerReference.toString());
 
 				jsonObject.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 				jsonObject.add(PowerEntry.VALUE_KEY, packData.element());
 
 				PowerEntry<?> entry = PowerEntry.CODEC.parse(registryOps, jsonObject).getOrThrow();
-				if (entry.value() instanceof MultiplePower multiplePower) {
+				Power power = entry.value();
+
+				power.getProperties().withReference(powerReference);
+
+				if (power instanceof MultiplePower multiplePower) {
 					multiplePower.getSubPowers().forEach((name, subPower) -> {
 
 						PowerReference subPowerReference = PowerReference.ofSubPower(id, name);
@@ -254,12 +258,26 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		return getAsResult(reference).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static Stream<PowerReference> streamIds() {
+	public static DataResult<PowerReference> getReferenceAsResult(Power power) {
+		return containsReference(power)
+			? DataResult.success(REFERENCES_BY_POWER.get(power))
+			: DataResult.error(() -> "Power " + power + " doesn't correspond to any references!");
+	}
+
+	public static PowerReference getReference(Power power) {
+		return getReferenceAsResult(power).getOrThrow(IllegalArgumentException::new);
+	}
+
+	public static Stream<PowerReference> streamReferences() {
 		return POWERS_BY_REFERENCE.keySet().stream();
 	}
 
 	public static boolean contains(PowerReference reference) {
 		return POWERS_BY_REFERENCE.containsKey(reference);
+	}
+
+	public static boolean containsReference(Power power) {
+		return REFERENCES_BY_POWER.containsKey(power);
 	}
 
 	private static Identifier trimExtension(Identifier fileId, String directoryPath) {
@@ -289,16 +307,22 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 	}
 
 	private static void register(PowerEntry<?> entry) {
+
 		PowerReference reference = entry.reference();
+
 		POWERS_BY_REFERENCE.put(reference, entry);
+		REFERENCES_BY_POWER.put(entry.value(), reference);
+
 	}
 
 	private static void startLoading() {
 		POWERS_BY_REFERENCE.clear();
+		REFERENCES_BY_POWER.clear();
 	}
 
 	private static void endLoading() {
 		POWERS_BY_REFERENCE.trim();
+		REFERENCES_BY_POWER.trim();
 	}
 
 	public record PackData(String source, JsonObject element) {

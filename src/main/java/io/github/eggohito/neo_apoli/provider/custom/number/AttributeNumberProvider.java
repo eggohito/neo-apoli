@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.loot.context.LootContext;
@@ -33,9 +33,9 @@ public record AttributeNumberProvider(LootContext.EntityTarget source, RegistryE
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, Context context) {
 
-		if (context.parameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(attribute())) {
+		if (context.nullableParameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(attribute())) {
 			return livingEntity.getAttributeValue(attribute()) * scale().get(reporter, context).doubleValue();
 		}
 

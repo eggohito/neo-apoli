@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.loot.LootTableReporter;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.function.Function;
@@ -16,7 +15,7 @@ public interface InvertedMetaCondition<CX extends ConditionContext, CT extends C
 
 	@Override
 	default boolean test(ErrorReporter reporter, CX context) {
-		return !condition().test(reporter, context);
+		return !condition().test(reporter.makeChild("condition"), context);
 	}
 
 	@Override

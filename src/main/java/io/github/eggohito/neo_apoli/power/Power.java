@@ -6,17 +6,19 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextUtil;
-import io.github.eggohito.neo_apoli.util.Validatable;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.loot.context.LootContextTypes;
+import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -24,13 +26,21 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
+import net.minecraft.util.context.ContextType;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public abstract class Power implements Validatable {
+public abstract class Power implements ContextAware {
+
+	public static final ContextType.Builder DEFAULT_CONTEXT_TYPE_BUILDER = new ContextType.Builder()
+		.require(LootContextParameters.THIS_ENTITY)
+		.require(LootContextParameters.ORIGIN)
+		.allow(LootContextParameters.ATTACKING_ENTITY)
+		.allow(LootContextParameters.LAST_DAMAGE_PLAYER);
 
 	public static final String TYPE_KEY = "type";
 	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
@@ -38,52 +48,34 @@ public abstract class Power implements Validatable {
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, Type::packetCodec);
 
-	private final PowerReference reference;
 	private final Properties properties;
-
 	private final EntityCondition activeCondition;
-	private final ContextAware.ErrorReporter reporter;
 
 	public Power(Properties properties, EntityCondition activeCondition) {
-		this.reference = properties.reference();
 		this.properties = properties;
 		this.activeCondition = activeCondition;
-		this.reporter = new ContextAware.ErrorReporter(LootContextTypes.EMPTY).makeChild("{'" + reference + "'}");
 	}
 
 	public Power(Properties properties) {
 		this(properties, new ConstantEntityCondition(true));
 	}
 
-	public abstract Type<? extends Power> getType();
-
-	public void onAdded(Entity holder) {
-
+	@Override
+	public void validate(ErrorReporter reporter) {
+		getActiveCondition().validate(reporter.makeChild("active_condition"));
 	}
 
-	public void onGranted(Entity holder) {
-
+	@Override
+	public String asDisplayString() {
+		return PowerManager.getReferenceAsResult(this)
+			.result()
+			.map(PowerReference::asDisplayString)
+			.orElseGet(() -> "Power type \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, this.getType()));
 	}
 
-	public void onRemoved(Entity holder) {
+	public abstract Type<?> getType();
 
-	}
-
-	public void onRevoked(Entity holder) {
-
-	}
-
-	public void onRespawn(PlayerEntity holder) {
-
-	}
-
-	public <I> DataResult<I> encodeData(RegistryOps<I> registryOps) {
-		return DataResult.success(registryOps.emptyMap());
-	}
-
-	public <I> DataResult<Unit> decodeData(RegistryOps<I> registryOps, I data) {
-		return DataResult.success(Unit.INSTANCE);
-	}
+	public abstract Impl<?> createImpl(Entity holder);
 
 	public final Properties getProperties() {
 		return properties;
@@ -91,14 +83,6 @@ public abstract class Power implements Validatable {
 
 	public final EntityCondition getActiveCondition() {
 		return activeCondition;
-	}
-
-	public final ContextAware.ErrorReporter getReporter() {
-		return reporter;
-	}
-
-	public final PowerReference getReference() {
-		return reference;
 	}
 
 	public final Text getName() {
@@ -111,10 +95,6 @@ public abstract class Power implements Validatable {
 
 	public final boolean isHidden() {
 		return getProperties().hidden();
-	}
-
-	public boolean isActive(Entity holder) {
-		return getActiveCondition().test(this.getReporter(), new EntityConditionContext(holder));
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -167,31 +147,124 @@ public abstract class Power implements Validatable {
 		);
 	}
 
-	public record Properties(PowerReference reference, Text name, Text description, boolean hidden) {
+	public static abstract class Impl<P extends Power> {
 
-		public Properties {
+		protected final Entity holder;
+		protected final P power;
 
-			String translationKey = reference.createTranslationKey();
+		protected final EntityCondition activeCondition;
 
-			name = TextUtil.forceTranslatable(translationKey + ".name", name);
-			description = TextUtil.forceTranslatable(translationKey + ".description", description);
+		public Impl(@NotNull Entity holder, @NotNull P power) {
+			this.holder = holder;
+			this.power = power;
+			this.activeCondition = power.getActiveCondition();
+		}
+
+		public abstract ContextType getContextType();
+
+		public ErrorReporter getErrorReporter() {
+			return new ErrorReporter(this.getContextType()).withWrapperLookup(holder.getRegistryManager());
+		}
+
+		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
+			return DataResult.success(ops.emptyMap());
+		}
+
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
+			return DataResult.success(Unit.INSTANCE);
+		}
+
+		public P getPower() {
+			return power;
+		}
+
+		public boolean isActive() {
+			return activeCondition.test(this.getErrorReporter(), new EntityConditionContext(holder));
+		}
+
+		public <A extends Action<?, ?>> void executeAndReport(A action, BiConsumer<ErrorReporter, A> consumer) {
+
+			PowerReference reference = PowerManager.getReferenceAsResult(this.getPower()).mapOrElse(Function.identity(), error -> null);
+			ErrorReporter reporter = this.getErrorReporter();
+
+			consumer.accept(reporter, action);
+
+			if (reporter.anyErrored()) {
+				NeoApoli.LOGGER.warn("Error executing {} {} due to error(s) {}", action.asDisplayString(false), (reference != null ? "in " +  reference.asDisplayString(false) : ""), reporter.getErrorsAsString());
+			}
 
 		}
 
+		public void onAdded() {
+
+		}
+
+		public void onGranted() {
+
+		}
+
+		public void onRemoved() {
+
+		}
+
+		public void onRevoked() {
+
+		}
+
+		public void onRespawn() {
+
+		}
+
+	}
+
+	public static final class Properties {
+
 		public static final MapCodec<Properties> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			PowerReference.CODEC.fieldOf("id").forGetter(Properties::reference),
 			TextCodecs.CODEC.optionalFieldOf("name", Text.empty()).forGetter(Properties::name),
 			TextCodecs.CODEC.optionalFieldOf("description", Text.empty()).forGetter(Properties::description),
 			PrimitiveCodec.BOOL.optionalFieldOf("hidden", false).forGetter(Properties::hidden)
 		).apply(instance, Properties::new));
 
 		public static final PacketCodec<RegistryByteBuf, Properties> PACKET_CODEC = PacketCodec.tuple(
-			PowerReference.PACKET_CODEC, Properties::reference,
 			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::name,
 			TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC, Properties::description,
 			PacketCodecs.BOOLEAN, Properties::hidden,
 			Properties::new
 		);
+
+		private Text name;
+		private Text description;
+
+		private final boolean hidden;
+
+		public Properties(@NotNull Text name, @NotNull Text description, boolean hidden) {
+			this.name = name;
+			this.description = description;
+			this.hidden = hidden;
+		}
+
+		public Properties withReference(PowerReference reference) {
+
+			String translationKey = reference.createTranslationKey();
+
+			this.name = TextUtil.forceTranslatable(translationKey + ".name", this.name());
+			this.description = TextUtil.forceTranslatable(translationKey + ".description", this.description());
+
+			return this;
+
+		}
+
+		public Text name() {
+			return name;
+		}
+
+		public Text description() {
+			return description;
+		}
+
+		public boolean hidden() {
+			return hidden;
+		}
 
 	}
 

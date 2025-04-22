@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -24,7 +24,7 @@ public record AddNumberProvider(List<NumberProvider> numbers) implements NumberP
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, Context context) {
 
 		double value = 0.0D;
 		for (int i = 0; i < numbers().size(); i++) {

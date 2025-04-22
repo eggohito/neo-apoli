@@ -34,10 +34,7 @@ import org.ladysnake.cca.api.v3.entity.RespawnableComponent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
@@ -46,13 +43,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	private static final int GRANT_SYNC_ID = 1;
 	private static final int REVOKE_SYNC_ID = 2;
 
-	private final Map<PowerReference, PowerEntry<?>> powers;
+	private final Map<PowerReference, Power.Impl<?>> impls;
 	private final Map<PowerReference, Set<Identifier>> sources;
 
 	private final Entity holder;
 
 	public PowersComponent(Entity holder) {
-		this.powers = new ConcurrentHashMap<>();
+		this.impls = new ConcurrentHashMap<>();
 		this.sources = new ConcurrentHashMap<>();
 		this.holder = holder;
 	}
@@ -63,19 +60,17 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		RegistryOps<NbtElement> nbtOps = wrapperLookup.getOps(NbtOps.INSTANCE);
 		NbtList powersNbt = new NbtList();
 
-		this.powers.forEach((id, powerEntry) -> {
+		this.impls.forEach((id, impl) -> {
 
-			Set<Identifier> sources = this.sources.getOrDefault(id, Collections.emptySet());
-			Power power = powerEntry.value();
-
-			NbtElement data = power.encodeData(nbtOps)
-				.mapError(err -> "Error trying to encode data of " + id.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + err)
+			Set<Identifier> sources = this.sources.getOrDefault(id, Set.of());
+			NbtElement data = impl.encodeData(nbtOps)
+				.mapError(error -> "Error trying to encode data of " + id.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
-				.orElseGet(NbtCompound::new);
+				.orElseGet(nbtOps::emptyMap);
 
-			Entry<NbtElement> entry = new Entry<>(id, power.getType(), sources, new Dynamic<>(nbtOps, data));
+			Entry<NbtElement> entry = new Entry<>(id, impl.getPower().getType(), sources, new Dynamic<>(nbtOps, data));
 			Entry.CODEC.encoder().encodeStart(nbtOps, entry)
-				.mapError(err -> "Error trying to encode " + id.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + err)
+				.mapError(error -> "Error trying to encode " + id.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.ifPresent(powersNbt::add);
 
@@ -93,7 +88,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		NbtList powersNbt = rootNbt.getListOrEmpty("powers");
 		ListIterator<NbtElement> powersNbtIterator = powersNbt.listIterator();
 
-		this.powers.clear();
+		this.impls.clear();
 		this.sources.clear();
 
 		while (powersNbtIterator.hasNext()) {
@@ -108,7 +103,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 					.getOrThrow();
 
 				PowerReference powerReference = entry.powerReference();
-				DataResult<Power> powerResult = PowerManager.getAsResult(powerReference).flatMap(this::deepCopy);
+				DataResult<Power> powerResult = PowerManager.getAsResult(powerReference);
 
 				switch (powerResult) {
 					case DataResult.Success<Power> success -> {
@@ -116,11 +111,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 						Power power = success.value();
 						Dynamic<NbtElement> data = entry.data().convert(nbtOps);
 
-						PowerEntry<?> powerEntry = new PowerEntry<>(powerReference, power);
+						Power.Impl<?> impl = power.createImpl(holder);
 						Set<Identifier> sources = entry.sources();
 
 						if (Objects.equals(entry.type(), power.getType())) {
-							power.decodeData(nbtOps, data.getValue())
+							impl.decodeData(nbtOps, data.getValue())
 								.mapError(error -> "Error decoding data of " + powerReference.asDisplayString(false) + " from NBT (skipping): " + error)
 								.error()
 								.map(DataResult.Error::message)
@@ -131,7 +126,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 							NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered!", powerReference.asDisplayString(false));
 						}
 
-						this.powers.put(powerReference, powerEntry);
+						this.impls.put(powerReference, impl);
 						this.sources.put(powerReference, sources);
 
 					}
@@ -196,19 +191,19 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	private boolean grantPower(PowerEntry<?> entry, Identifier source) {
 
-		List<Power> addedPowers = new ObjectArrayList<>();
-		List<Power> grantedPowers = new ObjectArrayList<>();
+		List<Power.Impl<?>> addedPowers = new ObjectArrayList<>();
+		List<Power.Impl<?>> grantedPowers = new ObjectArrayList<>();
 
 		boolean granted = this.grantPower(entry, source, addedPowers::add, grantedPowers::add);
 
-		addedPowers.forEach(addedPower -> addedPower.onAdded(holder));
-		grantedPowers.forEach(grantedPower -> grantedPower.onGranted(holder));
+		addedPowers.forEach(Power.Impl::onAdded);
+		grantedPowers.forEach(Power.Impl::onGranted);
 
 		return granted;
 
 	}
 
-	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power> addedAction, Consumer<Power> grantedAction) {
+	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power.Impl<?>> addedAction, Consumer<Power.Impl<?>> grantedAction) {
 
 		PowerReference reference = entry.reference();
 		Set<Identifier> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
@@ -217,25 +212,32 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			return false;
 		}
 
-		Power originalPower = entry.value();
-		Power copiedPower = deepCopy(originalPower).getOrThrow();
+		Power power = entry.value();
+		Power.Impl<?> impl = power.createImpl(holder);
 
 		sources.add(source);
-		addedAction.accept(copiedPower);
+		addedAction.accept(impl);
 
-		if (!powers.containsKey(reference)) {
-			grantedAction.accept(copiedPower);
+		if (!impls.containsKey(reference)) {
+			grantedAction.accept(impl);
 		}
 
-		this.powers.put(reference, new PowerEntry<>(reference, copiedPower));
+		this.impls.put(reference, impl);
+		if (power instanceof MultiplePower multiplePower) {
 
-		if (originalPower instanceof MultiplePower multiplePower) {
-			multiplePower.getSubPowers().values()
-				.stream()
-				.map(Power::getReference)
-				.filter(PowerManager::contains)
-				.map(PowerManager::getEntry)
-				.forEach(subEntry -> grantPower(subEntry, source, addedAction, grantedAction));
+			for (Power subPower : multiplePower.getSubPowers().values()) {
+
+				if (!PowerManager.containsReference(subPower)) {
+					continue;
+				}
+
+				PowerReference subReference = PowerManager.getReference(subPower);
+				PowerEntry<?> subEntry = PowerManager.getEntry(subReference);
+
+				grantPower(subEntry, source, addedAction, grantedAction);
+
+			}
+
 		}
 
 		return true;
@@ -260,7 +262,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		List<PowerReference> revokedPowers = new ObjectArrayList<>();
 		boolean result = this.revokePower(entry, source, revokedPowers::add);
 
-		powers.keySet().removeIf(revokedPowers::contains);
+		impls.keySet().removeIf(revokedPowers::contains);
 		sources.keySet().removeIf(revokedPowers::contains);
 
 		return result;
@@ -276,28 +278,36 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			return false;
 		}
 
-		Power originalPower = entry.value();
+		Power power = entry.value();
 		sources.remove(source);
 
-		if (powers.containsKey(reference)) {
+		if (impls.containsKey(reference)) {
 
-			Power storedPower = powers.get(reference).value();
-			storedPower.onRemoved(holder);
+			Power.Impl<?> impl = impls.get(reference);
+			impl.onRemoved();
 
 			if (sources.isEmpty()) {
-				storedPower.onRevoked(holder);
+				impl.onRevoked();
 				revokedAction.accept(reference);
 			}
 
 		}
 
-		if (originalPower instanceof MultiplePower multiplePower) {
-			multiplePower.getSubPowers().values()
-				.stream()
-				.map(Power::getReference)
-				.filter(PowerManager::contains)
-				.map(PowerManager::getEntry)
-				.forEach(subEntry -> revokePower(subEntry, source, revokedAction));
+		if (power instanceof MultiplePower multiplePower) {
+
+			for (Power subPower : multiplePower.getSubPowers().values()) {
+
+				if (!PowerManager.containsReference(subPower)) {
+					continue;
+				}
+
+				PowerReference subReference = PowerManager.getReference(subPower);
+				PowerEntry<?> subEntry = PowerManager.getEntry(subReference);
+
+				revokePower(subEntry, source, revokedAction);
+
+			}
+
 		}
 
 		return true;
@@ -305,13 +315,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 
-	public <T, C extends Collection<T>> C collectAndMapPowerEntries(Supplier<C> collectionConstructor, Function<PowerEntry<?>, T> mapper, boolean includeSubPowers) {
+	public <T, C extends Collection<T>> C collectAndMap(Supplier<C> collectionConstructor, BiFunction<PowerReference, Power.Impl<?>, T> mapper, boolean includeSubPowers) {
 
 		C collected = collectionConstructor.get();
-		for (PowerEntry<?> entry : this.powers.values()) {
+		for (var implEntry : this.impls.entrySet()) {
 
-			if (includeSubPowers || !entry.isSubPower()) {
-				collected.add(mapper.apply(entry));
+			PowerReference reference = implEntry.getKey();
+			Power.Impl<?> impl = implEntry.getValue();
+
+			if (includeSubPowers || !reference.isSubPower()) {
+				collected.add(mapper.apply(reference, impl));
 			}
 
 		}
@@ -320,7 +333,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public <T, C extends Collection<T>> C collectAndMapPowerEntriesFromSource(Supplier<C> collectionConstructor, Function<PowerEntry<?>, T> mapper, Identifier source) {
+	public <T, C extends Collection<T>> C collectAndMapFromSource(Supplier<C> collectionConstructor, BiFunction<PowerReference, Power.Impl<?>, T> mapper, Identifier source) {
 
 		C collected = collectionConstructor.get();
 		for (var sourceEntry : this.sources.entrySet()) {
@@ -328,8 +341,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			PowerReference reference = sourceEntry.getKey();
 			Set<Identifier> sources = sourceEntry.getValue();
 
-			if (sources.contains(source) && this.powers.containsKey(reference)) {
-				collected.add(mapper.apply(this.powers.get(reference)));
+			if (sources.contains(source) && this.impls.containsKey(reference)) {
+				collected.add(mapper.apply(reference, this.impls.get(reference)));
 			}
 
 		}
@@ -338,28 +351,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public Set<PowerEntry<?>> getPowerEntries(boolean includeSubPowers) {
-		return collectAndMapPowerEntries(ObjectOpenHashSet::new, Function.identity(), includeSubPowers);
+	public Set<Power.Impl<?>> getPowers(boolean includeSubPowers) {
+		return collectAndMap(ObjectOpenHashSet::new, (reference, impl) -> impl, includeSubPowers);
 	}
 
-	public Set<Power> getPowers(boolean includeSubPowers) {
-		return collectAndMapPowerEntries(ObjectOpenHashSet::new, PowerEntry::value, includeSubPowers);
+	public Set<Power.Impl<?>> getPowersFromSource(Identifier source) {
+		return collectAndMapFromSource(ObjectOpenHashSet::new, (reference, impl) -> impl, source);
 	}
 
-	public PowerEntry<?> getPowerEntry(PowerReference reference) {
-		return Objects.requireNonNull(powers.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
-	}
-
-	public Power getPower(PowerReference reference) {
-		return getPowerEntry(reference).value();
-	}
-
-	public Set<PowerEntry<?>> getPowerEntriesFromSource(Identifier source) {
-		return collectAndMapPowerEntriesFromSource(ObjectOpenHashSet::new, Function.identity(), source);
-	}
-
-	public Set<Power> getPowersFromSource(Identifier source) {
-		return collectAndMapPowerEntriesFromSource(ObjectOpenHashSet::new, PowerEntry::value, source);
+	public Power.Impl<?> getPower(PowerReference reference) {
+		return Objects.requireNonNull(impls.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
 	}
 
 	public Set<Identifier> getSources(PowerReference reference) {
@@ -369,18 +370,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	public boolean hasPower(PowerReference reference) {
-		return powers.containsKey(reference)
+		return impls.containsKey(reference)
 			&& sources.containsKey(reference);
 	}
 
 	public boolean hasPower(PowerReference reference, Identifier source) {
 		return hasPower(reference)
 			&& sources.get(reference).contains(source);
-	}
-
-	private DataResult<Power> deepCopy(Power power) {
-		RegistryOps<NbtElement> nbtOps = holder.getRegistryManager().getOps(NbtOps.INSTANCE);
-		return Power.CODEC.encodeStart(nbtOps, power).flatMap(nbtElement -> Power.CODEC.parse(nbtOps, nbtElement));
 	}
 
 	public record Entry<T>(PowerReference powerReference, Power.Type<?> type, Set<Identifier> sources, Dynamic<T> data) {

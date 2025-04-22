@@ -2,13 +2,12 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.loot.context.LootContextParameters;
@@ -47,20 +46,19 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 		}
 
 		Entity entity = context.entity().get();
-		ValueProviderContext providerContext = ValueProviderContext.builder(CONTEXT_TYPE)
+		reporter = reporter.withContextType(CONTEXT_TYPE);
+
+		Context providerContext = Context.builder(reporter.getContextType())
 			.add(LootContextParameters.THIS_ENTITY, entity)
 			.add(LootContextParameters.ORIGIN, entity.getPos())
-			.addOptional(LootContextParameters.ATTACKING_ENTITY, entity instanceof LivingEntity livingEntity ? livingEntity.getAttacker() : null)
-			.addOptional(LootContextParameters.LAST_DAMAGE_PLAYER, entity instanceof LivingEntity livingEntity ? livingEntity.getAttackingPlayer() : null)
+			.addNullable(LootContextParameters.ATTACKING_ENTITY, entity instanceof LivingEntity livingEntity ? livingEntity.getAttacker() : null)
+			.addNullable(LootContextParameters.LAST_DAMAGE_PLAYER, entity instanceof LivingEntity livingEntity ? livingEntity.getAttackingPlayer() : null)
 			.build(entity.getWorld());
 
-		ErrorReporter finalReporter = reporter.withContextType(CONTEXT_TYPE);
-		this.validate(finalReporter);
-
-		finalReporter.getErrorsAsString().ifPresentOrElse(
-			error -> NeoApoli.LOGGER.warn("Error executing entity action due to error {}", error),
-			() -> entity.setOnFireForTicks(ticks().get(reporter, providerContext).intValue())
-		);
+		this.validate(reporter);
+		if (!reporter.errored()) {
+			entity.setOnFireForTicks(ticks().get(reporter, providerContext).intValue());
+		}
 
 	}
 

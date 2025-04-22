@@ -15,10 +15,14 @@ import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.context.ContextType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class GiveItemsPower extends Power {
+
+	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
 
 	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
 		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
@@ -50,22 +54,13 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public Type<? extends Power> getType() {
+	public Type<?> getType() {
 		return PowerTypes.GIVE_ITEMS;
 	}
 
 	@Override
-	public void onRespawn(PlayerEntity holder) {
-
-		if (this.isRecurrent()) {
-			this.give(holder);
-		}
-
-	}
-
-	@Override
-	public void onGranted(Entity entity) {
-		this.give(entity);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder);
 	}
 
 	public List<IndexedStack> getIndexedStacks() {
@@ -76,34 +71,61 @@ public class GiveItemsPower extends Power {
 		return recurrent;
 	}
 
-	public void give(Entity entity) {
+	public class Impl extends Power.Impl<GiveItemsPower> {
 
-		if (entity.getWorld().isClient()) {
-			return;
+		public Impl(@NotNull Entity holder) {
+			super(holder, GiveItemsPower.this);
 		}
 
-		loopingStacks:
-		for (IndexedStack indexedStack : getIndexedStacks()) {
+		@Override
+		public ContextType getContextType() {
+			return CONTEXT_TYPE;
+		}
 
-			ItemStack stack = indexedStack.stack().copy();
-			IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
+		@Override
+		public void onGranted() {
+			this.give();
+		}
 
-			for (int slot : slots) {
+		@Override
+		public void onRespawn() {
 
-				StackReference stackReference = entity.getStackReference(slot);
+			if (power.isRecurrent()) {
+				this.give();
+			}
 
-				if (stackReference.get().isEmpty() && stackReference.set(stack)) {
-					continue loopingStacks;
+		}
+
+		public void give() {
+
+			if (holder.getWorld().isClient()) {
+				return;
+			}
+
+			loopingStacks:
+			for (IndexedStack indexedStack : power.getIndexedStacks()) {
+
+				ItemStack stack = indexedStack.stack().copy();
+				IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
+
+				for (int slot : slots) {
+
+					StackReference stackReference = holder.getStackReference(slot);
+
+					if (stackReference.get().isEmpty() && stackReference.set(stack)) {
+						continue loopingStacks;
+					}
+
 				}
 
-			}
+				if (holder instanceof PlayerEntity player) {
+					player.getInventory().offerOrDrop(stack);
+				}
 
-			if (entity instanceof PlayerEntity player) {
-				player.getInventory().offerOrDrop(stack);
-			}
+				else {
+					InventoryUtil.dropItem(holder, stack, true, false, 0);
+				}
 
-			else {
-				InventoryUtil.dropItem(entity, stack, true, false, 0);
 			}
 
 		}

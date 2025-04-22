@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
+import io.github.eggohito.neo_apoli.util.context.ContextKey;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -16,14 +17,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
-public sealed interface PowerReference permits PowerReference.Power, PowerReference.SubPower {
+public sealed interface PowerReference extends ContextKey permits PowerReference.Power, PowerReference.SubPower {
 
 	Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::ofValidated, PowerReference::toString);
 	PacketCodec<ByteBuf, PowerReference> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerReference::of, PowerReference::toString);
 
 	default String asDisplayString(boolean capitalized) {
+		String displayString = this.asDisplayString();
 		return capitalized
-			? asDisplayString()
+			? StringUtils.capitalize(displayString)
 			: StringUtils.uncapitalize(asDisplayString());
 	}
 

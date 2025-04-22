@@ -27,7 +27,7 @@ public class PowerReferenceArgumentType implements ArgumentType<PowerReference> 
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestMatching(PowerManager.streamIds().map(PowerReference::toString), builder);
+		return CommandSource.suggestMatching(PowerManager.streamReferences().map(PowerReference::toString), builder);
 	}
 
 	public static PowerReferenceArgumentType powerReference() {

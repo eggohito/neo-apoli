@@ -26,11 +26,11 @@ public interface RandomChanceMetaAction<AX extends ActionContext<?>, AA extends 
 	default void execute(ErrorReporter reporter, AX context) {
 
 		if (Random.create().nextFloat() < chance()) {
-			successAction().execute(reporter, context);
+			successAction().execute(reporter.makeChild("success_action"), context);
 		}
 
 		else {
-			failAction().ifPresent(failAction -> failAction.execute(reporter, context));
+			failAction().ifPresent(failAction -> failAction.execute(reporter.makeChild("fail_action"), context));
 		}
 
 	}

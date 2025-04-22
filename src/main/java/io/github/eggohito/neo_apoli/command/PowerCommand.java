@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -184,7 +185,7 @@ public class PowerCommand {
 			);
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets, @Nullable PowerReference powerReference, Identifier source) throws CommandSyntaxException {
+		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets, @Nullable PowerReference powerReference, Identifier source) {
 
 			ServerCommandSource commandSource = commandContext.getSource();
 			List<Entity> processedTargets = new ObjectArrayList<>();
@@ -207,9 +208,7 @@ public class PowerCommand {
 				else {
 
 					Set<PowerReference> matchingReferences = new ObjectOpenHashSet<>();
-					for (PowerEntry<?> entry : powersComponent.getPowerEntriesFromSource(source)) {
-
-						PowerReference reference = entry.reference();
+					for (PowerReference reference : powersComponent.collectAndMapFromSource(ObjectOpenHashSet::new, (reference, impl) -> reference, source)) {
 
 						if (powersComponent.revokePower(reference, source)) {
 							matchingReferences.add(reference);
@@ -401,7 +400,7 @@ public class PowerCommand {
 			return execute(commandContext, new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")));
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets) throws CommandSyntaxException {
+		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets) {
 
 			List<Entity> processedTargets = new ObjectArrayList<>();
 			ServerCommandSource commandSource = commandContext.getSource();
@@ -412,7 +411,7 @@ public class PowerCommand {
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 				Map<Identifier, Collection<PowerReference>> clearedPowers = new Object2ObjectOpenHashMap<>();
 
-				for (PowerReference reference : powersComponent.collectAndMapPowerEntries(ObjectOpenHashSet::new, PowerEntry::reference, false)) {
+				for (PowerReference reference : powersComponent.collectAndMap(ObjectOpenHashSet::new, (reference, impl) -> reference, false)) {
 
 					for (Identifier source : powersComponent.getSources(reference)) {
 
@@ -485,17 +484,16 @@ public class PowerCommand {
 			return execute(commandContext, EntityArgumentType.getEntity(commandContext, "target"), BoolArgumentType.getBool(commandContext, "includeSubPowers"));
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext, Entity target, boolean includeSubPowers) throws CommandSyntaxException {
+		static int execute(CommandContext<ServerCommandSource> commandContext, Entity target, boolean includeSubPowers) {
 
 			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 			ServerCommandSource commandSource = commandContext.getSource();
 
 			List<Text> powerTooltips = new ObjectArrayList<>();
+			for (var pair : powersComponent.collectAndMap(ObjectOpenHashSet::new, Pair::of, includeSubPowers)) {
 
-			for (PowerEntry<?> entry : powersComponent.getPowerEntries(includeSubPowers)) {
-
-				PowerReference reference = entry.reference();
-				Power power = entry.value();
+				PowerReference reference = pair.getFirst();
+				Power power = pair.getSecond().getPower();
 
 				List<MutableText> sourceTooltips = powersComponent.getSources(reference)
 					.stream()

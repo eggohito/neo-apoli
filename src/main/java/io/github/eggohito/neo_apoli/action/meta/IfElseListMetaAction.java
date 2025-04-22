@@ -15,6 +15,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.function.Function;
 
 public interface IfElseListMetaAction<AX extends ActionContext<CX>, CX extends ConditionContext, AA extends Action<AX, AT>, CC extends Condition<CX, CT>, AT extends ActionType<?>, CT extends ConditionType<?>> extends Action<AX, AT> {
@@ -25,11 +26,15 @@ public interface IfElseListMetaAction<AX extends ActionContext<CX>, CX extends C
 	default void execute(ErrorReporter reporter, AX context) {
 
 		CX convertedContext = context.convert();
+		ListIterator<Entry<CC, AA>> entryIterator = entries().listIterator();
 
-		for (Entry<CC, AA> entry : entries()) {
+		while (entryIterator.hasNext()) {
 
-			if (entry.condition().test(reporter, convertedContext)) {
-				entry.action().execute(reporter, context);
+			ErrorReporter entryReporter = reporter.makeChild("actions[" + entryIterator.nextIndex() + "]");
+			Entry<CC, AA> entry = entryIterator.next();
+
+			if (entry.condition().test(entryReporter.makeChild("condition"), convertedContext)) {
+				entry.action().execute(entryReporter.makeChild("action"), context);
 				break;
 			}
 
@@ -40,10 +45,12 @@ public interface IfElseListMetaAction<AX extends ActionContext<CX>, CX extends C
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		for (int i = 0; i < entries().size(); i++) {
+		ListIterator<Entry<CC, AA>> entryIterator = entries().listIterator();
 
-			Entry<CC, AA> entry = entries().get(i);
-			ErrorReporter entryReporter = reporter.makeChild("actions[" + i + "]");
+		while (entryIterator.hasNext()) {
+
+			ErrorReporter entryReporter = reporter.makeChild("actions[" + entryIterator.nextIndex() + "]");
+			Entry<CC, AA> entry = entryIterator.next();
 
 			entry.condition().validate(entryReporter.makeChild("condition"));
 			entry.action().validate(entryReporter.makeChild("action"));

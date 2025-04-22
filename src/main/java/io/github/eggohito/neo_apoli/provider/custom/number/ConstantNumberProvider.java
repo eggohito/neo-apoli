@@ -6,8 +6,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -28,7 +28,7 @@ public record ConstantNumberProvider(Number value) implements NumberProvider {
 	).cast();
 
 	@Override
-	public Number get(ErrorReporter reporter, ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, Context context) {
 		return this.value();
 	}
 

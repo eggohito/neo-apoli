@@ -8,11 +8,11 @@ import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.loot.LootTableReporter;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.function.Function;
 
 public interface MultiMetaCondition<CX extends ConditionContext, CC extends Condition<CX, CT>, CT extends ConditionType<?>> extends Condition<CX, CT> {
@@ -22,8 +22,11 @@ public interface MultiMetaCondition<CX extends ConditionContext, CC extends Cond
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		for (int i = 0; i < conditions().size(); i++) {
-			conditions().get(i).validate(reporter.makeChild("conditions[" + i + "]"));
+		ListIterator<CC> conditionIterator = conditions().listIterator();
+
+		while (conditionIterator.hasNext())	{
+			ErrorReporter conditionReporter = reporter.makeChild("conditions[" + conditionIterator.nextIndex() + "]");
+			conditionIterator.next().validate(conditionReporter);
 		}
 
 	}

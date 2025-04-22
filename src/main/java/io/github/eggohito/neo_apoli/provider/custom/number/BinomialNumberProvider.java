@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.random.Random;
@@ -23,7 +23,7 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, ValueProviderContext context) {
+	public Number get(ErrorReporter reporter, Context context) {
 
 		Random random = context.getWorld().getRandom();
 		int value = 0;

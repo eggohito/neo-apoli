@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -26,7 +26,7 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, ValueProviderContext context) {
+	public String get(ErrorReporter reporter, Context context) {
 
 		StringBuilder result = new StringBuilder();
 		String separator = this.separator().get(reporter, context);

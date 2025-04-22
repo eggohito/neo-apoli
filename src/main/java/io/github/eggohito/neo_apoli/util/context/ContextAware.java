@@ -2,15 +2,18 @@ package io.github.eggohito.neo_apoli.util.context;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextType;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public interface ContextAware {
 
@@ -22,90 +25,105 @@ public interface ContextAware {
 		reporter.validate(this);
 	}
 
+	String asDisplayString();
+
+	default String asDisplayString(boolean capitalized) {
+		String displayString = this.asDisplayString();
+		return capitalized
+			? StringUtils.capitalize(displayString)
+			: StringUtils.uncapitalize(displayString);
+	}
+
 	class ErrorReporter implements net.minecraft.util.ErrorReporter {
 
-		private final String name;
-		private final Supplier<String> pathSupplier;
-
-		private final ContextType contextType;
-		private final Set<RegistryKey<?>> referenceStack;
-
-		private final Multimap<String, String> errors;
+		private final Optional<ErrorReporter> parent;
 		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
 
-		protected ErrorReporter(String name, Supplier<String> pathSupplier, ContextType contextType, Set<RegistryKey<?>> referenceStack, Multimap<String, String> errors, Optional<RegistryWrapper.WrapperLookup> wrapperLookup) {
-			this.name = name;
-			this.pathSupplier = Suppliers.memoize(pathSupplier::get);
-			this.contextType = contextType;
-			this.referenceStack = referenceStack;
-			this.errors = errors;
+		private final ContextType contextType;
+
+		private final Multimap<String, String> errors;
+		private final Set<ContextKey> referenceStack;
+
+		private final String path;
+		private final Supplier<String> fullPathSupplier;
+
+		protected ErrorReporter(Optional<ErrorReporter> parent, Optional<RegistryWrapper.WrapperLookup> wrapperLookup, ContextType contextType, Multimap<String, String> errors, Set<ContextKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
+			this.parent = parent;
 			this.wrapperLookup = wrapperLookup;
+			this.contextType = contextType;
+			this.errors = errors;
+			this.referenceStack = referenceStack;
+			this.path = path;
+			this.fullPathSupplier = Suppliers.memoize(fullPathSupplier::get);
 		}
 
 		public ErrorReporter(ContextType contextType) {
-			this("", () -> "", contextType, Set.of(), HashMultimap.create(), Optional.empty());
+			this(Optional.empty(), Optional.empty(), contextType, HashMultimap.create(), Set.of(), "", () -> "");
+		}
+
+		public ErrorReporter() {
+			this(LootContextTypes.EMPTY);
 		}
 
 		@Override
-		public ErrorReporter makeChild(String name) {
-			String path = this.getPath();
-			return new ErrorReporter(name, () -> appendPath(path, name), this.contextType, this.referenceStack, this.errors, this.wrapperLookup);
+		public ErrorReporter makeChild(String path) {
+			return new ErrorReporter(Optional.of(this), this.wrapperLookup, this.contextType, this.errors, this.referenceStack, path, () -> appendPath(path));
 		}
 
-		public ErrorReporter makeChild(String name, RegistryKey<?> key) {
+		public ErrorReporter makeChild(String path, ContextKey key) {
 
-			String path = this.getPath();
-			Set<RegistryKey<?>> referenceStack = ImmutableSet.<RegistryKey<?>>builder()
+			Set<ContextKey> referenceStack = ImmutableSet.<ContextKey>builder()
 				.addAll(this.referenceStack)
 				.add(key)
 				.build();
 
-			return new ErrorReporter(name, () -> appendPath(path, name), this.contextType, referenceStack, this.errors, this.wrapperLookup);
+			return new ErrorReporter(Optional.of(this), this.wrapperLookup, this.contextType, this.errors, referenceStack, path, () -> appendPath(path));
 
 		}
 
 		public ErrorReporter withContextType(ContextType contextType) {
-			return new ErrorReporter(this.name, this.pathSupplier, contextType, this.referenceStack, this.errors, this.wrapperLookup);
+			return new ErrorReporter(this.parent, this.wrapperLookup, contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
 		public ErrorReporter withWrapperLookup(@NotNull RegistryWrapper.WrapperLookup wrapperLookup) {
-			return new ErrorReporter(this.name, this.pathSupplier, this.contextType, this.referenceStack, this.errors, Optional.of(wrapperLookup));
+			return new ErrorReporter(this.parent, Optional.of(wrapperLookup), this.contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
 		@Override
 		public void report(String message) {
-			this.errors.put(this.getPath(), message);
+			this.errors.put(this.getFullPath(), message);
 		}
 
 		public ImmutableMultimap<String, String> getErrorsAsMap() {
 			return ImmutableMultimap.copyOf(this.errors);
 		}
 
-		public Optional<String> getErrorsAsString() {
+		public String getErrorsAsString() {
 
 			Multimap<String, String> errorsMap = this.getErrorsAsMap();
 			StringBuilder builder = new StringBuilder();
 
-			if (errorsMap.isEmpty()) {
-				return Optional.empty();
+			boolean moreThanOnePaths = errorsMap.size() > 1;
+
+			if (!errorsMap.isEmpty()) {
+				builder.append("at path ").append(moreThanOnePaths ? "these paths:" : "");
 			}
 
 			errorsMap.asMap().forEach((path, errors) -> {
 
-				builder.append("at ").append(path).append(": ");
-				String separator = errors.size() > 1 ? "\n\t - " : "";
+				builder
+					.append(moreThanOnePaths ? "\n\t - " : "")
+					.append(path).append(": ");
 
 				for (var error : errors) {
-					builder.append(separator).append(error);
-				}
-
-				if (errorsMap.size() > 1) {
-					builder.append("\n");
+					builder
+						.append(errors.size() > 1 ? "\n\t\t * " : "")
+						.append(error);
 				}
 
 			});
 
-			return Optional.of(builder.toString());
+			return builder.toString();
 
 		}
 
@@ -113,20 +131,48 @@ public interface ContextAware {
 			return wrapperLookup.orElseThrow(() -> new UnsupportedOperationException("Registry wrapper lookup is not present!"));
 		}
 
-		public String getName() {
-			return name;
-		}
-
-		public String getPath() {
-			return pathSupplier.get();
-		}
-
 		public boolean hasWrapperLookup() {
 			return wrapperLookup.isPresent();
 		}
 
-		public boolean isInStack(RegistryKey<?> key) {
+		public String getPath() {
+			return path;
+		}
+
+		public String getFullPath() {
+			return fullPathSupplier.get();
+		}
+
+		public ContextType getContextType() {
+			return contextType;
+		}
+
+		public ErrorReporter getParent() {
+			return parent.orElseThrow(() -> new UnsupportedOperationException("The root reporter cannot have a parent!"));
+		}
+
+		public ErrorReporter getRoot() {
+
+			if (this.parent.isEmpty()) {
+				return this;
+			}
+
+			else {
+				return this.parent.get().getRoot();
+			}
+
+		}
+
+		public boolean isInStack(ContextKey key) {
 			return referenceStack.contains(key);
+		}
+
+		public boolean anyErrored() {
+			return !this.errors.isEmpty();
+		}
+
+		public boolean errored() {
+			return this.errors.containsKey(this.getFullPath());
 		}
 
 		public void validate(ContextAware contextAware) {
@@ -134,13 +180,14 @@ public interface ContextAware {
 			Set<ContextParameter<?>> missingParameters = Sets.difference(contextAware.getAllowedParameters(), contextType.getAllowed());
 
 			if (!missingParameters.isEmpty()) {
-				this.report("Parameters " + missingParameters + " are not provided in this context!");
+				this.report("Parameters [" + missingParameters.stream().map(ContextParameter::getId).map(Identifier::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + contextAware.asDisplayString(false) + "!");
 			}
 
 		}
 
-		private static String appendPath(String path, String name) {
-			return path + (path.isEmpty() ? "" : ".") + (name.contains(".") ? "'" + name + "'" : name);
+		private String appendPath(String path) {
+			String fullPath = this.getFullPath();
+			return fullPath + (fullPath.isEmpty() ? "" : ".") + (path.contains(".") ? "'" + path + "'" : path);
 		}
 
 	}

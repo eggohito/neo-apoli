@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -26,7 +26,7 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, ValueProviderContext context) {
+	public String get(ErrorReporter reporter, Context context) {
 
 		Number number = number().get(reporter, context);
 		int decimals = decimals().get(reporter, context).intValue();

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.network.RegistryByteBuf;
@@ -9,9 +9,9 @@ import net.minecraft.network.codec.PacketCodec;
 
 public interface ValueProvider<T> extends ContextAware {
 
-	T get(ErrorReporter reporter, ValueProviderContext context);
+	T get(ErrorReporter reporter, Context context);
 
-	default T get(ValueProviderContext context) {
+	default T get(Context context) {
 		return get(new ErrorReporter(LootContextTypes.EMPTY), context);
 	}
 

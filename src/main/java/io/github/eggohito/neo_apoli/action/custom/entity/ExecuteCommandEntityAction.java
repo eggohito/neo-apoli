@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.loot.context.LootContextParameters;
@@ -56,24 +56,22 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			return;
 		}
 
+		reporter = reporter.withContextType(CONTEXT_TYPE);
 		ServerCommandSource commandSource = entity.getCommandSource(serverWorld)
 			.withLevel(NeoApoli.getConfig().command().permissionLevel())
 			.withOutput(getOutput(entity, serverWorld.getServer()));
 
-		ValueProviderContext providerContext = ValueProviderContext.builder(CONTEXT_TYPE)
+		Context providerContext = Context.builder(reporter.getContextType())
 			.add(LootContextParameters.THIS_ENTITY, entity)
 			.add(LootContextParameters.ORIGIN, entity.getPos())
-			.addOptional(LootContextParameters.ATTACKING_ENTITY, entity instanceof LivingEntity livingEntity ? livingEntity.getAttacker() : null)
-			.addOptional(LootContextParameters.LAST_DAMAGE_PLAYER, entity instanceof LivingEntity livingEntity ? livingEntity.getAttackingPlayer() : null)
+			.addNullable(LootContextParameters.ATTACKING_ENTITY, entity instanceof LivingEntity livingEntity ? livingEntity.getAttacker() : null)
+			.addNullable(LootContextParameters.LAST_DAMAGE_PLAYER, entity instanceof LivingEntity livingEntity ? livingEntity.getAttackingPlayer() : null)
 			.build(serverWorld);
 
-		ErrorReporter finalReporter = reporter.withContextType(CONTEXT_TYPE);
-		this.validate(finalReporter);
-
-		finalReporter.getErrorsAsString().ifPresentOrElse(
-			error -> NeoApoli.LOGGER.warn("Error executing command due to error {}", error),
-			() -> serverWorld.getServer().getCommandManager().executeWithPrefix(commandSource, command().get(reporter, providerContext))
-		);
+		this.validate(reporter);
+		if (!reporter.errored()) {
+			serverWorld.getServer().getCommandManager().executeWithPrefix(commandSource, command().get(reporter, providerContext));
+		}
 
 	}
 

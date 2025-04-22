@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.context.ValueProviderContext;
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -25,8 +25,8 @@ public record UuidStringProvider(LootContext.EntityTarget source) implements Str
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, ValueProviderContext context) {
-		return context.requireParameter(source.getParameter()).getUuidAsString();
+	public String get(ErrorReporter reporter, Context context) {
+		return context.requiredParameter(source.getParameter()).getUuidAsString();
 	}
 
 	@Override

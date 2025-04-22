@@ -12,6 +12,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.function.Function;
 
 public interface SequenceMetaAction<AX extends ActionContext<?>, AA extends Action<AX, AT>, AT extends ActionType<?>> extends Action<AX, AT> {
@@ -21,8 +22,11 @@ public interface SequenceMetaAction<AX extends ActionContext<?>, AA extends Acti
 	@Override
 	default void execute(ErrorReporter reporter, AX context) {
 
-		for (AA action : actions()) {
-			action.execute(reporter, context);
+		ListIterator<AA> actionIterator = actions().listIterator();
+
+		while (actionIterator.hasNext()) {
+			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			actionIterator.next().execute(actionReporter, context);
 		}
 
 	}
@@ -30,8 +34,11 @@ public interface SequenceMetaAction<AX extends ActionContext<?>, AA extends Acti
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		for (int i = 0; i < actions().size(); i++) {
-			actions().get(i).validate(reporter.makeChild("actions[" + i + "]"));
+		ListIterator<AA> actionIterator = actions().listIterator();
+
+		while (actionIterator.hasNext()) {
+			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			actionIterator.next().validate(actionReporter);
 		}
 
 	}

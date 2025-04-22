@@ -25,7 +25,7 @@ public interface SideMetaAction<AX extends ActionContext<?>, AA extends Action<A
 	default void execute(ErrorReporter reporter, AX context) {
 
 		if ((side() == Side.CLIENT) != NeoApoli.serverSide()) {
-			action().execute(reporter, context);
+			action().execute(reporter.makeChild("action"), context);
 		}
 
 	}

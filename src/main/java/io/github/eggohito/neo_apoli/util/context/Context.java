@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.provider.context;
+package io.github.eggohito.neo_apoli.util.context;
 
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextParameterMap;
@@ -7,27 +7,40 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ValueProviderContext {
+import java.util.Optional;
+
+public final class Context {
 
 	private final ContextParameterMap parameters;
+
+	private final ContextType type;
 	private final World world;
 
-	ValueProviderContext(ContextParameterMap parameters, World world) {
+	Context(ContextParameterMap parameters, ContextType type, World world) {
 		this.parameters = parameters;
+		this.type = type;
 		this.world = world;
+	}
+
+	public ContextType getType() {
+		return type;
 	}
 
 	public World getWorld() {
 		return world;
 	}
 
-	public <T> T requireParameter(ContextParameter<T> parameter) {
+	public <T> T requiredParameter(ContextParameter<T> parameter) {
 		return this.parameters.getOrThrow(parameter);
 	}
 
 	@Nullable
-	public <T> T parameter(ContextParameter<T> parameter) {
+	public <T> T nullableParameter(ContextParameter<T> parameter) {
 		return this.parameters.getNullable(parameter);
+	}
+
+	public <T> Optional<T> optionalParameter(ContextParameter<T> parameter) {
+		return Optional.ofNullable(this.nullableParameter(parameter));
 	}
 
 	public boolean hasParameter(ContextParameter<?> parameter) {
@@ -48,12 +61,17 @@ public final class ValueProviderContext {
 			this.contextType = contextType;
 		}
 
+		public Builder(Context context) {
+			this.parameters = new ContextParameterMap.Builder();
+			this.contextType = context.type;
+		}
+
 		public <T> Builder add(ContextParameter<T> parameter, @NotNull T value) {
 			this.parameters.add(parameter, value);
 			return this;
 		}
 
-		public <T> Builder addOptional(ContextParameter<T> parameter, @Nullable T value) {
+		public <T> Builder addNullable(ContextParameter<T> parameter, @Nullable T value) {
 			this.parameters.addNullable(parameter, value);
 			return this;
 		}
@@ -63,13 +81,16 @@ public final class ValueProviderContext {
 		}
 
 		@Nullable
-		public <T> T getOptional(ContextParameter<T> parameter) {
+		public <T> T getNullable(ContextParameter<T> parameter) {
 			return this.parameters.getNullable(parameter);
 		}
 
-		public ValueProviderContext build(World world) {
-			ContextParameterMap parameters = this.parameters.build(this.contextType);
-			return new ValueProviderContext(parameters, world);
+		public <T> Optional<T> getOptional(ContextParameter<T> parameter) {
+			return Optional.ofNullable(this.getNullable(parameter));
+		}
+
+		public Context build(World world) {
+			return new Context(parameters.build(contextType), contextType, world);
 		}
 
 	}

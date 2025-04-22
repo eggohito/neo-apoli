@@ -16,11 +16,13 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
+import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
@@ -31,6 +33,7 @@ import java.util.regex.Pattern;
 public class MultiplePower extends Power {
 
 	public static final Identifier ID = NeoApoli.id("multiple");
+	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
 
 	//	TODO: This set of filters should be controllable via config
 	public static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
@@ -107,8 +110,20 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Type<? extends Power> getType() {
+	public Type<?> getType() {
 		return PowerTypes.MULTIPLE;
+	}
+
+	@Override
+	public Impl<?> createImpl(Entity holder) {
+		return new Impl<>(holder, this) {
+
+			@Override
+			public ContextType getContextType() {
+				return CONTEXT_TYPE;
+			}
+
+		};
 	}
 
 	public Map<String, Power> getSubPowers() {

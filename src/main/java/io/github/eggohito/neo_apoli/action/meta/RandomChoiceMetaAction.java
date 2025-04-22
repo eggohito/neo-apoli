@@ -11,8 +11,8 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.function.Function;
 
 public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends Action<AX, AT>, AT extends ActionType<?>> extends Action<AX, AT> {
@@ -23,10 +23,11 @@ public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends 
 	default void execute(ErrorReporter reporter, AX context) {
 
 		actions().shuffle();
-		Iterator<AA> iterator = actions().iterator();
+		ListIterator<AA> actionIterator = actions().stream().toList().listIterator();
 
-		if (iterator.hasNext())	{
-			iterator.next().execute(reporter, context);
+		if (actionIterator.hasNext())	{
+			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			actionIterator.next().execute(actionReporter, context);
 		}
 
 	}
@@ -34,10 +35,11 @@ public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends 
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		List<AA> actions = actions().stream().toList();
+		ListIterator<AA> actionIterator = actions().stream().toList().listIterator();
 
-		for (int i = 0; i < actions.size(); i++) {
-			actions.get(i).validate(reporter.makeChild("actions[" + i + "]"));
+		while (actionIterator.hasNext()) {
+			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			actionIterator.next().validate(actionReporter);
 		}
 
 	}
