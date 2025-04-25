@@ -34,10 +34,10 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	public String get(Context context) {
 
 		StringBuilder result = new StringBuilder();
-		String separator = this.separator().get(context);
+		String separator = separator().get(context.makeChild("separator"));
 
-		for (var string : strings()) {
-			result.append(string.get(context)).append(separator);
+		for (int i = 0; i < strings().size(); i++) {
+			result.append(strings().get(i).get(context.makeChild("strings[" + i + "]"))).append(separator);
 		}
 
 		return result.toString();

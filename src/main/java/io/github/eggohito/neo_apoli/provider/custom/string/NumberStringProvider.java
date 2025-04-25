@@ -33,8 +33,8 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	@Override
 	public String get(Context context) {
 
-		Number number = number().get(context);
-		int decimals = decimals().get(context).intValue();
+		Number number = number().get(context.makeChild("number"));
+		int decimals = decimals().get(context.makeChild("decimals")).intValue();
 
 		if (decimals == 0) {
 			return Long.toString(number.longValue());
