@@ -36,6 +36,10 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Nu
 		}
 
 		double result = 1.0;
+		for (int i = 0; i < numbers().size(); i++) {
+			result *= numbers().get(i).get(context.makeChild("numbers[" + i + "]")).doubleValue();
+		}
+
 		for (var number : numbers()) {
 			result *= number.get(context).doubleValue();
 		}

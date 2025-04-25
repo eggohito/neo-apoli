@@ -30,8 +30,8 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max) impl
 	@Override
 	public Number get(Context context) {
 
-		double min = min().get(context).doubleValue();
-		double max = max().get(context).doubleValue();
+		double min = min().get(context.makeChild("min")).doubleValue();
+		double max = max().get(context.makeChild("max")).doubleValue();
 
 		return MathHelper.nextDouble(context.getWorld().getRandom(), min, max);
 

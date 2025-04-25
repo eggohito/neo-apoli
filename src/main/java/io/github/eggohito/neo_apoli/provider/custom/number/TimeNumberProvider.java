@@ -35,7 +35,7 @@ public record TimeNumberProvider(Optional<NumberProvider> modulo) implements Num
 		long time = world.getTime();
 
 		if (modulo().isPresent()) {
-			time %= modulo().get().get(context).longValue();
+			time %= modulo().get().get(context.makeChild("modulo")).longValue();
 		}
 
 		return time;

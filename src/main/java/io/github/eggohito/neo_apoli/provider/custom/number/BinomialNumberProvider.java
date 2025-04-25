@@ -33,12 +33,12 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 		Random random = context.getWorld().getRandom();
 		int value = 0;
 
-		double chance = probability().get(context).doubleValue();
-		int attempts = attempts().get(context).intValue();
+		int attempts = attempts().get(context.makeChild("attempts")).intValue();
+		double probability = probability().get(context.makeChild("probability")).doubleValue();
 
 		for (int i = 0; i < attempts; ++i) {
 
-			if (random.nextFloat() < chance) {
+			if (random.nextDouble() < probability) {
 				++value;
 			}
 

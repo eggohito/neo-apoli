@@ -32,8 +32,8 @@ public record SubtractNumberProvider(List<NumberProvider> numbers) implements Nu
 	public Number get(Context context) {
 
 		double result = 0.0D;
-		for (var number : numbers()) {
-			result -= number.get(context).doubleValue();
+		for (int i = 0; i < numbers().size(); i++) {
+			result -= numbers().get(i).get(context.makeChild("numbers[" + i + "]")).doubleValue();
 		}
 
 		return result;
