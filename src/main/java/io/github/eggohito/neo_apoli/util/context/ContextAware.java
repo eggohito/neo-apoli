@@ -17,10 +17,6 @@ import java.util.stream.Collectors;
 
 public interface ContextAware {
 
-	default void process(Context context) {
-
-	}
-
 	default Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of();
 	}
