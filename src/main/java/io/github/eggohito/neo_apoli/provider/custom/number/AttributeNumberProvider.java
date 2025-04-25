@@ -16,18 +16,16 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record AttributeNumberProvider(EntityParameter source, RegistryEntry<EntityAttribute> attribute, NumberProvider scale) implements NumberProvider {
+public record AttributeNumberProvider(EntityParameter source, RegistryEntry<EntityAttribute> attribute) implements NumberProvider {
 
 	public static final MapCodec<AttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityParameter.CODEC.fieldOf("source").forGetter(AttributeNumberProvider::source),
-		Registries.ATTRIBUTE.getEntryCodec().fieldOf("attribute").forGetter(AttributeNumberProvider::attribute),
-		NumberProvider.CODEC.optionalFieldOf("scale", new ConstantNumberProvider(1.0D)).forGetter(AttributeNumberProvider::scale)
+		Registries.ATTRIBUTE.getEntryCodec().fieldOf("attribute").forGetter(AttributeNumberProvider::attribute)
 	).apply(instance, AttributeNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, AttributeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
 		EntityParameter.PACKET_CODEC, AttributeNumberProvider::source,
 		EntityAttribute.PACKET_CODEC, AttributeNumberProvider::attribute,
-		NumberProvider.PACKET_CODEC, AttributeNumberProvider::scale,
 		AttributeNumberProvider::new
 	);
 
@@ -40,7 +38,7 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 	public Number get(Context context) {
 
 		if (context.nullableParameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(attribute())) {
-			return livingEntity.getAttributeValue(attribute()) * scale().get(context).doubleValue();
+			return livingEntity.getAttributeValue(attribute());
 		}
 
 		else {
@@ -57,7 +55,6 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 	@Override
 	public void validate(ErrorReporter reporter) {
 		NumberProvider.super.validate(reporter.makeChild("source"));
-		scale().validate(reporter.makeChild("scale"));
 	}
 
 }
