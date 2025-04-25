@@ -1,8 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import io.github.eggohito.neo_apoli.duck.ServerAccess;
+import io.github.eggohito.neo_apoli.duck.MinecraftServerAccess;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeDataCommandStorageS2CPacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.DataCommandStorage;
@@ -20,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Objects;
 
 @Mixin(DataCommandStorage.class)
-public abstract class DataCommandStorageMixin implements ServerAccess {
+public abstract class DataCommandStorageMixin implements MinecraftServerAccess {
 
 	@Shadow
 	public abstract NbtCompound get(Identifier id);
@@ -38,16 +36,11 @@ public abstract class DataCommandStorageMixin implements ServerAccess {
 		this.neo_apoli$server = server;
 	}
 
-	@Inject(method = "set", at = @At("HEAD"))
-	private void cacheOldStorageValue(Identifier id, NbtCompound nbt, CallbackInfo ci, @Share("oldNbt") LocalRef<NbtCompound> oldNbt) {
-		oldNbt.set(this.get(id));
-	}
-
 	@Inject(method = "set", at = @At("TAIL"))
-	private void syncNewStorageValue(Identifier id, NbtCompound nbt, CallbackInfo ci, @Share("oldNbt") LocalRef<NbtCompound> oldNbt) {
+	private void syncNewStorageValue(Identifier id, NbtCompound nbt, CallbackInfo ci) {
 
-		for (ServerPlayerEntity player : this.neo_apoli$getServer().getPlayerManager().getPlayerList()) {
-			ServerPlayNetworking.send(player, new SynchronizeDataCommandStorageS2CPacket(id, nbt));
+		for (ServerPlayerEntity serverPlayer : this.neo_apoli$getServer().getPlayerManager().getPlayerList()) {
+			ServerPlayNetworking.send(serverPlayer, new SynchronizeDataCommandStorageS2CPacket(id, nbt));
 		}
 
 	}

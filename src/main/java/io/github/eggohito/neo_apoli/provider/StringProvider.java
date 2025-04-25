@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.provider.custom.string.ConstantStringProvide
 import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -21,8 +22,11 @@ public interface StringProvider extends ValueProvider<String> {
 	Type<?> getType();
 
 	@Override
+	String get(Context context);
+
+	@Override
 	default String asDisplayString() {
-		return "String provider type \"" + RegistryUtil.getId(NeoApoliRegistries.STRING_PROVIDER_TYPE, this.getType()) + "\"";
+		return "String provider (with type \"" + RegistryUtil.getId(NeoApoliRegistries.STRING_PROVIDER_TYPE, this.getType()) + "\")";
 	}
 
 	record Type<P extends StringProvider>(MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) implements ValueProvider.Type<P> {

@@ -3,12 +3,12 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import net.minecraft.entity.Entity;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -35,11 +35,9 @@ public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction
 	}
 
 	@Override
-	public void execute(ErrorReporter reporter, EntityActionContext context) {
+	public void execute(Context context) {
 
-		Optional<Entity> entity = context.entity();
-
-		if (entity.isPresent() && entity.get() instanceof LivingEntity livingEntity) {
+		if (context.requiredParameter(ContextParameters.CURRENT_ENTITY) instanceof LivingEntity livingEntity) {
 			livingEntity.swingHand(hand().orElseGet(livingEntity::getActiveHand), livingEntity instanceof ServerPlayerEntity);
 		}
 

@@ -24,20 +24,20 @@ public record SubtractNumberProvider(List<NumberProvider> numbers) implements Nu
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return NumberProviderTypes.SUBTRACT;
+	}
+
+	@Override
+	public Number get(Context context) {
 
 		double result = 0.0D;
-		for (int i = 0; i < numbers().size(); i++) {
-			result -= numbers().get(i).get(reporter.makeChild("numbers[" + i + "]"), context).doubleValue();
+		for (var number : numbers()) {
+			result -= number.get(context).doubleValue();
 		}
 
 		return result;
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.SUBTRACT;
 	}
 
 	@Override

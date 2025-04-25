@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import net.minecraft.entity.Entity;
-import net.minecraft.loot.LootTableReporter;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -21,10 +20,8 @@ public record IsSprintingEntityCondition() implements EntityCondition {
 	}
 
 	@Override
-	public boolean test(ErrorReporter reporter, EntityConditionContext context) {
-		return context.entity()
-			.map(Entity::isSprinting)
-			.orElse(false);
+	public boolean test(Context context) {
+		return context.requiredParameter(ContextParameters.CURRENT_ENTITY).isSprinting();
 	}
 
 }

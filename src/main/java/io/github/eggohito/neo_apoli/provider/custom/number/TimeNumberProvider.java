@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
@@ -13,25 +12,30 @@ import net.minecraft.world.World;
 
 import java.util.Optional;
 
-public record TimeNumberProvider(Optional<Long> modulo) implements NumberProvider {
+public record TimeNumberProvider(Optional<NumberProvider> modulo) implements NumberProvider {
 
 	public static final MapCodec<TimeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Codec.LONG.optionalFieldOf("modulo").forGetter(TimeNumberProvider::modulo)
+		NumberProvider.CODEC.optionalFieldOf("modulo").forGetter(TimeNumberProvider::modulo)
 	).apply(instance, TimeNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, TimeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(PacketCodecs.LONG), TimeNumberProvider::modulo,
+		PacketCodecs.optional(NumberProvider.PACKET_CODEC), TimeNumberProvider::modulo,
 		TimeNumberProvider::new
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return NumberProviderTypes.TIME;
+	}
+
+	@Override
+	public Number get(Context context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();
 
 		if (modulo().isPresent()) {
-			time %= modulo().get();
+			time %= modulo().get().get(context).longValue();
 		}
 
 		return time;
@@ -39,8 +43,8 @@ public record TimeNumberProvider(Optional<Long> modulo) implements NumberProvide
 	}
 
 	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.TIME;
+	public void validate(ErrorReporter reporter) {
+		modulo().ifPresent(modulo -> modulo.validate(reporter.makeChild("modulo")));
 	}
 
 }

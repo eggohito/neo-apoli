@@ -27,13 +27,13 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	).cast();
 
 	@Override
-	public String get(ErrorReporter reporter, Context context) {
-		return this.value();
+	public Type<?> getType() {
+		return StringProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return StringProviderTypes.CONSTANT;
+	public String get(Context context) {
+		return this.value();
 	}
 
 }

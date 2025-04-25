@@ -7,9 +7,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import java.util.List;
 
 @Mixin(WeightedList.class)
-public interface WeightedListAccessor<E> {
+public interface WeightedListAccessor {
 
 	@Accessor
-	List<WeightedList.Entry<E>> getEntries();
+	<E> List<WeightedList.Entry<E>> getEntries();
 
 }

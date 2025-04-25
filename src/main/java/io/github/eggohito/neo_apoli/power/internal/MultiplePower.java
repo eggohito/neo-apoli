@@ -28,12 +28,13 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public class MultiplePower extends Power {
 
 	public static final Identifier ID = NeoApoli.id("multiple");
-	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
+	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	//	TODO: This set of filters should be controllable via config
 	public static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
@@ -116,14 +117,12 @@ public class MultiplePower extends Power {
 
 	@Override
 	public Impl<?> createImpl(Entity holder) {
-		return new Impl<>(holder, this) {
+		return new Impl<>(holder, this) {};
+	}
 
-			@Override
-			public ContextType getContextType() {
-				return CONTEXT_TYPE;
-			}
-
-		};
+	@Override
+	public ContextType getContextType() {
+		return CONTEXT_TYPE;
 	}
 
 	public Map<String, Power> getSubPowers() {

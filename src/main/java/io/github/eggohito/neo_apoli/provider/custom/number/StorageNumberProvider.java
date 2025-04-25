@@ -27,14 +27,14 @@ public record StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtP
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
-		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
-		return this.path().count(rootNbt);
+	public Type<?> getType() {
+		return NumberProviderTypes.STORAGE;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.STORAGE;
+	public Number get(Context context) {
+		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
+		return this.path().count(rootNbt);
 	}
 
 }

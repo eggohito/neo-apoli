@@ -25,13 +25,13 @@ public record UuidStringProvider(LootContext.EntityTarget source) implements Str
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, Context context) {
-		return context.requiredParameter(source.getParameter()).getUuidAsString();
+	public Type<?> getType() {
+		return StringProviderTypes.UUID;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return StringProviderTypes.UUID;
+	public String get(Context context) {
+		return context.requiredParameter(source().getParameter()).getUuidAsString();
 	}
 
 	@Override

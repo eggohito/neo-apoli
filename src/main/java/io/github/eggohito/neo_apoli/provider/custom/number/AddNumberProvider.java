@@ -24,20 +24,20 @@ public record AddNumberProvider(List<NumberProvider> numbers) implements NumberP
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
-
-		double value = 0.0D;
-		for (int i = 0; i < numbers().size(); i++) {
-			value += numbers().get(i).get(reporter.makeChild("numbers[" + i + "]"), context).doubleValue();
-		}
-
-		return value;
-
+	public Type<?> getType() {
+		return NumberProviderTypes.ADD;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.ADD;
+	public Number get(Context context) {
+
+		double result = 0.0D;
+		for (var number : numbers()) {
+			result += number.get(context).doubleValue();
+		}
+
+		return result;
+
 	}
 
 	@Override

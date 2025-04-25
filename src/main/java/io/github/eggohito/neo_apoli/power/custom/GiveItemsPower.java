@@ -19,10 +19,11 @@ import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class GiveItemsPower extends Power {
 
-	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
+	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
 		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
@@ -63,6 +64,11 @@ public class GiveItemsPower extends Power {
 		return new Impl(holder);
 	}
 
+	@Override
+	public ContextType getContextType() {
+		return CONTEXT_TYPE;
+	}
+
 	public List<IndexedStack> getIndexedStacks() {
 		return indexedStacks;
 	}
@@ -73,13 +79,8 @@ public class GiveItemsPower extends Power {
 
 	public class Impl extends Power.Impl<GiveItemsPower> {
 
-		public Impl(@NotNull Entity holder) {
+		protected Impl(@NotNull Entity holder) {
 			super(holder, GiveItemsPower.this);
-		}
-
-		@Override
-		public ContextType getContextType() {
-			return CONTEXT_TYPE;
 		}
 
 		@Override

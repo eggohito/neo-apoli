@@ -28,13 +28,13 @@ public record ConstantNumberProvider(Number value) implements NumberProvider {
 	).cast();
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
-		return this.value();
+	public Type<?> getType() {
+		return NumberProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.CONSTANT;
+	public Number get(Context context) {
+		return this.value();
 	}
 
 }

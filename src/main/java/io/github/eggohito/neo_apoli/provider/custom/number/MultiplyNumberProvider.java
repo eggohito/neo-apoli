@@ -24,20 +24,24 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Nu
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return NumberProviderTypes.MULTIPLY;
+	}
 
-		double result = 0.0D;
-		for (int i = 0; i < numbers().size(); i++) {
-			result *= numbers().get(i).get(reporter.makeChild("numbers[" + i + "]"), context).doubleValue();
+	@Override
+	public Number get(Context context) {
+
+		if (numbers().isEmpty()) {
+			return 0.0;
+		}
+
+		double result = 1.0;
+		for (var number : numbers()) {
+			result *= number.get(context).doubleValue();
 		}
 
 		return result;
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.MULTIPLY;
 	}
 
 	@Override

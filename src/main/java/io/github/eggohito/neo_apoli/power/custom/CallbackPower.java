@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -14,9 +13,11 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 public class CallbackPower extends Power {
 
-	public static final ContextType CONTEXT_TYPE = DEFAULT_CONTEXT_TYPE_BUILDER.build();
+	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	public static final MapCodec<CallbackPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonAndConditionFields(instance)
 		.and(EntityAction.CODEC.optionalFieldOf("on_added_action", new NothingEntityAction()).forGetter(CallbackPower::getAddedAction))
@@ -70,6 +71,20 @@ public class CallbackPower extends Power {
 		return new Impl(holder);
 	}
 
+	@Override
+	public ContextType getContextType() {
+		return CONTEXT_TYPE;
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		getAddedAction().validate(reporter.makeChild("on_added_action"));
+		getGrantedAction().validate(reporter.makeChild("on_granted_action"));
+		getRemovedAction().validate(reporter.makeChild("on_removed_action"));
+		getRevokedAction().validate(reporter.makeChild("on_revoked_action"));
+		getRespawnAction().validate(reporter.makeChild("on_respawn_action"));
+	}
+
 	public EntityAction getAddedAction() {
 		return addedAction;
 	}
@@ -92,20 +107,15 @@ public class CallbackPower extends Power {
 
 	public class Impl extends Power.Impl<CallbackPower> {
 
-		public Impl(@NotNull Entity holder) {
+		protected Impl(@NotNull Entity holder) {
 			super(holder, CallbackPower.this);
-		}
-
-		@Override
-		public ContextType getContextType() {
-			return CONTEXT_TYPE;
 		}
 
 		@Override
 		public void onAdded() {
 
 			if (isActive()) {
-				executeAndReport(power.getAddedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_added_action"), new EntityActionContext(holder)));
+				executeAndReport("on_added_action", power.getAddedAction());
 			}
 
 		}
@@ -114,7 +124,7 @@ public class CallbackPower extends Power {
 		public void onGranted() {
 
 			if (isActive()) {
-				executeAndReport(power.getGrantedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_granted_action"), new EntityActionContext(holder)));
+				executeAndReport("on_granted_action", power.getGrantedAction());
 			}
 
 		}
@@ -123,7 +133,7 @@ public class CallbackPower extends Power {
 		public void onRemoved() {
 
 			if (isActive()) {
-				executeAndReport(power.getRemovedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_removed_action"), new EntityActionContext(holder)));
+				executeAndReport("on_removed_action", power.getRemovedAction());
 			}
 
 		}
@@ -132,7 +142,7 @@ public class CallbackPower extends Power {
 		public void onRevoked() {
 
 			if (isActive()) {
-				executeAndReport(power.getRevokedAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_revoked_action"), new EntityActionContext(holder)));
+				executeAndReport("on_revoked_action", power.getRevokedAction());
 			}
 
 		}
@@ -141,7 +151,7 @@ public class CallbackPower extends Power {
 		public void onRespawn() {
 
 			if (isActive()) {
-				executeAndReport(power.getRespawnAction(), (reporter, entityAction) -> entityAction.execute(reporter.makeChild("on_respawn_action"), new EntityActionContext(holder)));
+				executeAndReport("on_respawn_action", power.getRespawnAction());
 			}
 
 		}

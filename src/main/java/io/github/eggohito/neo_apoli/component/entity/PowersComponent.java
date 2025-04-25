@@ -93,8 +93,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		while (powersNbtIterator.hasNext()) {
 
-			NbtElement powerNbt = powersNbtIterator.next();
 			int index = powersNbtIterator.nextIndex();
+			NbtElement powerNbt = powersNbtIterator.next();
 
 			try {
 

@@ -17,6 +17,10 @@ import java.util.stream.Collectors;
 
 public interface ContextAware {
 
+	default void process(Context context) {
+
+	}
+
 	default Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of();
 	}
@@ -167,11 +171,11 @@ public interface ContextAware {
 			return referenceStack.contains(key);
 		}
 
-		public boolean anyErrored() {
+		public boolean hasErrors() {
 			return !this.errors.isEmpty();
 		}
 
-		public boolean errored() {
+		public boolean pathHasErrors() {
 			return this.errors.containsKey(this.getFullPath());
 		}
 

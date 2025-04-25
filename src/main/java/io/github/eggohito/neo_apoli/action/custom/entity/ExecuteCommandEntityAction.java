@@ -4,14 +4,12 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.MinecraftServer;
@@ -19,7 +17,9 @@ import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.context.ContextType;
+import net.minecraft.world.World;
+
+import java.util.function.Supplier;
 
 public record ExecuteCommandEntityAction(StringProvider command) implements EntityAction {
 
@@ -32,55 +32,37 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		ExecuteCommandEntityAction::new
 	);
 
-	public static final ContextType CONTEXT_TYPE = new ContextType.Builder()
-		.require(LootContextParameters.THIS_ENTITY)
-		.require(LootContextParameters.ORIGIN)
-		.allow(LootContextParameters.ATTACKING_ENTITY)
-		.allow(LootContextParameters.LAST_DAMAGE_PLAYER)
-		.build();
-
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.EXECUTE_COMMAND;
 	}
 
 	@Override
-	public void execute(ErrorReporter reporter, EntityActionContext context) {
+	public void execute(Context context) {
 
-		if (context.entity().isEmpty()) {
+		Entity entity = context.requiredParameter(ContextParameters.CURRENT_ENTITY);
+		World world = context.getWorld();
+
+		if (!(world instanceof ServerWorld serverWorld)) {
 			return;
 		}
 
-		Entity entity = context.entity().get();
-		if (!(entity.getWorld() instanceof ServerWorld serverWorld)) {
-			return;
-		}
-
-		reporter = reporter.withContextType(CONTEXT_TYPE);
+		MinecraftServer server = serverWorld.getServer();
 		ServerCommandSource commandSource = entity.getCommandSource(serverWorld)
 			.withLevel(NeoApoli.getConfig().command().permissionLevel())
-			.withOutput(getOutput(entity, serverWorld.getServer()));
+			.withOutput(getOutputOrElse(entity, () -> server));
 
-		Context providerContext = Context.builder(reporter.getContextType())
-			.add(LootContextParameters.THIS_ENTITY, entity)
-			.add(LootContextParameters.ORIGIN, entity.getPos())
-			.addNullable(LootContextParameters.ATTACKING_ENTITY, entity instanceof LivingEntity livingEntity ? livingEntity.getAttacker() : null)
-			.addNullable(LootContextParameters.LAST_DAMAGE_PLAYER, entity instanceof LivingEntity livingEntity ? livingEntity.getAttackingPlayer() : null)
-			.build(serverWorld);
-
-		this.validate(reporter);
-		if (!reporter.errored()) {
-			serverWorld.getServer().getCommandManager().executeWithPrefix(commandSource, command().get(reporter, providerContext));
-		}
+		server.getCommandManager().executeWithPrefix(commandSource, command().get(context.makeChild("command")));
 
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+		EntityAction.super.validate(reporter);
 		command().validate(reporter.makeChild("command"));
 	}
 
-	private static CommandOutput getOutput(Entity entity, MinecraftServer server) {
+	private static CommandOutput getOutputOrElse(Entity entity, Supplier<CommandOutput> defaultValue) {
 
 		if (NeoApoli.getConfig().command().showOutput()) {
 
@@ -89,7 +71,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			}
 
 			else {
-				return server;
+				return defaultValue.get();
 			}
 
 		}

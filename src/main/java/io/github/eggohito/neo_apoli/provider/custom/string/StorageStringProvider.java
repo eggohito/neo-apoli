@@ -31,15 +31,25 @@ public record StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtP
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return StringProviderTypes.STORAGE;
+	}
+
+	@Override
+	public String get(Context context) {
 
 		try {
 
 			NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
 			List<NbtElement> elements = this.path().get(rootNbt);
 
-			if (elements.size() == 1) {
-				return elements.getFirst().toString();
+			if (elements.size() > 1) {
+				return Integer.toString(this.path().count(rootNbt));
+			}
+
+			else if (elements.size() == 1) {
+				NbtElement element = elements.getFirst();
+				return element.asString().orElseGet(element::toString);
 			}
 
 			else {
@@ -49,15 +59,10 @@ public record StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtP
 		}
 
 		catch (CommandSyntaxException cse) {
-			reporter.report("Error trying to get string from NBT \"" + this.path() + "\": " + cse);
+			context.getReporter().makeChild("path").report("Error trying to get string from storage \"" + this.storage() + "\" in NBT path \"" + this.path() + "\": " + cse.getMessage());
 			return "";
 		}
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return StringProviderTypes.STORAGE;
 	}
 
 }

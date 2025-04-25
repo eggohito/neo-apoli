@@ -1,23 +1,17 @@
 package io.github.eggohito.neo_apoli.condition.meta;
 
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.context.ConditionContext;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
+import io.github.eggohito.neo_apoli.util.context.Context;
 
-import java.util.ListIterator;
-
-public interface AllOfMetaCondition<CX extends ConditionContext, CC extends Condition<CX, CT>, CT extends ConditionType<?>> extends MultiMetaCondition<CX, CC, CT>, Condition<CX, CT> {
+public interface AllOfMetaCondition<C extends Condition<T>, T extends ConditionType<?>> extends MultiMetaCondition<C, T>, Condition<T> {
 
 	@Override
-	default boolean test(ErrorReporter reporter, CX context) {
+	default boolean test(Context context) {
 
-		ListIterator<CC> conditionIterator = conditions().listIterator();
+		for (int i = 0; i < conditions().size(); i++) {
 
-		while (conditionIterator.hasNext()) {
-
-			ErrorReporter conditionReporter = reporter.makeChild("conditions[" + conditionIterator.nextIndex() + "]");
-
-			if (!conditionIterator.next().test(conditionReporter, context)) {
+			if (!conditions().get(i).test(context.makeChild("conditions[" + i + "]"))) {
 				return false;
 			}
 

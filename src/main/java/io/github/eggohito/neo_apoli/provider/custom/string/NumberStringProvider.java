@@ -16,7 +16,7 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 
 	public static final MapCodec<NumberStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
-		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0D)).forGetter(NumberStringProvider::decimals)
+		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberStringProvider::decimals)
 	).apply(instance, NumberStringProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = PacketCodec.tuple(
@@ -26,10 +26,15 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return StringProviderTypes.NUMBER;
+	}
 
-		Number number = number().get(reporter, context);
-		int decimals = decimals().get(reporter, context).intValue();
+	@Override
+	public String get(Context context) {
+
+		Number number = number().get(context);
+		int decimals = decimals().get(context).intValue();
 
 		if (decimals == 0) {
 			return Long.toString(number.longValue());
@@ -39,11 +44,6 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 			return String.format(Locale.ROOT, ("%." + decimals + "f"), number.doubleValue());
 		}
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return StringProviderTypes.NUMBER;
 	}
 
 	@Override

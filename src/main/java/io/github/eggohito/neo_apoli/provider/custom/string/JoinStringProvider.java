@@ -26,22 +26,22 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public String get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return StringProviderTypes.JOIN;
+	}
+
+	@Override
+	public String get(Context context) {
 
 		StringBuilder result = new StringBuilder();
-		String separator = this.separator().get(reporter, context);
+		String separator = this.separator().get(context);
 
 		for (var string : strings()) {
-			result.append(string.get(reporter, context)).append(separator);
+			result.append(string.get(context)).append(separator);
 		}
 
 		return result.toString();
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return StringProviderTypes.JOIN;
 	}
 
 	@Override

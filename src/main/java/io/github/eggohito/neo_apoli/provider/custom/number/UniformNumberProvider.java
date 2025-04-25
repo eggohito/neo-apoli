@@ -23,18 +23,18 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max) impl
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
-
-		double min = min().get(reporter, context).doubleValue();
-		double max = max().get(reporter, context).doubleValue();
-
-		return MathHelper.nextDouble(context.getWorld().getRandom(), min, max);
-
+	public Type<?> getType() {
+		return NumberProviderTypes.UNIFORM;
 	}
 
 	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.UNIFORM;
+	public Number get(Context context) {
+
+		double min = min().get(context).doubleValue();
+		double max = max().get(context).doubleValue();
+
+		return MathHelper.nextDouble(context.getWorld().getRandom(), min, max);
+
 	}
 
 	@Override

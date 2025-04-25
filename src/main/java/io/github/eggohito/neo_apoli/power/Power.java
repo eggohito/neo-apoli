@@ -8,17 +8,19 @@ import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.context.entity.EntityConditionContext;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
-import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -30,17 +32,13 @@ import net.minecraft.util.context.ContextType;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public abstract class Power implements ContextAware {
-
-	public static final ContextType.Builder DEFAULT_CONTEXT_TYPE_BUILDER = new ContextType.Builder()
-		.require(LootContextParameters.THIS_ENTITY)
-		.require(LootContextParameters.ORIGIN)
-		.allow(LootContextParameters.ATTACKING_ENTITY)
-		.allow(LootContextParameters.LAST_DAMAGE_PLAYER);
 
 	public static final String TYPE_KEY = "type";
 	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
@@ -70,12 +68,14 @@ public abstract class Power implements ContextAware {
 		return PowerManager.getReferenceAsResult(this)
 			.result()
 			.map(PowerReference::asDisplayString)
-			.orElseGet(() -> "Power type \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, this.getType()));
+			.orElseGet(() -> "Power (with type \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, this.getType()) + "\")");
 	}
 
 	public abstract Type<?> getType();
 
 	public abstract Impl<?> createImpl(Entity holder);
+
+	public abstract ContextType getContextType();
 
 	public final Properties getProperties() {
 		return properties;
@@ -147,23 +147,32 @@ public abstract class Power implements ContextAware {
 		);
 	}
 
-	public static abstract class Impl<P extends Power> {
+	public static ContextType createContextType(UnaryOperator<ContextType.Builder> operator) {
+		return operator.apply(new ContextType.Builder()
+			.require(ContextParameters.POSITION)
+			.allow(ContextParameters.CURRENT_ENTITY)
+			.allow(ContextParameters.ACTOR)
+			.allow(ContextParameters.TARGET)).build();
+	}
+
+	public abstract static class Impl<P extends Power> {
 
 		protected final Entity holder;
 		protected final P power;
 
 		protected final EntityCondition activeCondition;
 
-		public Impl(@NotNull Entity holder, @NotNull P power) {
+		protected Impl(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
 			this.power = power;
 			this.activeCondition = power.getActiveCondition();
 		}
 
-		public abstract ContextType getContextType();
-
-		public ErrorReporter getErrorReporter() {
-			return new ErrorReporter(this.getContextType()).withWrapperLookup(holder.getRegistryManager());
+		public Context.Builder getContextBuilder() {
+			return new Context.Builder(this.getPower().getContextType())
+				.add(ContextParameters.POSITION, holder.getPos())
+				.add(ContextParameters.CURRENT_ENTITY, holder)
+				.withReporter(reporter -> reporter.withWrapperLookup(holder.getRegistryManager()));
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -179,20 +188,49 @@ public abstract class Power implements ContextAware {
 		}
 
 		public boolean isActive() {
-			return activeCondition.test(this.getErrorReporter(), new EntityConditionContext(holder));
+			return activeCondition.test(this.getContextBuilder().build(holder.getWorld()));
 		}
 
-		public <A extends Action<?, ?>> void executeAndReport(A action, BiConsumer<ErrorReporter, A> consumer) {
+		private <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, UnaryOperator<Context.Builder> builder) {
 
-			PowerReference reference = PowerManager.getReferenceAsResult(this.getPower()).mapOrElse(Function.identity(), error -> null);
-			ErrorReporter reporter = this.getErrorReporter();
+			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
+			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld());
 
-			consumer.accept(reporter, action);
+			ErrorReporter reporter = context.getReporter();
+			this.getPower().validate(reporter);
 
-			if (reporter.anyErrored()) {
-				NeoApoli.LOGGER.warn("Error executing {} {} due to error(s) {}", action.asDisplayString(false), (reference != null ? "in " +  reference.asDisplayString(false) : ""), reporter.getErrorsAsString());
+			if (reporter.hasErrors()) {
+				report(reporter, contextAware, reference);
+				return null;
 			}
 
+			else {
+
+				R result = resultFunctor.apply(contextAware, context.makeChild(path));
+				if (reporter.hasErrors()) {
+					report(reporter, contextAware, reference);
+				}
+
+				return result;
+
+			}
+
+		}
+
+		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
+			processAndReport(path, action, (a, context) -> MiscUtil.run(() -> a.execute(context)), builder);
+		}
+
+		public <A extends Action<?>> void executeAndReport(String path, A action) {
+			executeAndReport(path, action, UnaryOperator.identity());
+		}
+
+		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
+			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, builder));
+		}
+
+		public <C extends Condition<?>> boolean testAndReport(String path, C condition) {
+			return testAndReport(path, condition, UnaryOperator.identity());
 		}
 
 		public void onAdded() {
@@ -213,6 +251,10 @@ public abstract class Power implements ContextAware {
 
 		public void onRespawn() {
 
+		}
+
+		private static <C extends ContextAware> void report(ErrorReporter reporter, C contextAware, Optional<PowerReference> reference) {
+			NeoApoli.LOGGER.warn("Couldn't fully process {} {} due to error(s) at {}", contextAware.asDisplayString(false), reference.map(ref -> "in " + ref.asDisplayString(false)).orElse(""), reporter.getErrorsAsString());
 		}
 
 	}

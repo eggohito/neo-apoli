@@ -4,33 +4,32 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.context.ActionContext;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.random.Random;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Optional;
 
-public interface RandomChanceMetaAction<AX extends ActionContext<?>, AA extends Action<AX, AT>, AT extends ActionType<?>> extends Action<AX, AT> {
+public interface RandomChanceMetaAction<A extends Action<T>, T extends ActionType<?>> extends Action<T> {
 
-	AA successAction();
+	A successAction();
 
-	Optional<AA> failAction();
+	Optional<A> failAction();
 
 	float chance();
 
 	@Override
-	default void execute(ErrorReporter reporter, AX context) {
+	default void execute(Context context) {
 
-		if (Random.create().nextFloat() < chance()) {
-			successAction().execute(reporter.makeChild("success_action"), context);
+		if (context.getWorld().getRandom().nextFloat() < chance()) {
+			successAction().execute(context.makeChild("success_action"));
 		}
 
 		else {
-			failAction().ifPresent(failAction -> failAction.execute(reporter.makeChild("fail_action"), context));
+			failAction().ifPresent(failAction -> failAction.execute(context.makeChild("fail_action")));
 		}
 
 	}
@@ -41,7 +40,7 @@ public interface RandomChanceMetaAction<AX extends ActionContext<?>, AA extends 
 		failAction().ifPresent(failAction -> failAction.validate(reporter.makeChild("fail_action")));
 	}
 
-	static <AA extends Action<?, ?>, RCMA extends RandomChanceMetaAction<?, AA, ?>> MapCodec<RCMA> createCodec(Codec<AA> elementCodec, TriFunction<AA, Optional<AA>, Float, RCMA> constructor) {
+	static <A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			elementCodec.fieldOf("success_action").forGetter(RandomChanceMetaAction::successAction),
 			elementCodec.optionalFieldOf("fail_action").forGetter(RandomChanceMetaAction::failAction),
@@ -49,7 +48,7 @@ public interface RandomChanceMetaAction<AX extends ActionContext<?>, AA extends 
 		).apply(instance, constructor::apply));
 	}
 
-	static <B extends ByteBuf, AA extends Action<?, ?>, RCMA extends RandomChanceMetaAction<?, AA, ?>> PacketCodec<B, RCMA> createPacketCodec(PacketCodec<B, AA> elementCodec, TriFunction<AA, Optional<AA>, Float, RCMA> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
 		return PacketCodec.tuple(
 			elementCodec, RandomChanceMetaAction::successAction,
 			PacketCodecs.optional(elementCodec), RandomChanceMetaAction::failAction,

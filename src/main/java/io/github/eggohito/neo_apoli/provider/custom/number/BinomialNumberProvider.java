@@ -23,13 +23,18 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	);
 
 	@Override
-	public Number get(ErrorReporter reporter, Context context) {
+	public Type<?> getType() {
+		return NumberProviderTypes.BINOMIAL;
+	}
+
+	@Override
+	public Number get(Context context) {
 
 		Random random = context.getWorld().getRandom();
 		int value = 0;
 
-		double chance = probability().get(reporter, context).doubleValue();
-		int attempts = attempts().get(reporter, context).intValue();
+		double chance = probability().get(context).doubleValue();
+		int attempts = attempts().get(context).intValue();
 
 		for (int i = 0; i < attempts; ++i) {
 
@@ -41,11 +46,6 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 
 		return value;
 
-	}
-
-	@Override
-	public Type<?> getType() {
-		return NumberProviderTypes.BINOMIAL;
 	}
 
 	@Override

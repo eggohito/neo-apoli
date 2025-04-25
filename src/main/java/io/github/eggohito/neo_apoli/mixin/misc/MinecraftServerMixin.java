@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.mixin.misc;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
-import io.github.eggohito.neo_apoli.duck.ServerAccess;
+import io.github.eggohito.neo_apoli.duck.MinecraftServerAccess;
 import io.github.eggohito.neo_apoli.mixin.access.DataCommandStorageAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeDataCommandStorageS2CPacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -25,7 +25,7 @@ public abstract class MinecraftServerMixin implements DataCommandStorageHolder {
 
 	@ModifyExpressionValue(method = "createWorlds", at = @At(value = "NEW", target = "(Lnet/minecraft/world/PersistentStateManager;)Lnet/minecraft/command/DataCommandStorage;"))
 	private DataCommandStorage cacheServerInDataCommandStorage(DataCommandStorage original) {
-		((ServerAccess) original).neo_apoli$setServer((MinecraftServer) (Object) this);
+		((MinecraftServerAccess) original).neo_apoli$setServer((MinecraftServer) (Object) this);
 		return original;
 	}
 

@@ -4,9 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.context.ActionContext;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.mixin.access.WeightedListAccessor;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
@@ -15,19 +15,19 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Function;
 
-public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends Action<AX, AT>, AT extends ActionType<?>> extends Action<AX, AT> {
+public interface RandomChoiceMetaAction<A extends Action<T>, T extends ActionType<?>> extends Action<T> {
 
-	WeightedList<AA> actions();
+	WeightedList<A> actions();
 
 	@Override
-	default void execute(ErrorReporter reporter, AX context) {
+	default void execute(Context context) {
 
 		actions().shuffle();
-		ListIterator<AA> actionIterator = actions().stream().toList().listIterator();
+		ListIterator<A> actionIterator = actions().stream().toList().listIterator();
 
 		if (actionIterator.hasNext())	{
-			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
-			actionIterator.next().execute(actionReporter, context);
+			Context subContext = context.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			actionIterator.next().execute(subContext);
 		}
 
 	}
@@ -35,33 +35,32 @@ public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends 
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		ListIterator<AA> actionIterator = actions().stream().toList().listIterator();
+		List<A> actions = actions().stream().toList();
 
-		while (actionIterator.hasNext()) {
-			ErrorReporter actionReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
-			actionIterator.next().validate(actionReporter);
+		for (int i = 0; i < actions.size(); i++) {
+			actions.get(i).validate(reporter.makeChild("actions[" + i + "]"));
 		}
 
 	}
 
-	static <AA extends Action<?, ?>, CMA extends RandomChoiceMetaAction<?, AA, ?>> MapCodec<CMA> createCodec(Codec<AA> elementCodec, Function<WeightedList<AA>, CMA> constructor) {
+	static <A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> elementCodec, Function<WeightedList<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			WeightedList.createCodec(elementCodec).fieldOf("actions").forGetter(RandomChoiceMetaAction::actions)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, AA extends Action<?, ?>, CMA extends RandomChoiceMetaAction<?, AA, ?>> PacketCodec<B, CMA> createPacketCodec(PacketCodec<B, AA> elementCodec, Function<WeightedList<AA>, CMA> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> elementCodec, Function<WeightedList<A>, M> constructor) {
 		return new PacketCodec<>() {
 
 			@Override
-			public CMA decode(B buf) {
+			public M decode(B buf) {
 
-				WeightedList<AA> actions = new WeightedList<>();
+				WeightedList<A> actions = new WeightedList<>();
 				int size = buf.readInt();
 
 				for (int i = 0; i < size; i++) {
 
-					AA element = elementCodec.decode(buf);
+					A element = elementCodec.decode(buf);
 					int weight = buf.readInt();
 
 					actions.add(element, weight);
@@ -73,13 +72,12 @@ public interface RandomChoiceMetaAction<AX extends ActionContext<?>, AA extends 
 			}
 
 			@Override
-			public void encode(B buf, CMA value) {
+			public void encode(B buf, M value) {
 
-				//noinspection unchecked
-				List<WeightedList.Entry<AA>> entries = ((WeightedListAccessor<AA>) value.actions()).getEntries();
+				List<WeightedList.Entry<A>> entries = ((WeightedListAccessor) value.actions()).getEntries();
 				buf.writeInt(entries.size());
 
-				for (WeightedList.Entry<AA> entry : entries) {
+				for (WeightedList.Entry<A> entry : entries) {
 					elementCodec.encode(buf, entry.getElement());
 					buf.writeInt(entry.getWeight());
 				}

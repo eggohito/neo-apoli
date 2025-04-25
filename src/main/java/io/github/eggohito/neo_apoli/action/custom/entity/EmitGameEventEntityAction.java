@@ -3,9 +3,10 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.context.entity.EntityActionContext;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -31,8 +32,8 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 	}
 
 	@Override
-	public void execute(ErrorReporter reporter, EntityActionContext context) {
-		context.entity().ifPresent(entity -> entity.emitGameEvent(gameEvent(), entity));
+	public void execute(Context context) {
+		context.getWorld().emitGameEvent(context.requiredParameter(ContextParameters.CURRENT_ENTITY), gameEvent(), context.requiredParameter(ContextParameters.POSITION));
 	}
 
 }
