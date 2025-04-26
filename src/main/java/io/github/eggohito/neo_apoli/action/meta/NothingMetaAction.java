@@ -11,4 +11,9 @@ public interface NothingMetaAction<T extends ActionType<?>> extends Action<T> {
 
 	}
 
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+	}
+
 }
