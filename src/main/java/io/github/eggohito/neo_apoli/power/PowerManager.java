@@ -5,11 +5,14 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.event.PowerLoadingEvents;
+import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -23,6 +26,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SinglePreparationResourceReloader;
+import net.minecraft.server.DataPackContents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
@@ -81,15 +85,56 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 	}
 
+	@ApiStatus.Internal
+	public static void validate(DataPackContents dataPackContents) {
+
+		if (POWERS_BY_REFERENCE.isEmpty()) {
+			return;
+		}
+
+		ObjectIterator<PowerEntry<?>> entryIterator = POWERS_BY_REFERENCE.values().iterator();
+		int prevSize = POWERS_BY_REFERENCE.size();
+
+		NeoApoli.LOGGER.info("Validating {} power(s)...", prevSize);
+
+		while (entryIterator.hasNext()) {
+
+			PowerEntry<?> entry = entryIterator.next();
+			Power power = entry.value();
+
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter()
+				.withContextType(power.getContextType())
+				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
+
+			power.validate(reporter);
+
+			if (!reporter.hasErrors()) {
+				continue;
+			}
+
+			NeoApoli.LOGGER.warn("Error validating {} due to error(s) {}", entry.reference().asDisplayString(false), reporter.getErrorsAsString());
+
+			REFERENCES_BY_POWER.remove(power);
+			entryIterator.remove();
+
+		}
+
+		NeoApoli.LOGGER.info("Finished validating {} power(s). Registry contains {} power(s)", prevSize, POWERS_BY_REFERENCE.size());
+
+		REFERENCES_BY_POWER.trim();
+		POWERS_BY_REFERENCE.trim();
+
+	}
+
 	@Override
 	protected Map<Identifier, PackData> prepare(ResourceManager manager, Profiler profiler) {
 
 		Map<Identifier, PackData> prepared = new Object2ObjectOpenHashMap<>();
-		profiler.push("neo-apoli::preparePowers");
+		profiler.push("[" + NeoApoli.MOD_NAMESPACE + "] preparing powers");
 
 		for (String directoryPath : DIRECTORY_PATHS) {
 
-			profiler.push("neo-apoli::preparePowers::scan->" + directoryPath);
+			profiler.push("[" + NeoApoli.MOD_NAMESPACE + "] scanning for powers in directory \"" + directoryPath + "\"");
 			manager.findResources(directoryPath, PowerManager::hasValidFormat).forEach((fileId, resource) -> {
 
 				Identifier resourceId = trimExtension(fileId, directoryPath);
@@ -103,7 +148,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 					return;
 				}
 
-				profiler.push("neo-apoli::preparePowers::startPrep->" + fileId + "::[" + packName + "]");
+				profiler.push("[" + NeoApoli.MOD_NAMESPACE + "] start preparing file \"" + fileId + "\" from data pack {" + packName + "}");
 
 				try (BufferedReader reader = resource.getReader()) {
 
@@ -156,11 +201,11 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 		NeoApoli.LOGGER.info("Parsing powers from data packs...");
 		startLoading();
 
-		profiler.push("neo-apoli::parsePowers");
+		profiler.push("[" + NeoApoli.MOD_NAMESPACE + "] start parsing powers");
 		prepared.forEach((id, packData) -> {
 
 			PowerReference powerReference = PowerReference.ofPower(id);
-			profiler.push("neo-apoli::parsePowers::startParse->" + id + "::[" + packData.source() + "]");
+			profiler.push("[" + NeoApoli.MOD_NAMESPACE + "] start parsing power \"" + id + "\" from data pack {" + packData.source() + "}");
 
 			try {
 

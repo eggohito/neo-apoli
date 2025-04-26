@@ -97,6 +97,10 @@ public abstract class Power implements ContextAware {
 		return getProperties().hidden();
 	}
 
+	public final boolean isSubPower() {
+		return getProperties().subPower();
+	}
+
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).apply(instance, constructor));
 	}
@@ -254,7 +258,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		private static <C extends ContextAware> void report(ErrorReporter reporter, C contextAware, Optional<PowerReference> reference) {
-			NeoApoli.LOGGER.warn("Couldn't fully process {} {} due to error(s) at {}", contextAware.asDisplayString(false), reference.map(ref -> "in " + ref.asDisplayString(false)).orElse(""), reporter.getErrorsAsString());
+			NeoApoli.LOGGER.warn("Couldn't fully process {} due to error(s) {}", (contextAware.asDisplayString(false) + reference.map(ref -> " in " + ref.asDisplayString(false)).orElse("")), reporter.getErrorsAsString());
 		}
 
 	}
@@ -277,7 +281,8 @@ public abstract class Power implements ContextAware {
 		private Text name;
 		private Text description;
 
-		private final boolean hidden;
+		private boolean hidden;
+		private boolean subPower;
 
 		public Properties(@NotNull Text name, @NotNull Text description, boolean hidden) {
 			this.name = name;
@@ -285,14 +290,15 @@ public abstract class Power implements ContextAware {
 			this.hidden = hidden;
 		}
 
-		public Properties withReference(PowerReference reference) {
+		public void withReference(PowerReference reference) {
 
 			String translationKey = reference.createTranslationKey();
 
 			this.name = TextUtil.forceTranslatable(translationKey + ".name", this.name());
 			this.description = TextUtil.forceTranslatable(translationKey + ".description", this.description());
 
-			return this;
+			this.subPower = reference.isSubPower();
+			this.hidden |= this.subPower;
 
 		}
 
@@ -306,6 +312,10 @@ public abstract class Power implements ContextAware {
 
 		public boolean hidden() {
 			return hidden;
+		}
+
+		public boolean subPower() {
+			return subPower;
 		}
 
 	}
