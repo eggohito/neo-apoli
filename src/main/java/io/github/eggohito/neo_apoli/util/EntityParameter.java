@@ -12,7 +12,7 @@ import net.minecraft.util.function.ValueLists;
 
 public enum EntityParameter implements StringIdentifiable {
 
-	CURRENT("current", ContextParameters.CURRENT_ENTITY),
+	CURRENT_ENTITY("current_entity", ContextParameters.CURRENT_ENTITY),
 	TARGET("target", ContextParameters.TARGET),
 	ACTOR("actor", ContextParameters.ACTOR);
 
