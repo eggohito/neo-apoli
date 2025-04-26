@@ -106,7 +106,9 @@ public interface ContextAware {
 			boolean moreThanOnePaths = errorsMap.size() > 1;
 
 			if (!errorsMap.isEmpty()) {
-				builder.append("at path ").append(moreThanOnePaths ? "these paths:" : "");
+				builder
+					.append("at")
+					.append(moreThanOnePaths ? " these paths: " : " path ");
 			}
 
 			errorsMap.asMap().forEach((path, errors) -> {
