@@ -9,13 +9,14 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.util.dynamic.Codecs;
 
 import java.util.List;
 
 public record MultiplyNumberProvider(List<NumberProvider> numbers) implements NumberProvider {
 
 	public static final MapCodec<MultiplyNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.listOf().fieldOf("numbers").forGetter(MultiplyNumberProvider::numbers)
+		Codecs.nonEmptyList(NumberProvider.CODEC.listOf()).fieldOf("numbers").forGetter(MultiplyNumberProvider::numbers)
 	).apply(instance, MultiplyNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, MultiplyNumberProvider> PACKET_CODEC = PacketCodec.tuple(
@@ -35,13 +36,24 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Nu
 			return 0.0;
 		}
 
-		double result = 1.0;
-		for (int i = 0; i < numbers().size(); i++) {
-			result *= numbers().get(i).get(context.makeChild("numbers[" + i + "]")).doubleValue();
-		}
+		double result = 0.0;
+		boolean init = false;
 
-		for (var number : numbers()) {
-			result *= number.get(context).doubleValue();
+		for (int i = 0; i < numbers().size(); i++) {
+
+			Context subContext = context.makeChild("numbers[" + i + "]");
+			double value = numbers.get(i).get(subContext).doubleValue();
+
+			if (!init) {
+				result = value;
+			}
+
+			else {
+				result *= value;
+			}
+
+			init = true;
+
 		}
 
 		return result;
