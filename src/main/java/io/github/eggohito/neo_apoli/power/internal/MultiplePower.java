@@ -11,6 +11,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
@@ -111,7 +112,7 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Type<?> getType() {
+	public PowerType<?> getType() {
 		return PowerTypes.MULTIPLE;
 	}
 
@@ -134,7 +135,7 @@ public class MultiplePower extends Power {
 
 		if (packData.element() instanceof JsonObject jsonObject) {
 
-			Optional<Type<?>> powerType = PowerTypes.CODEC
+			Optional<PowerType<?>> powerType = PowerTypes.CODEC
 				.parse(registryOps, jsonObject.get(TYPE_KEY))
 				.result();
 

@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -41,10 +42,10 @@ import java.util.function.UnaryOperator;
 public abstract class Power implements ContextAware {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
+	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, Type::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 	private final EntityCondition activeCondition;
@@ -71,7 +72,7 @@ public abstract class Power implements ContextAware {
 			.orElseGet(() -> "Power (with type \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, this.getType()) + "\")");
 	}
 
-	public abstract Type<?> getType();
+	public abstract PowerType<?> getType();
 
 	public abstract Impl<?> createImpl(Entity holder);
 
@@ -280,12 +281,13 @@ public abstract class Power implements ContextAware {
 		private Text name;
 		private Text description;
 
-		private boolean hidden;
 		private boolean subPower;
+		private boolean hidden;
 
 		public Properties(@NotNull Text name, @NotNull Text description, boolean hidden) {
 			this.name = name;
 			this.description = description;
+			this.subPower = false;
 			this.hidden = hidden;
 		}
 
@@ -316,10 +318,6 @@ public abstract class Power implements ContextAware {
 		public boolean subPower() {
 			return subPower;
 		}
-
-	}
-
-	public record Type<P extends Power>(MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 
 	}
 

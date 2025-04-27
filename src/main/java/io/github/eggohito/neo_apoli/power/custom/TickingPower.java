@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
@@ -59,7 +60,7 @@ public class TickingPower extends Power {
 	}
 
 	@Override
-	public Type<?> getType() {
+	public PowerType<?> getType() {
 		return PowerTypes.TICKING;
 	}
 

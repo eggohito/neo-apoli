@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -387,7 +388,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			&& sources.get(reference).contains(source);
 	}
 
-	public record Entry<T>(PowerReference powerReference, Power.Type<?> type, Set<Identifier> sources, Dynamic<T> data) {
+	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
