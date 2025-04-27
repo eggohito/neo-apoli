@@ -31,9 +31,28 @@ public record SubtractNumberProvider(List<NumberProvider> numbers) implements Nu
 	@Override
 	public Number get(Context context) {
 
-		double result = 0.0D;
+		if (numbers().isEmpty()) {
+			return 0.0;
+		}
+
+		double result = 0.0;
+		boolean init = false;
+
 		for (int i = 0; i < numbers().size(); i++) {
-			result -= numbers().get(i).get(context.makeChild("numbers[" + i + "]")).doubleValue();
+
+			Context subContext = context.makeChild("numbers[" + i + "]");
+			double value = numbers().get(i).get(subContext).doubleValue();
+
+			if (!init) {
+				result = value;
+			}
+
+			else {
+				result -= value;
+			}
+
+			init = true;
+
 		}
 
 		return result;
