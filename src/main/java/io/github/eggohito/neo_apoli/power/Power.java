@@ -164,12 +164,9 @@ public abstract class Power implements ContextAware {
 		protected final Entity holder;
 		protected final P power;
 
-		protected final EntityCondition activeCondition;
-
 		protected Impl(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
 			this.power = power;
-			this.activeCondition = power.getActiveCondition();
 		}
 
 		public Context.Builder getContextBuilder() {
@@ -192,7 +189,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		public boolean isActive() {
-			return activeCondition.test(this.getContextBuilder().build(holder.getWorld()));
+			return getPower().getActiveCondition().test(this.getContextBuilder().build(holder.getWorld()));
 		}
 
 		private <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, UnaryOperator<Context.Builder> builder) {
@@ -201,23 +198,13 @@ public abstract class Power implements ContextAware {
 			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld());
 
 			ErrorReporter reporter = context.getReporter();
-			this.getPower().validate(reporter);
+			R result = resultFunctor.apply(contextAware, context.makeChild(path));
 
 			if (reporter.hasErrors()) {
 				report(reporter, contextAware, reference);
-				return null;
 			}
 
-			else {
-
-				R result = resultFunctor.apply(contextAware, context.makeChild(path));
-				if (reporter.hasErrors()) {
-					report(reporter, contextAware, reference);
-				}
-
-				return result;
-
-			}
+			return result;
 
 		}
 
@@ -255,6 +242,18 @@ public abstract class Power implements ContextAware {
 
 		public void onRespawn() {
 
+		}
+
+		public void onTick() {
+
+		}
+
+		public boolean ticking() {
+			return false;
+		}
+
+		public boolean tickingWhenInactive() {
+			return false;
 		}
 
 		private static <C extends ContextAware> void report(ErrorReporter reporter, C contextAware, Optional<PowerReference> reference) {

@@ -169,6 +169,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	@Override
 	public void tick() {
 
+		for (var impl : impls.values()) {
+
+			if (impl.ticking() && (impl.tickingWhenInactive() || impl.isActive())) {
+				impl.onTick();
+			}
+
+		}
+
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CallbackPower;
 import io.github.eggohito.neo_apoli.power.custom.GiveItemsPower;
+import io.github.eggohito.neo_apoli.power.custom.TickingPower;
 import io.github.eggohito.neo_apoli.power.internal.DummyPower;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -30,6 +31,7 @@ public class PowerTypes {
 
 	public static final Power.Type<CallbackPower> CALLBACK = registerInternal("callback", CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final Power.Type<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
+	public static final Power.Type<TickingPower> TICKING = registerInternal("ticking", TickingPower.CODEC, TickingPower.PACKET_CODEC);
 
 	public static void registerAll() {
 
