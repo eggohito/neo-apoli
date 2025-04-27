@@ -31,11 +31,11 @@ public interface NumberProvider extends ValueProvider<Number> {
 		return "Number provider (with type \"" + RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, this.getType()) + "\")";
 	}
 
-	static Codec<NumberProvider> ranged(Number min, Number max) {
-		return ranged(new ConstantNumberProvider(min), new ConstantNumberProvider(max));
+	static Codec<NumberProvider> clamped(Number min, Number max) {
+		return clamped(new ConstantNumberProvider(min), new ConstantNumberProvider(max));
 	}
 
-	static Codec<NumberProvider> ranged(NumberProvider min, NumberProvider max) {
+	static Codec<NumberProvider> clamped(NumberProvider min, NumberProvider max) {
 		return CODEC.xmap(value -> new ClampedNumberProvider(value, min, max), Function.identity());
 	}
 

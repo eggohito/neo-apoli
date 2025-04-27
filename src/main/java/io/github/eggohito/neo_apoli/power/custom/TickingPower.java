@@ -27,7 +27,7 @@ public class TickingPower extends Power {
 		.and(EntityAction.CODEC.optionalFieldOf("tick_action", new NothingEntityAction()).forGetter(TickingPower::getTickAction))
 		.and(EntityAction.CODEC.optionalFieldOf("first_active_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstActiveTickAction))
 		.and(EntityAction.CODEC.optionalFieldOf("first_inactive_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstInactiveTickAction))
-		.and(NumberProvider.ranged(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(TickingPower::getInterval))
+		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(TickingPower::getInterval))
 		.apply(instance, TickingPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, TickingPower> PACKET_CODEC = createCommonConditionedPacketCodec(
@@ -95,7 +95,7 @@ public class TickingPower extends Power {
 		private Integer startTicks;
 		private Integer endTicks;
 
-		private boolean active;
+		private boolean wasActive;
 
 		protected Impl(@NotNull Entity holder) {
 			super(holder, TickingPower.this);
@@ -116,9 +116,9 @@ public class TickingPower extends Power {
 
 				else if (ticks == startTicks) {
 
-					if (!active) {
+					if (!wasActive) {
 						getFirstActiveTickAction().execute(context.makeChild("first_active_tick_action"));
-						active = true;
+						wasActive = true;
 					}
 
 					else {
@@ -129,7 +129,7 @@ public class TickingPower extends Power {
 
 			}
 
-			else if (active) {
+			else if (wasActive) {
 
 				if (endTicks == null) {
 					this.startTicks = null;
@@ -138,11 +138,21 @@ public class TickingPower extends Power {
 
 				else if (ticks == endTicks) {
 					getFirstInactiveTickAction().execute(context.makeChild("first_inactive_tick_action"));
-					active = false;
+					wasActive = false;
 				}
 
 			}
 
+		}
+
+		@Override
+		public boolean ticking() {
+			return true;
+		}
+
+		@Override
+		public boolean tickingWhenInactive() {
+			return true;
 		}
 
 	}
