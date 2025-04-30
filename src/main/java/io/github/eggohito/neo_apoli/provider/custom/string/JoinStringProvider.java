@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
@@ -26,18 +27,24 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public Type<?> getType() {
+	public StringProviderType<?> getType() {
 		return StringProviderTypes.JOIN;
 	}
 
 	@Override
-	public String get(Context context) {
+	public String stringValue(Context context) {
 
 		StringBuilder result = new StringBuilder();
-		String separator = separator().get(context.makeChild("separator"));
+		String separator = "";
 
 		for (int i = 0; i < strings().size(); i++) {
-			result.append(strings().get(i).get(context.makeChild("strings[" + i + "]"))).append(separator);
+
+			result
+				.append(separator)
+				.append(strings().get(i).stringValue(context.makeChild("strings[" + i + "]")));
+
+			separator = separator().stringValue(context.makeChild("separator"));
+
 		}
 
 		return result.toString();

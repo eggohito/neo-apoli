@@ -5,7 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -26,22 +27,22 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	);
 
 	@Override
-	public Type<?> getType() {
+	public StringProviderType<?> getType() {
 		return StringProviderTypes.NUMBER;
 	}
 
 	@Override
-	public String get(Context context) {
+	public String stringValue(Context context) {
 
-		Number number = number().get(context.makeChild("number"));
-		int decimals = decimals().get(context.makeChild("decimals")).intValue();
+		Context numberContext = context.makeChild("number");
+		int decimals = decimals().intValue(context.makeChild("decimals"));
 
 		if (decimals == 0) {
-			return Long.toString(number.longValue());
+			return Long.toString(number().longValue(numberContext));
 		}
 
 		else {
-			return String.format(Locale.ROOT, ("%." + decimals + "f"), number.doubleValue());
+			return String.format(Locale.ROOT, ("%." + decimals + "f"), number().doubleValue(numberContext));
 		}
 
 	}

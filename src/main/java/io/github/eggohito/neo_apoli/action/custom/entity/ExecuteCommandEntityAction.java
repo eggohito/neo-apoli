@@ -52,7 +52,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			.withLevel(NeoApoli.getConfig().command().permissionLevel())
 			.withOutput(getOutputOrElse(entity, () -> server));
 
-		server.getCommandManager().executeWithPrefix(commandSource, command().get(context.makeChild("command")));
+		server.getCommandManager().executeWithPrefix(commandSource, command().stringValue(context.makeChild("command")));
 
 	}
 

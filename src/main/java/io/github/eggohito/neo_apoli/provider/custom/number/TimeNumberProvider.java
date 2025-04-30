@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -24,18 +25,23 @@ public record TimeNumberProvider(Optional<NumberProvider> modulo) implements Num
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.TIME;
 	}
 
 	@Override
-	public Number get(Context context) {
+	public double doubleValue(Context context) {
+		return this.longValue(context);
+	}
+
+	@Override
+	public long longValue(Context context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();
 
 		if (modulo().isPresent()) {
-			time %= modulo().get().get(context.makeChild("modulo")).longValue();
+			time %= modulo().get().longValue(context.makeChild("modulo"));
 		}
 
 		return time;

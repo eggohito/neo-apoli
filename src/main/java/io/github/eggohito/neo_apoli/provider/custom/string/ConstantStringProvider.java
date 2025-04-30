@@ -4,7 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -27,12 +28,12 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	).cast();
 
 	@Override
-	public Type<?> getType() {
+	public StringProviderType<?> getType() {
 		return StringProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public String get(Context context) {
+	public String stringValue(Context context) {
 		return this.value();
 	}
 

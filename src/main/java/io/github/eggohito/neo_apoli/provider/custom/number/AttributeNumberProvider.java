@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.LivingEntity;
@@ -30,19 +31,19 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.ATTRIBUTE;
 	}
 
 	@Override
-	public Number get(Context context) {
+	public double doubleValue(Context context) {
 
-		if (context.nullableParameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(attribute())) {
-			return livingEntity.getAttributeValue(attribute());
+		if (context.nullableParameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(this.attribute())) {
+			return livingEntity.getAttributeValue(this.attribute());
 		}
 
 		else {
-			return 0.0D;
+			return 0.0;
 		}
 
 	}

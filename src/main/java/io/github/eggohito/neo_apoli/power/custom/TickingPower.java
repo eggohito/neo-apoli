@@ -105,8 +105,18 @@ public class TickingPower extends Power {
 		public void onTick() {
 
 			Context context = this.getContextBuilder().build(holder.getWorld());
-			int ticks = holder.age % getInterval().get(context.makeChild("interval")).intValue();
+			int interval = processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE);
 
+			if (context.hasErrors()) {
+
+				this.startTicks = null;
+				this.endTicks = null;
+
+				return;
+
+			}
+
+			int ticks = holder.age % interval;
 			if (isActive()) {
 
 				if (startTicks == null) {
@@ -117,12 +127,12 @@ public class TickingPower extends Power {
 				else if (ticks == startTicks) {
 
 					if (!wasActive) {
-						getFirstActiveTickAction().execute(context.makeChild("first_active_tick_action"));
+						executeAndReport("first_active_tick_action", getFirstActiveTickAction());
 						wasActive = true;
 					}
 
 					else {
-						getTickAction().execute(context.makeChild("tick_action"));
+						executeAndReport("tick_action", getTickAction());
 					}
 
 				}
@@ -137,7 +147,7 @@ public class TickingPower extends Power {
 				}
 
 				else if (ticks == endTicks) {
-					getFirstInactiveTickAction().execute(context.makeChild("first_inactive_tick_action"));
+					executeAndReport("first_inactive_tick_action", getFirstInactiveTickAction());
 					wasActive = false;
 				}
 

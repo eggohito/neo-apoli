@@ -16,7 +16,8 @@ import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -59,7 +60,8 @@ public class NeoApoli implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
 		NeoApoliArgumentTypes.registerAll();
 
-		ValueProviderTypes.registerAll();
+		NumberProviderTypes.registerAll();
+		StringProviderTypes.registerAll();
 
 		ConditionTypes.registerAll();
 		ActionTypes.registerAll();

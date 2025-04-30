@@ -5,7 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.nbt.NbtCompound;
@@ -27,12 +28,17 @@ public record StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtP
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.STORAGE;
 	}
 
 	@Override
-	public Number get(Context context) {
+	public double doubleValue(Context context) {
+		return this.longValue(context);
+	}
+
+	@Override
+	public long longValue(Context context) {
 		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
 		return this.path().count(rootNbt);
 	}

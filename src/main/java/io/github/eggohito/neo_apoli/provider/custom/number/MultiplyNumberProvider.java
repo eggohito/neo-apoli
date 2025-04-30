@@ -3,7 +3,9 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.misc.MultiNumberProvider;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
@@ -13,7 +15,7 @@ import net.minecraft.util.dynamic.Codecs;
 
 import java.util.List;
 
-public record MultiplyNumberProvider(List<NumberProvider> numbers) implements NumberProvider {
+public record MultiplyNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
 	public static final MapCodec<MultiplyNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codecs.nonEmptyList(NumberProvider.CODEC.listOf()).fieldOf("numbers").forGetter(MultiplyNumberProvider::numbers)
@@ -25,48 +27,18 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Nu
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.MULTIPLY;
 	}
 
 	@Override
-	public Number get(Context context) {
-
-		if (numbers().isEmpty()) {
-			return 0.0;
-		}
-
-		double result = 0.0;
-		boolean init = false;
-
-		for (int i = 0; i < numbers().size(); i++) {
-
-			Context subContext = context.makeChild("numbers[" + i + "]");
-			double value = numbers.get(i).get(subContext).doubleValue();
-
-			if (!init) {
-				result = value;
-			}
-
-			else {
-				result *= value;
-			}
-
-			init = true;
-
-		}
-
-		return result;
-
+	public String getPath() {
+		return "numbers";
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
-
-		for (int i = 0; i < numbers().size(); i++) {
-			numbers().get(i).validate(reporter.makeChild("numbers[" + i + "]"));
-		}
-
+	public double doubleValue(Context context) {
+		return iterateAndProcess(context, NumberProvider::doubleValue, (a, b) -> a * b, 0.0D);
 	}
 
 }

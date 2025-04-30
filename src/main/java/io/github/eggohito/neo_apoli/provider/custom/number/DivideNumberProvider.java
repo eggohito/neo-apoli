@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -22,13 +23,18 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.DIVIDE;
 	}
 
 	@Override
-	public Number get(Context context) {
-		return dividend().get(context.makeChild("dividend")).doubleValue() / divisor().get(context.makeChild("divisor")).doubleValue();
+	public double doubleValue(Context context) {
+		return dividend().doubleValue(context.makeChild("dividend")) / divisor().doubleValue(context.makeChild("divisor"));
+	}
+
+	@Override
+	public long longValue(Context context) {
+		return dividend().longValue(context.makeChild("dividend")) / divisor().longValue(context.makeChild("divisor"));
 	}
 
 	@Override

@@ -3,11 +3,15 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.MathHelper;
+import org.apache.commons.lang3.function.TriFunction;
+
+import java.util.function.BiFunction;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
 
@@ -25,20 +29,18 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.CLAMPED;
 	}
 
 	@Override
-	public Number get(Context context) {
+	public double doubleValue(Context context) {
+		return clamp(context, NumberProvider::doubleValue, MathHelper::clamp);
+	}
 
-		double value = value().get(context.makeChild("value")).doubleValue();
-
-		double min = min().get(context.makeChild("min")).doubleValue();
-		double max = max().get(context.makeChild("max")).doubleValue();
-
-		return MathHelper.clamp(value, min, max);
-
+	@Override
+	public long longValue(Context context) {
+		return clamp(context, NumberProvider::longValue, MathHelper::clamp);
 	}
 
 	@Override
@@ -46,6 +48,10 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		value().validate(reporter.makeChild("value"));
 		min().validate(reporter.makeChild("min"));
 		max().validate(reporter.makeChild("max"));
+	}
+
+	private <N extends Number> N clamp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<N, N, N, N> processor) {
+		return processor.apply(getter.apply(value(), context.makeChild("value")), getter.apply(min(), context.makeChild("min")), getter.apply(max(), context.makeChild("max")));
 	}
 
 }

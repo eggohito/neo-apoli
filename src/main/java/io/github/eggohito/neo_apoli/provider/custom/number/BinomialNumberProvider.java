@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -23,28 +24,33 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	);
 
 	@Override
-	public Type<?> getType() {
+	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.BINOMIAL;
 	}
 
 	@Override
-	public Number get(Context context) {
+	public double doubleValue(Context context) {
+		return this.longValue(context);
+	}
+
+	@Override
+	public long longValue(Context context) {
 
 		Random random = context.getWorld().getRandom();
-		int value = 0;
+		long result = 0;
 
-		int attempts = attempts().get(context.makeChild("attempts")).intValue();
-		double probability = probability().get(context.makeChild("probability")).doubleValue();
+		long attempts = attempts().longValue(context.makeChild("attempts"));
+		double probability = probability().doubleValue(context.makeChild("probability"));
 
-		for (int i = 0; i < attempts; ++i) {
+		for (int i = 0; i < attempts; i++) {
 
 			if (random.nextDouble() < probability) {
-				++value;
+				result++;
 			}
 
 		}
 
-		return value;
+		return result;
 
 	}
 

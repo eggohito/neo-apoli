@@ -2,35 +2,35 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.type.StringProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
+import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.loot.context.LootContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record UuidStringProvider(LootContext.EntityTarget source) implements StringProvider {
+public record UuidStringProvider(EntityParameter source) implements StringProvider {
 
 	public static final MapCodec<UuidStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		LootContext.EntityTarget.CODEC.fieldOf("source").forGetter(UuidStringProvider::source)
+		EntityParameter.CODEC.fieldOf("source").forGetter(UuidStringProvider::source)
 	).apply(instance, UuidStringProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, UuidStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		NeoApoliPacketCodecs.ENTITY_TARGET, UuidStringProvider::source,
+		EntityParameter.PACKET_CODEC, UuidStringProvider::source,
 		UuidStringProvider::new
 	);
 
 	@Override
-	public Type<?> getType() {
+	public StringProviderType<?> getType() {
 		return StringProviderTypes.UUID;
 	}
 
 	@Override
-	public String get(Context context) {
+	public String stringValue(Context context) {
 		return context.requiredParameter(source().getParameter()).getUuidAsString();
 	}
 

@@ -34,10 +34,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 public abstract class Power implements ContextAware {
 
@@ -190,27 +187,31 @@ public abstract class Power implements ContextAware {
 		}
 
 		public boolean isActive() {
-			return getPower().getActiveCondition().test(this.getContextBuilder().build(holder.getWorld()));
+			return testAndReport("active_condition", getPower().getActiveCondition());
 		}
 
-		private <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, UnaryOperator<Context.Builder> builder) {
+		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback, UnaryOperator<Context.Builder> builder) {
 
-			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld());
-
-			ErrorReporter reporter = context.getReporter();
-			R result = resultFunctor.apply(contextAware, context.makeChild(path));
-
-			if (reporter.hasErrors()) {
-				report(reporter, contextAware, reference);
+			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld()).makeChild(path);
+			R result = resultFunctor.apply(contextAware, context);
+			
+			if (context.hasErrors()) {
+				report(context, contextAware);
+				return fallback.get();
+			}
+			
+			else {
+				return result;
 			}
 
-			return result;
+		}
 
+		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback) {
+			return processAndReport(path, contextAware, resultFunctor, fallback, UnaryOperator.identity());
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			processAndReport(path, action, (a, context) -> MiscUtil.run(() -> a.execute(context)), builder);
+			processAndReport(path, action, (a, context) -> MiscUtil.run(() -> a.execute(context)), () -> null, builder);
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action) {
@@ -218,7 +219,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, builder));
+			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, () -> false, builder));
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition) {
@@ -257,8 +258,15 @@ public abstract class Power implements ContextAware {
 			return false;
 		}
 
-		private static <C extends ContextAware> void report(ErrorReporter reporter, C contextAware, Optional<PowerReference> reference) {
-			NeoApoli.LOGGER.warn("Couldn't fully process {} due to error(s) {}", (contextAware.asDisplayString(false) + reference.map(ref -> " in " + ref.asDisplayString(false)).orElse("")), reporter.getErrorsAsString());
+		protected <C extends ContextAware> void report(Context context, C contextAware) {
+			
+			if (!context.hasErrors()) {
+				return;
+			}
+			
+			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
+			NeoApoli.LOGGER.warn("Couldn't fully process {} due to error(s) {}", (contextAware.asDisplayString(false) + reference.map(ref -> " in " + ref.asDisplayString(false)).orElse("")), context.getReporter().getErrorsAsString());
+		
 		}
 
 	}

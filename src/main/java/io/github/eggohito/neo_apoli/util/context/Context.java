@@ -63,6 +63,14 @@ public final class Context {
 		return this.parameters.contains(parameter);
 	}
 
+	public boolean pathHasErrors() {
+		return reporter.pathHasErrors();
+	}
+
+	public boolean hasErrors() {
+		return reporter.hasErrors();
+	}
+
 	public static Builder builder(ContextType contextType) {
 		return new Builder(contextType);
 	}

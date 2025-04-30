@@ -41,7 +41,7 @@ public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberPro
 		if (context.getWorld() instanceof ServerWorld serverWorld) {
 
 			DamageSource damageSource = new DamageSource(this.damageType());
-			float amount = amount().get(context.makeChild("amount")).floatValue();
+			float amount = amount().floatValue(context.makeChild("amount"));
 
 			context.requiredParameter(ContextParameters.CURRENT_ENTITY).damage(serverWorld, damageSource, amount);
 
@@ -51,6 +51,7 @@ public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberPro
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+		EntityAction.super.validate(reporter);
 		amount().validate(reporter.makeChild("amount"));
 	}
 

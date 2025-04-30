@@ -29,7 +29,7 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 
 	@Override
 	public void execute(Context context) {
-		context.requiredParameter(ContextParameters.CURRENT_ENTITY).setOnFireForTicks(ticks().get(context.makeChild("ticks")).intValue());
+		context.requiredParameter(ContextParameters.CURRENT_ENTITY).setOnFireForTicks(ticks().intValue(context.makeChild("ticks")));
 	}
 
 	@Override
