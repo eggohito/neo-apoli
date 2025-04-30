@@ -25,6 +25,7 @@ public final class EntityActionTypes {
 
 	public static final EntityActionType<IfElseListEntityAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListEntityAction.CODEC, IfElseListEntityAction.PACKET_CODEC);
 	public static final EntityActionType<NothingEntityAction> NOTHING = registerInternal("nothing", NothingEntityAction.CODEC, NothingEntityAction.PACKET_CODEC);
+	public static final EntityActionType<OffsetEntityAction> OFFSET = registerInternal("offset", OffsetEntityAction.CODEC, OffsetEntityAction.PACKET_CODEC);
 	public static final EntityActionType<RandomChanceEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceEntityAction.CODEC, RandomChanceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<RandomChoiceEntityAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceEntityAction.CODEC, RandomChoiceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.PACKET_CODEC);
