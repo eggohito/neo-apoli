@@ -49,6 +49,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 
 		MinecraftServer server = serverWorld.getServer();
 		ServerCommandSource commandSource = entity.getCommandSource(serverWorld)
+			.withPosition(context.requiredParameter(ContextParameters.POSITION))
 			.withLevel(NeoApoli.getConfig().command().permissionLevel())
 			.withOutput(getOutputOrElse(entity, () -> server));
 
