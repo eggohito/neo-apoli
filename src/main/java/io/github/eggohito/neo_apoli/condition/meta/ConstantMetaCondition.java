@@ -18,6 +18,11 @@ public interface ConstantMetaCondition<T extends ConditionType<?>> extends Condi
 		return value();
 	}
 
+	@Override
+	default void validate(ErrorReporter reporter) {
+
+	}
+
 	boolean value();
 
 	static <M extends ConstantMetaCondition<?>> MapCodec<M> createCodec(Boolean2ObjectFunction<M> constructor) {

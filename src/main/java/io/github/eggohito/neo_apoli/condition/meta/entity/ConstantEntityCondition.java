@@ -18,9 +18,4 @@ public record ConstantEntityCondition(boolean value) implements EntityCondition,
 		return EntityConditionTypes.CONSTANT;
 	}
 
-	@Override
-	public void validate(ErrorReporter reporter) {
-
-	}
-
 }
