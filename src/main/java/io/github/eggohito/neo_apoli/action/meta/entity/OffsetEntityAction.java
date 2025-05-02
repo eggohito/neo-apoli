@@ -7,7 +7,10 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.Vec3d;
+
+import java.util.Set;
 
 public record OffsetEntityAction(EntityAction action, Vec3d offset) implements EntityAction, OffsetMetaAction<EntityAction, EntityActionType<?>> {
 
@@ -17,6 +20,11 @@ public record OffsetEntityAction(EntityAction action, Vec3d offset) implements E
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.OFFSET;
+	}
+
+	@Override
+	public Set<ContextParameter<?>> getAllowedParameters() {
+		return EntityAction.super.getAllowedParameters();
 	}
 
 }
