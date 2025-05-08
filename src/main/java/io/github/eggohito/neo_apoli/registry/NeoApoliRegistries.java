@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.registry;
 
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
+import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -15,6 +16,8 @@ public class NeoApoliRegistries {
 
 	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 	public static final Registry<EntityActionType<?>> ENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
+
+	public static final Registry<BlockConditionType<?>> BLOCK_CONDITION_TYPE = create(NeoApoliRegistryKeys.BLOCK_CONDITION_TYPE);
 
 	public static final Registry<NumberProviderType<?>> NUMBER_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 	public static final Registry<StringProviderType<?>> STRING_PROVIDER_TYPE = create(NeoApoliRegistryKeys.STRING_PROVIDER_TYPE);
