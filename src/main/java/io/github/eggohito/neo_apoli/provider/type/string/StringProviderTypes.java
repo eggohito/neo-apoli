@@ -4,7 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.custom.string.*;
+import io.github.eggohito.neo_apoli.provider.custom.string.StorageStringProvider;
+import io.github.eggohito.neo_apoli.provider.custom.string.UuidStringProvider;
+import io.github.eggohito.neo_apoli.provider.meta.string.ConstantStringProvider;
+import io.github.eggohito.neo_apoli.provider.meta.string.JoinStringProvider;
+import io.github.eggohito.neo_apoli.provider.meta.string.NumberStringProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.IdentifierAlias;
@@ -25,6 +29,7 @@ public final class StringProviderTypes {
 	public static final StringProviderType<ConstantStringProvider> CONSTANT = registerInternal("constant", ConstantStringProvider.CODEC, ConstantStringProvider.PACKET_CODEC);
 	public static final StringProviderType<JoinStringProvider> JOIN = registerInternal("join", JoinStringProvider.CODEC, JoinStringProvider.PACKET_CODEC);
 	public static final StringProviderType<NumberStringProvider> NUMBER = registerInternal("number", NumberStringProvider.CODEC, NumberStringProvider.PACKET_CODEC);
+
 	public static final StringProviderType<StorageStringProvider> STORAGE = registerInternal("storage", StorageStringProvider.CODEC, StorageStringProvider.PACKET_CODEC);
 	public static final StringProviderType<UuidStringProvider> UUID = registerInternal("uuid", UuidStringProvider.CODEC, UuidStringProvider.PACKET_CODEC);
 

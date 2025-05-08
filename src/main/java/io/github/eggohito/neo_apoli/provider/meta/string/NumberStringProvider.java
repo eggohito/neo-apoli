@@ -1,10 +1,10 @@
-package io.github.eggohito.neo_apoli.provider.custom.string;
+package io.github.eggohito.neo_apoli.provider.meta.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;

@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;

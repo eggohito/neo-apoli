@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.custom.number.ClampedNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.meta.number.ClampedNumberProvider;
+import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;

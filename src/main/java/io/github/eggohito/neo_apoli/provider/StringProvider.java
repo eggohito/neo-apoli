@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.custom.string.ConstantStringProvider;
+import io.github.eggohito.neo_apoli.provider.meta.string.ConstantStringProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;

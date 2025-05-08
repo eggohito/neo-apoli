@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.provider.custom.number;
+package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
