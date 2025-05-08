@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Identifier;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.JsonWriter;
@@ -38,6 +39,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 
 public class NeoApoli implements ModInitializer {
 
@@ -142,6 +144,18 @@ public class NeoApoli implements ModInitializer {
 		catch (Exception e) {
 			LOGGER.error("Error trying to load {} config file: ", MOD_NAMESPACE, e);
 			return false;
+		}
+
+	}
+
+	public static Optional<CommandOutput> validateCommandOutput(CommandOutput commandOutput) {
+
+		if (getConfig().command().showOutput()) {
+			return Optional.of(commandOutput);
+		}
+
+		else {
+			return Optional.empty();
 		}
 
 	}
