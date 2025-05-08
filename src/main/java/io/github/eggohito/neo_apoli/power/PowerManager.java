@@ -108,7 +108,7 @@ public class PowerManager extends SinglePreparationResourceReloader<Map<Identifi
 
 			power.validate(reporter);
 
-			if (!reporter.hasErrors()) {
+			if (!reporter.hasAnyErrors()) {
 				continue;
 			}
 

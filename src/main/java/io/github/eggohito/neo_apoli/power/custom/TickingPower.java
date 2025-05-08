@@ -107,7 +107,7 @@ public class TickingPower extends Power {
 			Context context = this.getContextBuilder().build(holder.getWorld());
 			int interval = processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE);
 
-			if (context.hasErrors()) {
+			if (context.hasAnyErrors()) {
 
 				this.startTicks = null;
 				this.endTicks = null;

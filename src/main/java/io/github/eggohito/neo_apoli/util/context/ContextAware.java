@@ -169,11 +169,11 @@ public interface ContextAware {
 			return referenceStack.contains(key);
 		}
 
-		public boolean hasErrors() {
+		public boolean hasAnyErrors() {
 			return !this.errors.isEmpty();
 		}
 
-		public boolean pathHasErrors() {
+		public boolean hasErrors() {
 			return this.errors.containsKey(this.getFullPath());
 		}
 

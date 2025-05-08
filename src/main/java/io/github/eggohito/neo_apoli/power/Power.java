@@ -195,7 +195,7 @@ public abstract class Power implements ContextAware {
 			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld()).makeChild(path);
 			R result = resultFunctor.apply(contextAware, context);
 			
-			if (context.hasErrors()) {
+			if (context.hasAnyErrors()) {
 				report(context, contextAware);
 				return fallback.get();
 			}
@@ -260,7 +260,7 @@ public abstract class Power implements ContextAware {
 
 		protected <C extends ContextAware> void report(Context context, C contextAware) {
 			
-			if (!context.hasErrors()) {
+			if (!context.hasAnyErrors()) {
 				return;
 			}
 			

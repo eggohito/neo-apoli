@@ -63,12 +63,12 @@ public final class Context {
 		return this.parameters.contains(parameter);
 	}
 
-	public boolean pathHasErrors() {
-		return reporter.pathHasErrors();
-	}
-
 	public boolean hasErrors() {
 		return reporter.hasErrors();
+	}
+
+	public boolean hasAnyErrors() {
+		return reporter.hasAnyErrors();
 	}
 
 	public static Builder builder(ContextType contextType) {
@@ -77,6 +77,10 @@ public final class Context {
 
 	public static Builder builder(Context context) {
 		return new Builder(context);
+	}
+
+	public Context copy(UnaryOperator<Builder> operator) {
+		return copy(this, operator);
 	}
 
 	public static Context copy(Context context, UnaryOperator<Builder> operator) {

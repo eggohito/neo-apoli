@@ -42,7 +42,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 		String command = command().stringValue(commandContext);
 
 		AtomicInteger result = new AtomicInteger();
-		if (!commandContext.pathHasErrors()) {
+		if (!commandContext.hasErrors()) {
 
 			if (context.getWorld() instanceof ServerWorld serverWorld) {
 
