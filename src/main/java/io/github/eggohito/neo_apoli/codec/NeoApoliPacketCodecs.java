@@ -11,6 +11,8 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.function.ValueLists;
+import net.minecraft.world.LightType;
 
 import java.util.Set;
 
@@ -86,5 +88,7 @@ public class NeoApoliPacketCodecs {
 	};
 
 	public static final PacketCodec<ByteBuf, NbtPathArgumentType.NbtPath> NBT_PATH = PacketCodecs.unlimitedCodec(NbtPathArgumentType.NbtPath.CODEC);
+
+	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(LightType::ordinal, LightType.values(), ValueLists.OutOfBoundsHandling.WRAP), LightType::ordinal);
 
 }

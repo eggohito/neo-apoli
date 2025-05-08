@@ -9,7 +9,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.util.function.ValueLists;
+import net.minecraft.world.LightType;
 
+import java.util.Locale;
 import java.util.Set;
 
 public class NeoApoliCodecs {
@@ -31,5 +35,10 @@ public class NeoApoliCodecs {
 		}
 
 	};
+
+	public static final Codec<LightType> LIGHT_TYPE = Codecs.orCompressed(
+		Codec.stringResolver(Enum::name, str -> LightType.valueOf(str.toUpperCase(Locale.ROOT))),
+		Codecs.rawIdChecked(LightType::ordinal, ValueLists.createIndexToValueFunction(LightType::ordinal, LightType.values(), ValueLists.OutOfBoundsHandling.WRAP), -1)
+	);
 
 }
