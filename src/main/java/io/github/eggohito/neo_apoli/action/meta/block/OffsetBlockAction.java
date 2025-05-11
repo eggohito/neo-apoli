@@ -5,6 +5,8 @@ import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.meta.OffsetMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -14,8 +16,8 @@ import java.util.Set;
 
 public record OffsetBlockAction(BlockAction action, Vec3d offset) implements BlockAction, OffsetMetaAction<BlockAction, BlockActionType<?>> {
 
-	public static final MapCodec<OffsetBlockAction> CODEC = OffsetMetaAction.createCodec(BlockAction.CODEC, OffsetBlockAction::new);
-	public static final PacketCodec<RegistryByteBuf, OffsetBlockAction> PACKET_CODEC = OffsetMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, OffsetBlockAction::new);
+	public static final MapCodec<OffsetBlockAction> CODEC = NeoApoliCodecs.lazyMap("OffsetBlockAction", () -> OffsetMetaAction.createCodec(BlockAction.CODEC, OffsetBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, OffsetBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("OffsetBlockAction", () -> OffsetMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, OffsetBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

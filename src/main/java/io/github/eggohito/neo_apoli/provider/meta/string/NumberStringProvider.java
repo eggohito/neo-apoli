@@ -2,6 +2,8 @@ package io.github.eggohito.neo_apoli.provider.meta.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
@@ -15,16 +17,16 @@ import java.util.Locale;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
-	public static final MapCodec<NumberStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NumberStringProvider> CODEC = NeoApoliCodecs.lazyMap("NumberStringProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
 		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberStringProvider::decimals)
-	).apply(instance, NumberStringProvider::new));
+	).apply(instance, NumberStringProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("NumberStringProvider", () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, NumberStringProvider::number,
 		NumberProvider.PACKET_CODEC, NumberStringProvider::decimals,
 		NumberStringProvider::new
-	);
+	));
 
 	@Override
 	public StringProviderType<?> getType() {

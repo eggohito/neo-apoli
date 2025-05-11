@@ -2,6 +2,8 @@ package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
@@ -11,16 +13,16 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record DivideNumberProvider(NumberProvider dividend, NumberProvider divisor) implements NumberProvider {
 
-	public static final MapCodec<DivideNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DivideNumberProvider> CODEC = NeoApoliCodecs.lazyMap("DivideNumberProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("dividend").forGetter(DivideNumberProvider::dividend),
 		NumberProvider.CODEC.fieldOf("divisor").forGetter(DivideNumberProvider::divisor)
-	).apply(instance, DivideNumberProvider::new));
+	).apply(instance, DivideNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, DivideNumberProvider> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, DivideNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("DivideNumberProvider", () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, DivideNumberProvider::dividend,
 		NumberProvider.PACKET_CODEC, DivideNumberProvider::divisor,
 		DivideNumberProvider::new
-	);
+	));
 
 	@Override
 	public NumberProviderType<?> getType() {

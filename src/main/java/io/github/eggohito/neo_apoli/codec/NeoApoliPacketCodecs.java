@@ -15,6 +15,7 @@ import net.minecraft.util.function.ValueLists;
 import net.minecraft.world.LightType;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class NeoApoliPacketCodecs {
 
@@ -90,5 +91,30 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, NbtPathArgumentType.NbtPath> NBT_PATH = PacketCodecs.unlimitedCodec(NbtPathArgumentType.NbtPath.CODEC);
 
 	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(LightType::ordinal, LightType.values(), ValueLists.OutOfBoundsHandling.WRAP), LightType::ordinal);
+
+	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(String name, Supplier<PacketCodec<B, A>> delegate) {
+		return new PacketCodec<>() {
+
+			@Override
+			public A decode(B buf) {
+				return delegate.get().decode(buf);
+			}
+
+			@Override
+			public void encode(B buf, A value) {
+				delegate.get().encode(buf, value);
+			}
+
+			@Override
+			public String toString() {
+				return "RecursivePacketCodec[" + name + "]";
+			}
+
+		};
+	}
+
+	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(Supplier<PacketCodec<B, A>> delegate) {
+		return lazy(delegate.toString(), delegate);
+	}
 
 }

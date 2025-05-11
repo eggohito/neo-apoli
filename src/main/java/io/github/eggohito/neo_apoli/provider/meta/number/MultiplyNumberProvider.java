@@ -2,6 +2,8 @@ package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.misc.MultiNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -17,14 +19,14 @@ import java.util.List;
 
 public record MultiplyNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
-	public static final MapCodec<MultiplyNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<MultiplyNumberProvider> CODEC = NeoApoliCodecs.lazyMap("MultiplyNumberProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codecs.nonEmptyList(NumberProvider.CODEC.listOf()).fieldOf("numbers").forGetter(MultiplyNumberProvider::numbers)
-	).apply(instance, MultiplyNumberProvider::new));
+	).apply(instance, MultiplyNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, MultiplyNumberProvider> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, MultiplyNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("MultiplyNumberProvider", () -> PacketCodec.tuple(
 		PacketCodecs.collection(ObjectArrayList::new, NumberProvider.PACKET_CODEC), MultiplyNumberProvider::numbers,
 		MultiplyNumberProvider::new
-	);
+	));
 
 	@Override
 	public NumberProviderType<?> getType() {

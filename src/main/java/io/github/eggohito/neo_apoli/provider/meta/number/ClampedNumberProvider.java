@@ -2,6 +2,8 @@ package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
@@ -15,18 +17,18 @@ import java.util.function.BiFunction;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
 
-	public static final MapCodec<ClampedNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ClampedNumberProvider> CODEC = NeoApoliCodecs.lazyMap("ClampedNumberProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("value").forGetter(ClampedNumberProvider::value),
 		NumberProvider.CODEC.fieldOf("min").forGetter(ClampedNumberProvider::min),
 		NumberProvider.CODEC.fieldOf("max").forGetter(ClampedNumberProvider::max)
-	).apply(instance, ClampedNumberProvider::new));
+	).apply(instance, ClampedNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, ClampedNumberProvider> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, ClampedNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("ClampedNumberProvider", () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::value,
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::min,
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::max,
 		ClampedNumberProvider::new
-	);
+	));
 
 	@Override
 	public NumberProviderType<?> getType() {
