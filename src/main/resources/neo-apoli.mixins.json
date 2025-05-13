@@ -14,10 +14,12 @@
 		"misc.DataCommandStorageMixin",
 		"misc.DataPackContentsMixin",
 		"misc.MinecraftServerMixin",
+		"misc.ServerPlayerInteractionMixin",
 		"misc.ServerWorldMixin",
 		"misc.TextCodecsMixin",
 		"misc.TextCodecsMixin$DispatchingCodecMixin",
-		"power.PowerMixin$Callbacks"
+		"power.PowerMixin$Callbacks",
+		"power.custom.BlockBreakPowerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

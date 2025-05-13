@@ -172,7 +172,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		for (var impl : impls.values()) {
 
-			if (impl.ticking() && (impl.tickingWhenInactive() || impl.isActive())) {
+			if (impl.shouldTick()) {
 				impl.onTick();
 			}
 

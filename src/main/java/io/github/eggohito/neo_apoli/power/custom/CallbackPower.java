@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -79,6 +80,7 @@ public class CallbackPower extends Power {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
 		getAddedAction().validate(reporter.makeChild("on_added_action"));
 		getGrantedAction().validate(reporter.makeChild("on_granted_action"));
 		getRemovedAction().validate(reporter.makeChild("on_removed_action"));
@@ -115,8 +117,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onAdded() {
 
-			if (isActive()) {
-				executeAndReport("on_added_action", power.getAddedAction());
+			Context context = this.createContext(UnaryOperator.identity());
+
+			if (isActive(context)) {
+				executeAndReport("on_added_action", power.getAddedAction(), context);
 			}
 
 		}
@@ -124,8 +128,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onGranted() {
 
-			if (isActive()) {
-				executeAndReport("on_granted_action", power.getGrantedAction());
+			Context context = this.createContext(UnaryOperator.identity());
+
+			if (isActive(context)) {
+				executeAndReport("on_granted_action", power.getGrantedAction(), context);
 			}
 
 		}
@@ -133,8 +139,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRemoved() {
 
-			if (isActive()) {
-				executeAndReport("on_removed_action", power.getRemovedAction());
+			Context context = this.createContext(UnaryOperator.identity());
+
+			if (isActive(context)) {
+				executeAndReport("on_removed_action", power.getRemovedAction(), context);
 			}
 
 		}
@@ -142,8 +150,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRevoked() {
 
-			if (isActive()) {
-				executeAndReport("on_revoked_action", power.getRevokedAction());
+			Context context = this.createContext(UnaryOperator.identity());
+
+			if (isActive(context)) {
+				executeAndReport("on_revoked_action", power.getRevokedAction(), context);
 			}
 
 		}
@@ -151,8 +161,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRespawn() {
 
-			if (isActive()) {
-				executeAndReport("on_respawn_action", power.getRespawnAction());
+			Context context = this.createContext(UnaryOperator.identity());
+
+			if (isActive(context)) {
+				executeAndReport("on_respawn_action", power.getRespawnAction(), context);
 			}
 
 		}

@@ -149,10 +149,10 @@ public abstract class Power implements ContextAware {
 		);
 	}
 
-	public static ContextType createContextType(UnaryOperator<ContextType.Builder> operator) {
+	protected static ContextType createContextType(UnaryOperator<ContextType.Builder> operator) {
 		return operator.apply(new ContextType.Builder()
 			.require(ContextParameters.POSITION)
-			.allow(ContextParameters.CURRENT_ENTITY)
+			.require(ContextParameters.CURRENT_ENTITY)
 			.allow(ContextParameters.ACTOR)
 			.allow(ContextParameters.TARGET)).build();
 	}
@@ -167,11 +167,15 @@ public abstract class Power implements ContextAware {
 			this.power = power;
 		}
 
-		public Context.Builder getContextBuilder() {
+		public Context.Builder createContextBuilder() {
 			return new Context.Builder(this.getPower().getContextType())
 				.add(ContextParameters.POSITION, holder.getPos())
 				.add(ContextParameters.CURRENT_ENTITY, holder)
 				.withReporter(reporter -> reporter.withWrapperLookup(holder.getRegistryManager()));
+		}
+
+		public Context createContext(UnaryOperator<Context.Builder> builder) {
+			return builder.apply(this.createContextBuilder()).build(holder.getWorld());
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -186,16 +190,16 @@ public abstract class Power implements ContextAware {
 			return power;
 		}
 
-		public boolean isActive() {
-			return testAndReport("active_condition", getPower().getActiveCondition());
+		public boolean isActive(Context context) {
+			return testAndReport("active_condition", getPower().getActiveCondition(), context);
 		}
 
-		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback, UnaryOperator<Context.Builder> builder) {
+		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback, Context context) {
 
-			Context context = builder.apply(this.getContextBuilder()).build(holder.getWorld()).makeChild(path);
+			Context childContext = context.makeChild(path);
 			R result = resultFunctor.apply(contextAware, context);
-			
-			if (context.hasAnyErrors()) {
+
+			if (childContext.hasAnyErrors()) {
 				report(context, contextAware);
 				return fallback.get();
 			}
@@ -206,24 +210,20 @@ public abstract class Power implements ContextAware {
 
 		}
 
-		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback) {
-			return processAndReport(path, contextAware, resultFunctor, fallback, UnaryOperator.identity());
-		}
-
 		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			processAndReport(path, action, (a, context) -> MiscUtil.run(() -> a.execute(context)), () -> null, builder);
+			executeAndReport(path, action, this.createContext(builder));
 		}
 
-		public <A extends Action<?>> void executeAndReport(String path, A action) {
-			executeAndReport(path, action, UnaryOperator.identity());
+		public <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
+			processAndReport(path, action, (a, ctx) -> MiscUtil.run(() -> a.execute(ctx)), () -> null, context);
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, () -> false, builder));
+			return testAndReport(path, condition, this.createContext(builder));
 		}
 
-		public <C extends Condition<?>> boolean testAndReport(String path, C condition) {
-			return testAndReport(path, condition, UnaryOperator.identity());
+		public <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
+			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, () -> false, context));
 		}
 
 		public void onAdded() {
@@ -250,11 +250,7 @@ public abstract class Power implements ContextAware {
 
 		}
 
-		public boolean ticking() {
-			return false;
-		}
-
-		public boolean tickingWhenInactive() {
+		public boolean shouldTick() {
 			return false;
 		}
 

@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util.context;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.Direction;
@@ -16,6 +17,7 @@ public final class ContextParameters {
 	public static final ContextParameter<Entity> ACTOR = new ContextParameter<>(NeoApoli.id("actor"));
 
 	public static final ContextParameter<BlockState> BLOCK_STATE = new ContextParameter<>(NeoApoli.id("block_state"));
+	public static final ContextParameter<BlockEntity> BLOCK_ENTITY = new ContextParameter<>(NeoApoli.id("block_entity"));
 	public static final ContextParameter<Direction> DIRECTION = new ContextParameter<>(NeoApoli.id("direction"));
 
 }

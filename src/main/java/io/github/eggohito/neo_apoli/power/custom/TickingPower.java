@@ -104,8 +104,8 @@ public class TickingPower extends Power {
 		@Override
 		public void onTick() {
 
-			Context context = this.getContextBuilder().build(holder.getWorld());
-			int interval = processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE);
+			Context context = this.createContext(UnaryOperator.identity());
+			int interval = this.processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE, context);
 
 			if (context.hasAnyErrors()) {
 
@@ -117,7 +117,7 @@ public class TickingPower extends Power {
 			}
 
 			int ticks = holder.age % interval;
-			if (isActive()) {
+			if (this.isActive(context)) {
 
 				if (startTicks == null) {
 					this.startTicks = ticks;
@@ -127,12 +127,12 @@ public class TickingPower extends Power {
 				else if (ticks == startTicks) {
 
 					if (!wasActive) {
-						executeAndReport("first_active_tick_action", getFirstActiveTickAction());
+						this.executeAndReport("first_active_tick_action", getFirstActiveTickAction(), context);
 						wasActive = true;
 					}
 
 					else {
-						executeAndReport("tick_action", getTickAction());
+						this.executeAndReport("tick_action", getTickAction(), context);
 					}
 
 				}
@@ -147,7 +147,7 @@ public class TickingPower extends Power {
 				}
 
 				else if (ticks == endTicks) {
-					executeAndReport("first_inactive_tick_action", getFirstInactiveTickAction());
+					this.executeAndReport("first_inactive_tick_action", getFirstInactiveTickAction(), context);
 					wasActive = false;
 				}
 
@@ -156,12 +156,7 @@ public class TickingPower extends Power {
 		}
 
 		@Override
-		public boolean ticking() {
-			return true;
-		}
-
-		@Override
-		public boolean tickingWhenInactive() {
+		public boolean shouldTick() {
 			return true;
 		}
 

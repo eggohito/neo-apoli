@@ -80,11 +80,7 @@ public final class Context {
 	}
 
 	public Context copy(UnaryOperator<Builder> operator) {
-		return copy(this, operator);
-	}
-
-	public static Context copy(Context context, UnaryOperator<Builder> operator) {
-		return operator.apply(builder(context)).build(context.getWorld());
+		return operator.apply(builder(this)).build(this.getWorld());
 	}
 
 	public static final class Builder {
@@ -120,6 +116,10 @@ public final class Context {
 		public <T> Builder addNullable(ContextParameter<T> parameter, @Nullable T value) {
 			this.parameters.addNullable(parameter, value);
 			return this;
+		}
+
+		public <T> Builder addOptional(ContextParameter<T> parameter, Optional<T> value) {
+			return addNullable(parameter, value.orElse(null));
 		}
 
 		public <T> T get(ContextParameter<T> parameter) {

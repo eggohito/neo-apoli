@@ -9,10 +9,8 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.Set;
 import java.util.function.BiFunction;
 
 public interface OffsetMetaAction<A extends Action<T>, T extends ActionType<?>> extends Action<T> {
@@ -23,17 +21,16 @@ public interface OffsetMetaAction<A extends Action<T>, T extends ActionType<?>> 
 
 	@Override
 	default void execute(Context context) {
-
-		Vec3d offsetPosition = context.requiredParameter(ContextParameters.POSITION).add(offset());
-		Context contextCopy = Context.copy(context , builder -> builder.add(ContextParameters.POSITION, offsetPosition));
-
-		action().execute(contextCopy.makeChild("action"));
-
+		Vec3d offsetPos = context.requiredParameter(ContextParameters.POSITION).add(offset());
+		action().execute(context.copy(builder -> builder
+			.add(ContextParameters.POSITION, offsetPos))
+			.makeChild("action"));
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.POSITION);
+	default void validate(ErrorReporter reporter) {
+		Action.super.validate(reporter);
+		action().validate(reporter.makeChild("action"));
 	}
 
 	static <A extends Action<?>, M extends OffsetMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> actionCodec, BiFunction<A, Vec3d, M> constructor) {
