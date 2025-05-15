@@ -169,9 +169,8 @@ public abstract class Power implements ContextAware {
 
 		public Context.Builder createContextBuilder() {
 			return new Context.Builder(this.getPower().getContextType())
-				.add(ContextParameters.POSITION, holder.getPos())
 				.add(ContextParameters.CURRENT_ENTITY, holder)
-				.withReporter(reporter -> reporter.withWrapperLookup(holder.getRegistryManager()));
+				.add(ContextParameters.POSITION, holder.getPos());
 		}
 
 		public Context createContext(UnaryOperator<Context.Builder> builder) {
@@ -186,6 +185,10 @@ public abstract class Power implements ContextAware {
 			return DataResult.success(Unit.INSTANCE);
 		}
 
+		public ContextType getContextType() {
+			return this.getPower().getContextType();
+		}
+
 		public P getPower() {
 			return power;
 		}
@@ -197,9 +200,9 @@ public abstract class Power implements ContextAware {
 		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback, Context context) {
 
 			Context childContext = context.makeChild(path);
-			R result = resultFunctor.apply(contextAware, context);
+			R result = resultFunctor.apply(contextAware, childContext);
 
-			if (childContext.hasAnyErrors()) {
+			if (context.hasAnyErrors()) {
 				report(context, contextAware);
 				return fallback.get();
 			}

@@ -85,26 +85,34 @@ public final class Context {
 
 	public static final class Builder {
 
-		private final ContextParameterMap.Builder parameters;
 		private final ContextType contextType;
+		private final ContextParameterMap.Builder parameters;
 
-		private ContextAware.ErrorReporter reporter;
+		Builder(ContextType contextType, ContextParameterMap.Builder parameters) {
+			this.contextType = contextType;
+			this.parameters = parameters;
+		}
 
 		public Builder(ContextType contextType) {
-			this.parameters = new ContextParameterMap.Builder();
-			this.contextType = contextType;
-			this.reporter = new ContextAware.ErrorReporter(contextType);
+			this(contextType, new ContextParameterMap.Builder());
 		}
 
 		public Builder(Context context) {
 
-			ContextParameterMap.Builder builder = new ContextParameterMap.Builder();
-			((ContextParameterMapAccessor) context.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) builder).getMap().put(parameter, obj));
+			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
+			((ContextParameterMapAccessor) context.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
 
-			this.parameters = builder;
+			this.parameters = newParameters;
 			this.contextType = context.type;
 
-			this.reporter = context.reporter;
+		}
+
+		public Builder copy() {
+
+			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
+			((ContextParameterMapAccessor.BuilderAccessor) this.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
+
+			return new Builder(this.contextType, newParameters);
 
 		}
 
@@ -135,17 +143,13 @@ public final class Context {
 			return Optional.ofNullable(this.getNullable(parameter));
 		}
 
-		public ContextAware.ErrorReporter getReporter() {
-			return reporter;
-		}
-
-		public Builder withReporter(UnaryOperator<ContextAware.ErrorReporter> operator) {
-			this.reporter = operator.apply(this.reporter);
-			return this;
-		}
-
 		public Context build(World world) {
-			return new Context(parameters.build(contextType), reporter, contextType, world);
+
+			ContextParameterMap parameters = this.parameters.build(this.contextType);
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.contextType).withWrapperLookup(world.getRegistryManager());
+
+			return new Context(parameters, reporter, this.contextType, world);
+
 		}
 
 	}

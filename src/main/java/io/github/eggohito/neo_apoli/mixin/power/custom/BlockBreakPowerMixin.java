@@ -33,7 +33,7 @@ public abstract class BlockBreakPowerMixin implements BlockBreakingContextAccess
 		Direction direction = this.neo_apoli$getBrokenBlockDirection();
 
 		if (brokenBlockCache != null) {
-			OnBlockBreakPower.execute(this.player, this.world, pos, brokenBlockCache.getBlockState(), brokenBlockCache.getBlockEntity(), direction, this.neo_apoli$wasHarvested());
+			OnBlockBreakPower.execute(this.player, pos, brokenBlockCache.getBlockState(), brokenBlockCache.getBlockEntity(), direction, this.neo_apoli$wasHarvested());
 		}
 
 	}

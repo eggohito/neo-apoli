@@ -27,11 +27,12 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 public class OnBlockBreakPower extends Power {
 
@@ -61,7 +62,7 @@ public class OnBlockBreakPower extends Power {
 	);
 
 	public static final ContextType CONTEXT_TYPE = createContextType(builder -> builder
-		.allow(ContextParameters.BLOCK_STATE)
+		.require(ContextParameters.BLOCK_STATE)
 		.allow(ContextParameters.BLOCK_ENTITY)
 		.allow(ContextParameters.DIRECTION));
 
@@ -145,25 +146,24 @@ public class OnBlockBreakPower extends Power {
 
 	}
 
-	public static void execute(PlayerEntity player, World world, BlockPos pos, BlockState blockState, BlockEntity blockEntity, Direction direction, boolean harvested) {
+	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
 		Set<Power.Impl<?>> impls = NeoApoliEntityComponents.POWERS.get(player).getPowers(true);
 		for (var impl : impls) {
 
-			if (!(impl instanceof OnBlockBreakPower.Impl blockBreakPower)) {
+			if (!(impl instanceof OnBlockBreakPower.Impl onBlockBreakPower)) {
 				continue;
 			}
 
-			Context.Builder builder = blockBreakPower.createContextBuilder()
-				.addNullable(ContextParameters.BLOCK_STATE, blockState)
+			Context entityContext = onBlockBreakPower.createContext(UnaryOperator.identity());
+			Context blockContext = onBlockBreakPower.createContext(builder -> builder
+				.add(ContextParameters.POSITION, blockPos.toCenterPos())
+				.add(ContextParameters.BLOCK_STATE, blockState)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-				.addNullable(ContextParameters.DIRECTION, direction);
+				.addNullable(ContextParameters.DIRECTION, direction));
 
-			Context entityContext = builder.build(world);
-			Context blockContext = builder.add(ContextParameters.POSITION, pos.toCenterPos()).build(world);
-
-			if (blockBreakPower.doesApply(entityContext, blockContext, harvested)) {
-				blockBreakPower.execute(entityContext, blockContext);
+			if (onBlockBreakPower.doesApply(entityContext, blockContext, harvested)) {
+				onBlockBreakPower.execute(entityContext, blockContext);
 			}
 
 		}

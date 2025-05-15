@@ -36,9 +36,9 @@ public interface ContextAware {
 
 	class ErrorReporter implements net.minecraft.util.ErrorReporter {
 
-		private final Optional<ErrorReporter> parent;
-		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
+		private final ErrorReporter parent;
 
+		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
 		private final ContextType contextType;
 
 		private final Multimap<String, String> errors;
@@ -47,7 +47,7 @@ public interface ContextAware {
 		private final String path;
 		private final Supplier<String> fullPathSupplier;
 
-		protected ErrorReporter(Optional<ErrorReporter> parent, Optional<RegistryWrapper.WrapperLookup> wrapperLookup, ContextType contextType, Multimap<String, String> errors, Set<ContextKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
+		protected ErrorReporter(ErrorReporter parent, Optional<RegistryWrapper.WrapperLookup> wrapperLookup, ContextType contextType, Multimap<String, String> errors, Set<ContextKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
 			this.parent = parent;
 			this.wrapperLookup = wrapperLookup;
 			this.contextType = contextType;
@@ -58,7 +58,7 @@ public interface ContextAware {
 		}
 
 		public ErrorReporter(ContextType contextType) {
-			this(Optional.empty(), Optional.empty(), contextType, HashMultimap.create(), Set.of(), "", () -> "");
+			this(null, Optional.empty(), contextType, HashMultimap.create(), Set.of(), "", () -> "");
 		}
 
 		public ErrorReporter() {
@@ -67,7 +67,7 @@ public interface ContextAware {
 
 		@Override
 		public ErrorReporter makeChild(String path) {
-			return new ErrorReporter(Optional.of(this), this.wrapperLookup, this.contextType, this.errors, this.referenceStack, path, () -> appendPath(path));
+			return new ErrorReporter(this, this.wrapperLookup, this.contextType, this.errors, this.referenceStack, path, () -> appendPath(path));
 		}
 
 		public ErrorReporter makeChild(String path, ContextKey key) {
@@ -77,7 +77,7 @@ public interface ContextAware {
 				.add(key)
 				.build();
 
-			return new ErrorReporter(Optional.of(this), this.wrapperLookup, this.contextType, this.errors, referenceStack, path, () -> appendPath(path));
+			return new ErrorReporter(this, this.wrapperLookup, this.contextType, this.errors, referenceStack, path, () -> appendPath(path));
 
 		}
 
@@ -150,17 +150,29 @@ public interface ContextAware {
 		}
 
 		public ErrorReporter getParent() {
-			return parent.orElseThrow(() -> new UnsupportedOperationException("The root reporter cannot have a parent!"));
+
+			if (parent != null) {
+				return parent;
+			}
+
+			else {
+				throw new UnsupportedOperationException("The root reporter cannot have a parent!");
+			}
+
 		}
 
 		public ErrorReporter getRoot() {
 
-			if (this.parent.isEmpty()) {
+			if (this.parent == null) {
 				return this;
 			}
 
+			else if (this.parent.parent == null) {
+				return this.parent;
+			}
+
 			else {
-				return this.parent.get().getRoot();
+				return this.parent.getRoot();
 			}
 
 		}
