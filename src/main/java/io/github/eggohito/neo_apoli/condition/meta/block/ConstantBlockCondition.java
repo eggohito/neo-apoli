@@ -10,8 +10,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record ConstantBlockCondition(boolean value) implements BlockCondition, ConstantMetaCondition<BlockConditionType<?>> {
 
-	public static final MapCodec<ConstantBlockCondition> CODEC = ConstantMetaCondition.createCodec(ConstantBlockCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ConstantBlockCondition> PACKET_CODEC = ConstantMetaCondition.createPacketCodec(ConstantBlockCondition::new).cast();
+	public static final MapCodec<ConstantBlockCondition> CODEC = ConstantMetaCondition.codec(ConstantBlockCondition::new);
+	public static final PacketCodec<RegistryByteBuf, ConstantBlockCondition> PACKET_CODEC = ConstantMetaCondition.packetCodec(ConstantBlockCondition::new).cast();
 
 	@Override
 	public BlockConditionType<?> getType() {

@@ -12,8 +12,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record SideBlockAction(BlockAction action, SideMetaAction.Side side) implements BlockAction, SideMetaAction<BlockAction, BlockActionType<?>> {
 
-	public static final MapCodec<SideBlockAction> CODEC = NeoApoliCodecs.lazyMap("SideBlockAction", () -> SideMetaAction.createCodec(BlockAction.CODEC, SideBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, SideBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SideBlockAction", () -> SideMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, SideBlockAction::new));
+	public static final MapCodec<SideBlockAction> CODEC = NeoApoliCodecs.lazyMap("SideBlockAction", () -> SideMetaAction.codec(BlockAction.CODEC, SideBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, SideBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SideBlockAction", () -> SideMetaAction.packetCodec(BlockAction.PACKET_CODEC, SideBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

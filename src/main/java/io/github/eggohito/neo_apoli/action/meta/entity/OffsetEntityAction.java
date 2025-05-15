@@ -16,8 +16,8 @@ import java.util.Set;
 
 public record OffsetEntityAction(EntityAction action, Vec3d offset) implements EntityAction, OffsetMetaAction<EntityAction, EntityActionType<?>> {
 
-	public static final MapCodec<OffsetEntityAction> CODEC = NeoApoliCodecs.lazyMap("OffsetEntityAction", () -> OffsetMetaAction.createCodec(EntityAction.CODEC, OffsetEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, OffsetEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("OffsetEntityAction", () -> OffsetMetaAction.createPacketCodec(EntityAction.PACKET_CODEC, OffsetEntityAction::new));
+	public static final MapCodec<OffsetEntityAction> CODEC = NeoApoliCodecs.lazyMap("OffsetEntityAction", () -> OffsetMetaAction.codec(EntityAction.CODEC, OffsetEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, OffsetEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("OffsetEntityAction", () -> OffsetMetaAction.packetCodec(EntityAction.PACKET_CODEC, OffsetEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

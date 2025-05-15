@@ -35,21 +35,22 @@ public interface RandomChoiceMetaAction<A extends Action<T>, T extends ActionTyp
 	@Override
 	default void validate(ErrorReporter reporter) {
 
-		List<A> actions = actions().stream().toList();
+		ListIterator<A> actionIterator = actions().stream().toList().listIterator();
 
-		for (int i = 0; i < actions.size(); i++) {
-			actions.get(i).validate(reporter.makeChild("actions[" + i + "]"));
+		while (actionIterator.hasNext()) {
+			ErrorReporter subReporter = reporter.makeChild("actions[" + actionIterator.nextIndex() + "]");
+			subReporter.validate(actionIterator.next());
 		}
 
 	}
 
-	static <A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> elementCodec, Function<WeightedList<A>, M> constructor) {
+	static <A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> MapCodec<M> codec(Codec<A> elementCodec, Function<WeightedList<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			WeightedList.createCodec(elementCodec).fieldOf("actions").forGetter(RandomChoiceMetaAction::actions)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> elementCodec, Function<WeightedList<A>, M> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends RandomChoiceMetaAction<A, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> elementCodec, Function<WeightedList<A>, M> constructor) {
 		return new PacketCodec<>() {
 
 			@Override

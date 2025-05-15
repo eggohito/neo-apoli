@@ -25,13 +25,13 @@ public interface ConstantMetaCondition<T extends ConditionType<?>> extends Condi
 
 	boolean value();
 
-	static <M extends ConstantMetaCondition<?>> MapCodec<M> createCodec(Boolean2ObjectFunction<M> constructor) {
+	static <M extends ConstantMetaCondition<?>> MapCodec<M> codec(Boolean2ObjectFunction<M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Codec.BOOL.fieldOf("value").forGetter(ConstantMetaCondition::value)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ConstantMetaCondition<?>> PacketCodec<ByteBuf, M> createPacketCodec(Boolean2ObjectFunction<M> constructor) {
+	static <M extends ConstantMetaCondition<?>> PacketCodec<ByteBuf, M> packetCodec(Boolean2ObjectFunction<M> constructor) {
 		return PacketCodecs.BOOLEAN.xmap(constructor, ConstantMetaCondition::value);
 	}
 

@@ -32,11 +32,6 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 
 	@Override
 	public double doubleValue(Context context) {
-		return this.longValue(context);
-	}
-
-	@Override
-	public long longValue(Context context) {
 
 		Random random = context.getWorld().getRandom();
 		long result = 0;
@@ -44,7 +39,7 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 		long attempts = attempts().longValue(context.makeChild("attempts"));
 		double probability = probability().doubleValue(context.makeChild("probability"));
 
-		for (int i = 0; i < attempts; i++) {
+		for (int i = 0; !context.hasAnyErrors() && i < attempts; i++) {
 
 			if (random.nextDouble() < probability) {
 				result++;

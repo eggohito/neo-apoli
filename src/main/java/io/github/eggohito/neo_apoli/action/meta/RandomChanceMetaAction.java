@@ -40,7 +40,7 @@ public interface RandomChanceMetaAction<A extends Action<T>, T extends ActionTyp
 		failAction().ifPresent(failAction -> failAction.validate(reporter.makeChild("fail_action")));
 	}
 
-	static <A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
+	static <A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> MapCodec<M> codec(Codec<A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			elementCodec.fieldOf("success_action").forGetter(RandomChanceMetaAction::successAction),
 			elementCodec.optionalFieldOf("fail_action").forGetter(RandomChanceMetaAction::failAction),
@@ -48,7 +48,7 @@ public interface RandomChanceMetaAction<A extends Action<T>, T extends ActionTyp
 		).apply(instance, constructor::apply));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends RandomChanceMetaAction<A, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> elementCodec, TriFunction<A, Optional<A>, Float, M> constructor) {
 		return PacketCodec.tuple(
 			elementCodec, RandomChanceMetaAction::successAction,
 			PacketCodecs.optional(elementCodec), RandomChanceMetaAction::failAction,

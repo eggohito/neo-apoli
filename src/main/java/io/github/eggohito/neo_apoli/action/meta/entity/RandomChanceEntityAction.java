@@ -14,8 +14,8 @@ import java.util.Optional;
 
 public record RandomChanceEntityAction(EntityAction successAction, Optional<EntityAction> failAction, float chance) implements EntityAction, RandomChanceMetaAction<EntityAction, EntityActionType<?>> {
 
-	public static final MapCodec<RandomChanceEntityAction> CODEC = NeoApoliCodecs.lazyMap("RandomChanceEntityAction", () -> RandomChanceMetaAction.createCodec(EntityAction.CODEC, RandomChanceEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, RandomChanceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("RandomChanceEntityAction", () -> RandomChanceMetaAction.createPacketCodec(EntityAction.PACKET_CODEC, RandomChanceEntityAction::new));
+	public static final MapCodec<RandomChanceEntityAction> CODEC = NeoApoliCodecs.lazyMap("RandomChanceEntityAction", () -> RandomChanceMetaAction.codec(EntityAction.CODEC, RandomChanceEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, RandomChanceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("RandomChanceEntityAction", () -> RandomChanceMetaAction.packetCodec(EntityAction.PACKET_CODEC, RandomChanceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

@@ -14,8 +14,8 @@ import java.util.List;
 
 public record SequenceEntityAction(List<EntityAction> actions) implements EntityAction, SequenceMetaAction<EntityAction, EntityActionType<?>> {
 
-	public static final MapCodec<SequenceEntityAction> CODEC = NeoApoliCodecs.lazyMap("SequenceEntityAction", () -> SequenceMetaAction.createCodec(EntityAction.CODEC, SequenceEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, SequenceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SequenceEntityAction", () -> SequenceMetaAction.createPacketCodec(EntityAction.PACKET_CODEC, SequenceEntityAction::new));
+	public static final MapCodec<SequenceEntityAction> CODEC = NeoApoliCodecs.lazyMap("SequenceEntityAction", () -> SequenceMetaAction.codec(EntityAction.CODEC, SequenceEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, SequenceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SequenceEntityAction", () -> SequenceMetaAction.packetCodec(EntityAction.PACKET_CODEC, SequenceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

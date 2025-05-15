@@ -33,14 +33,14 @@ public interface OffsetMetaAction<A extends Action<T>, T extends ActionType<?>> 
 		action().validate(reporter.makeChild("action"));
 	}
 
-	static <A extends Action<?>, M extends OffsetMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> actionCodec, BiFunction<A, Vec3d, M> constructor) {
+	static <A extends Action<?>, M extends OffsetMetaAction<A, ?>> MapCodec<M> codec(Codec<A> actionCodec, BiFunction<A, Vec3d, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.fieldOf("action").forGetter(OffsetMetaAction::action),
 			Vec3d.CODEC.fieldOf("offset").forGetter(OffsetMetaAction::offset)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, M extends OffsetMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Vec3d, M> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends OffsetMetaAction<A, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Vec3d, M> constructor) {
 		return PacketCodec.tuple(
 			actionCodec, OffsetMetaAction::action,
 			Vec3d.PACKET_CODEC, OffsetMetaAction::offset,

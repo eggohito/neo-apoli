@@ -12,8 +12,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record SideEntityAction(EntityAction action, Side side) implements EntityAction, SideMetaAction<EntityAction, EntityActionType<?>> {
 
-	public static final MapCodec<SideEntityAction> CODEC = NeoApoliCodecs.lazyMap("SideEntityAction", () -> SideMetaAction.createCodec(EntityAction.CODEC, SideEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, SideEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SideEntityAction", () -> SideMetaAction.createPacketCodec(EntityAction.PACKET_CODEC, SideEntityAction::new));
+	public static final MapCodec<SideEntityAction> CODEC = NeoApoliCodecs.lazyMap("SideEntityAction", () -> SideMetaAction.codec(EntityAction.CODEC, SideEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, SideEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SideEntityAction", () -> SideMetaAction.packetCodec(EntityAction.PACKET_CODEC, SideEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

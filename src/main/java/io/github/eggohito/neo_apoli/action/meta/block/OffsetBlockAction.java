@@ -16,8 +16,8 @@ import java.util.Set;
 
 public record OffsetBlockAction(BlockAction action, Vec3d offset) implements BlockAction, OffsetMetaAction<BlockAction, BlockActionType<?>> {
 
-	public static final MapCodec<OffsetBlockAction> CODEC = NeoApoliCodecs.lazyMap("OffsetBlockAction", () -> OffsetMetaAction.createCodec(BlockAction.CODEC, OffsetBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, OffsetBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("OffsetBlockAction", () -> OffsetMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, OffsetBlockAction::new));
+	public static final MapCodec<OffsetBlockAction> CODEC = NeoApoliCodecs.lazyMap("OffsetBlockAction", () -> OffsetMetaAction.codec(BlockAction.CODEC, OffsetBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, OffsetBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("OffsetBlockAction", () -> OffsetMetaAction.packetCodec(BlockAction.PACKET_CODEC, OffsetBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

@@ -25,13 +25,13 @@ public interface InvertedMetaCondition<C extends Condition<T>, T extends Conditi
 
 	C condition();
 
-	static <C extends Condition<?>, M extends InvertedMetaCondition<C, ?>> MapCodec<M> createCodec(Codec<C> elementCodec, Function<C, M> constructor) {
+	static <C extends Condition<?>, M extends InvertedMetaCondition<C, ?>> MapCodec<M> codec(Codec<C> elementCodec, Function<C, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			elementCodec.fieldOf("condition").forGetter(InvertedMetaCondition::condition)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, C extends Condition<?>, M extends InvertedMetaCondition<C, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, C> elementCodec, Function<C, M> constructor) {
+	static <B extends ByteBuf, C extends Condition<?>, M extends InvertedMetaCondition<C, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, C> elementCodec, Function<C, M> constructor) {
 		return elementCodec.xmap(constructor, InvertedMetaCondition::condition);
 	}
 

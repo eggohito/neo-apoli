@@ -35,14 +35,14 @@ public interface SideMetaAction<A extends Action<T>, T extends ActionType<?>> ex
 		action().validate(reporter.makeChild("action"));
 	}
 
-	static <A extends Action<?>, M extends SideMetaAction<A, ?>> MapCodec<M> createCodec(Codec<A> actionCodec, BiFunction<A, Side, M> constructor) {
+	static <A extends Action<?>, M extends SideMetaAction<A, ?>> MapCodec<M> codec(Codec<A> actionCodec, BiFunction<A, Side, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.fieldOf("action").forGetter(SideMetaAction::action),
 			Side.CODEC.fieldOf("side").forGetter(SideMetaAction::side)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, M extends SideMetaAction<A, ?>> PacketCodec<B, M> createPacketCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Side, M> constructor) {
+	static <B extends ByteBuf, A extends Action<?>, M extends SideMetaAction<A, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Side, M> constructor) {
 		return PacketCodec.tuple(
 			actionCodec, SideMetaAction::action,
 			Side.PACKET_CODEC, SideMetaAction::side,

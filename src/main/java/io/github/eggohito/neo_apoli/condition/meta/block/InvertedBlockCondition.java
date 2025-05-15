@@ -12,8 +12,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record InvertedBlockCondition(BlockCondition condition) implements BlockCondition, InvertedMetaCondition<BlockCondition, BlockConditionType<?>> {
 
-	public static final MapCodec<InvertedBlockCondition> CODEC = NeoApoliCodecs.lazyMap("InvertedBlockCondition", () -> InvertedMetaCondition.createCodec(BlockCondition.CODEC, InvertedBlockCondition::new));
-	public static final PacketCodec<RegistryByteBuf, InvertedBlockCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("InvertedBlockCondition", () -> InvertedMetaCondition.createPacketCodec(BlockCondition.PACKET_CODEC, InvertedBlockCondition::new));
+	public static final MapCodec<InvertedBlockCondition> CODEC = NeoApoliCodecs.lazyMap("InvertedBlockCondition", () -> InvertedMetaCondition.codec(BlockCondition.CODEC, InvertedBlockCondition::new));
+	public static final PacketCodec<RegistryByteBuf, InvertedBlockCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("InvertedBlockCondition", () -> InvertedMetaCondition.packetCodec(BlockCondition.PACKET_CODEC, InvertedBlockCondition::new));
 
 	@Override
 	public BlockConditionType<?> getType() {

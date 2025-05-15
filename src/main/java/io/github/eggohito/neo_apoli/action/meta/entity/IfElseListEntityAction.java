@@ -15,8 +15,8 @@ import java.util.List;
 
 public record IfElseListEntityAction(List<Entry<EntityCondition, EntityAction>> entries) implements EntityAction, IfElseListMetaAction<EntityAction, EntityCondition, EntityActionType<?>, io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType<?>> {
 
-	public static final MapCodec<IfElseListEntityAction> CODEC = NeoApoliCodecs.lazyMap("IfElseListEntityAction", () -> IfElseListMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, IfElseListEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, IfElseListEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("IfElseListEntityAction", () -> IfElseListMetaAction.createPacketCodec(EntityCondition.PACKET_CODEC, EntityAction.PACKET_CODEC, IfElseListEntityAction::new));
+	public static final MapCodec<IfElseListEntityAction> CODEC = NeoApoliCodecs.lazyMap("IfElseListEntityAction", () -> IfElseListMetaAction.codec(EntityCondition.CODEC, EntityAction.CODEC, IfElseListEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, IfElseListEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("IfElseListEntityAction", () -> IfElseListMetaAction.packetCodec(EntityCondition.PACKET_CODEC, EntityAction.PACKET_CODEC, IfElseListEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

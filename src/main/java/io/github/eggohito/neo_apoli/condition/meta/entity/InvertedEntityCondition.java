@@ -12,8 +12,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record InvertedEntityCondition(EntityCondition condition) implements EntityCondition, InvertedMetaCondition<EntityCondition, EntityConditionType<?>> {
 
-	public static final MapCodec<InvertedEntityCondition> CODEC = NeoApoliCodecs.lazyMap("InvertedEntityCondition", () -> InvertedMetaCondition.createCodec(EntityCondition.CODEC, InvertedEntityCondition::new));
-	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("InvertedEntityCondition", () -> InvertedMetaCondition.createPacketCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new));
+	public static final MapCodec<InvertedEntityCondition> CODEC = NeoApoliCodecs.lazyMap("InvertedEntityCondition", () -> InvertedMetaCondition.codec(EntityCondition.CODEC, InvertedEntityCondition::new));
+	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("InvertedEntityCondition", () -> InvertedMetaCondition.packetCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new));
 
 	@Override
 	public EntityConditionType<?> getType() {

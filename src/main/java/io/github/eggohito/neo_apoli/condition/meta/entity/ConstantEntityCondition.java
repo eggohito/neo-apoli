@@ -10,8 +10,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record ConstantEntityCondition(boolean value) implements EntityCondition, ConstantMetaCondition<EntityConditionType<?>> {
 
-	public static final MapCodec<ConstantEntityCondition> CODEC = ConstantMetaCondition.createCodec(ConstantEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ConstantEntityCondition> PACKET_CODEC = ConstantMetaCondition.createPacketCodec(ConstantEntityCondition::new).cast();
+	public static final MapCodec<ConstantEntityCondition> CODEC = ConstantMetaCondition.codec(ConstantEntityCondition::new);
+	public static final PacketCodec<RegistryByteBuf, ConstantEntityCondition> PACKET_CODEC = ConstantMetaCondition.packetCodec(ConstantEntityCondition::new).cast();
 
 	@Override
 	public EntityConditionType<?> getType() {

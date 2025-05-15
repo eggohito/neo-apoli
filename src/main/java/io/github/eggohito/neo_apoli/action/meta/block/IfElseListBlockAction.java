@@ -16,8 +16,8 @@ import java.util.List;
 
 public record IfElseListBlockAction(List<Entry<BlockCondition, BlockAction>> entries) implements BlockAction, IfElseListMetaAction<BlockAction, BlockCondition, BlockActionType<?>, BlockConditionType<?>> {
 
-	public static final MapCodec<IfElseListBlockAction> CODEC = NeoApoliCodecs.lazyMap("IfElseListBlockAction", () -> IfElseListMetaAction.createCodec(BlockCondition.CODEC, BlockAction.CODEC, IfElseListBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, IfElseListBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("IfElseListBlockAction", () -> IfElseListMetaAction.createPacketCodec(BlockCondition.PACKET_CODEC, BlockAction.PACKET_CODEC, IfElseListBlockAction::new));
+	public static final MapCodec<IfElseListBlockAction> CODEC = NeoApoliCodecs.lazyMap("IfElseListBlockAction", () -> IfElseListMetaAction.codec(BlockCondition.CODEC, BlockAction.CODEC, IfElseListBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, IfElseListBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("IfElseListBlockAction", () -> IfElseListMetaAction.packetCodec(BlockCondition.PACKET_CODEC, BlockAction.PACKET_CODEC, IfElseListBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

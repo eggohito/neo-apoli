@@ -13,8 +13,8 @@ import net.minecraft.util.collection.WeightedList;
 
 public record RandomChoiceBlockAction(WeightedList<BlockAction> actions) implements BlockAction, RandomChoiceMetaAction<BlockAction, BlockActionType<?>> {
 
-	public static final MapCodec<RandomChoiceBlockAction> CODEC = NeoApoliCodecs.lazyMap("RandomChoiceBlockAction", () -> RandomChoiceMetaAction.createCodec(BlockAction.CODEC, RandomChoiceBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, RandomChoiceBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("RandomChoiceBlockAction", () -> RandomChoiceMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, RandomChoiceBlockAction::new));
+	public static final MapCodec<RandomChoiceBlockAction> CODEC = NeoApoliCodecs.lazyMap("RandomChoiceBlockAction", () -> RandomChoiceMetaAction.codec(BlockAction.CODEC, RandomChoiceBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, RandomChoiceBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("RandomChoiceBlockAction", () -> RandomChoiceMetaAction.packetCodec(BlockAction.PACKET_CODEC, RandomChoiceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

@@ -14,8 +14,8 @@ import java.util.List;
 
 public record SequenceBlockAction(List<BlockAction> actions) implements BlockAction, SequenceMetaAction<BlockAction, BlockActionType<?>> {
 
-	public static final MapCodec<SequenceBlockAction> CODEC = NeoApoliCodecs.lazyMap("SequenceBlockAction", () -> SequenceMetaAction.createCodec(BlockAction.CODEC, SequenceBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, SequenceBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SequenceBlockAction", () -> SequenceMetaAction.createPacketCodec(BlockAction.PACKET_CODEC, SequenceBlockAction::new));
+	public static final MapCodec<SequenceBlockAction> CODEC = NeoApoliCodecs.lazyMap("SequenceBlockAction", () -> SequenceMetaAction.codec(BlockAction.CODEC, SequenceBlockAction::new));
+	public static final PacketCodec<RegistryByteBuf, SequenceBlockAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy("SequenceBlockAction", () -> SequenceMetaAction.packetCodec(BlockAction.PACKET_CODEC, SequenceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
