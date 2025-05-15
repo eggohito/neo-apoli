@@ -62,7 +62,7 @@ public class OnBlockBreakPower extends Power {
 	);
 
 	public static final ContextType CONTEXT_TYPE = createContextType(builder -> builder
-		.require(ContextParameters.BLOCK_STATE)
+		.allow(ContextParameters.BLOCK_STATE)
 		.allow(ContextParameters.BLOCK_ENTITY)
 		.allow(ContextParameters.DIRECTION));
 
