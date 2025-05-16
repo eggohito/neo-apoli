@@ -6,10 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSprintingEntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.entity.AllOfEntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.entity.AnyOfEntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.entity.InvertedEntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.entity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.IdentifierAlias;
@@ -29,6 +26,7 @@ public final class EntityConditionTypes {
 
 	public static final EntityConditionType<AllOfEntityCondition> ALL_OF = registerInternal("all_of", AllOfEntityCondition.CODEC, AllOfEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<AnyOfEntityCondition> ANY_OF = registerInternal("any_of", AnyOfEntityCondition.CODEC, AnyOfEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<CompareEntityCondition> COMPARE = registerInternal("compare", CompareEntityCondition.CODEC, CompareEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<ConstantEntityCondition> CONSTANT = registerInternal("constant", ConstantEntityCondition.CODEC, ConstantEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.PACKET_CODEC);
 

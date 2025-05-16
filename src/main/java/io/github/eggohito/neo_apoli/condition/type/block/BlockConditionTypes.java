@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockStatePropertyBlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.HasBlockEntityBlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.IsOfBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.AllOfBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.AnyOfBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.InvertedBlockCondition;
+import io.github.eggohito.neo_apoli.condition.meta.block.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.IdentifierAlias;
@@ -30,6 +27,7 @@ public final class BlockConditionTypes {
 
 	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.PACKET_CODEC);
 
