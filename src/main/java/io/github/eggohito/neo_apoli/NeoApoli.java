@@ -40,7 +40,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.Optional;
 
 public class NeoApoli implements ModInitializer {
 
@@ -151,14 +150,14 @@ public class NeoApoli implements ModInitializer {
 
 	}
 
-	public static Optional<CommandOutput> validateCommandOutput(CommandOutput commandOutput) {
+	public static CommandOutput validateCommandOutput(CommandOutput commandOutput) {
 
 		if (getConfig().command().showOutput()) {
-			return Optional.of(commandOutput);
+			return commandOutput;
 		}
 
 		else {
-			return Optional.empty();
+			return CommandOutput.DUMMY;
 		}
 
 	}

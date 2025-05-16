@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
@@ -50,7 +49,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 				ServerCommandSource commandSource = server.getCommandSource()
 					.withPosition(context.optionalParameter(ContextParameters.POSITION).orElse(Vec3d.ZERO))
 					.withLevel(NeoApoli.getConfig().command().permissionLevel())
-					.withOutput(NeoApoli.validateCommandOutput(server).orElse(CommandOutput.DUMMY))
+					.withOutput(NeoApoli.validateCommandOutput(server))
 					.withReturnValueConsumer((successful, returnValue) -> result.set(returnValue));
 
 				server.getCommandManager().executeWithPrefix(commandSource, command);
