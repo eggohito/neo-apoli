@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.event;
 
 import com.google.gson.JsonElement;
-import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.resource.MultiDirectoryResourceReloader;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -12,10 +12,10 @@ public final class PowerLoadingEvents {
 
 	public static final Event<Before> BEFORE = EventFactory.createArrayBacked(
 		Before.class,
-		callbacks -> (id, packData, directoryPath, registryOps) -> {
+		callbacks -> (id, dataEntry, directoryPath, registryOps) -> {
 
 			for (var callback : callbacks) {
-				callback.beforeLoad(id, packData, directoryPath, registryOps);
+				callback.beforeLoad(id, dataEntry, directoryPath, registryOps);
 			}
 
 		}
@@ -23,21 +23,21 @@ public final class PowerLoadingEvents {
 
 	public static final Event<After> AFTER = EventFactory.createArrayBacked(
 		After.class,
-		callbacks -> (entry, packData, registryOps) -> {
+		callbacks -> (powerEntry, dataEntry, registryOps) -> {
 
 			for (var callback : callbacks) {
-				callback.afterLoad(entry, packData, registryOps);
+				callback.afterLoad(powerEntry, dataEntry, registryOps);
 			}
 
 		}
 	);
 
 	public interface Before {
-		void beforeLoad(Identifier id, PowerManager.PackData packData, String directoryPath, RegistryOps<JsonElement> registryOps);
+		void beforeLoad(Identifier id, MultiDirectoryResourceReloader.Entry dataEntry, String directoryPath, RegistryOps<JsonElement> registryOps);
 	}
 
 	public interface After {
-		void afterLoad(PowerEntry<?> entry, PowerManager.PackData packData, RegistryOps<JsonElement> registryOps);
+		void afterLoad(PowerEntry<?> powerEntry, MultiDirectoryResourceReloader.Entry dataEntry, RegistryOps<JsonElement> registryOps);
 	}
 
 }

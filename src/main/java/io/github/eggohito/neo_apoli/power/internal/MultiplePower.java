@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.resource.MultiDirectoryResourceReloader;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -131,9 +132,9 @@ public class MultiplePower extends Power {
 	}
 
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(Identifier id, PowerManager.PackData packData, String directoryPath, RegistryOps<JsonElement> registryOps) {
+	public static void preProcessSubPowers(Identifier id, MultiDirectoryResourceReloader.Entry dataEntry, String directoryPath, RegistryOps<JsonElement> registryOps) {
 
-		if (packData.element() instanceof JsonObject jsonObject) {
+		if (dataEntry.element() instanceof JsonObject jsonObject) {
 
 			Optional<PowerType<?>> powerType = PowerTypes.CODEC
 				.parse(registryOps, jsonObject.get(TYPE_KEY))
