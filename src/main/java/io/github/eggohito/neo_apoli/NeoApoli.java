@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
@@ -76,6 +78,8 @@ public class NeoApoli implements ModInitializer {
 		StringProviderTypes.registerAll();
 
 		ConditionTypes.registerAll();
+		ConditionCategories.registerAll();
+		ConditionManager.init();
 
 		ActionTypes.registerAll();
 		ActionCategories.registerAll();

@@ -1,6 +1,9 @@
 package io.github.eggohito.neo_apoli.condition;
 
 import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -14,12 +17,20 @@ import java.util.Set;
 
 public interface EntityCondition extends Condition<EntityConditionType<?>> {
 
-	Codec<EntityCondition> CODEC = EntityConditionTypes.CODEC.dispatch(TYPE_KEY, EntityCondition::getType, EntityConditionType::mapCodec);
+	Codec<EntityCondition> CODEC = new ValueSuppliedElementCodec<>(EntityConditionTypes.CODEC.dispatch(TYPE_KEY, EntityCondition::getType, EntityConditionType::mapCodec), true, id -> ConditionManager.getAsResult(ConditionCategories.ENTITY_CONDITION, id), ConditionManager::getIdAsResult);
 	PacketCodec<RegistryByteBuf, EntityCondition> PACKET_CODEC = EntityConditionTypes.PACKET_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
 
 	@Override
+	default ConditionCategory<EntityCondition> getCategory() {
+		return ConditionCategories.ENTITY_CONDITION;
+	}
+
+	@Override
 	default String asDisplayString() {
-		return "Entity condition (with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\")";
+		return ConditionManager.getIdAsResult(this)
+			.result()
+			.map(id -> "Entity condition with ID \"" + id + "\"")
+			.orElseGet(() -> "Entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"");
 	}
 
 	@Override

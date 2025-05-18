@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.action;
+package io.github.eggohito.neo_apoli.condition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -7,9 +7,8 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.category.ActionCategory;
-import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionsS2CPacket;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.IMultiDirectoryResourceReloader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -25,7 +24,6 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.util.profiler.Profiler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,54 +41,53 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class ActionManager extends SinglePreparationResourceReloader<Map<ActionCategory<?>, Map<Identifier, IMultiDirectoryResourceReloader.Entry>>> implements IMultiDirectoryResourceReloader {
+public final class ConditionManager extends SinglePreparationResourceReloader<Map<ConditionCategory<?>, Map<Identifier, IMultiDirectoryResourceReloader.Entry>>> implements IMultiDirectoryResourceReloader {
 
 	private static final Set<String> DIRECTORY_PREFIXES = new ObjectOpenHashSet<>();
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
 
-	public static final Identifier ID = NeoApoli.id("actions");
-	public static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ConditionManager.ID));
+	public static final Identifier ID = NeoApoli.id("conditions");
+	public static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
-	private static final Object2ObjectOpenHashMap<ActionCategory<?>, Map<Identifier, ActionEntry<?>>> BY_CATEGORY_AND_ID = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Action<?>, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<ConditionCategory<?>, Map<Identifier, ConditionEntry<?>>> BY_CATEGORY_AND_ID = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Condition<?>, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
-	public ActionManager(RegistryWrapper.WrapperLookup wrapperLookup) {
+	public ConditionManager(RegistryWrapper.WrapperLookup wrapperLookup) {
 		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
 	}
 
 	@ApiStatus.Internal
 	public static void init() {
 
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
+		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
 		addDirectoryPrefix(NeoApoli.MOD_NAMESPACE);
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 	}
 
 	@Override
-	protected Map<ActionCategory<?>, Map<Identifier, Entry>> prepare(ResourceManager manager, Profiler profiler) {
+	protected Map<ConditionCategory<?>, Map<Identifier, Entry>> prepare(ResourceManager manager, Profiler profiler) {
 
-		Map<ActionCategory<?>, Map<Identifier, Entry>> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ConditionCategory<?>, Map<Identifier, Entry>> prepared = new Object2ObjectOpenHashMap<>();
 
-		for (ActionCategory<?> category : NeoApoliRegistries.ACTION_CATEGORY) {
+		for (ConditionCategory<?> category : NeoApoliRegistries.CONDITION_CATEGORY) {
 
-			Set<String> directories = this.getDirectories(category);
+			Set<String> directories = this.getDirectories();
 
 			for (String directory : directories) {
 
 				Map<Identifier, Resource> resources = manager.findResources(directory, this::supportsJsonFormat);
 				String uncapitalizedCategory = StringUtils.uncapitalize(category.toString());
 
-				profiler.push("[" + ActionManager.class.getSimpleName() + "] scanning " + uncapitalizedCategory + " files in directory \"" + directory + "\" from data packs");
+				profiler.push("[" + ConditionManager.class.getSimpleName() + "] scanning " + uncapitalizedCategory + " files in directory \"" + directory + "\" from data packs");
 
 				for (Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
 
@@ -103,7 +100,7 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 					JsonFormat jsonFormat = this.getSupportedJsonFormats().get(fileExtension);
 					String packName = resource.getPackId();
 
-					profiler.push("[" + ActionManager.class.getSimpleName() + "] preparing " + uncapitalizedCategory + " file \"" + fileId + "\" from data pack {" + packName + "}");
+					profiler.push("[" + ConditionManager.class.getSimpleName() + "] preparing " + uncapitalizedCategory + " file \"" + fileId + "\" from data pack {" + packName + "}");
 
 					if (prepared.containsKey(category) && prepared.get(category).containsKey(resourceId)) {
 						LOGGER.warn("Ignored duplicate {} JSON file with ID \"{}\" from directory \"{}\" of data pack [{}]!", uncapitalizedCategory, resourceId, directory, packName);
@@ -149,19 +146,19 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 	}
 
 	@Override
-	protected void apply(Map<ActionCategory<?>, Map<Identifier, Entry>> prepared, ResourceManager manager, Profiler profiler) {
+	protected void apply(Map<ConditionCategory<?>, Map<Identifier, Entry>> prepared, ResourceManager manager, Profiler profiler) {
 
-		LOGGER.info("Parsing actions from data packs...");
-		profiler.push("[" + ActionManager.class.getSimpleName() + "] start parsing actions");
+		LOGGER.info("Parsing conditions from data packs...");
+		profiler.push("[" + ConditionManager.class.getSimpleName() + "] start parsing conditions");
 
 		startLoading();
 		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> {
 
 			String uncapitalizedCategoryName = StringUtils.uncapitalize(category.toString());
-			profiler.push("[" + ActionManager.class.getSimpleName() + "] parsing " + uncapitalizedCategoryName + " JSON \"" + id + "\" from data pack {" + entry.source() + "}");
+			profiler.push("[" + ConditionManager.class.getSimpleName() + "] parsing " + uncapitalizedCategoryName + " JSON \"" + id + "\" from data pack {" + entry.source() + "}");
 
 			try {
-				register(new ActionEntry<>(id, category.codec().parse(ops, entry.element()).getOrThrow()));
+				register(new ConditionEntry<>(id, category.codec().parse(ops, entry.element()).getOrThrow()));
 			}
 
 			catch (Exception e) {
@@ -171,11 +168,6 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 			profiler.pop();
 
 		}));
-
-		profiler.pop();
-
-		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s) in total", BY_CATEGORY_AND_ID.size());
-		endLoading();
 
 	}
 
@@ -198,22 +190,24 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 	public Set<String> getDirectories() {
 
 		Set<String> directories = new ObjectOpenHashSet<>();
-		NeoApoliRegistries.ACTION_CATEGORY.forEach(category -> directories.addAll(this.getDirectories(category)));
+
+		for (ConditionCategory<?> category : NeoApoliRegistries.CONDITION_CATEGORY) {
+			directories.addAll(this.getDirectories(category));
+		}
 
 		return directories;
 
 	}
 
-	public Set<String> getDirectories(ActionCategory<?> category) {
+	public Set<String> getDirectories(ConditionCategory<?> category) {
 
-		Set<String> directories = new ObjectOpenHashSet<>();
 		String directory = category.directory();
+		Set<String> directories = ObjectOpenHashSet.of(directory);
 
 		for (String prefix : DIRECTORY_PREFIXES) {
 			directories.add(prefix + "/" + directory);
 		}
 
-		directories.add(directory);
 		return directories;
 
 	}
@@ -225,32 +219,32 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 			return;
 		}
 
-		Set<ActionEntry<?>> entries = BY_CATEGORY_AND_ID.values()
+		Set<ConditionEntry<?>> entries = BY_CATEGORY_AND_ID.values()
 			.stream()
 			.map(Map::values)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toCollection(ObjectOpenHashSet::new));
 
-		LOGGER.info("Sent {} action(s) to player {}!", entries.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizeActionsS2CPacket(entries));
+		LOGGER.info("Sent {} condition(s) to player {}!", entries.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizeConditionsS2CPacket(entries));
 
 	}
 
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload) {
+	public static void receiveSyncPayload(SynchronizeConditionsS2CPacket payload) {
 		startLoading();
-		payload.actions().forEach(ActionManager::register);
+		payload.conditions().forEach(ConditionManager::register);
 		endLoading();
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <A extends Action<?>> DataResult<ActionEntry<A>> getEntryAsResult(ActionCategory<A> category, Identifier id) {
+	public static <C extends Condition<?>> DataResult<ConditionEntry<C>> getEntryAsResult(ConditionCategory<C> category, Identifier id) {
 
 		if (BY_CATEGORY_AND_ID.containsKey(category)) {
-			ActionEntry<?> entry = BY_CATEGORY_AND_ID.get(category).get(id);
+			ConditionEntry<?> entry = BY_CATEGORY_AND_ID.get(category).get(id);
 			return entry != null
-				? DataResult.success((ActionEntry<A>) entry)
-				: DataResult.error(() -> category.toString() + " with ID \"" + id + "\" does not exist!");
+				? DataResult.success((ConditionEntry<C>) entry)
+				: DataResult.error(() -> category + " with ID \"" + id + "\" does not exist!");
 		}
 
 		else {
@@ -259,26 +253,26 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 
 	}
 
-	public static <A extends Action<?>> ActionEntry<A> getEntry(ActionCategory<A> category, Identifier id) {
+	public static <C extends Condition<?>> ConditionEntry<C> getEntry(ConditionCategory<C> category, Identifier id) {
 		return getEntryAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <A extends Action<?>> DataResult<A> getAsResult(ActionCategory<A> category, Identifier id) {
-		return getEntryAsResult(category, id).map(ActionEntry::value);
+	public static <C extends Condition<?>> DataResult<C> getAsResult(ConditionCategory<C> category, Identifier id) {
+		return getEntryAsResult(category, id).map(ConditionEntry::value);
 	}
 
-	public static <A extends Action<?>> A get(ActionCategory<A> category, Identifier id) {
+	public static <C extends Condition<?>> C get(ConditionCategory<C> category, Identifier id) {
 		return getAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <A extends Action<?>> DataResult<Identifier> getIdAsResult(A action) {
-		return containsId(action)
-			? DataResult.success(BY_VALUES.get(action))
-			: DataResult.error(() -> action.asDisplayString(true) + " doesn't correspond to any identifiers!");
+	public static <C extends Condition<?>> DataResult<Identifier> getIdAsResult(C condition) {
+		return containsId(condition)
+			? DataResult.success(BY_VALUES.get(condition))
+			: DataResult.error(() -> condition.asDisplayString(true) + " doesn't correspond to any identifiers!");
 	}
 
-	public static <A extends Action<?>> Identifier getId(A action) {
-		return getIdAsResult(action).getOrThrow(IllegalArgumentException::new);
+	public static <C extends Condition<?>> Identifier getId(C condition) {
+		return getIdAsResult(condition).getOrThrow(IllegalArgumentException::new);
 	}
 
 	public static Stream<Identifier> streamIds() {
@@ -288,27 +282,27 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 			.flatMap(Collection::stream);
 	}
 
-	public static <A extends Action<?>> boolean contains(ActionCategory<A> category, Identifier id) {
+	public static <C extends Condition<?>> boolean contains(ConditionCategory<C> category, Identifier id) {
 		return BY_CATEGORY_AND_ID.containsKey(category)
 			&& BY_CATEGORY_AND_ID.get(category).containsKey(id);
 	}
 
-	public static <A extends Action<?>> boolean containsId(A action) {
-		return BY_VALUES.containsKey(action);
+	public static <C extends Condition<?>> boolean containsId(C condition) {
+		return BY_VALUES.containsKey(condition);
 	}
 
 	public static void addDirectoryPrefix(String prefix) {
 		DIRECTORY_PREFIXES.add(prefix);
 	}
 
-	private static void register(ActionEntry<?> entry) {
+	private static void register(ConditionEntry<?> entry) {
 
 		Identifier id = entry.id();
-		Action<?> action = entry.value();
+		Condition<?> condition = entry.value();
 
-		BY_VALUES.put(action, id);
+		BY_VALUES.put(condition, id);
 		BY_CATEGORY_AND_ID
-			.computeIfAbsent(action.getCategory(), k -> new Object2ObjectOpenHashMap<>())
+			.computeIfAbsent(condition.getCategory(), k -> new Object2ObjectOpenHashMap<>())
 			.put(id, entry);
 
 	}
