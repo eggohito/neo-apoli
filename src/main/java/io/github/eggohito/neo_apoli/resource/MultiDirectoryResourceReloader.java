@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
 import net.minecraft.registry.RegistryOps;
@@ -28,7 +27,7 @@ import java.io.BufferedReader;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class MultiDirectoryResourceReloader extends SinglePreparationResourceReloader<Map<Identifier, MultiDirectoryResourceReloader.Entry>> implements IdentifiableResourceReloadListener {
+public abstract class MultiDirectoryResourceReloader extends SinglePreparationResourceReloader<Map<Identifier, MultiDirectoryResourceReloader.Entry>> implements IMultiDirectoryResourceReloader {
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(MultiDirectoryResourceReloader.class);
 
@@ -75,7 +74,7 @@ public abstract class MultiDirectoryResourceReloader extends SinglePreparationRe
 				profiler.push("[" + simpleClassName + "] preparing file \"" + fileId + "\" from " + packType + " {" + packName + "}");
 
 				if (prepared.containsKey(resourceId)) {
-					LOGGER.warn("Ignored duplicate JSON file with ID \"{}\" from directory \"{}\" of " + packType + " pack [{}]!", resourceId, directory, packName);
+					LOGGER.warn("Ignored duplicate JSON file with ID \"{}\" from directory \"{}\" of {} pack [{}]!", resourceId, directory, packType, packName);
 				}
 
 				else {
@@ -117,31 +116,6 @@ public abstract class MultiDirectoryResourceReloader extends SinglePreparationRe
 		prepared.put(resourceId, entry);
 	}
 
-	protected abstract Map<String, JsonFormat> getSupportedJsonFormats();
-
-	protected abstract Set<String> getDirectories();
-
-	protected Identifier trimExtension(Identifier fileId, String directory) {
-		String path = FilenameUtils.removeExtension(fileId.getPath()).substring(directory.length() + 1);
-		return Identifier.of(fileId.getNamespace(), path);
-	}
-
-	protected boolean supportsJsonFormat(Identifier fileId) {
-
-		Set<String> supportedJsonFormats = this.getSupportedJsonFormats().keySet();
-
-		for (String supportedJsonFormat : supportedJsonFormats) {
-
-			if (fileId.getPath().endsWith(supportedJsonFormat)) {
-				return true;
-			}
-
-		}
-
-		return false;
-
-	}
-
 	@SuppressWarnings("UnstableApiUsage")
 	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonObject jsonObject, String directory, RegistryOps<JsonElement> ops) {
 		return ResourceConditionsImpl.applyResourceConditions(jsonObject, directory, resourceId, ((RegistryOpsAccessor) ops).getRegistryInfoGetter());
@@ -150,10 +124,6 @@ public abstract class MultiDirectoryResourceReloader extends SinglePreparationRe
 	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonElement jsonElement, String directory, RegistryOps<JsonElement> ops) {
 		return !(jsonElement instanceof JsonObject jsonObject)
 			|| isResourceConditionFulfilled(resourceId, jsonObject, directory, ops);
-	}
-
-	public record Entry(String source, JsonElement element) {
-
 	}
 
 }

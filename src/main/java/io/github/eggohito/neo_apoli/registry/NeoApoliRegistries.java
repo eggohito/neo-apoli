@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.registry;
 
+import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
@@ -15,6 +16,8 @@ import net.minecraft.registry.RegistryKey;
 public class NeoApoliRegistries {
 
 	public static final Registry<PowerType<?>> POWER_TYPE = create(NeoApoliRegistryKeys.POWER_TYPE);
+
+	public static final Registry<ActionCategory<?>> ACTION_CATEGORY = create(NeoApoliRegistryKeys.ACTION_CATEGORY);
 
 	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 	public static final Registry<EntityActionType<?>> ENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);

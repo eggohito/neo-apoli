@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.power;
 import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.event.PowerLoadingEvents;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
@@ -38,25 +39,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PowerManager extends MultiDirectoryResourceReloader {
-	
-	private static final Map<String, JsonFormat> JSON_FORMATS = Map.of(
-		".json", JsonFormat.JSON,
-		".json5", JsonFormat.JSON5,
-		".jsonc", JsonFormat.JSONC
-	);
 
-	public static final Set<String> DIRECTORIES = Util.make(new ObjectOpenHashSet<>(), set -> {
-		set.add("power");
-		set.add("neo-apoli/power");
-	});
+	private static final Set<String> DIRECTORY_PREFIXES = new ObjectOpenHashSet<>();
 
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
 	
-	private static final Identifier ID = NeoApoli.id("powers");
-	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
+	public static final Identifier ID = NeoApoli.id("powers");
+	public static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.ID));
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> POWERS_BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Power, PowerReference> REFERENCES_BY_POWER = new Object2ObjectOpenHashMap<>();
@@ -69,8 +61,11 @@ public class PowerManager extends MultiDirectoryResourceReloader {
 	public static void init() {
 
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+		addDirectoryPrefix(NeoApoli.MOD_NAMESPACE);
 
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+
 		PowerLoadingEvents.BEFORE.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 
 	}
@@ -138,11 +133,11 @@ public class PowerManager extends MultiDirectoryResourceReloader {
 	protected void apply(Map<Identifier, Entry> prepared, ResourceManager manager, Profiler profiler) {
 
 		String simpleClassName = this.getClass().getSimpleName();
+		profiler.push("[" + simpleClassName + "] start parsing powers");
 
 		NeoApoli.LOGGER.info("Parsing powers from data packs...");
 		startLoading();
 
-		profiler.push("[" + simpleClassName + "] start parsing powers");
 		prepared.forEach((id, dataEntry) -> {
 
 			JsonObject jsonObject = new JsonObject();
@@ -192,13 +187,23 @@ public class PowerManager extends MultiDirectoryResourceReloader {
 	}
 
 	@Override
-	protected Map<String, JsonFormat> getSupportedJsonFormats() {
-		return JSON_FORMATS;
+	public Map<String, JsonFormat> getSupportedJsonFormats() {
+		return NeoApoli.JSON_FORMATS;
 	}
 
 	@Override
-	protected Set<String> getDirectories() {
-		return DIRECTORIES;
+	public Set<String> getDirectories() {
+
+		String directory = "power";
+		Set<String> directories = new ObjectOpenHashSet<>();
+
+		for (String prefix : DIRECTORY_PREFIXES) {
+			directories.add(prefix + "/" + directory);
+		}
+
+		directories.add(directory);
+		return directories;
+
 	}
 
 	@Override
@@ -273,6 +278,10 @@ public class PowerManager extends MultiDirectoryResourceReloader {
 
 	public static boolean containsReference(Power power) {
 		return REFERENCES_BY_POWER.containsKey(power);
+	}
+
+	public static void addDirectoryPrefix(String prefix) {
+		DIRECTORY_PREFIXES.add(prefix);
 	}
 
 	private static void registerWithCallback(PowerEntry<?> powerEntry, Entry dataEntry, RegistryOps<JsonElement> registryOps) {

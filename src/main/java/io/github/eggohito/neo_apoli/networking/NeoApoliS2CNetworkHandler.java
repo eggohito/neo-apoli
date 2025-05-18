@@ -1,7 +1,9 @@
 package io.github.eggohito.neo_apoli.networking;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeDataCommandStorageS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -14,6 +16,7 @@ public class NeoApoliS2CNetworkHandler {
 
 		ClientPlayConnectionEvents.INIT.register((clientPlayNetworkHandler, minecraftClient) -> {
 			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowersSynchronized);
+			ClientPlayNetworking.registerReceiver(SynchronizeActionsS2CPacket.ID, NeoApoliS2CNetworkHandler::onActionsSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeDataCommandStorageS2CPacket.ID, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
 		});
 
@@ -21,6 +24,11 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onDataCommandStorageSynchronized(SynchronizeDataCommandStorageS2CPacket payload, ClientPlayNetworking.Context context) {
 		((DataCommandStorageHolder) context.client()).neo_apoli$set(payload.id(), payload.nbt());
+	}
+
+	private static void onActionsSynchronized(SynchronizeActionsS2CPacket payload, ClientPlayNetworking.Context context) {
+		NeoApoli.LOGGER.info("Received {} action(s) from server!", payload.actions().size());
+		ActionManager.receiveSyncPayload(payload);
 	}
 
 	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {

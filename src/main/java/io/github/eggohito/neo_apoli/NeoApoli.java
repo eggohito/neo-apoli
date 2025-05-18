@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
+import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
@@ -29,6 +31,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Identifier;
+import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.JsonWriter;
 import org.quiltmc.parsers.json.gson.GsonReader;
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Objects;
 
 public class NeoApoli implements ModInitializer {
@@ -53,6 +57,12 @@ public class NeoApoli implements ModInitializer {
 		.setPrettyPrinting()
 		.create();
 
+	public static final Map<String, JsonFormat> JSON_FORMATS = Map.of(
+		".json", JsonFormat.JSON,
+		".json5", JsonFormat.JSON5,
+		".jsonc", JsonFormat.JSONC
+	);
+
 	private static MinecraftServer server;
 	private static NeoApoliConfig config;
 
@@ -66,7 +76,10 @@ public class NeoApoli implements ModInitializer {
 		StringProviderTypes.registerAll();
 
 		ConditionTypes.registerAll();
+
 		ActionTypes.registerAll();
+		ActionCategories.registerAll();
+		ActionManager.init();
 
 		ComparisonTypes.registerAll();
 
