@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.action.custom.entity;
+package io.github.eggohito.neo_apoli.action.meta.entity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.EntityAction;
