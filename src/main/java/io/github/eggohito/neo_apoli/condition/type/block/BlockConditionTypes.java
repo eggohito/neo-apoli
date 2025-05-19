@@ -30,6 +30,7 @@ public final class BlockConditionTypes {
 	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.PACKET_CODEC);
 
 	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<HasBlockEntityBlockCondition> HAS_BLOCK_ENTITY = registerInternal("has_block_entity", HasBlockEntityBlockCondition.CODEC, HasBlockEntityBlockCondition.PACKET_CODEC);

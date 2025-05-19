@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.util.context;
 
 import io.github.eggohito.neo_apoli.mixin.access.ContextParameterMapAccessor;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextParameterMap;
 import net.minecraft.util.context.ContextType;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 public final class Context {
@@ -19,11 +21,14 @@ public final class Context {
 	private final ContextType type;
 	private final World world;
 
+	private final Set<ContextAware> activeContextAwares;
+
 	Context(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, World world) {
 		this.parameters = parameters;
 		this.reporter = reporter;
 		this.type = type;
 		this.world = world;
+		this.activeContextAwares = new ObjectOpenHashSet<>();
 	}
 
 	public Context makeChild(String path) {
@@ -32,6 +37,18 @@ public final class Context {
 
 	public Context makeChild(String path, ContextKey key) {
 		return new Context(this.parameters, this.reporter.makeChild(path, key), this.type, this.world);
+	}
+
+	public boolean isActive(ContextAware contextAware) {
+		return activeContextAwares.contains(contextAware);
+	}
+
+	public boolean markActive(ContextAware contextAware) {
+		return activeContextAwares.add(contextAware);
+	}
+
+	public void markInactive(ContextAware contextAware) {
+		activeContextAwares.remove(contextAware);
 	}
 
 	public ContextAware.ErrorReporter getReporter() {

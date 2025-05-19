@@ -31,6 +31,7 @@ public final class BlockActionTypes {
 	public static final BlockActionType<OffsetBlockAction> OFFSET = registerInternal("offset", OffsetBlockAction.CODEC, OffsetBlockAction.PACKET_CODEC);
 	public static final BlockActionType<RandomChanceBlockAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBlockAction.CODEC, RandomChanceBlockAction.PACKET_CODEC);
 	public static final BlockActionType<RandomChoiceBlockAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceBlockAction.CODEC, RandomChoiceBlockAction.PACKET_CODEC);
+	public static final BlockActionType<ReferenceBlockAction> REFERENCE = registerInternal("reference", ReferenceBlockAction.CODEC, ReferenceBlockAction.PACKET_CODEC);
 	public static final BlockActionType<SequenceBlockAction> SEQUENCE = registerInternal("sequence", SequenceBlockAction.CODEC, SequenceBlockAction.PACKET_CODEC);
 	public static final BlockActionType<SideBlockAction> SIDE = registerInternal("side", SideBlockAction.CODEC, SideBlockAction.PACKET_CODEC);
 

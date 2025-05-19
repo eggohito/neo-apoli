@@ -29,6 +29,7 @@ public final class EntityActionTypes {
 	public static final EntityActionType<OffsetEntityAction> OFFSET = registerInternal("offset", OffsetEntityAction.CODEC, OffsetEntityAction.PACKET_CODEC);
 	public static final EntityActionType<RandomChanceEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceEntityAction.CODEC, RandomChanceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<RandomChoiceEntityAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceEntityAction.CODEC, RandomChoiceEntityAction.PACKET_CODEC);
+	public static final EntityActionType<ReferenceEntityAction> REFERENCE = registerInternal("reference", ReferenceEntityAction.CODEC, ReferenceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<SideEntityAction> SIDE = registerInternal("side", SideEntityAction.CODEC, SideEntityAction.PACKET_CODEC);
 
