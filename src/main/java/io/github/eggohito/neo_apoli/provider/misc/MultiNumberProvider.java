@@ -41,16 +41,20 @@ public interface MultiNumberProvider extends NumberProvider {
 
 		this.iterate((index, number) -> {
 
-			N previousValue = result.get();
-			N nextValue = valueGetter.apply(number, context.makeChild("numbers[" + index + "]"));
+			Context subContext = context.makeChild("numbers[" + index + "]");
+			N nextValue = valueGetter.apply(number, subContext);
 
-			if (init.isTrue()) {
-				result.set(processor.apply(previousValue, nextValue));
-			}
+			if (!subContext.hasErrors()) {
 
-			else {
-				result.set(nextValue);
-				init.setTrue();
+				if (init.isTrue()) {
+					result.set(processor.apply(result.get(), nextValue));
+				}
+
+				else {
+					result.set(nextValue);
+					init.setTrue();
+				}
+
 			}
 
 		});
