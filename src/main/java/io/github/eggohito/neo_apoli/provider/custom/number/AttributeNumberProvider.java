@@ -7,11 +7,13 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.context.ContextParameter;
 
@@ -38,13 +40,31 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 	@Override
 	public double doubleValue(Context context) {
 
-		if (context.nullableParameter(source().getParameter()) instanceof LivingEntity livingEntity && livingEntity.getAttributes().hasAttribute(this.attribute())) {
-			return livingEntity.getAttributeValue(this.attribute());
-		}
+		ContextParameter<? extends Entity> source = source().getParameter();
+		Context sourceContext = context.makeChild("source");
 
-		else {
-			return 0.0;
-		}
+		return switch (context.nullableParameter(source)) {
+			case LivingEntity livingEntity -> {
+
+				if (livingEntity.getAttributes().hasAttribute(this.attribute())) {
+					yield livingEntity.getAttributeValue(this.attribute());
+				}
+
+				else {
+					sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" doesn't have attribute \"" + this.attribute().getKeyOrValue().map(RegistryKey::getValue, Registries.ATTRIBUTE::getId) + "\"!");
+					yield 0.0D;
+				}
+
+			}
+			case null -> {
+				sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" doesn't exist!");
+				yield 0.0;
+			}
+			default -> {
+				sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" is not a living entity!");
+				yield 0.0D;
+			}
+		};
 
 	}
 
