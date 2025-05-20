@@ -41,16 +41,26 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	@Override
 	public boolean compare(Context context) {
 
-		String firstValue = first().stringValue(context.makeChild("first"));
-		String secondValue = second().stringValue(context.makeChild("second"));
+		Context firstContext = context.makeChild("first");
+		Context secondContext = context.makeChild("second");
 
-		if (!caseSensitive()) {
-			firstValue = firstValue.toLowerCase(Locale.ROOT);
-			secondValue = secondValue.toLowerCase(Locale.ROOT);
+		String firstValue = first().stringValue(firstContext);
+		String secondValue = second().stringValue(secondContext);
+
+		if (!firstContext.hasErrors() && !secondContext.hasErrors()) {
+
+			if (!this.caseSensitive()) {
+				firstValue = firstValue.toLowerCase(Locale.ROOT);
+				secondValue = secondValue.toLowerCase(Locale.ROOT);
+			}
+
+			return comparator().compare(firstValue, secondValue);
+
 		}
 
-		return !context.hasAnyErrors()
-			&& comparator().compare(firstValue, secondValue);
+		else {
+			return false;
+		}
 
 	}
 
