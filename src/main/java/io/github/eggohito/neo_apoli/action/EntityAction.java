@@ -38,7 +38,7 @@ public interface EntityAction extends Action<EntityActionType<?>> {
 
 	@Override
 	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.CURRENT_ENTITY, ContextParameters.POSITION);
+		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
 	}
 
 }

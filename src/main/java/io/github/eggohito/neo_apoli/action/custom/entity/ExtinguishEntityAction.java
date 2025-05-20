@@ -21,7 +21,7 @@ public record ExtinguishEntityAction() implements EntityAction {
 
 	@Override
 	public void execute(Context context) {
-		context.requiredParameter(ContextParameters.CURRENT_ENTITY).extinguishWithSound();
+		context.requiredParameter(ContextParameters.THIS_ENTITY).extinguishWithSound();
 	}
 
 }

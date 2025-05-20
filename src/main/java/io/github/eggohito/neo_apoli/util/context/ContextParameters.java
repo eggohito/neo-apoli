@@ -10,11 +10,11 @@ import net.minecraft.util.math.Vec3d;
 
 public final class ContextParameters {
 
-	public static final ContextParameter<Entity> CURRENT_ENTITY = new ContextParameter<>(NeoApoli.id("current_entity"));
+	public static final ContextParameter<Entity> THIS_ENTITY = new ContextParameter<>(NeoApoli.id("this_entity"));
 	public static final ContextParameter<Vec3d> POSITION = new ContextParameter<>(NeoApoli.id("position"));
 
-	public static final ContextParameter<Entity> TARGET = new ContextParameter<>(NeoApoli.id("target"));
 	public static final ContextParameter<Entity> ACTOR = new ContextParameter<>(NeoApoli.id("actor"));
+	public static final ContextParameter<Entity> TARGET = new ContextParameter<>(NeoApoli.id("target"));
 
 	public static final ContextParameter<BlockState> BLOCK_STATE = new ContextParameter<>(NeoApoli.id("block_state"));
 	public static final ContextParameter<BlockEntity> BLOCK_ENTITY = new ContextParameter<>(NeoApoli.id("block_entity"));

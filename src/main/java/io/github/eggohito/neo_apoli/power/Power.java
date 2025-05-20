@@ -152,7 +152,7 @@ public abstract class Power implements ContextAware {
 	protected static ContextType createContextType(UnaryOperator<ContextType.Builder> operator) {
 		return operator.apply(new ContextType.Builder()
 			.require(ContextParameters.POSITION)
-			.require(ContextParameters.CURRENT_ENTITY)
+			.require(ContextParameters.THIS_ENTITY)
 			.allow(ContextParameters.ACTOR)
 			.allow(ContextParameters.TARGET)).build();
 	}
@@ -169,7 +169,7 @@ public abstract class Power implements ContextAware {
 
 		public Context.Builder createContextBuilder() {
 			return new Context.Builder(this.getPower().getContextType())
-				.add(ContextParameters.CURRENT_ENTITY, holder)
+				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.POSITION, holder.getPos());
 		}
 

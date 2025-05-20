@@ -12,9 +12,9 @@ import net.minecraft.util.function.ValueLists;
 
 public enum EntityParameter implements StringIdentifiable {
 
-	CURRENT_ENTITY("current_entity", ContextParameters.CURRENT_ENTITY),
-	TARGET("target", ContextParameters.TARGET),
-	ACTOR("actor", ContextParameters.ACTOR);
+	THIS("this", ContextParameters.THIS_ENTITY),
+	ACTOR("actor", ContextParameters.ACTOR),
+	TARGET("target", ContextParameters.TARGET);
 
 	public static final Codec<EntityParameter> CODEC = StringIdentifiable.createBasicCodec(EntityParameter::values);
 	public static final PacketCodec<ByteBuf, EntityParameter> PACKET_CODEC = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(EntityParameter::ordinal, EntityParameter.values(), ValueLists.OutOfBoundsHandling.WRAP), EntityParameter::ordinal);

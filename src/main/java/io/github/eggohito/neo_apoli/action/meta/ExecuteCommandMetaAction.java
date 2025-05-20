@@ -33,7 +33,7 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 			return;
 		}
 
-		Optional<Entity> entity = context.optionalParameter(ContextParameters.CURRENT_ENTITY);
+		Optional<Entity> entity = context.optionalParameter(ContextParameters.THIS_ENTITY);
 		MinecraftServer server = serverWorld.getServer();
 
 		CommandOutput commandOutput = NeoApoli.validateCommandOutput(entity
