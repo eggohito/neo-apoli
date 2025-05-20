@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public interface Category<A> {
 
-	Pattern NAME_PATTERN = Pattern.compile("[^ a-z0-9/._-]");
+	Pattern NAME_PATTERN = Pattern.compile("[^ a-z0-9/_]");
 
 	String directory();
 

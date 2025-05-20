@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.condition.category;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
@@ -16,6 +17,7 @@ import java.util.Locale;
 
 public final class ConditionCategories {
 
+	public static final ConditionCategory<BiEntityCondition> BIENTITY_CONDITION = register("Bi-entity condition", BiEntityCondition.CODEC, BiEntityCondition.PACKET_CODEC);
 	public static final ConditionCategory<BlockCondition> BLOCK_CONDITION = register("Block condition", BlockCondition.CODEC, BlockCondition.PACKET_CODEC);
 	public static final ConditionCategory<EntityCondition> ENTITY_CONDITION = register("Entity condition", EntityCondition.CODEC, EntityCondition.PACKET_CODEC);
 

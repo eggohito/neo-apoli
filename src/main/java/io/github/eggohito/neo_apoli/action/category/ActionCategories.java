@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.action.category;
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -16,6 +17,7 @@ import java.util.Locale;
 
 public final class ActionCategories {
 
+	public static final ActionCategory<BiEntityAction> BIENTITY_ACTION = register("Bi-entity action", BiEntityAction.CODEC, BiEntityAction.PACKET_CODEC);
 	public static final ActionCategory<BlockAction> BLOCK_ACTION = register("Block action", BlockAction.CODEC, BlockAction.PACKET_CODEC);
 	public static final ActionCategory<EntityAction> ENTITY_ACTION = register("Entity action", EntityAction.CODEC, EntityAction.PACKET_CODEC);
 

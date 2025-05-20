@@ -1,9 +1,11 @@
 package io.github.eggohito.neo_apoli.registry;
 
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
+import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
+import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -21,11 +23,14 @@ public class NeoApoliRegistries {
 	public static final Registry<ActionCategory<?>> ACTION_CATEGORY = create(NeoApoliRegistryKeys.ACTION_CATEGORY);
 	public static final Registry<ConditionCategory<?>> CONDITION_CATEGORY = create(NeoApoliRegistryKeys.CONDITION_CATEGORY);
 
-	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
-	public static final Registry<EntityActionType<?>> ENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
+	public static final Registry<BiEntityActionType<?>> BIENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.BIENTITY_ACTION_TYPE);
+	public static final Registry<BiEntityConditionType<?>> BIENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.BIENTITY_CONDITION_TYPE);
 
 	public static final Registry<BlockConditionType<?>> BLOCK_CONDITION_TYPE = create(NeoApoliRegistryKeys.BLOCK_CONDITION_TYPE);
 	public static final Registry<BlockActionType<?>> BLOCK_ACTION_TYPE = create(NeoApoliRegistryKeys.BLOCK_ACTION_TYPE);
+
+	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
+	public static final Registry<EntityActionType<?>> ENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
 
 	public static final Registry<NumberProviderType<?>> NUMBER_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 	public static final Registry<StringProviderType<?>> STRING_PROVIDER_TYPE = create(NeoApoliRegistryKeys.STRING_PROVIDER_TYPE);
