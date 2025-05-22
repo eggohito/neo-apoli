@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.meta.string.ConstantStringProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
@@ -18,7 +19,7 @@ public interface StringProvider extends ContextAware {
 	PacketCodec<RegistryByteBuf, StringProvider> PACKET_CODEC = StringProviderTypes.PACKET_CODEC.dispatch(StringProvider::getType, StringProviderType::packetCodec);
 
 	MapCodec<StringProvider> MAP_CODEC = StringProviderTypes.CODEC.dispatchMap(TYPE_KEY, StringProvider::getType, StringProviderType::mapCodec);
-	Codec<StringProvider> CODEC = Codec.lazyInitialized(() -> Codec.withAlternative(MAP_CODEC.codec(), ConstantStringProvider.INLINE_CODEC));
+	Codec<StringProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantStringProvider.INLINE_CODEC));
 
 	StringProviderType<?> getType();
 

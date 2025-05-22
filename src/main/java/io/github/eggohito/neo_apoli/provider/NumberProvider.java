@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.meta.number.ClampedNumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -21,7 +22,7 @@ public interface NumberProvider extends ContextAware {
 	PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
 
 	MapCodec<NumberProvider> MAP_CODEC = NumberProviderTypes.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, NumberProviderType::mapCodec);
-	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> Codec.withAlternative(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
+	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
 
 	NumberProviderType<?> getType();
 
