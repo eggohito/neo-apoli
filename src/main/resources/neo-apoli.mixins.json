@@ -19,7 +19,9 @@
 		"misc.TextCodecsMixin",
 		"misc.TextCodecsMixin$DispatchingCodecMixin",
 		"power.PowerMixin$Callbacks",
-		"power.custom.BlockBreakPowerMixin"
+		"power.custom.BlockBreakPowerMixin",
+		"power.custom.HarvestableBlockPowerMixin$BlockBreakingDeltaProxy",
+		"power.custom.HarvestableBlockPowerMixin$HarvestabilityProxy"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -18,7 +18,7 @@ public record MultiAlternativeCodec<T>(Codec<T> primary, Codec<? extends T>... a
 	public <I> DataResult<Pair<T, I>> decode(DynamicOps<I> ops, I input) {
 
 		StringBuilder errorBuilder = new StringBuilder();
-		DataResult<Pair<T, I>> primaryResult = primary().decode(ops, input).ifError(error -> errorBuilder.append("\n\t - ").append(error));
+		DataResult<Pair<T, I>> primaryResult = primary().decode(ops, input).ifError(error -> errorBuilder.append("\n\t - ").append(error.message()));
 
 		if (primaryResult.isSuccess()) {
 			return primaryResult;
@@ -27,7 +27,7 @@ public record MultiAlternativeCodec<T>(Codec<T> primary, Codec<? extends T>... a
 		for (var alternative : alternatives()) {
 
 			DataResult<Pair<T, I>> altResult = alternative.decode(ops, input)
-				.ifError(error -> errorBuilder.append("\n\t - ").append(error))
+				.ifError(error -> errorBuilder.append("\n\t - ").append(error.message()))
 				.map(pair -> pair.mapFirst(Function.identity()));
 
 			if (altResult.isSuccess()) {

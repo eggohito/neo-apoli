@@ -4,10 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.custom.CallbackPower;
-import io.github.eggohito.neo_apoli.power.custom.GiveItemsPower;
-import io.github.eggohito.neo_apoli.power.custom.OnBlockBreakPower;
-import io.github.eggohito.neo_apoli.power.custom.TickingPower;
+import io.github.eggohito.neo_apoli.power.custom.*;
 import io.github.eggohito.neo_apoli.power.internal.DummyPower;
 import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -32,6 +29,7 @@ public class PowerTypes {
 
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
+	public static final PowerType<HarvestableBlockPower> HARVESTABLE_BLOCK = registerInternal("harvestable_block", HarvestableBlockPower.CODEC, HarvestableBlockPower.PACKET_CODEC);
 	public static final PowerType<OnBlockBreakPower> ON_BLOCK_BREAK = registerInternal("on_block_break", OnBlockBreakPower.CODEC, OnBlockBreakPower.PACKET_CODEC);
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", TickingPower.CODEC, TickingPower.PACKET_CODEC);
 

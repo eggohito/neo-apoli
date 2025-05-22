@@ -28,6 +28,8 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.util.TriConsumer;
+import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
@@ -35,7 +37,10 @@ import org.ladysnake.cca.api.v3.entity.RespawnableComponent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
@@ -323,59 +328,53 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
+	public void forEach(TriConsumer<PowerReference, Power.Impl<?>, Set<Identifier>> consumer) {
 
-	public <T, C extends Collection<T>> C collectAndMap(Supplier<C> collectionConstructor, BiFunction<PowerReference, Power.Impl<?>, T> mapper, boolean includeSubPowers) {
-
-		C collected = collectionConstructor.get();
 		for (var implEntry : this.impls.entrySet()) {
 
 			PowerReference reference = implEntry.getKey();
-			Power.Impl<?> impl = implEntry.getValue();
+			Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
+
+			if (!sources.isEmpty()) {
+				consumer.accept(reference, implEntry.getValue(), sources);
+			}
+
+		}
+
+	}
+
+	public List<Power.Impl<?>> getPowers(boolean includeSubPowers) {
+
+		List<Power.Impl<?>> collected = new ObjectArrayList<>();
+		this.forEach((reference, impl, sources) -> {
 
 			if (includeSubPowers || !reference.isSubPower()) {
-				collected.add(mapper.apply(reference, impl));
+				collected.add(impl);
 			}
 
-		}
+		});
 
 		return collected;
 
 	}
 
-	public <T, C extends Collection<T>> C collectAndMapFromSource(Supplier<C> collectionConstructor, BiFunction<PowerReference, Power.Impl<?>, T> mapper, Identifier source) {
+	public List<Power.Impl<?>> getPowersFromSource(Identifier source) {
 
-		C collected = collectionConstructor.get();
-		for (var sourceEntry : this.sources.entrySet()) {
+		List<Power.Impl<?>> collected = new ObjectArrayList<>();
+		this.forEach((reference, impl, sources) -> {
 
-			PowerReference reference = sourceEntry.getKey();
-			Set<Identifier> sources = sourceEntry.getValue();
-
-			if (sources.contains(source) && this.impls.containsKey(reference)) {
-				collected.add(mapper.apply(reference, this.impls.get(reference)));
+			if (sources.contains(source)) {
+				collected.add(impl);
 			}
 
-		}
+		});
 
 		return collected;
 
-	}
-
-	public Set<Power.Impl<?>> getPowers(boolean includeSubPowers) {
-		return collectAndMap(ObjectOpenHashSet::new, (reference, impl) -> impl, includeSubPowers);
-	}
-
-	public Set<Power.Impl<?>> getPowersFromSource(Identifier source) {
-		return collectAndMapFromSource(ObjectOpenHashSet::new, (reference, impl) -> impl, source);
 	}
 
 	public Power.Impl<?> getPower(PowerReference reference) {
 		return Objects.requireNonNull(impls.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
-	}
-
-	public Set<Identifier> getSources(PowerReference reference) {
-		return sources.containsKey(reference)
-			? new ObjectOpenHashSet<>(sources.get(reference))
-			: ObjectOpenHashSet.of();
 	}
 
 	public boolean hasPower(PowerReference reference) {
@@ -386,6 +385,73 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	public boolean hasPower(PowerReference reference, Identifier source) {
 		return hasPower(reference)
 			&& sources.get(reference).contains(source);
+	}
+
+	public Set<Identifier> getSources(PowerReference reference) {
+		return sources.containsKey(reference)
+			? new ObjectOpenHashSet<>(sources.get(reference))
+			: ObjectOpenHashSet.of();
+	}
+
+	public Set<PowerReference> getReferences(Identifier source) {
+
+		Set<PowerReference> collected = new ObjectOpenHashSet<>();
+		this.forEach((reference, impl, sources) -> {
+
+			if (sources.contains(source)) {
+				collected.add(reference);
+			}
+
+		});
+
+		return collected;
+
+	}
+
+	public static <I extends Power.Impl<?>> boolean hasPowers(@NotNull Entity entity, Class<I> clazz, Predicate<I> condition) {
+
+		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+		for (var impl : powersComponent.impls.values()) {
+
+			if (clazz.isInstance(impl) && condition.test(clazz.cast(impl))) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
+	public static <I extends Power.Impl<?>> boolean hasPowers(@NotNull Entity entity, Class<I> clazz) {
+		return hasPowers(entity, clazz, i -> true);
+	}
+
+	public static <I extends Power.Impl<?>> List<I> getPowers(@NotNull Entity entity, Class<I> clazz, Predicate<I> condition) {
+
+		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+		List<I> collected = new ObjectArrayList<>();
+
+		for (var impl : powersComponent.impls.values()) {
+
+			if (clazz.isInstance(impl)) {
+
+				I casted = clazz.cast(impl);
+
+				if (condition.test(casted)) {
+					collected.add(casted);
+				}
+
+			}
+
+		}
+
+		return collected;
+
+	}
+
+	public static <I extends Power.Impl<?>> List<I> getPowers(@NotNull Entity entity, Class<I> clazz) {
+		return getPowers(entity, clazz, i -> true);
 	}
 
 	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {

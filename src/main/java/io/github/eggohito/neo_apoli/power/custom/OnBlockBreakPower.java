@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.block.NothingBlockAction;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.UnaryOperator;
 
 public class OnBlockBreakPower extends Power {
@@ -146,24 +145,19 @@ public class OnBlockBreakPower extends Power {
 
 	}
 
-	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
+	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
-		Set<Power.Impl<?>> impls = NeoApoliEntityComponents.POWERS.get(player).getPowers(true);
-		for (var impl : impls) {
+		for (var impl : PowersComponent.getPowers(player, Impl.class)) {
 
-			if (!(impl instanceof OnBlockBreakPower.Impl onBlockBreakPower)) {
-				continue;
-			}
-
-			Context entityContext = onBlockBreakPower.createContext(UnaryOperator.identity());
-			Context blockContext = onBlockBreakPower.createContext(builder -> builder
+			Context entityContext = impl.createContext(UnaryOperator.identity());
+			Context blockContext = impl.createContext(builder -> builder
 				.add(ContextParameters.POSITION, blockPos.toCenterPos())
-				.add(ContextParameters.BLOCK_STATE, blockState)
+				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
 				.addNullable(ContextParameters.DIRECTION, direction));
 
-			if (onBlockBreakPower.doesApply(entityContext, blockContext, harvested)) {
-				onBlockBreakPower.execute(entityContext, blockContext);
+			if (impl.doesApply(entityContext, blockContext, harvested)) {
+				impl.execute(entityContext, blockContext);
 			}
 
 		}

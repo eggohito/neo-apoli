@@ -7,7 +7,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -16,10 +15,12 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -29,14 +30,16 @@ import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -207,13 +210,9 @@ public class PowerCommand {
 
 				else {
 
-					Set<PowerReference> matchingReferences = new ObjectOpenHashSet<>();
-					for (PowerReference reference : powersComponent.collectAndMapFromSource(ObjectOpenHashSet::new, (reference, impl) -> reference, source)) {
-
-						if (powersComponent.revokePower(reference, source)) {
-							matchingReferences.add(reference);
-						}
-
+					Set<PowerReference> matchingReferences = powersComponent.getReferences(source);
+					for (var matchingReference : matchingReferences) {
+						powersComponent.revokePower(matchingReference, source);
 					}
 
 					if (!matchingReferences.isEmpty()) {
@@ -411,9 +410,9 @@ public class PowerCommand {
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 				Map<Identifier, Collection<PowerReference>> clearedPowers = new Object2ObjectOpenHashMap<>();
 
-				for (PowerReference reference : powersComponent.collectAndMap(ObjectOpenHashSet::new, (reference, impl) -> reference, false)) {
+				powersComponent.forEach((reference, impl, sources) -> {
 
-					for (Identifier source : powersComponent.getSources(reference)) {
+					for (var source : sources) {
 
 						if (powersComponent.revokePower(reference, source)) {
 							clearedPowers.computeIfAbsent(source, k -> new ObjectOpenHashSet<>()).add(reference);
@@ -421,7 +420,7 @@ public class PowerCommand {
 
 					}
 
-				}
+				});
 
 				if (!clearedPowers.isEmpty()) {
 					processedTargets.add(target);
@@ -490,28 +489,28 @@ public class PowerCommand {
 			ServerCommandSource commandSource = commandContext.getSource();
 
 			List<Text> powerTooltips = new ObjectArrayList<>();
-			for (var pair : powersComponent.collectAndMap(ObjectOpenHashSet::new, Pair::of, includeSubPowers)) {
+			powersComponent.forEach((reference, impl, sources) -> {
 
-				PowerReference reference = pair.getFirst();
-				Power power = pair.getSecond().getPower();
+				if (!includeSubPowers && reference.isSubPower()) {
+					return;
+				}
 
-				List<MutableText> sourceTooltips = powersComponent.getSources(reference)
-					.stream()
-					.map(Text::of)
-					.map(Text::copy)
-					.map(text -> text.formatted(Formatting.YELLOW))
-					.toList();
+				Power power = impl.getPower();
+				PowerType<?> powerType = power.getType();
+
+				List<Text> sourceTooltips = new ObjectArrayList<>();
+				sources.forEach(id -> sourceTooltips.add(Text.literal(id.toString()).formatted()));
 
 				Text idTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.id", Text.literal("\"" + reference.toString() + "\"").formatted(Formatting.GREEN));
-				Text sourcesTooltip = Text.translatable("commands.neo-apoli.power.list.info.sources", Texts.join(sourceTooltips, Text.of(", ")));
-				Text typeTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.type", Text.literal("\"" + Objects.requireNonNull(NeoApoliRegistries.POWER_TYPE.getId(power.getType())) + "\"").formatted(Formatting.GOLD));
+				Text joinedSourcesTooltip = Text.translatable("commands.neo-apoli.power.list.info.sources", Texts.join(sourceTooltips, Text.of(", ")));
+				Text typeTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.type", Text.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, powerType) + "\"").formatted(Formatting.GOLD));
 
-				Text hoverTooltip = Text.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, sourcesTooltip);
+				Text hoverTooltip = Text.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, joinedSourcesTooltip);
 				HoverEvent hoverEvent = new HoverEvent.ShowText(hoverTooltip);
 
 				powerTooltips.add(power.getName().copy().styled(style -> style.withHoverEvent(hoverEvent)));
 
-			}
+			});
 
 			if (powerTooltips.isEmpty()) {
 				commandSource.sendError(Text.translatable("commands.neo-apoli.power.list.fail", target.getName()));
