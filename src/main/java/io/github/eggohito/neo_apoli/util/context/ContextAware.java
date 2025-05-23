@@ -129,8 +129,8 @@ public interface ContextAware {
 
 		}
 
-		public RegistryWrapper.WrapperLookup getWrapperLookup() {
-			return wrapperLookup.orElseThrow(() -> new UnsupportedOperationException("Registry wrapper lookup is not present!"));
+		public Optional<RegistryWrapper.WrapperLookup> getWrapperLookup() {
+			return wrapperLookup;
 		}
 
 		public boolean hasWrapperLookup() {
