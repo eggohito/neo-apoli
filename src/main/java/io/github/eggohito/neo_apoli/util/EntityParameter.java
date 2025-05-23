@@ -20,9 +20,9 @@ public enum EntityParameter implements StringIdentifiable {
 	public static final PacketCodec<ByteBuf, EntityParameter> PACKET_CODEC = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(EntityParameter::ordinal, EntityParameter.values(), ValueLists.OutOfBoundsHandling.WRAP), EntityParameter::ordinal);
 
 	private final String name;
-	private final ContextParameter<? extends Entity> parameter;
+	private final ContextParameter<Entity> parameter;
 	
-	EntityParameter(String name, ContextParameter<? extends Entity> parameter) {
+	EntityParameter(String name, ContextParameter<Entity> parameter) {
 		this.name = name;
 		this.parameter = parameter;
 	}
@@ -32,7 +32,7 @@ public enum EntityParameter implements StringIdentifiable {
 		return name;
 	}
 
-	public ContextParameter<? extends Entity> getParameter() {
+	public ContextParameter<Entity> getParameter() {
 		return parameter;
 	}
 

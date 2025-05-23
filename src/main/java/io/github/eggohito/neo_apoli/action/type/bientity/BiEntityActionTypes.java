@@ -5,6 +5,8 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.custom.bientity.DamageBiEntityAction;
+import io.github.eggohito.neo_apoli.action.custom.bientity.ExecuteEntityActionBiEntityAction;
+import io.github.eggohito.neo_apoli.action.custom.bientity.SwapEntityContextBiEntityAction;
 import io.github.eggohito.neo_apoli.action.custom.bientity.TameBiEntityAction;
 import io.github.eggohito.neo_apoli.action.meta.bientity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -34,6 +36,8 @@ public final class BiEntityActionTypes {
 	public static final BiEntityActionType<SideBiEntityAction> SIDE = registerInternal("side", SideBiEntityAction.CODEC, SideBiEntityAction.PACKET_CODEC);
 
 	public static final BiEntityActionType<DamageBiEntityAction> DAMAGE = registerInternal("damage", DamageBiEntityAction.CODEC, DamageBiEntityAction.PACKET_CODEC);
+	public static final BiEntityActionType<SwapEntityContextBiEntityAction> SWAP_ENTITY_CONTEXT = registerInternal("swap_entity_context", SwapEntityContextBiEntityAction.CODEC, SwapEntityContextBiEntityAction.PACKET_CODEC);
+	public static final BiEntityActionType<ExecuteEntityActionBiEntityAction> EXECUTE_ENTITY_ACTION = registerInternal("execute_entity_action", ExecuteEntityActionBiEntityAction.CODEC, ExecuteEntityActionBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<TameBiEntityAction> TAME = registerInternal("tame", TameBiEntityAction.CODEC, TameBiEntityAction.PACKET_CODEC);
 
 	public static void registerAll() {
