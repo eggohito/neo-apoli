@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.duck.BlockBreakingContextAccess;
 import io.github.eggohito.neo_apoli.power.custom.HarvestableBlockPower;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
@@ -31,7 +30,7 @@ public abstract class HarvestableBlockPowerMixin {
 	}
 
 	@Mixin(ServerPlayerInteractionManager.class)
-	public abstract static class HarvestabilityProxy implements BlockBreakingContextAccess {
+	public abstract static class HarvestabilityProxy {
 
 		@Shadow
 		protected ServerWorld world;
