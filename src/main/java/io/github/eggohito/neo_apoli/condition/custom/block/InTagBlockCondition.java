@@ -6,14 +6,12 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.block.Block;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.Optional;
 
@@ -35,10 +33,7 @@ public record InTagBlockCondition(TagKey<Block> tag) implements BlockCondition {
 
 	@Override
 	public boolean test(Context context) {
-		BlockPos blockPos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
-		return context.optionalParameter(ContextParameters.BLOCK_STATE)
-			.orElseGet(() -> context.getWorld().getBlockState(blockPos))
-			.isIn(this.tag());
+		return this.getBlockState(context).isIn(this.tag());
 	}
 
 	@Override

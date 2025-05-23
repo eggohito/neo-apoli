@@ -7,10 +7,13 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Set;
 
@@ -35,6 +38,11 @@ public interface BlockCondition extends Condition<BlockConditionType<?>> {
 	@Override
 	default Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.POSITION);
+	}
+
+	default BlockState getBlockState(Context context) {
+		BlockPos blockPos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
+		return context.optionalParameter(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(blockPos));
 	}
 
 }
