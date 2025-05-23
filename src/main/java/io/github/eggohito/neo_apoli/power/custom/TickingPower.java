@@ -6,22 +6,20 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.context.PowerContextTypes;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.UnaryOperator;
-
 public class TickingPower extends Power {
-
-	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	public static final MapCodec<TickingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonAndConditionFields(instance)
 		.and(EntityAction.CODEC.optionalFieldOf("tick_action", new NothingEntityAction()).forGetter(TickingPower::getTickAction))
@@ -65,17 +63,17 @@ public class TickingPower extends Power {
 	}
 
 	@Override
+	public ContextType getContextType() {
+		return PowerContextTypes.GENERIC;
+	}
+
+	@Override
 	public Impl createImpl(Entity holder) {
 		return new Impl(holder);
 	}
 
 	@Override
-	public ContextType getContextType() {
-		return CONTEXT_TYPE;
-	}
-
-	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ContextAware.ErrorReporter reporter) {
 		super.validate(reporter);
 		getTickAction().validate(reporter.makeChild("tick_action"));
 		getFirstActiveTickAction().validate(reporter.makeChild("first_active_tick_action"));
@@ -113,7 +111,7 @@ public class TickingPower extends Power {
 		@Override
 		public void onTick() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 			int interval = this.processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE, context);
 
 			if (context.hasAnyErrors()) {

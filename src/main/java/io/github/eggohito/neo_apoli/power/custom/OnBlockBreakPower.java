@@ -13,9 +13,11 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.context.PowerContextTypes;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BlockState;
@@ -31,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public class OnBlockBreakPower extends Power {
 
@@ -60,11 +61,6 @@ public class OnBlockBreakPower extends Power {
 		)
 	);
 
-	public static final ContextType CONTEXT_TYPE = createContextType(builder -> builder
-		.allow(ContextParameters.BLOCK_STATE)
-		.allow(ContextParameters.BLOCK_ENTITY)
-		.allow(ContextParameters.DIRECTION));
-
 	private final BlockAction blockAction;
 	private final BlockCondition blockCondition;
 
@@ -88,17 +84,17 @@ public class OnBlockBreakPower extends Power {
 	}
 
 	@Override
+	public ContextType getContextType() {
+		return PowerContextTypes.BLOCK;
+	}
+
+	@Override
 	public Impl createImpl(Entity holder) {
 		return new Impl(holder);
 	}
 
 	@Override
-	public ContextType getContextType() {
-		return CONTEXT_TYPE;
-	}
-
-	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ContextAware.ErrorReporter reporter) {
 		super.validate(reporter);
 		getBlockAction().validate(reporter.makeChild("block_action"));
 		getBlockCondition().validate(reporter.makeChild("block_condition"));
@@ -149,12 +145,18 @@ public class OnBlockBreakPower extends Power {
 
 		for (var impl : PowersComponent.getPowers(player, Impl.class)) {
 
-			Context entityContext = impl.createContext(UnaryOperator.identity());
-			Context blockContext = impl.createContext(builder -> builder
-				.add(ContextParameters.POSITION, blockPos.toCenterPos())
+			Context.Builder builder = new Context.Builder(impl.getContextType())
+				.add(ContextParameters.THIS_ENTITY, player)
 				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-				.addNullable(ContextParameters.DIRECTION, direction));
+				.addNullable(ContextParameters.DIRECTION, direction);
+
+			Context entityContext = builder
+				.add(ContextParameters.POSITION, player.getPos())
+				.build(player.getWorld());
+			Context blockContext = builder
+				.add(ContextParameters.POSITION, blockPos.toCenterPos())
+				.build(player.getWorld());
 
 			if (impl.doesApply(entityContext, blockContext, harvested)) {
 				impl.execute(entityContext, blockContext);

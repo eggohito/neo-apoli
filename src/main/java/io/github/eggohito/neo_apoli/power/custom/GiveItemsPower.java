@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.context.PowerContextTypes;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
@@ -20,11 +21,8 @@ import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public class GiveItemsPower extends Power {
-
-	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
 		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
@@ -61,13 +59,13 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder);
+	public ContextType getContextType() {
+		return PowerContextTypes.GENERIC;
 	}
 
 	@Override
-	public ContextType getContextType() {
-		return CONTEXT_TYPE;
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder);
 	}
 
 	public List<IndexedStack> getIndexedStacks() {

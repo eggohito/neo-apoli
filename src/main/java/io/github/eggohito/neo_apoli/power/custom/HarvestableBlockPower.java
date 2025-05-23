@@ -8,10 +8,12 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.context.PowerContextTypes;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -47,10 +49,6 @@ public class HarvestableBlockPower extends Power implements Prioritized {
 		)
 	);
 
-	public static final ContextType CONTEXT_TYPE = createContextType(builder -> builder
-		.require(ContextParameters.BLOCK_STATE)
-		.allow(ContextParameters.BLOCK_ENTITY));
-
 	private final BlockCondition blockCondition;
 	private final boolean allow;
 	private final int priority;
@@ -68,17 +66,17 @@ public class HarvestableBlockPower extends Power implements Prioritized {
 	}
 
 	@Override
+	public ContextType getContextType() {
+		return PowerContextTypes.BLOCK;
+	}
+
+	@Override
 	public Impl createImpl(Entity holder) {
 		return new Impl(holder);
 	}
 
 	@Override
-	public ContextType getContextType() {
-		return CONTEXT_TYPE;
-	}
-
-	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ContextAware.ErrorReporter reporter) {
 		super.validate(reporter);
 		getBlockCondition().validate(reporter.makeChild("block_condition"));
 	}
@@ -117,12 +115,20 @@ public class HarvestableBlockPower extends Power implements Prioritized {
 
 		public boolean doesApply(BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
 
-			Context context = this.createContext(builder -> builder
+			Context.Builder builder = new Context.Builder(this.getContextType())
+				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.BLOCK_STATE, state)
-				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity));
+				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity);
 
-			return this.isActive(context)
-				&& this.testAndReport("block_condition", getBlockCondition(), context.copy(builder -> builder.add(ContextParameters.POSITION, pos.toCenterPos())));
+			Context entityContext = builder
+				.add(ContextParameters.POSITION, holder.getPos())
+				.build(holder.getWorld());
+			Context blockContext = builder
+				.add(ContextParameters.POSITION, pos.toCenterPos())
+				.build(holder.getWorld());
+
+			return this.isActive(entityContext)
+				&& this.testAndReport("block_condition", getBlockCondition(), blockContext);
 
 		}
 

@@ -13,10 +13,8 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
@@ -36,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.function.*;
 
-public abstract class Power implements ContextAware {
+public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
 	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
@@ -56,24 +54,15 @@ public abstract class Power implements ContextAware {
 		this(properties, new ConstantEntityCondition(true));
 	}
 
-	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ContextAware.ErrorReporter reporter) {
 		getActiveCondition().validate(reporter.makeChild("active_condition"));
-	}
-
-	@Override
-	public String asDisplayString() {
-		return PowerManager.getReferenceAsResult(this)
-			.result()
-			.map(PowerReference::asDisplayString)
-			.orElseGet(() -> "Power (with type \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, this.getType()) + "\")");
 	}
 
 	public abstract PowerType<?> getType();
 
-	public abstract Impl<?> createImpl(Entity holder);
-
 	public abstract ContextType getContextType();
+
+	public abstract Impl<?> createImpl(Entity holder);
 
 	public final Properties getProperties() {
 		return properties;
@@ -149,14 +138,6 @@ public abstract class Power implements ContextAware {
 		);
 	}
 
-	protected static ContextType createContextType(UnaryOperator<ContextType.Builder> operator) {
-		return operator.apply(new ContextType.Builder()
-			.require(ContextParameters.POSITION)
-			.require(ContextParameters.THIS_ENTITY)
-			.allow(ContextParameters.ACTOR)
-			.allow(ContextParameters.TARGET)).build();
-	}
-
 	public abstract static class Impl<P extends Power> {
 
 		protected final Entity holder;
@@ -167,14 +148,11 @@ public abstract class Power implements ContextAware {
 			this.power = power;
 		}
 
-		public Context.Builder createContextBuilder() {
-			return new Context.Builder(this.getPower().getContextType())
+		protected Context createGenericContext() {
+			return new Context.Builder(this.getContextType())
 				.add(ContextParameters.THIS_ENTITY, holder)
-				.add(ContextParameters.POSITION, holder.getPos());
-		}
-
-		public Context createContext(UnaryOperator<Context.Builder> builder) {
-			return builder.apply(this.createContextBuilder()).build(holder.getWorld());
+				.add(ContextParameters.POSITION, holder.getPos())
+				.build(holder.getWorld());
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -214,7 +192,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			executeAndReport(path, action, this.createContext(builder));
+			executeAndReport(path, action, builder.apply(new Context.Builder(this.getContextType())).build(holder.getWorld()));
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
@@ -222,7 +200,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return testAndReport(path, condition, this.createContext(builder));
+			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getContextType())).build(holder.getWorld()));
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {

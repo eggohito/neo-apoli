@@ -6,20 +6,18 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.context.PowerContextTypes;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.UnaryOperator;
-
 public class CallbackPower extends Power {
-
-	public static final ContextType CONTEXT_TYPE = createContextType(UnaryOperator.identity());
 
 	public static final MapCodec<CallbackPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonAndConditionFields(instance)
 		.and(EntityAction.CODEC.optionalFieldOf("on_added_action", new NothingEntityAction()).forGetter(CallbackPower::getAddedAction))
@@ -75,11 +73,11 @@ public class CallbackPower extends Power {
 
 	@Override
 	public ContextType getContextType() {
-		return CONTEXT_TYPE;
+		return PowerContextTypes.GENERIC;
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ContextAware.ErrorReporter reporter) {
 		super.validate(reporter);
 		getAddedAction().validate(reporter.makeChild("on_added_action"));
 		getGrantedAction().validate(reporter.makeChild("on_granted_action"));
@@ -117,7 +115,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onAdded() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				executeAndReport("on_added_action", power.getAddedAction(), context);
@@ -128,7 +126,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onGranted() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				executeAndReport("on_granted_action", power.getGrantedAction(), context);
@@ -139,7 +137,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRemoved() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				executeAndReport("on_removed_action", power.getRemovedAction(), context);
@@ -150,7 +148,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRevoked() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				executeAndReport("on_revoked_action", power.getRevokedAction(), context);
@@ -161,7 +159,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRespawn() {
 
-			Context context = this.createContext(UnaryOperator.identity());
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				executeAndReport("on_respawn_action", power.getRespawnAction(), context);
