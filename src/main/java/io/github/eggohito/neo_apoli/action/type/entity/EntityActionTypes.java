@@ -33,6 +33,7 @@ public final class EntityActionTypes {
 	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<SideEntityAction> SIDE = registerInternal("side", SideEntityAction.CODEC, SideEntityAction.PACKET_CODEC);
 
+	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.CODEC, AddExperienceEntityAction.PACKET_CODEC);
 	public static final EntityActionType<DamageEntityAction> DAMAGE = registerInternal("damage", DamageEntityAction.CODEC, DamageEntityAction.PACKET_CODEC);
 	public static final EntityActionType<EmitGameEventEntityAction> EMIT_GAME_EVENT = registerInternal("emit_game_event", EmitGameEventEntityAction.CODEC, EmitGameEventEntityAction.PACKET_CODEC);
 	public static final EntityActionType<ExtinguishEntityAction> EXTINGUISH = registerInternal("extinguish", ExtinguishEntityAction.CODEC, ExtinguishEntityAction.PACKET_CODEC);
@@ -45,6 +46,8 @@ public final class EntityActionTypes {
 		ALIASES.addPathAlias("chance", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_ACTION_TYPE, RANDOM_CHANCE));
 		ALIASES.addPathAlias("choice", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_ACTION_TYPE, RANDOM_CHOICE));
 		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_ACTION_TYPE, SEQUENCE));
+
+		ALIASES.addPathAlias("add_xp", RegistryUtil.getIdPath(NeoApoliRegistries.ENTITY_ACTION_TYPE, ADD_EXPERIENCE));
 
 	}
 
