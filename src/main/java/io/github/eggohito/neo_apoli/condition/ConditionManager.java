@@ -80,7 +80,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 
 		for (ConditionCategory<?> category : NeoApoliRegistries.CONDITION_CATEGORY) {
 
-			Set<String> directories = this.getDirectories();
+			Set<String> directories = this.getDirectories(category);
 
 			for (String directory : directories) {
 
@@ -169,6 +169,14 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 
 		}));
 
+		profiler.pop();
+
+		StringBuilder messageBuilder = new StringBuilder("Finished parsing conditions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " condition(s) in total;");
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> messageBuilder.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
+
+		LOGGER.info(messageBuilder.toString());
+		endLoading();
+
 	}
 
 	@Override
@@ -240,15 +248,15 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	@SuppressWarnings("unchecked")
 	public static <C extends Condition<?>> DataResult<ConditionEntry<C>> getEntryAsResult(ConditionCategory<C> category, Identifier id) {
 
-		if (BY_CATEGORY_AND_ID.containsKey(category)) {
-			ConditionEntry<?> entry = BY_CATEGORY_AND_ID.get(category).get(id);
-			return entry != null
-				? DataResult.success((ConditionEntry<C>) entry)
-				: DataResult.error(() -> category + " with ID \"" + id + "\" does not exist!");
+		Map<Identifier, ConditionEntry<?>> entries = BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>());
+		ConditionEntry<?> entry = entries.get(id);
+
+		if (entry != null) {
+			return DataResult.success((ConditionEntry<C>) entry);
 		}
 
 		else {
-			return DataResult.error(() -> "No " + StringUtils.uncapitalize(category.toString()) + "s are registered!");
+			return DataResult.error(() -> category + " with ID \"" + id + "\" does not exist!");
 		}
 
 	}

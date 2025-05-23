@@ -1,10 +1,8 @@
 package io.github.eggohito.neo_apoli.condition;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
-import io.github.eggohito.neo_apoli.condition.meta.bientity.ReferenceBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -12,14 +10,13 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
 public interface BiEntityCondition extends Condition<BiEntityConditionType<?>> {
 
-	Codec<BiEntityCondition> CODEC = Codec.recursive(BiEntityCondition.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityConditionTypes.CODEC.dispatch(TYPE_KEY, BiEntityCondition::getType, BiEntityConditionType::mapCodec), Identifier.CODEC.xmap(ReferenceBiEntityCondition::new, ReferenceBiEntityCondition::value)));
+	Codec<BiEntityCondition> CODEC = BiEntityConditionTypes.CODEC.dispatch(TYPE_KEY, BiEntityCondition::getType, BiEntityConditionType::mapCodec);
 	PacketCodec<RegistryByteBuf, BiEntityCondition> PACKET_CODEC = BiEntityConditionTypes.PACKET_CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::packetCodec);
 
 	@Override

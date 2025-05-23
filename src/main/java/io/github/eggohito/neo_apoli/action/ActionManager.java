@@ -174,7 +174,10 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 
 		profiler.pop();
 
-		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s) in total", BY_CATEGORY_AND_ID.size());
+		StringBuilder messageBuilder = new StringBuilder("Finished parsing actions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " action(s) in total;");
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> messageBuilder.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
+
+		LOGGER.info(messageBuilder.toString());
 		endLoading();
 
 	}
@@ -246,15 +249,15 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 	@SuppressWarnings("unchecked")
 	public static <A extends Action<?>> DataResult<ActionEntry<A>> getEntryAsResult(ActionCategory<A> category, Identifier id) {
 
-		if (BY_CATEGORY_AND_ID.containsKey(category)) {
-			ActionEntry<?> entry = BY_CATEGORY_AND_ID.get(category).get(id);
-			return entry != null
-				? DataResult.success((ActionEntry<A>) entry)
-				: DataResult.error(() -> category.toString() + " with ID \"" + id + "\" does not exist!");
+		Map<Identifier, ActionEntry<?>> entries = BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>());
+		ActionEntry<?> entry = entries.get(id);
+
+		if (entry != null) {
+			return DataResult.success((ActionEntry<A>) entry);
 		}
 
 		else {
-			return DataResult.error(() -> "No " + StringUtils.uncapitalize(category.toString()) + "s are registered!");
+			return DataResult.error(() -> category + " with ID \"" + id + "\" does not exist!");
 		}
 
 	}

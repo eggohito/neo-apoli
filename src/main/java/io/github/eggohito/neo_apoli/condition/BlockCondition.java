@@ -1,10 +1,8 @@
 package io.github.eggohito.neo_apoli.condition;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
-import io.github.eggohito.neo_apoli.condition.meta.block.ReferenceBlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -12,14 +10,13 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
 public interface BlockCondition extends Condition<BlockConditionType<?>> {
 
-	Codec<BlockCondition> CODEC = new MultiAlternativeCodec<>(BlockConditionTypes.CODEC.dispatch(TYPE_KEY, BlockCondition::getType, BlockConditionType::mapCodec), Identifier.CODEC.xmap(ReferenceBlockCondition::new, ReferenceBlockCondition::value));
+	Codec<BlockCondition> CODEC = BlockConditionTypes.CODEC.dispatch(TYPE_KEY, BlockCondition::getType, BlockConditionType::mapCodec);
 	PacketCodec<RegistryByteBuf, BlockCondition> PACKET_CODEC = BlockConditionTypes.PACKET_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
 
 	@Override
