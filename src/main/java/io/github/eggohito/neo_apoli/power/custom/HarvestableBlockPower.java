@@ -78,6 +78,12 @@ public class HarvestableBlockPower extends Power implements Prioritized {
 	}
 
 	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		getBlockCondition().validate(reporter.makeChild("block_condition"));
+	}
+
+	@Override
 	public int getPriority() {
 		return priority;
 	}

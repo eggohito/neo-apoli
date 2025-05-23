@@ -74,6 +74,15 @@ public class TickingPower extends Power {
 		return CONTEXT_TYPE;
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		getTickAction().validate(reporter.makeChild("tick_action"));
+		getFirstActiveTickAction().validate(reporter.makeChild("first_active_tick_action"));
+		getFirstInactiveTickAction().validate(reporter.makeChild("first_inactive_tick_action"));
+		getInterval().validate(reporter.makeChild("interval"));
+	}
+
 	public EntityAction getTickAction() {
 		return tickAction;
 	}
