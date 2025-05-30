@@ -25,16 +25,13 @@ public interface EntityCondition extends Condition<EntityConditionType<?>> {
 	}
 
 	@Override
-	default String asDisplayString() {
-		return ConditionManager.getIdAsResult(this)
-			.result()
-			.map(id -> "Entity condition with ID \"" + id + "\"")
-			.orElseGet(() -> "Entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"");
+	default Set<ContextParameter<?>> getAllowedParameters() {
+		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
+	default String asDisplayString() {
+		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

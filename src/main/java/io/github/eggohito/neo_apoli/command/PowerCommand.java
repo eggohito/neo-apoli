@@ -1,13 +1,11 @@
 package io.github.eggohito.neo_apoli.command;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.argument.PowerReferenceArgumentType;
@@ -18,7 +16,6 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
-import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -546,14 +543,12 @@ public class PowerCommand {
 		static int execute(CommandContext<ServerCommandSource> context, int indent) throws CommandSyntaxException {
 
 			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(context, "power");
-			PowerEntry<?> entry = PowerManager.getEntry(reference);
+			Power power = PowerManager.get(reference);
 
 			ServerCommandSource commandSource = context.getSource();
 			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
-			return PowerEntry.CODEC.encodeStart(jsonOps, entry)
-				.flatMap(jsonElement -> jsonElement instanceof JsonObject jsonObject ? DataResult.success(jsonObject) : DataResult.error(() -> "Not a JSON object: " + jsonElement))
-				.map(jsonObject -> jsonObject.get(PowerEntry.VALUE_KEY))
+			return Power.CODEC.encodeStart(jsonOps, power)
 				.ifSuccess(jsonElement -> commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false))
 				.ifError(error -> commandSource.sendError(Text.literal(error.message())))
 				.mapOrElse(jsonElement -> 1, error -> 0);

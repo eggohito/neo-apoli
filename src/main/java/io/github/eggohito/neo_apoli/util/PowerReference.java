@@ -13,33 +13,22 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.Util;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
-public sealed interface PowerReference extends ContextKey permits PowerReference.Power, PowerReference.SubPower {
+public sealed interface PowerReference extends ContextKey, StringDisplayable permits PowerReference.Power, PowerReference.SubPower {
 
 	Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::ofValidated, PowerReference::toString);
 	PacketCodec<ByteBuf, PowerReference> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerReference::of, PowerReference::toString);
 
-	default String asDisplayString(boolean capitalized) {
-		String displayString = this.asDisplayString();
-		return capitalized
-			? StringUtils.capitalize(displayString)
-			: StringUtils.uncapitalize(asDisplayString());
-	}
-
-	String asDisplayString();
-
 	String createTranslationKey();
-
 	boolean isSubPower();
 
-	static PowerReference ofPower(Identifier id) {
+	static PowerReference.Power ofPower(Identifier id) {
 		return new Power(id);
 	}
 
-	static PowerReference ofSubPower(Identifier parentId, String value) {
+	static PowerReference.SubPower ofSubPower(Identifier parentId, String value) {
 		return new SubPower(parentId, value);
 	}
 

@@ -112,7 +112,7 @@ public class TickingPower extends Power {
 		public void onTick() {
 
 			Context context = this.createGenericContext();
-			int interval = this.processAndReport("interval", getInterval(), NumberProvider::intValue, () -> Integer.MIN_VALUE, context);
+			int interval = this.processAndReport(context, "interval", ctx -> getInterval().intValue(ctx), (reporter, path) -> "Couldn't fully process number provider at path \"" + path + "\" due to error(s) " + reporter.getErrorsAsString());
 
 			if (context.hasAnyErrors()) {
 

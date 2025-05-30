@@ -28,16 +28,13 @@ public interface BlockCondition extends Condition<BlockConditionType<?>> {
 	}
 
 	@Override
-	default String asDisplayString() {
-		return ConditionManager.getIdAsResult(this)
-			.result()
-			.map(id -> "Block condition with ID \"" + id + "\"")
-			.orElseGet(() -> "Block condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_CONDITION_TYPE, this.getType()) + "\"");
+	default Set<ContextParameter<?>> getAllowedParameters() {
+		return Set.of(ContextParameters.POSITION);
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.POSITION);
+	default String asDisplayString() {
+		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 	default BlockState getBlockState(Context context) {

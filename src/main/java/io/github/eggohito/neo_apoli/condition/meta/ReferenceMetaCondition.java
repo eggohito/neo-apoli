@@ -30,7 +30,7 @@ public interface ReferenceMetaCondition<C extends Condition<T>, T extends Condit
 				if (context.markActive(condition)) {
 
 					try {
-						return condition.test(context);
+						return condition.test(context.makeChild("{value = \"" + value + "\"}", value));
 					}
 
 					finally {
@@ -40,7 +40,7 @@ public interface ReferenceMetaCondition<C extends Condition<T>, T extends Condit
 				}
 
 				else {
-					context.getReporter().report(category + " \"" + value + "\" was recursively referenced!");
+					context.makeChild("{value = \"" + value + "\"}", value()).getReporter().report(category + " \"" + value + "\" was recursively referenced!");
 					return false;
 				}
 

@@ -25,16 +25,13 @@ public interface BiEntityCondition extends Condition<BiEntityConditionType<?>> {
 	}
 
 	@Override
-	default String asDisplayString() {
-		return ConditionManager.getIdAsResult(this)
-			.result()
-			.map(id -> "Bi-entity condition with ID \"" + id + "\"")
-			.orElseGet(() -> "Bi-entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, this.getType()) + "\"");
+	default Set<ContextParameter<?>> getAllowedParameters() {
+		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
+	default String asDisplayString() {
+		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

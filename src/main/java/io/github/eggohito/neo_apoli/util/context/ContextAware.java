@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.util.context;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
+import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextType;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -23,15 +23,6 @@ public interface ContextAware {
 
 	default void validate(ErrorReporter reporter) {
 		reporter.validate(this);
-	}
-
-	String asDisplayString();
-
-	default String asDisplayString(boolean capitalized) {
-		String displayString = this.asDisplayString();
-		return capitalized
-			? StringUtils.capitalize(displayString)
-			: StringUtils.uncapitalize(displayString);
 	}
 
 	class ErrorReporter implements net.minecraft.util.ErrorReporter {
@@ -194,7 +185,7 @@ public interface ContextAware {
 			Set<ContextParameter<?>> missingParameters = Sets.difference(contextAware.getAllowedParameters(), contextType.getAllowed());
 
 			if (!missingParameters.isEmpty()) {
-				this.report("Parameters [" + missingParameters.stream().map(ContextParameter::getId).map(Identifier::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + contextAware.asDisplayString(false) + "!");
+				this.report("Parameters [" + missingParameters.stream().map(ContextParameter::getId).map(Identifier::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + (contextAware instanceof StringDisplayable stringDisplayable ? stringDisplayable.asDisplayString(false) : contextAware) + "!");
 			}
 
 		}

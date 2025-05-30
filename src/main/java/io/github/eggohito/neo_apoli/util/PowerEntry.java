@@ -9,6 +9,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public record PowerEntry<P extends Power>(PowerReference reference, P value) {
@@ -31,7 +32,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 			return REFERENCE_MAP_CODEC.decode(ops, mapInput)
 				.flatMap(reference -> ops.getMap(mapInput.get(VALUE_KEY))
 					.flatMap(input -> POWER_TYPE_MAP_CODEC.decode(ops, input)
-						.flatMap(type -> PowerParsingEvents.DECODING.invoker().decode(reference, type, ops, input)
+						.flatMap(type -> Objects.requireNonNullElseGet(PowerParsingEvents.DECODING.invoker().decode(Optional.of(reference), type, ops, input), () -> type.mapCodec().decode(ops, input))
 							.map(power -> new PowerEntry<>(reference, power)))));
 		}
 
@@ -39,7 +40,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 		public <T> RecordBuilder<T> encode(PowerEntry<?> entry, DynamicOps<T> ops, RecordBuilder<T> prefix) {
 
 			RecordBuilder<T> powerBuilder = Power.MAP_CODEC.encode(entry.value(), ops, ops.mapBuilder());
-			PowerParsingEvents.ENCODING.invoker().encode(entry, ops, powerBuilder);
+			PowerParsingEvents.ENCODING.invoker().encode(Optional.of(entry.reference()), entry.value(), ops, powerBuilder);
 
 			return prefix
 				.add(REFERENCE_KEY, PowerReference.CODEC.encodeStart(ops, entry.reference()))

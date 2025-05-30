@@ -1,9 +1,7 @@
 package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.datafixers.Products;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -11,6 +9,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
+import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -28,16 +27,51 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
 import net.minecraft.util.context.ContextType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+
+	public static final MapCodec<Power> MAP_CODEC = new MapCodec<>() {
+
+		@Override
+		public <I> Stream<I> keys(DynamicOps<I> ops) {
+			return Stream.of(TYPE_KEY).map(ops::createString);
+		}
+
+		@Override
+		public <I> DataResult<Power> decode(DynamicOps<I> ops, MapLike<I> input) {
+			return PowerTypes.CODEC.fieldOf(TYPE_KEY)
+				.decode(ops, input)
+				.flatMap(type -> Objects.requireNonNullElseGet(PowerParsingEvents.DECODING.invoker().decode(Optional.empty(), type, ops, input), () -> type.mapCodec().decode(ops, input).map(Function.identity())));
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <I> RecordBuilder<I> encode(Power input, DynamicOps<I> ops, RecordBuilder<I> prefix) {
+
+			PowerType<Power> powerType = (PowerType<Power>) input.getType();
+			MapCodec<Power> mapCodec = powerType.mapCodec();
+
+			mapCodec.encode(input, ops, prefix);
+			PowerParsingEvents.ENCODING.invoker().encode(PowerManager.getReferenceAsResult(input).result(), input, ops, prefix);
+
+			return prefix.add(TYPE_KEY, PowerTypes.CODEC.encodeStart(ops, powerType));
+
+		}
+
+	};
 
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
@@ -175,19 +209,16 @@ public abstract class Power {
 			return testAndReport("active_condition", getPower().getActiveCondition(), context);
 		}
 
-		protected <R, C extends ContextAware> R processAndReport(String path, C contextAware, BiFunction<C, Context, R> resultFunctor, Supplier<R> fallback, Context context) {
+		protected <R> R processAndReport(Context context, String path, Function<Context, R> resultFunctor, BiFunction<ContextAware.ErrorReporter, String, String> errorSupplier) {
 
-			Context childContext = context.makeChild(path);
-			R result = resultFunctor.apply(contextAware, childContext);
+			Context subContext = context.makeChild(path);
+			R result = resultFunctor.apply(subContext);
 
 			if (context.hasAnyErrors()) {
-				report(context, contextAware);
-				return fallback.get();
+				NeoApoli.LOGGER.warn(errorSupplier.apply(context.getReporter(), path));
 			}
-			
-			else {
-				return result;
-			}
+
+			return result;
 
 		}
 
@@ -196,7 +227,8 @@ public abstract class Power {
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
-			processAndReport(path, action, (a, ctx) -> MiscUtil.run(() -> a.execute(ctx)), () -> null, context);
+			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
+			processAndReport(context, path, ctx -> MiscUtil.run(() -> action.execute(ctx)), (reporter, _path) -> "Couldn't fully execute " + StringUtils.uncapitalize(action.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString());
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
@@ -204,7 +236,8 @@ public abstract class Power {
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
-			return Boolean.TRUE.equals(processAndReport(path, condition, Condition::test, () -> false, context));
+			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
+			return Boolean.TRUE.equals(processAndReport(context, path, condition::test, (reporter, _path) -> "Couldn't fully test " + StringUtils.uncapitalize(condition.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString()));
 		}
 
 		public void onAdded() {
@@ -233,17 +266,6 @@ public abstract class Power {
 
 		public boolean shouldTick() {
 			return false;
-		}
-
-		protected <C extends ContextAware> void report(Context context, C contextAware) {
-			
-			if (!context.hasAnyErrors()) {
-				return;
-			}
-			
-			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			NeoApoli.LOGGER.warn("Couldn't fully process {} due to error(s) {}", (contextAware.asDisplayString(false) + reference.map(ref -> " in " + ref.asDisplayString(false)).orElse("")), context.getReporter().getErrorsAsString());
-		
 		}
 
 	}

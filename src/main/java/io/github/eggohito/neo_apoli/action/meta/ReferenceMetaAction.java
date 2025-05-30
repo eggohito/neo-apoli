@@ -31,7 +31,7 @@ public interface ReferenceMetaAction<A extends Action<T>, T extends ActionType<?
 				if (context.markActive(action)) {
 
 					try {
-						action.execute(context);
+						action.execute(context.makeChild("{value = \"" + value() + "\"}", value()));
 					}
 
 					finally {
@@ -41,7 +41,7 @@ public interface ReferenceMetaAction<A extends Action<T>, T extends ActionType<?
 				}
 
 				else {
-					context.getReporter().report(category + " \"" + value + "\" was recursively referenced!");
+					context.makeChild("{value = \"" + value + "\"}", value).getReporter().report(category + " \"" + value + "\" was recursively referenced!");
 				}
 
 			});
@@ -60,8 +60,8 @@ public interface ReferenceMetaAction<A extends Action<T>, T extends ActionType<?
 
 		else {
 			ActionManager.getAsResult(category, value)
-				.ifSuccess(action -> action.validate(reporter.makeChild("{\"" + value + "\"}", value)))
-				.ifError(error -> reporter.report(error.message()));
+				.ifSuccess(action -> action.validate(reporter.makeChild("{value = \"" + value + "\"}", value)))
+				.ifError(error -> reporter.makeChild("value").report(error.message()));
 		}
 
 	}

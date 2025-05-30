@@ -27,16 +27,13 @@ public interface EntityAction extends Action<EntityActionType<?>> {
 	}
 
 	@Override
-	default String asDisplayString() {
-		return ActionManager.getIdAsResult(this)
-			.result()
-			.map(id -> "Entity action with ID \"" + id + "\"")
-			.orElseGet(() -> "Entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_ACTION_TYPE, this.getType()) + "\"");
+	default Set<ContextParameter<?>> getAllowedParameters() {
+		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
+	default String asDisplayString() {
+		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 }

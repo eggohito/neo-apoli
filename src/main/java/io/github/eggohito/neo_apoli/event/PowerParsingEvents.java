@@ -1,27 +1,31 @@
 package io.github.eggohito.neo_apoli.event;
 
-import com.mojang.serialization.*;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
+import java.util.Optional;
 
 public final class PowerParsingEvents {
 
-	public static final Event<Decoding> DECODING = EventFactory.createArrayBacked(
-		Decoding.class,
-		callbacks -> new Decoding() {
+	public static final Event<DecodingWithReference> DECODING = EventFactory.createArrayBacked(
+		DecodingWithReference.class,
+		callbacks -> new DecodingWithReference() {
 
 			@Override
-			public <I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
+			public <I> DataResult<Power> decode(Optional<PowerReference> reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
 
+				DataResult<Power> result = null;
 				for (var callback : callbacks) {
 
-					DataResult<Power> result = callback.decode(reference, type, ops, mapInput);
+					result = callback.decode(reference, type, ops, mapInput);
 
 					if (result != null) {
 						return result;
@@ -29,8 +33,7 @@ public final class PowerParsingEvents {
 
 				}
 
-				MapCodec<? extends Power> mapCodec = type.mapCodec();
-				return mapCodec.decode(ops, mapInput).map(Function.identity());
+				return result;
 
 			}
 
@@ -42,10 +45,10 @@ public final class PowerParsingEvents {
 		callbacks -> new Encoding() {
 
 			@Override
-			public <I> void encode(PowerEntry<?> entry, DynamicOps<I> ops, RecordBuilder<I> prefix) {
+			public <I> void encode(Optional<PowerReference> reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix) {
 
 				for (var callback : callbacks) {
-					callback.encode(entry, ops, prefix);
+					callback.encode(reference, power, ops, prefix);
 				}
 
 			}
@@ -53,12 +56,13 @@ public final class PowerParsingEvents {
 		}
 	);
 
-	public interface Decoding {
-		<I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
+	public interface DecodingWithReference {
+		@Nullable
+		<I> DataResult<Power> decode(Optional<PowerReference> reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
 	}
 
 	public interface Encoding {
-		<I> void encode(PowerEntry<?> entry, DynamicOps<I> ops, RecordBuilder<I> prefix);
+		<I> void encode(Optional<PowerReference> reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix);
 	}
 
 }

@@ -1,51 +1,44 @@
 package io.github.eggohito.neo_apoli.condition.category;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.category.Category;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-
-import java.util.Locale;
 
 public final class ConditionCategories {
 
-	public static final ConditionCategory<BiEntityCondition> BIENTITY_CONDITION = register("Bi-entity condition", BiEntityCondition.CODEC, BiEntityCondition.PACKET_CODEC);
-	public static final ConditionCategory<BlockCondition> BLOCK_CONDITION = register("Block condition", BlockCondition.CODEC, BlockCondition.PACKET_CODEC);
-	public static final ConditionCategory<EntityCondition> ENTITY_CONDITION = register("Entity condition", EntityCondition.CODEC, EntityCondition.PACKET_CODEC);
+	public static final ConditionCategory<BiEntityCondition> BIENTITY_CONDITION = register("Bi-entity condition", NeoApoliRegistryKeys.BIENTITY_CONDITION, BiEntityCondition.CODEC, BiEntityCondition.PACKET_CODEC);
+	public static final ConditionCategory<BlockCondition> BLOCK_CONDITION = register("Block condition", NeoApoliRegistryKeys.BLOCK_CONDITION, BlockCondition.CODEC, BlockCondition.PACKET_CODEC);
+	public static final ConditionCategory<EntityCondition> ENTITY_CONDITION = register("Entity condition", NeoApoliRegistryKeys.ENTITY_CONDITION, EntityCondition.CODEC, EntityCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
 	}
 
-	public static <C extends Condition<?>> ConditionCategory<C> register(String name, Codec<C> codec, PacketCodec<RegistryByteBuf, C> packetCodec) {
-
-		String transformedName = Category.NAME_PATTERN.matcher(name.toLowerCase(Locale.ROOT))
-			.replaceAll("")
-			.replace(' ', '_');
-
-		return register(NeoApoli.id(transformedName), new ConditionCategory<>() {
+	public static <C extends Condition<?>> ConditionCategory<C> register(String name, RegistryKey<? extends Registry<C>> registryRef, Codec<C> baseCodec, PacketCodec<RegistryByteBuf, C> basePacketCodec) {
+		return register(registryRef.getValue(), new ConditionCategory<>() {
 
 			@Override
-			public String directory() {
-				return transformedName;
+			public RegistryKey<? extends Registry<C>> registryRef() {
+				return registryRef;
 			}
 
 			@Override
-			public Codec<C> codec() {
-				return codec;
+			public Codec<C> baseCodec() {
+				return baseCodec;
 			}
 
 			@Override
-			public PacketCodec<RegistryByteBuf, C> packetCodec() {
-				return packetCodec;
+			public PacketCodec<RegistryByteBuf, C> basePacketCodec() {
+				return basePacketCodec;
 			}
 
 			@Override

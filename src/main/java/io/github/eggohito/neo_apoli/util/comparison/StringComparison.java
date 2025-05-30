@@ -74,9 +74,4 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 
 	}
 
-	@Override
-	public String asDisplayString() {
-		return "String comparison (with first value: " + first().asDisplayString() + " and second value: " + second().asDisplayString() + ")";
-	}
-
 }

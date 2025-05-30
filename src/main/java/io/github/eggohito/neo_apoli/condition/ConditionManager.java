@@ -10,25 +10,23 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.resource.IMultiDirectoryResourceReloader;
+import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
-import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -38,12 +36,9 @@ import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SinglePreparationResourceReloader<Map<ConditionCategory<?>, Map<Identifier, IMultiDirectoryResourceReloader.Entry>>> implements IMultiDirectoryResourceReloader {
-
-	private static final Set<String> DIRECTORY_PREFIXES = new ObjectOpenHashSet<>();
+public final class ConditionManager extends SinglePreparationResourceReloader<Map<ConditionCategory<?>, Map<Identifier, JsonResourceReloader.Entry>>> implements JsonResourceReloader {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
 	private static final Gson GSON = new GsonBuilder()
@@ -63,81 +58,38 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
 	}
 
-	@ApiStatus.Internal
-	public static void init() {
-
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
-		addDirectoryPrefix(NeoApoli.MOD_NAMESPACE);
-
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
-
-	}
-
 	@Override
 	protected Map<ConditionCategory<?>, Map<Identifier, Entry>> prepare(ResourceManager manager, Profiler profiler) {
 
 		Map<ConditionCategory<?>, Map<Identifier, Entry>> prepared = new Object2ObjectOpenHashMap<>();
+		for (var category : NeoApoliRegistries.CONDITION_CATEGORY) {
 
-		for (ConditionCategory<?> category : NeoApoliRegistries.CONDITION_CATEGORY) {
+			String directory = RegistryKeys.getPath(category.registryRef());
+			manager.findResources(directory, this::supportsJsonFormat).forEach((fileId, resource) -> {
 
-			Set<String> directories = this.getDirectories(category);
+				String packName = resource.getPackId();
+				Identifier resourceId = this.trimExtension(fileId, directory);
 
-			for (String directory : directories) {
+				try (BufferedReader resourceReader = resource.getReader()) {
 
-				Map<Identifier, Resource> resources = manager.findResources(directory, this::supportsJsonFormat);
-				String uncapitalizedCategory = StringUtils.uncapitalize(category.toString());
+					GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getJsonFormat(fileId)));
+					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
-				profiler.push("[" + ConditionManager.class.getSimpleName() + "] scanning " + uncapitalizedCategory + " files in directory \"" + directory + "\" from data packs");
-
-				for (Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
-
-					Identifier fileId = resourceEntry.getKey();
-					String fileExtension = "." + FilenameUtils.getExtension(fileId.getPath());
-
-					Identifier resourceId = this.trimExtension(fileId, directory);
-					Resource resource = resourceEntry.getValue();
-
-					JsonFormat jsonFormat = this.getSupportedJsonFormats().get(fileExtension);
-					String packName = resource.getPackId();
-
-					profiler.push("[" + ConditionManager.class.getSimpleName() + "] preparing " + uncapitalizedCategory + " file \"" + fileId + "\" from data pack {" + packName + "}");
-
-					if (prepared.containsKey(category) && prepared.get(category).containsKey(resourceId)) {
-						LOGGER.warn("Ignored duplicate {} JSON file with ID \"{}\" from directory \"{}\" of data pack [{}]!", uncapitalizedCategory, resourceId, directory, packName);
+					if (jsonElement != null) {
+						prepared.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>()).put(resourceId, new Entry(packName, jsonElement));
 					}
 
 					else {
-
-						try (BufferedReader reader = resource.getReader()) {
-
-							GsonReader gsonReader = new GsonReader(JsonReader.create(reader, jsonFormat));
-							JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
-
-							if (jsonElement != null) {
-								prepared
-									.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
-									.put(resourceId, new Entry(packName, jsonElement));
-							}
-
-							else {
-								throw new JsonSyntaxException("JSON file cannot be empty!");
-							}
-
-						}
-
-						catch (Exception e) {
-							LOGGER.error("Error trying to prepare {} JSON file \"{}\" from data pack [{}] (skipping): {}", uncapitalizedCategory, fileId, packName, e.getMessage());
-						}
-
+						throw new JsonSyntaxException("JSON file cannot be empty!");
 					}
-
-					profiler.pop();
 
 				}
 
-				profiler.pop();
+				catch (Exception e) {
+					LOGGER.error("Error trying to prepare {} JSON file \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), fileId, packName, e);
+				}
 
-			}
+			});
 
 		}
 
@@ -149,33 +101,25 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	protected void apply(Map<ConditionCategory<?>, Map<Identifier, Entry>> prepared, ResourceManager manager, Profiler profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
-		profiler.push("[" + ConditionManager.class.getSimpleName() + "] start parsing conditions");
-
 		startLoading();
-		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> {
 
-			String uncapitalizedCategoryName = StringUtils.uncapitalize(category.toString());
-			profiler.push("[" + ConditionManager.class.getSimpleName() + "] parsing " + uncapitalizedCategoryName + " JSON \"" + id + "\" from data pack {" + entry.source() + "}");
+		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.baseCodec().parse(ops, entry.element())
+			.ifSuccess(condition -> register(id, condition))
+			.ifError(error -> LOGGER.info("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
 
-			try {
-				register(new ConditionEntry<>(id, category.codec().parse(ops, entry.element()).getOrThrow()));
-			}
+		StringBuilder message = new StringBuilder("Finished parsing conditions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " condition(s) in total;");
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> message.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
 
-			catch (Exception e) {
-				LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", uncapitalizedCategoryName, id, entry.source(), e.getMessage());
-			}
-
-			profiler.pop();
-
-		}));
-
-		profiler.pop();
-
-		StringBuilder messageBuilder = new StringBuilder("Finished parsing conditions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " condition(s) in total;");
-		BY_CATEGORY_AND_ID.forEach((category, entries) -> messageBuilder.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
-
-		LOGGER.info(messageBuilder.toString());
+		LOGGER.info(message.toString());
 		endLoading();
+
+	}
+
+	@ApiStatus.Internal
+	public static void init() {
+
+		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 	}
 
@@ -189,37 +133,6 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		return DEPENDENCIES;
 	}
 
-	@Override
-	public Map<String, JsonFormat> getSupportedJsonFormats() {
-		return NeoApoli.JSON_FORMATS;
-	}
-
-	@Override
-	public Set<String> getDirectories() {
-
-		Set<String> directories = new ObjectOpenHashSet<>();
-
-		for (ConditionCategory<?> category : NeoApoliRegistries.CONDITION_CATEGORY) {
-			directories.addAll(this.getDirectories(category));
-		}
-
-		return directories;
-
-	}
-
-	public Set<String> getDirectories(ConditionCategory<?> category) {
-
-		String directory = category.directory();
-		Set<String> directories = ObjectOpenHashSet.of(directory);
-
-		for (String prefix : DIRECTORY_PREFIXES) {
-			directories.add(prefix + "/" + directory);
-		}
-
-		return directories;
-
-	}
-
 	@ApiStatus.Internal
 	public static void sendSyncPayload(ServerPlayerEntity player) {
 
@@ -227,21 +140,20 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 			return;
 		}
 
-		Set<ConditionEntry<?>> entries = BY_CATEGORY_AND_ID.values()
-			.stream()
-			.map(Map::values)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toCollection(ObjectOpenHashSet::new));
+		Map<ConditionCategory<?>, Map<Identifier, Condition<?>>> filteredEntries = new Object2ObjectOpenHashMap<>();
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> entries.forEach((id, entry) -> filteredEntries
+			.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
+			.put(id, entry.value())));
 
-		LOGGER.info("Sent {} condition(s) to player {}!", entries.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizeConditionsS2CPacket(entries));
+		LOGGER.info("Sent {} condition(s) to player {}!", filteredEntries.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizeConditionsS2CPacket(filteredEntries));
 
 	}
 
 	@ApiStatus.Internal
 	public static void receiveSyncPayload(SynchronizeConditionsS2CPacket payload) {
 		startLoading();
-		payload.conditions().forEach(ConditionManager::register);
+		payload.conditions().forEach((category, entries) -> entries.forEach(ConditionManager::register));
 		endLoading();
 	}
 
@@ -276,7 +188,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	public static <C extends Condition<?>> DataResult<Identifier> getIdAsResult(C condition) {
 		return containsId(condition)
 			? DataResult.success(BY_VALUES.get(condition))
-			: DataResult.error(() -> condition.asDisplayString(true) + " doesn't correspond to any identifiers!");
+			: DataResult.error(() -> condition + " doesn't correspond to any identifiers!");
 	}
 
 	public static <C extends Condition<?>> Identifier getId(C condition) {
@@ -299,20 +211,11 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		return BY_VALUES.containsKey(condition);
 	}
 
-	public static void addDirectoryPrefix(String prefix) {
-		DIRECTORY_PREFIXES.add(prefix);
-	}
-
-	private static void register(ConditionEntry<?> entry) {
-
-		Identifier id = entry.id();
-		Condition<?> condition = entry.value();
-
+	private static void register(Identifier id, Condition<?> condition) {
 		BY_VALUES.put(condition, id);
 		BY_CATEGORY_AND_ID
 			.computeIfAbsent(condition.getCategory(), k -> new Object2ObjectOpenHashMap<>())
-			.put(id, entry);
-
+			.put(id, new ConditionEntry<>(id, condition));
 	}
 
 	private static void startLoading() {

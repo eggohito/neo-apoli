@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.network.RegistryByteBuf;
@@ -16,7 +17,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.function.Function;
 
-public interface NumberProvider extends ContextAware {
+public interface NumberProvider extends ContextAware, StringDisplayable {
 
 	String TYPE_KEY = "type";
 	PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
@@ -28,6 +29,11 @@ public interface NumberProvider extends ContextAware {
 
 	double doubleValue(Context context);
 
+	@Override
+	default String asDisplayString() {
+		return "Number provider with type \"" + RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, this.getType()) + "\"";
+	}
+
 	default float floatValue(Context context) {
 		return (float) doubleValue(context);
 	}
@@ -38,11 +44,6 @@ public interface NumberProvider extends ContextAware {
 
 	default int intValue(Context context) {
 		return (int) longValue(context);
-	}
-
-	@Override
-	default String asDisplayString() {
-		return "Number provider (with type \"" + RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, this.getType()) + "\")";
 	}
 
 	static Codec<NumberProvider> clamped(Number min, Number max) {

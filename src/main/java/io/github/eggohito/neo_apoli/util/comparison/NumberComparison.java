@@ -71,11 +71,6 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 
 	}
 
-	@Override
-	public String asDisplayString() {
-		return "Number comparison (with first value: " + first().asDisplayString() + " and second value: " + second().asDisplayString() + ")";
-	}
-
 	private double getValue(NumberProvider provider, int decimals, Supplier<Context> contextSupplier) {
 
 		Context context = contextSupplier.get();

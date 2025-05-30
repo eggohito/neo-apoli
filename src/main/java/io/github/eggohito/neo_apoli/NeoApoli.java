@@ -33,7 +33,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Identifier;
-import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.JsonWriter;
 import org.quiltmc.parsers.json.gson.GsonReader;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Objects;
 
 public class NeoApoli implements ModInitializer {
@@ -58,12 +56,6 @@ public class NeoApoli implements ModInitializer {
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
-
-	public static final Map<String, JsonFormat> JSON_FORMATS = Map.of(
-		".json", JsonFormat.JSON,
-		".json5", JsonFormat.JSON5,
-		".jsonc", JsonFormat.JSONC
-	);
 
 	private static MinecraftServer server;
 	private static NeoApoliConfig config;

@@ -4,33 +4,36 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.resource.IMultiDirectoryResourceReloader;
+import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.resource.Resource;
+import net.minecraft.registry.tag.TagGroupLoader;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.profiler.Profiler;
-import org.apache.commons.io.FilenameUtils;
+import net.minecraft.util.profiler.Profilers;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
-import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -38,14 +41,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
-public final class ActionManager extends SinglePreparationResourceReloader<Map<ActionCategory<?>, Map<Identifier, IMultiDirectoryResourceReloader.Entry>>> implements IMultiDirectoryResourceReloader {
-
-	private static final Set<String> DIRECTORY_PREFIXES = new ObjectOpenHashSet<>();
+public final class ActionManager implements JsonResourceReloader {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
 	private static final Gson GSON = new GsonBuilder()
@@ -56,6 +59,7 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 	public static final Identifier ID = NeoApoli.id("actions");
 	public static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ConditionManager.ID));
 
+	private static final Object2ObjectOpenHashMap<ActionCategory<?>, Map<Identifier, List<ActionEntry<?>>>> TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<ActionCategory<?>, Map<Identifier, ActionEntry<?>>> BY_CATEGORY_AND_ID = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Action<?>, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
 
@@ -65,81 +69,38 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
 	}
 
-	@ApiStatus.Internal
-	public static void init() {
+	@Override
+	public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
-		addDirectoryPrefix(NeoApoli.MOD_NAMESPACE);
+		CompletableFuture<Map<ActionCategory<?>, Map<Identifier, List<TagGroupLoader.TrackedEntry>>>> preparedTagsFuture = CompletableFuture
+			.supplyAsync(() -> this.prepareTags(manager, Profilers.get()), prepareExecutor);
+		CompletableFuture<Map<ActionCategory<?>, Map<Identifier, Entry>>> preparedElementsFuture = CompletableFuture
+			.supplyAsync(() -> this.prepareElements(manager, Profilers.get()), prepareExecutor);
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
+			.thenCompose(synchronizer::whenPrepared)
+			.thenAcceptAsync(
+				preparedTagsAndElements -> {
+					this.applyElements(preparedTagsAndElements.getSecond(), manager, Profilers.get());
+					this.applyTags(preparedTagsAndElements.getFirst(), manager, Profilers.get());
+				},
+				applyExecutor
+			);
 
 	}
 
-	@Override
-	protected Map<ActionCategory<?>, Map<Identifier, Entry>> prepare(ResourceManager manager, Profiler profiler) {
+	private Map<ActionCategory<?>, Map<Identifier, List<TagGroupLoader.TrackedEntry>>> prepareTags(ResourceManager manager, Profiler profiler) {
 
-		Map<ActionCategory<?>, Map<Identifier, Entry>> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ActionCategory<?>, Map<Identifier, List<TagGroupLoader.TrackedEntry>>> prepared = new Object2ObjectOpenHashMap<>();
+		for (var category : NeoApoliRegistries.ACTION_CATEGORY) {
 
-		for (ActionCategory<?> category : NeoApoliRegistries.ACTION_CATEGORY) {
+			String directory = RegistryKeys.getTagPath(category.registryRef());
+			TagGroupLoader<ActionEntry<?>> tagLoader = new TagGroupLoader<>((id, required) -> getEntryAsResult(category, id).result(), directory);
 
-			Set<String> directories = this.getDirectories(category);
+			Map<Identifier, List<TagGroupLoader.TrackedEntry>> trackedEntries = tagLoader.loadTags(manager);
 
-			for (String directory : directories) {
-
-				Map<Identifier, Resource> resources = manager.findResources(directory, this::supportsJsonFormat);
-				String uncapitalizedCategory = StringUtils.uncapitalize(category.toString());
-
-				profiler.push("[" + ActionManager.class.getSimpleName() + "] scanning " + uncapitalizedCategory + " files in directory \"" + directory + "\" from data packs");
-
-				for (Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
-
-					Identifier fileId = resourceEntry.getKey();
-					String fileExtension = "." + FilenameUtils.getExtension(fileId.getPath());
-
-					Identifier resourceId = this.trimExtension(fileId, directory);
-					Resource resource = resourceEntry.getValue();
-
-					JsonFormat jsonFormat = this.getSupportedJsonFormats().get(fileExtension);
-					String packName = resource.getPackId();
-
-					profiler.push("[" + ActionManager.class.getSimpleName() + "] preparing " + uncapitalizedCategory + " file \"" + fileId + "\" from data pack {" + packName + "}");
-
-					if (prepared.containsKey(category) && prepared.get(category).containsKey(resourceId)) {
-						LOGGER.warn("Ignored duplicate {} JSON file with ID \"{}\" from directory \"{}\" of data pack [{}]!", uncapitalizedCategory, resourceId, directory, packName);
-					}
-
-					else {
-
-						try (BufferedReader reader = resource.getReader()) {
-
-							GsonReader gsonReader = new GsonReader(JsonReader.create(reader, jsonFormat));
-							JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
-
-							if (jsonElement != null) {
-								prepared
-									.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
-									.put(resourceId, new Entry(packName, jsonElement));
-							}
-
-							else {
-								throw new JsonSyntaxException("JSON file cannot be empty!");
-							}
-
-						}
-
-						catch (Exception e) {
-							LOGGER.error("Error trying to prepare {} JSON file \"{}\" from data pack [{}] (skipping): {}", uncapitalizedCategory, fileId, packName, e.getMessage());
-						}
-
-					}
-
-					profiler.pop();
-
-				}
-
-				profiler.pop();
-
+			if (!trackedEntries.isEmpty()) {
+				prepared.put(category, trackedEntries);
 			}
 
 		}
@@ -148,37 +109,93 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 
 	}
 
-	@Override
-	protected void apply(Map<ActionCategory<?>, Map<Identifier, Entry>> prepared, ResourceManager manager, Profiler profiler) {
+	private void applyTags(Map<ActionCategory<?>, Map<Identifier, List<TagGroupLoader.TrackedEntry>>> prepared, ResourceManager manager, Profiler profiler) {
+
+		LOGGER.info("Parsing action tags from data packs...");
+		TAGS.clear();
+
+		prepared.forEach((category, entries) -> {
+
+			String directory = RegistryKeys.getPath(category.registryRef());
+			TagGroupLoader<ActionEntry<?>> tagLoader = new TagGroupLoader<>((id, required) -> getEntryAsResult(category, id).result(), directory);
+
+			TAGS.put(category, tagLoader.buildGroup(entries));
+
+		});
+
+		StringBuilder message = new StringBuilder("Finished parsing action tags from data packs. Parsed " + TAGS.size() + " action tag(s) in total;");
+		TAGS.forEach((category, entries) -> message.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append(" tag(s)"));
+
+		LOGGER.info(message.toString());
+		TAGS.trim();
+
+	}
+
+	private Map<ActionCategory<?>, Map<Identifier, Entry>> prepareElements(ResourceManager manager, Profiler profiler) {
+
+		Map<ActionCategory<?>, Map<Identifier, Entry>> prepared = new Object2ObjectOpenHashMap<>();
+		for (var category : NeoApoliRegistries.ACTION_CATEGORY) {
+
+			String directory = RegistryKeys.getPath(category.registryRef());
+			manager.findResources(directory, this::supportsJsonFormat).forEach((fileId, resource) -> {
+
+				String packName = resource.getPackId();
+				Identifier resourceId = this.trimExtension(fileId, directory);
+
+				try (BufferedReader resourceReader = resource.getReader()) {
+
+					GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getJsonFormat(fileId)));
+					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
+
+					if (jsonElement != null) {
+						prepared.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>()).put(resourceId, new Entry(packName, jsonElement));
+					}
+
+					else {
+						throw new JsonSyntaxException("JSON file cannot be empty!");
+					}
+
+				}
+
+				catch (Exception e) {
+					LOGGER.error("Error trying to prepare {} JSON file \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), fileId, packName, e);
+				}
+
+			});
+
+		}
+
+		return prepared;
+
+	}
+
+	private void applyElements(Map<ActionCategory<?>, Map<Identifier, Entry>> prepared, ResourceManager manager, Profiler profiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
-		profiler.push("[" + ActionManager.class.getSimpleName() + "] start parsing actions");
-
 		startLoading();
-		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> {
 
-			String uncapitalizedCategoryName = StringUtils.uncapitalize(category.toString());
-			profiler.push("[" + ActionManager.class.getSimpleName() + "] parsing " + uncapitalizedCategoryName + " JSON \"" + id + "\" from data pack {" + entry.source() + "}");
+		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.baseCodec().parse(ops, entry.element())
+			.ifSuccess(action -> register(id, action))
+			.ifError(error -> LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
 
-			try {
-				register(new ActionEntry<>(id, category.codec().parse(ops, entry.element()).getOrThrow()));
-			}
+		StringBuilder message = new StringBuilder("Finished parsing actions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " action(s) in total;");
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> message.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
 
-			catch (Exception e) {
-				LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", uncapitalizedCategoryName, id, entry.source(), e.getMessage());
-			}
-
-			profiler.pop();
-
-		}));
-
-		profiler.pop();
-
-		StringBuilder messageBuilder = new StringBuilder("Finished parsing actions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " action(s) in total;");
-		BY_CATEGORY_AND_ID.forEach((category, entries) -> messageBuilder.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
-
-		LOGGER.info(messageBuilder.toString());
+		LOGGER.info(message.toString());
 		endLoading();
+
+	}
+
+	@ApiStatus.Internal
+	public static void init() {
+
+		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+			sendSyncPayload(player);
+			sendTagSyncPayload(player);
+		});
 
 	}
 
@@ -192,35 +209,6 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 		return DEPENDENCIES;
 	}
 
-	@Override
-	public Map<String, JsonFormat> getSupportedJsonFormats() {
-		return NeoApoli.JSON_FORMATS;
-	}
-
-	@Override
-	public Set<String> getDirectories() {
-
-		Set<String> directories = new ObjectOpenHashSet<>();
-		NeoApoliRegistries.ACTION_CATEGORY.forEach(category -> directories.addAll(this.getDirectories(category)));
-
-		return directories;
-
-	}
-
-	public Set<String> getDirectories(ActionCategory<?> category) {
-
-		Set<String> directories = new ObjectOpenHashSet<>();
-		String directory = category.directory();
-
-		for (String prefix : DIRECTORY_PREFIXES) {
-			directories.add(prefix + "/" + directory);
-		}
-
-		directories.add(directory);
-		return directories;
-
-	}
-
 	@ApiStatus.Internal
 	public static void sendSyncPayload(ServerPlayerEntity player) {
 
@@ -228,22 +216,50 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 			return;
 		}
 
-		Set<ActionEntry<?>> entries = BY_CATEGORY_AND_ID.values()
-			.stream()
-			.map(Map::values)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toCollection(ObjectOpenHashSet::new));
+		Map<ActionCategory<?>, Map<Identifier, Action<?>>> filteredEntries = new Object2ObjectOpenHashMap<>();
+		BY_CATEGORY_AND_ID.forEach((category, entries) -> entries.forEach((id, entry) -> filteredEntries
+			.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
+			.put(id, entry.value())));
 
-		LOGGER.info("Sent {} action(s) to player {}!", entries.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizeActionsS2CPacket(entries));
+		LOGGER.info("Sent {} action(s) to player {}!", filteredEntries.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizeActionsS2CPacket(filteredEntries));
+
+	}
+
+	@ApiStatus.Internal
+	public static void sendTagSyncPayload(ServerPlayerEntity player) {
+
+		if (!player.server.isRemote()) {
+			return;
+		}
+
+		LOGGER.info("Sent {} action tag(s) to player {}!", TAGS.size(), player.getName().getString());
+		ServerPlayNetworking.send(player, new SynchronizeActionTagsS2CPacket(TAGS));
 
 	}
 
 	@ApiStatus.Internal
 	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload) {
 		startLoading();
-		payload.actions().forEach(ActionManager::register);
+		payload.actions().forEach((category, entries) -> entries.forEach(ActionManager::register));
 		endLoading();
+	}
+
+	@ApiStatus.Internal
+	public static void receiveSyncTagPayload(SynchronizeActionTagsS2CPacket payload) {
+		TAGS.clear();
+		payload.actionTags().forEach((category, tagEntries) -> tagEntries.forEach((id, entries) -> TAGS
+			.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
+			.put(id, entries)));
+		TAGS.trim();
+	}
+
+	public static <A extends Action<?>> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, TagKey<A> tag) {
+		return TAGS.getOrDefault(category, new Object2ObjectOpenHashMap<>()).getOrDefault(tag.id(), new ObjectArrayList<>());
+	}
+
+	public static <A extends Action<?>> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, Identifier tagId) {
+		return getEntriesFromTagOrEmpty(category, TagKey.of(category.registryRef(), tagId));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -277,7 +293,7 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 	public static <A extends Action<?>> DataResult<Identifier> getIdAsResult(A action) {
 		return containsId(action)
 			? DataResult.success(BY_VALUES.get(action))
-			: DataResult.error(() -> action.asDisplayString(true) + " doesn't correspond to any identifiers!");
+			: DataResult.error(() -> action + " doesn't correspond to any identifiers!");
 	}
 
 	public static <A extends Action<?>> Identifier getId(A action) {
@@ -300,20 +316,11 @@ public final class ActionManager extends SinglePreparationResourceReloader<Map<A
 		return BY_VALUES.containsKey(action);
 	}
 
-	public static void addDirectoryPrefix(String prefix) {
-		DIRECTORY_PREFIXES.add(prefix);
-	}
-
-	private static void register(ActionEntry<?> entry) {
-
-		Identifier id = entry.id();
-		Action<?> action = entry.value();
-
+	private static void register(Identifier id, Action<?> action) {
 		BY_VALUES.put(action, id);
 		BY_CATEGORY_AND_ID
 			.computeIfAbsent(action.getCategory(), k -> new Object2ObjectOpenHashMap<>())
-			.put(id, entry);
-
+			.put(id, new ActionEntry<>(id, action));
 	}
 
 	private static void startLoading() {

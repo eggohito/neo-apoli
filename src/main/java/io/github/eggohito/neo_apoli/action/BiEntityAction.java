@@ -27,16 +27,13 @@ public interface BiEntityAction extends Action<BiEntityActionType<?>> {
 	}
 
 	@Override
-	default String asDisplayString() {
-		return ActionManager.getIdAsResult(this)
-			.result()
-			.map(id -> "Bi-entity action with ID \"" + id + "\"")
-			.orElseGet(() -> "Bi-entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, this.getType()) + "\"");
+	default Set<ContextParameter<?>> getAllowedParameters() {
+		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
+	default String asDisplayString() {
+		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 }

@@ -2,33 +2,41 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.ActionEntry;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.Set;
+import java.util.Map;
 
-public record SynchronizeActionsS2CPacket(Set<ActionEntry<?>> actions) implements CustomPayload {
+@SuppressWarnings("unchecked")
+public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier, Action<?>>> actions) implements CustomPayload {
 
 	public static final Id<SynchronizeActionsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_actions"));
 	public static final PacketCodec<RegistryByteBuf, SynchronizeActionsS2CPacket> CODEC = PacketCodec.of(SynchronizeActionsS2CPacket::write, SynchronizeActionsS2CPacket::read);
 
-	@SuppressWarnings("unchecked")
 	private static SynchronizeActionsS2CPacket read(RegistryByteBuf buf) {
 
-		Set<ActionEntry<?>> actions = new ObjectOpenHashSet<>();
-		int size = buf.readVarInt();
+		Map<ActionCategory<?>, Map<Identifier, Action<?>>> actions = new Object2ObjectOpenHashMap<>();
+		int actionsCount = buf.readVarInt();
 
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < actionsCount; i++) {
 
-			Identifier id = buf.readIdentifier();
 			ActionCategory<Action<?>> category = (ActionCategory<Action<?>>) ActionCategory.PACKET_CODEC.decode(buf);
+			int entriesCount = buf.readVarInt();
 
-			actions.add(new ActionEntry<>(id, category.packetCodec().decode(buf)));
+			for (int j = 0; j < entriesCount; j++) {
+
+				Identifier id = buf.readIdentifier();
+				Action<?> action = category.basePacketCodec().decode(buf);
+
+				actions
+					.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
+					.put(id, action);
+
+			}
 
 		}
 
@@ -36,21 +44,20 @@ public record SynchronizeActionsS2CPacket(Set<ActionEntry<?>> actions) implement
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private void write(RegistryByteBuf buf) {
 		buf.writeVarInt(actions().size());
-		actions().forEach(entry -> {
+		actions().forEach((category, entries) -> {
 
-			Action<?> action = entry.value();
-			ActionCategory<Action<?>> category = (ActionCategory<Action<?>>) action.getCategory();
+			ActionCategory<Action<?>> castedCategory = (ActionCategory<Action<?>>) category;
+			ActionCategory.PACKET_CODEC.encode(buf, castedCategory);
 
-			buf.writeIdentifier(entry.id());
-			ActionCategory.PACKET_CODEC.encode(buf, category);
-
-			category.packetCodec().encode(buf, action);
+			buf.writeVarInt(entries.size());
+			entries.forEach((id, action) -> {
+				buf.writeIdentifier(id);
+				castedCategory.basePacketCodec().encode(buf, action);
+			});
 
 		});
-
 	}
 
 	@Override
