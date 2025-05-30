@@ -97,6 +97,8 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<ByteBuf, List<Direction>> DIRECTIONS = PacketCodecs.collection(ObjectArrayList::new, Direction.PACKET_CODEC);
 
+	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(Direction.Axis::ordinal, Direction.Axis.values(), ValueLists.OutOfBoundsHandling.CLAMP), Direction.Axis::ordinal);
+
 	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(String name, Supplier<PacketCodec<B, A>> delegate) {
 		return new PacketCodec<>() {
 
