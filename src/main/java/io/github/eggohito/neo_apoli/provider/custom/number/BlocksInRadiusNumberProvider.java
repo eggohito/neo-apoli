@@ -51,15 +51,20 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape 
 		World world = context.getWorld();
 		BlockPos centerPos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
 
+		Context.Builder builder = new Context.Builder(context);
 		int matches = 0;
+
 		for (BlockPos pos : this.shape().getBlockPositions(centerPos, radius)) {
 
 			if (!world.isChunkLoaded(pos)) {
 				continue;
 			}
 
-			Context blockConditionContext = context
-				.copy(builder -> builder.add(ContextParameters.POSITION, pos.toCenterPos()))
+			Context blockConditionContext = builder
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos))
+				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
+				.add(ContextParameters.POSITION, pos.toCenterPos())
+				.build(context.getWorld())
 				.makeChild("block_condition");
 
 			if (this.blockCondition().test(blockConditionContext)) {

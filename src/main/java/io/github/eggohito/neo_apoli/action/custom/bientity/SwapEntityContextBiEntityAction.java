@@ -1,18 +1,17 @@
 package io.github.eggohito.neo_apoli.action.custom.bientity;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.mojang.serialization.codecs.UnboundedMapCodec;
 import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.dynamic.Codecs;
 
@@ -23,12 +22,12 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 
 	public static final MapCodec<SwapEntityContextBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityAction.CODEC.fieldOf("bientity_action").forGetter(SwapEntityContextBiEntityAction::biEntityAction),
-		Codecs.nonEmptyMap(new UnboundedMapCodec<>(EntityParameter.CODEC, EntityParameter.CODEC)).fieldOf("parameters").forGetter(SwapEntityContextBiEntityAction::parameters)
+		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityAction::parameters)
 	).apply(instance, SwapEntityContextBiEntityAction::new));
 
 	public static final PacketCodec<RegistryByteBuf, SwapEntityContextBiEntityAction> PACKET_CODEC = PacketCodec.tuple(
 		BiEntityAction.PACKET_CODEC, SwapEntityContextBiEntityAction::biEntityAction,
-		PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityParameter.PACKET_CODEC, EntityParameter.PACKET_CODEC), SwapEntityContextBiEntityAction::parameters,
+		NeoApoliPacketCodecs.ENTITY_PARAMETER_MAP, SwapEntityContextBiEntityAction::parameters,
 		SwapEntityContextBiEntityAction::new
 	);
 
@@ -50,13 +49,10 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
 
-		Set<ContextParameter<?>> allowedParams = new ObjectOpenHashSet<>();
-		parameters().forEach((targetParam, sourceParam) -> {
-			allowedParams.add(targetParam.getParameter());
-			allowedParams.add(sourceParam.getParameter());
-		});
+		ImmutableSet.Builder<ContextParameter<?>> builder = ImmutableSet.builder();
+		parameters().values().forEach(entityParameter -> builder.add(entityParameter.getParameter()));
 
-		return allowedParams;
+		return builder.build();
 
 	}
 

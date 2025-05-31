@@ -1,8 +1,10 @@
 package io.github.eggohito.neo_apoli.codec;
 
 import com.google.gson.internal.LazilyParsedNumber;
+import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.command.argument.NbtPathArgumentType;
@@ -17,6 +19,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -98,6 +101,8 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, List<Direction>> DIRECTIONS = PacketCodecs.collection(ObjectArrayList::new, Direction.PACKET_CODEC);
 
 	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(Direction.Axis::ordinal, Direction.Axis.values(), ValueLists.OutOfBoundsHandling.CLAMP), Direction.Axis::ordinal);
+
+	public static final PacketCodec<ByteBuf, Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityParameter.PACKET_CODEC, EntityParameter.PACKET_CODEC);
 
 	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(String name, Supplier<PacketCodec<B, A>> delegate) {
 		return new PacketCodec<>() {
