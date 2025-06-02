@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.bientity.EqualsBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.SwapEntityContextBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.TestEntityConditionBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.bientity.*;
@@ -31,6 +32,7 @@ public final class BiEntityConditionTypes {
 	public static final BiEntityConditionType<InvertedBiEntityCondition> INVERTED = registerInternal("inverted", InvertedBiEntityCondition.CODEC, InvertedBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<ReferenceBiEntityCondition> REFERENCE = registerInternal("reference", ReferenceBiEntityCondition.CODEC, ReferenceBiEntityCondition.PACKET_CODEC);
 
+	public static final BiEntityConditionType<EqualsBiEntityCondition> EQUALS = registerInternal("equals", EqualsBiEntityCondition.CODEC, EqualsBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<SwapEntityContextBiEntityCondition> SWAP_ENTITY_CONTEXT = registerInternal("swap_entity_context", SwapEntityContextBiEntityCondition.CODEC, SwapEntityContextBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<TestEntityConditionBiEntityCondition> TEST_ENTITY_CONDITION = registerInternal("test_entity_condition", TestEntityConditionBiEntityCondition.CODEC, TestEntityConditionBiEntityCondition.PACKET_CODEC);
 
