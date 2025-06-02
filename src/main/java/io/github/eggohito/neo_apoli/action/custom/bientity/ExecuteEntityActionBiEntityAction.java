@@ -15,16 +15,16 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, EntityParameter target) implements BiEntityAction {
+public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, EntityParameter entity) implements BiEntityAction {
 
 	public static final MapCodec<ExecuteEntityActionBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityAction.CODEC.fieldOf("entity_action").forGetter(ExecuteEntityActionBiEntityAction::entityAction),
-		EntityParameter.CODEC.fieldOf("target").forGetter(ExecuteEntityActionBiEntityAction::target)
+		EntityParameter.CODEC.fieldOf("entity").forGetter(ExecuteEntityActionBiEntityAction::entity)
 	).apply(instance, ExecuteEntityActionBiEntityAction::new));
 
 	public static final PacketCodec<RegistryByteBuf, ExecuteEntityActionBiEntityAction> PACKET_CODEC = PacketCodec.tuple(
 		EntityAction.PACKET_CODEC, ExecuteEntityActionBiEntityAction::entityAction,
-		EntityParameter.PACKET_CODEC, ExecuteEntityActionBiEntityAction::target,
+		EntityParameter.PACKET_CODEC, ExecuteEntityActionBiEntityAction::entity,
 		ExecuteEntityActionBiEntityAction::new
 	);
 
@@ -35,19 +35,23 @@ public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, Entit
 
 	@Override
 	public void execute(Context context) {
-		entityAction().execute(context
-			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.requiredParameter(this.target().getParameter())))
-			.makeChild("entity_action"));
+
+		Context entityActionContext = context
+			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.required(this.entity().getParameter())))
+			.makeChild("entity_action");
+
+		entityAction().execute(entityActionContext);
+
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(this.target().getParameter());
+		return Set.of(this.entity().getParameter());
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityAction.super.validate(reporter.makeChild("target"));
+		BiEntityAction.super.validate(reporter);
 		entityAction().validate(reporter.makeChild("entity_action"));
 	}
 

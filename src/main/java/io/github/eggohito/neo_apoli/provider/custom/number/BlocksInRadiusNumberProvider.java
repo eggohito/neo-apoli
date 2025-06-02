@@ -49,7 +49,7 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape 
 		}
 
 		World world = context.getWorld();
-		BlockPos centerPos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
+		BlockPos centerPos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 
 		Context.Builder builder = new Context.Builder(context);
 		int matches = 0;

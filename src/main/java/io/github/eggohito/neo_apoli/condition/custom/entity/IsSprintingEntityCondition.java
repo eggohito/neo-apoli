@@ -21,7 +21,7 @@ public record IsSprintingEntityCondition() implements EntityCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.requiredParameter(ContextParameters.THIS_ENTITY).isSprinting();
+		return context.required(ContextParameters.THIS_ENTITY).isSprinting();
 	}
 
 }

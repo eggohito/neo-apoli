@@ -21,7 +21,7 @@ public interface OffsetMetaAction<A extends Action<T>, T extends ActionType<?>> 
 
 	@Override
 	default void execute(Context context) {
-		Vec3d offsetPos = context.requiredParameter(ContextParameters.POSITION).add(offset());
+		Vec3d offsetPos = context.required(ContextParameters.POSITION).add(offset());
 		action().execute(context.copy(builder -> builder
 			.add(ContextParameters.POSITION, offsetPos))
 			.makeChild("action"));

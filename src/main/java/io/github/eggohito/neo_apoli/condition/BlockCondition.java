@@ -38,8 +38,8 @@ public interface BlockCondition extends Condition<BlockConditionType<?>> {
 	}
 
 	default BlockState getBlockState(Context context) {
-		BlockPos blockPos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
-		return context.optionalParameter(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(blockPos));
+		BlockPos blockPos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
+		return context.optional(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(blockPos));
 	}
 
 }

@@ -40,7 +40,7 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 	public void execute(Context context) {
 
 		Context.Builder builder = new Context.Builder(context);
-		parameters().forEach((targetParam, sourceParam) -> builder.add(targetParam.getParameter(), context.requiredParameter(sourceParam.getParameter())));
+		parameters().forEach((targetParam, sourceParam) -> builder.add(targetParam.getParameter(), context.required(sourceParam.getParameter())));
 
 		biEntityAction().execute(builder.build(context.getWorld()).makeChild("bientity_action"));
 
@@ -58,7 +58,7 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityAction.super.validate(reporter.makeChild("parameters"));
+		BiEntityAction.super.validate(reporter);
 		biEntityAction().validate(reporter.makeChild("bientity_action"));
 	}
 

@@ -36,7 +36,7 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.requiredParameter(ContextParameters.THIS_ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
+		if (!(context.required(ContextParameters.THIS_ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
 			return;
 		}
 

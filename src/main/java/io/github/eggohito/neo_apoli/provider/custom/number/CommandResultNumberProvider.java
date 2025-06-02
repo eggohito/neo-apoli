@@ -47,7 +47,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 
 				MinecraftServer server = serverWorld.getServer();
 				ServerCommandSource commandSource = server.getCommandSource()
-					.withPosition(context.optionalParameter(ContextParameters.POSITION).orElse(Vec3d.ZERO))
+					.withPosition(context.optional(ContextParameters.POSITION).orElse(Vec3d.ZERO))
 					.withLevel(NeoApoli.getConfig().command().permissionLevel())
 					.withOutput(NeoApoli.validateCommandOutput(server))
 					.withReturnValueConsumer((successful, returnValue) -> result.set(returnValue));

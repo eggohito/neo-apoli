@@ -37,8 +37,8 @@ public record AddBlockBlockAction(BlockState state) implements BlockAction {
 			return;
 		}
 
-		BlockPos pos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
-		context.optionalParameter(ContextParameters.DIRECTION)
+		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
+		context.optional(ContextParameters.DIRECTION)
 			.map(pos::offset)
 			.ifPresent(offsetPos -> serverWorld.setBlockState(offsetPos, state()));
 

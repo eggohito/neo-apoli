@@ -38,7 +38,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	public double doubleValue(Context context) {
 
 		World world = context.getWorld();
-		BlockPos pos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
+		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 
 		long matches = 0;
 		for (Direction direction : Direction.values()) {

@@ -34,7 +34,7 @@ public record SetBlockBlockAction(BlockState state) implements BlockAction {
 	public void execute(Context context) {
 
 		if (context.getWorld() instanceof ServerWorld serverWorld) {
-			serverWorld.setBlockState(BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION)), state());
+			serverWorld.setBlockState(BlockPos.ofFloored(context.required(ContextParameters.POSITION)), state());
 		}
 
 	}

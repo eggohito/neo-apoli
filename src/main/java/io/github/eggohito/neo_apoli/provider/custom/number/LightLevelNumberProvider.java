@@ -40,7 +40,7 @@ public record LightLevelNumberProvider(Optional<LightType> lightType) implements
 	public double doubleValue(Context context) {
 
 		World world = context.getWorld();
-		BlockPos pos = BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION));
+		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 
 		return lightType()
 			.map(type -> world.getLightLevel(type, pos))

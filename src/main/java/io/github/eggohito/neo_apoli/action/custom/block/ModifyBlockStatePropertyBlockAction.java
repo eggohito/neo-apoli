@@ -71,8 +71,8 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		}
 
 		BlockState state = context
-			.optionalParameter(ContextParameters.BLOCK_STATE)
-			.orElseGet(() -> serverWorld.getBlockState(BlockPos.ofFloored(context.requiredParameter(ContextParameters.POSITION))));
+			.optional(ContextParameters.BLOCK_STATE)
+			.orElseGet(() -> serverWorld.getBlockState(BlockPos.ofFloored(context.required(ContextParameters.POSITION))));
 
 		Property<?> property = state.getBlock().getStateManager().getProperty(propertyString);
 		if (property != null) {

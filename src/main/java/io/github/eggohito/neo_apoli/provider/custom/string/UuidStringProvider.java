@@ -31,7 +31,7 @@ public record UuidStringProvider(EntityParameter source) implements StringProvid
 
 	@Override
 	public String stringValue(Context context) {
-		return context.requiredParameter(source().getParameter()).getUuidAsString();
+		return context.required(source().getParameter()).getUuidAsString();
 	}
 
 	@Override

@@ -33,7 +33,7 @@ public record PositionNumberProvider(Direction.Axis axis) implements NumberProvi
 
 	@Override
 	public double doubleValue(Context context) {
-		return context.requiredParameter(ContextParameters.POSITION).getComponentAlongAxis(this.axis());
+		return context.required(ContextParameters.POSITION).getComponentAlongAxis(this.axis());
 	}
 
 	@Override

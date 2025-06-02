@@ -37,7 +37,7 @@ public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction
 	@Override
 	public void execute(Context context) {
 
-		if (context.requiredParameter(ContextParameters.THIS_ENTITY) instanceof LivingEntity livingEntity) {
+		if (context.required(ContextParameters.THIS_ENTITY) instanceof LivingEntity livingEntity) {
 			livingEntity.swingHand(hand().orElseGet(livingEntity::getActiveHand), livingEntity instanceof ServerPlayerEntity);
 		}
 

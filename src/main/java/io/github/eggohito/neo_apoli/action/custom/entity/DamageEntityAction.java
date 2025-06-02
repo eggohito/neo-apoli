@@ -43,7 +43,7 @@ public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberPro
 			DamageSource damageSource = new DamageSource(this.damageType());
 			float amount = amount().floatValue(context.makeChild("amount"));
 
-			context.requiredParameter(ContextParameters.THIS_ENTITY).damage(serverWorld, damageSource, amount);
+			context.required(ContextParameters.THIS_ENTITY).damage(serverWorld, damageSource, amount);
 
 		}
 

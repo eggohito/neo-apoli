@@ -63,17 +63,17 @@ public final class Context {
 		return world;
 	}
 
-	public <T> T requiredParameter(ContextParameter<T> parameter) {
+	public <T> T required(ContextParameter<T> parameter) {
 		return this.parameters.getOrThrow(parameter);
 	}
 
 	@Nullable
-	public <T> T nullableParameter(ContextParameter<T> parameter) {
+	public <T> T nullable(ContextParameter<T> parameter) {
 		return this.parameters.getNullable(parameter);
 	}
 
-	public <T> Optional<T> optionalParameter(ContextParameter<T> parameter) {
-		return Optional.ofNullable(this.nullableParameter(parameter));
+	public <T> Optional<T> optional(ContextParameter<T> parameter) {
+		return Optional.ofNullable(this.nullable(parameter));
 	}
 
 	public boolean hasParameter(ContextParameter<?> parameter) {
@@ -104,14 +104,16 @@ public final class Context {
 
 		private final ContextType contextType;
 		private final ContextParameterMap.Builder parameters;
+		private final ContextAware.ErrorReporter reporter;
 
-		Builder(ContextType contextType, ContextParameterMap.Builder parameters) {
+		Builder(ContextType contextType, ContextParameterMap.Builder parameters, ContextAware.ErrorReporter reporter) {
 			this.contextType = contextType;
 			this.parameters = parameters;
+			this.reporter = reporter;
 		}
 
 		public Builder(ContextType contextType) {
-			this(contextType, new ContextParameterMap.Builder());
+			this(contextType, new ContextParameterMap.Builder(), new ContextAware.ErrorReporter(contextType));
 		}
 
 		public Builder(Context context) {
@@ -120,7 +122,8 @@ public final class Context {
 			((ContextParameterMapAccessor) context.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
 
 			this.parameters = newParameters;
-			this.contextType = context.type;
+			this.contextType = context.getType();
+			this.reporter = context.getReporter();
 
 		}
 
@@ -129,7 +132,7 @@ public final class Context {
 			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
 			((ContextParameterMapAccessor.BuilderAccessor) this.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
 
-			return new Builder(this.contextType, newParameters);
+			return new Builder(this.contextType, newParameters, this.reporter);
 
 		}
 
@@ -147,26 +150,21 @@ public final class Context {
 			return addNullable(parameter, value.orElse(null));
 		}
 
-		public <T> T get(ContextParameter<T> parameter) {
+		public <T> T required(ContextParameter<T> parameter) {
 			return this.parameters.getOrThrow(parameter);
 		}
 
 		@Nullable
-		public <T> T getNullable(ContextParameter<T> parameter) {
+		public <T> T nullable(ContextParameter<T> parameter) {
 			return this.parameters.getNullable(parameter);
 		}
 
-		public <T> Optional<T> getOptional(ContextParameter<T> parameter) {
-			return Optional.ofNullable(this.getNullable(parameter));
+		public <T> Optional<T> optional(ContextParameter<T> parameter) {
+			return Optional.ofNullable(this.nullable(parameter));
 		}
 
 		public Context build(World world) {
-
-			ContextParameterMap parameters = this.parameters.build(this.contextType);
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.contextType).withWrapperLookup(world.getRegistryManager());
-
-			return new Context(parameters, reporter, this.contextType, world);
-
+			return new Context(this.parameters.build(this.contextType), this.reporter.withWrapperLookup(world.getRegistryManager()), this.contextType, world);
 		}
 
 	}

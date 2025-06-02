@@ -25,9 +25,9 @@ public record TameBiEntityAction() implements BiEntityAction {
 	@Override
 	public void execute(Context context) {
 
-		if (context.requiredParameter(ContextParameters.ACTOR) instanceof LivingEntity livingEntity) {
+		if (context.required(ContextParameters.ACTOR) instanceof LivingEntity livingEntity) {
 
-			switch (context.requiredParameter(ContextParameters.TARGET)) {
+			switch (context.required(ContextParameters.TARGET)) {
 				case TameableEntity tameableEntity ->
 					tameableEntity.setOwner(livingEntity);
 				case AbstractHorseEntity abstractHorseEntity ->

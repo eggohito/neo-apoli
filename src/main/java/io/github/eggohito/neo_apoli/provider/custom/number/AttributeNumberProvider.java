@@ -43,7 +43,7 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 		ContextParameter<? extends Entity> source = source().getParameter();
 		Context sourceContext = context.makeChild("source");
 
-		return switch (context.nullableParameter(source)) {
+		return switch (context.nullable(source)) {
 			case LivingEntity livingEntity -> {
 
 				if (livingEntity.getAttributes().hasAttribute(this.attribute())) {

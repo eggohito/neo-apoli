@@ -134,7 +134,7 @@ public class OnBlockBreakPower extends Power {
 
 		public boolean doesApply(Context entityContext, Context blockContext, boolean harvested) {
 			return (!onlyWhenHarvested() || harvested)
-				&& (directions.isEmpty() || blockContext.optionalParameter(ContextParameters.DIRECTION).map(directions::contains).orElse(true))
+				&& (directions.isEmpty() || blockContext.optional(ContextParameters.DIRECTION).map(directions::contains).orElse(true))
 				&& this.isActive(entityContext)
 				&& this.testAndReport("block_condition", getBlockCondition(), blockContext);
 		}

@@ -50,9 +50,9 @@ public record EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition
 		}
 
 		World world = context.getWorld();
-		Vec3d centerPos = context.requiredParameter(ContextParameters.POSITION);
+		Vec3d centerPos = context.required(ContextParameters.POSITION);
 
-		Context.Builder builder = new Context.Builder(context).add(ContextParameters.ACTOR, context.requiredParameter(ContextParameters.THIS_ENTITY));
+		Context.Builder builder = new Context.Builder(context).add(ContextParameters.ACTOR, context.required(ContextParameters.THIS_ENTITY));
 		int matches = 0;
 
 		for (Entity target : this.shape().getEntities(world, centerPos, radius)) {

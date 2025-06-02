@@ -21,7 +21,7 @@ public record IsSneakingEntityCondition() implements EntityCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.requiredParameter(ContextParameters.THIS_ENTITY).isSneaking();
+		return context.required(ContextParameters.THIS_ENTITY).isSneaking();
 	}
 
 }

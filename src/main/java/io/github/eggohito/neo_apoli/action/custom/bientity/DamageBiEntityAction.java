@@ -50,8 +50,8 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 			return;
 		}
 
-		Entity actor = context.requiredParameter(ContextParameters.ACTOR);
-		Entity target = context.requiredParameter(ContextParameters.TARGET);
+		Entity actor = context.required(ContextParameters.ACTOR);
+		Entity target = context.required(ContextParameters.TARGET);
 
 		DamageSource damageSource = new DamageSource(this.damageType(), actor);
 		target.damage(serverWorld, damageSource, amount);

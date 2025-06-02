@@ -33,7 +33,7 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 			return;
 		}
 
-		Optional<Entity> entity = context.optionalParameter(ContextParameters.THIS_ENTITY);
+		Optional<Entity> entity = context.optional(ContextParameters.THIS_ENTITY);
 		MinecraftServer server = serverWorld.getServer();
 
 		CommandOutput commandOutput = NeoApoli.validateCommandOutput(entity
@@ -42,7 +42,7 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 
 		ServerCommandSource commandSource = new ServerCommandSource(
 			commandOutput,
-			context.requiredParameter(ContextParameters.POSITION),
+			context.required(ContextParameters.POSITION),
 			entity.map(Entity::getRotationClient).orElse(Vec2f.ZERO),
 			serverWorld,
 			NeoApoli.getConfig().command().permissionLevel(),

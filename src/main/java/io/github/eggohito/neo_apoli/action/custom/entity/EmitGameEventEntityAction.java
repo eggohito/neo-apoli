@@ -33,7 +33,7 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 
 	@Override
 	public void execute(Context context) {
-		context.getWorld().emitGameEvent(context.requiredParameter(ContextParameters.THIS_ENTITY), gameEvent(), context.requiredParameter(ContextParameters.POSITION));
+		context.getWorld().emitGameEvent(context.required(ContextParameters.THIS_ENTITY), gameEvent(), context.required(ContextParameters.POSITION));
 	}
 
 }
