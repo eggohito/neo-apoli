@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSprintingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.entity.OnBlockEntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -33,6 +34,7 @@ public final class EntityConditionTypes {
 
 	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<OnBlockEntityCondition> ON_BLOCK = registerInternal("on_block", OnBlockEntityCondition.CODEC, OnBlockEntityCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
