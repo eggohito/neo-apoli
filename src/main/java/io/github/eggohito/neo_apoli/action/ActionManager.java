@@ -148,7 +148,19 @@ public final class ActionManager implements JsonResourceReloader {
 					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 					if (jsonElement != null) {
-						prepared.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>()).put(resourceId, new Entry(packName, jsonElement));
+						prepared.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>()).put(resourceId, new Entry() {
+
+							@Override
+							public String source() {
+								return packName;
+							}
+
+							@Override
+							public JsonElement element() {
+								return jsonElement;
+							}
+
+						});
 					}
 
 					else {

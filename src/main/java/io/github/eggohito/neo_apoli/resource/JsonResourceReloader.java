@@ -44,7 +44,11 @@ public interface JsonResourceReloader extends ResourceReloader, IdentifiableReso
 
 	}
 
-	record Entry(String source, JsonElement element) {
+	interface Entry {
+
+		String source();
+
+		JsonElement element();
 
 	}
 

@@ -6,7 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.event.PowerPreparationEvent;
+import io.github.eggohito.neo_apoli.event.PowerPreparationCallback;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
@@ -136,7 +136,7 @@ public final class PowerManager implements JsonResourceReloader {
 					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, directory, ops)) {
 
 						Entry entry = new Entry(packName, jsonObject);
-						PowerPreparationEvent.EVENT.invoker().prepare(resourceId, entry, directory, ops);
+						PowerPreparationCallback.EVENT.invoker().prepare(resourceId, entry, directory, ops);
 
 						prepared.put(PowerReference.ofPower(resourceId), entry);
 
@@ -194,7 +194,7 @@ public final class PowerManager implements JsonResourceReloader {
 			sendTagSyncPayload(player);
 		});
 
-		PowerPreparationEvent.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+		PowerPreparationCallback.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 
 	}
 
@@ -361,8 +361,8 @@ public final class PowerManager implements JsonResourceReloader {
 		if (power instanceof MultiplePower multiplePower) {
 
 			switch (reference) {
-				case PowerReference.Power powerReference ->
-					multiplePower.getSubPowers().forEach((name, subPower) -> register(new PowerEntry<>(PowerReference.ofSubPower(powerReference.id(), name), subPower)));
+				case PowerReference.Power ignored ->
+					multiplePower.getSubPowers().forEach((subReference, subPower) -> register(new PowerEntry<>(subReference, subPower)));
 				case PowerReference.SubPower subPowerReference ->
 					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getType()) + "\" power type, which isn't allowed!");
 			}
@@ -379,6 +379,10 @@ public final class PowerManager implements JsonResourceReloader {
 	private static void endLoading() {
 		BY_REFERENCE.trim();
 		BY_POWER.trim();
+	}
+
+	public record Entry(String source, JsonObject element) implements JsonResourceReloader.Entry {
+
 	}
 
 }

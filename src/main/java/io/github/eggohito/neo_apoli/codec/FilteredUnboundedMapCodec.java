@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elementCodec, Predicate<K> ignoreKeyFilter) implements BaseMapCodec<K, V>, Codec<Map<K, V>> {
+public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elementCodec, Predicate<K> keyFilter) implements BaseMapCodec<K, V>, Codec<Map<K, V>> {
 
 	@Override
 	public <T> DataResult<Pair<Map<K, V>, T>> decode(DynamicOps<T> ops, T input) {
@@ -35,7 +35,7 @@ public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elemen
 			(r, pair) -> {
 
 				DataResult<K> key = keyCodec().parse(ops, pair.getFirst());
-				if (key.resultOrPartial().map(k -> ignoreKeyFilter().test(k)).orElse(false)) {
+				if (!key.resultOrPartial().map(k -> keyFilter().test(k)).orElse(true)) {
 					return r;
 				}
 
@@ -79,7 +79,7 @@ public record FilteredUnboundedMapCodec<K, V>(Codec<K> keyCodec, Codec<V> elemen
 			K key = entry.getKey();
 			V value = entry.getValue();
 
-			if (!ignoreKeyFilter().test(key)) {
+			if (!keyFilter().test(key)) {
 				prefix.add(keyCodec().encodeStart(ops, key), elementCodec().encodeStart(ops, value));
 			}
 

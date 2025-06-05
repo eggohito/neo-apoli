@@ -33,7 +33,7 @@ public record SynchronizePowersS2CPacket(Map<PowerReference.Power, Power> powers
 	private static final PacketCodec<RegistryByteBuf, Map<PowerReference.Power, Power>> ENTRY_CODEC = PacketCodecs.map(
 		Object2ObjectOpenHashMap::new,
 		VALIDATED_REFERENCE_CODEC,
-		Power.PACKET_CODEC
+		Power.BASE_PACKET_CODEC
 	);
 
 	public static final Id<SynchronizePowersS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_powers"));

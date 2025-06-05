@@ -1,7 +1,9 @@
 package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.datafixers.Products;
-import com.mojang.serialization.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -9,7 +11,6 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
-import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -31,50 +32,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
+	public static final MapCodec<Power> BASE_MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
-	public static final MapCodec<Power> MAP_CODEC = new MapCodec<>() {
-
-		@Override
-		public <I> Stream<I> keys(DynamicOps<I> ops) {
-			return Stream.of(TYPE_KEY).map(ops::createString);
-		}
-
-		@Override
-		public <I> DataResult<Power> decode(DynamicOps<I> ops, MapLike<I> input) {
-			return PowerTypes.CODEC.fieldOf(TYPE_KEY)
-				.decode(ops, input)
-				.flatMap(type -> Objects.requireNonNullElseGet(PowerParsingEvents.DECODING.invoker().decode(Optional.empty(), type, ops, input), () -> type.mapCodec().decode(ops, input).map(Function.identity())));
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public <I> RecordBuilder<I> encode(Power input, DynamicOps<I> ops, RecordBuilder<I> prefix) {
-
-			PowerType<Power> powerType = (PowerType<Power>) input.getType();
-			MapCodec<Power> mapCodec = powerType.mapCodec();
-
-			mapCodec.encode(input, ops, prefix);
-			PowerParsingEvents.ENCODING.invoker().encode(PowerManager.getReferenceAsResult(input).result(), input, ops, prefix);
-
-			return prefix.add(TYPE_KEY, PowerTypes.CODEC.encodeStart(ops, powerType));
-
-		}
-
-	};
-
-	public static final Codec<Power> CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final Codec<Power> BASE_CODEC = BASE_MAP_CODEC.codec();
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 	private final EntityCondition activeCondition;

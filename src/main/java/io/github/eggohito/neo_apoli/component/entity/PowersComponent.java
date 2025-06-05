@@ -239,17 +239,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		this.impls.put(reference, impl);
 		if (power instanceof MultiplePower multiplePower) {
 
-			for (Power subPower : multiplePower.getSubPowers().values()) {
-
-				if (!PowerManager.containsReference(subPower)) {
-					continue;
-				}
-
-				PowerReference subReference = PowerManager.getReference(subPower);
-				PowerEntry<?> subEntry = PowerManager.getEntry(subReference);
-
-				grantPower(subEntry, source, addedAction, grantedAction);
-
+			for (PowerReference.SubPower subReference : multiplePower.getSubPowers().keySet()) {
+				PowerManager.getEntryAsResult(subReference).ifSuccess(subEntry -> this.grantPower(subEntry, source, addedAction, grantedAction));
 			}
 
 		}
@@ -309,17 +300,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		if (power instanceof MultiplePower multiplePower) {
 
-			for (Power subPower : multiplePower.getSubPowers().values()) {
-
-				if (!PowerManager.containsReference(subPower)) {
-					continue;
-				}
-
-				PowerReference subReference = PowerManager.getReference(subPower);
-				PowerEntry<?> subEntry = PowerManager.getEntry(subReference);
-
-				revokePower(subEntry, source, revokedAction);
-
+			for (PowerReference.SubPower subReference : multiplePower.getSubPowers().keySet()) {
+				PowerManager.getEntryAsResult(subReference).ifSuccess(subEntry -> this.revokePower(subEntry, source, revokedAction));
 			}
 
 		}

@@ -1,11 +1,13 @@
 package io.github.eggohito.neo_apoli.command;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.argument.PowerReferenceArgumentType;
@@ -13,6 +15,7 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
@@ -548,10 +551,32 @@ public class PowerCommand {
 			ServerCommandSource commandSource = context.getSource();
 			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
-			return Power.CODEC.encodeStart(jsonOps, power)
-				.ifSuccess(jsonElement -> commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false))
-				.ifError(error -> commandSource.sendError(Text.literal(error.message())))
-				.mapOrElse(jsonElement -> 1, error -> 0);
+			return switch (Power.BASE_CODEC.encodeStart(jsonOps, power)) {
+				case DataResult.Success<JsonElement> success -> {
+
+					JsonElement copy;
+					if (power instanceof MultiplePower && success.value() instanceof JsonObject jsonObject) {
+
+						JsonObject newJsonObject = new JsonObject();
+						jsonObject.asMap().forEach((key, value) -> newJsonObject.add(key.substring(key.indexOf(PowerReference.SubPower.SEPARATOR) + 1), value));
+
+						copy = newJsonObject;
+
+					}
+
+					else {
+						copy = success.value();
+					}
+
+					commandSource.sendFeedback(() -> JsonTextFormatter.format(copy, indent), false);
+					yield 1;
+
+				}
+				case DataResult.Error<JsonElement> error -> {
+					commandSource.sendError(Text.literal(error.message()));
+					yield 0;
+				}
+			};
 
 		}
 

@@ -11,16 +11,14 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public final class PowerParsingEvents {
 
-	public static final Event<DecodingWithReference> DECODING = EventFactory.createArrayBacked(
-		DecodingWithReference.class,
-		callbacks -> new DecodingWithReference() {
+	public static final Event<Decoding> DECODING = EventFactory.createArrayBacked(
+		Decoding.class,
+		callbacks -> new Decoding() {
 
 			@Override
-			public <I> DataResult<Power> decode(Optional<PowerReference> reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
+			public <I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
 
 				DataResult<Power> result = null;
 				for (var callback : callbacks) {
@@ -45,7 +43,7 @@ public final class PowerParsingEvents {
 		callbacks -> new Encoding() {
 
 			@Override
-			public <I> void encode(Optional<PowerReference> reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix) {
+			public <I> void encode(PowerReference reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix) {
 
 				for (var callback : callbacks) {
 					callback.encode(reference, power, ops, prefix);
@@ -56,13 +54,13 @@ public final class PowerParsingEvents {
 		}
 	);
 
-	public interface DecodingWithReference {
+	public interface Decoding {
 		@Nullable
-		<I> DataResult<Power> decode(Optional<PowerReference> reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
+		<I> DataResult<Power> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
 	}
 
 	public interface Encoding {
-		<I> void encode(Optional<PowerReference> reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix);
+		<I> void encode(PowerReference reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix);
 	}
 
 }
