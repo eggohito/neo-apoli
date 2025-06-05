@@ -21,7 +21,7 @@ import java.util.Set;
 public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map<EntityParameter, EntityParameter> parameters) implements BiEntityAction {
 
 	public static final MapCodec<SwapEntityContextBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BiEntityAction.CODEC.fieldOf("bientity_action").forGetter(SwapEntityContextBiEntityAction::biEntityAction),
+		NeoApoliCodecs.lazyMap(() -> BiEntityAction.CODEC.fieldOf("bientity_action")).forGetter(SwapEntityContextBiEntityAction::biEntityAction),
 		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityAction::parameters)
 	).apply(instance, SwapEntityContextBiEntityAction::new));
 
