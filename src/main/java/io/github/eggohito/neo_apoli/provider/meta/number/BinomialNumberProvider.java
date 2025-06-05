@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -14,12 +14,12 @@ import net.minecraft.util.math.random.Random;
 
 public record BinomialNumberProvider(NumberProvider attempts, NumberProvider probability) implements NumberProvider {
 
-	public static final MapCodec<BinomialNumberProvider> CODEC = NeoApoliCodecs.lazyMap("BinomialNumberProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BinomialNumberProvider> CODEC = NeoApoliMapCodecs.lazy(BinomialNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("attempts").forGetter(BinomialNumberProvider::attempts),
 		NumberProvider.CODEC.fieldOf("probability").forGetter(BinomialNumberProvider::probability)
 	).apply(instance, BinomialNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, BinomialNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("BinomialNumberProvider", () -> PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, BinomialNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy(BinomialNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, BinomialNumberProvider::attempts,
 		NumberProvider.PACKET_CODEC, BinomialNumberProvider::probability,
 		BinomialNumberProvider::new
@@ -53,8 +53,12 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+
+		NumberProvider.super.validate(reporter);
+
 		attempts().validate(reporter.makeChild("attempts"));
 		probability().validate(reporter.makeChild("probability"));
+
 	}
 
 }

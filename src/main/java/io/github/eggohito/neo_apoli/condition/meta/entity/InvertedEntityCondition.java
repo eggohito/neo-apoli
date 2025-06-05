@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.meta.entity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.InvertedMetaCondition;
@@ -12,8 +12,8 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record InvertedEntityCondition(EntityCondition condition) implements EntityCondition, InvertedMetaCondition<EntityCondition, EntityConditionType<?>> {
 
-	public static final MapCodec<InvertedEntityCondition> CODEC = NeoApoliCodecs.lazyMap("InvertedEntityCondition", () -> InvertedMetaCondition.codec(EntityCondition.CODEC, InvertedEntityCondition::new));
-	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("InvertedEntityCondition", () -> InvertedMetaCondition.packetCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new));
+	public static final MapCodec<InvertedEntityCondition> CODEC = NeoApoliMapCodecs.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.codec(EntityCondition.CODEC, InvertedEntityCondition::new));
+	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.packetCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new));
 
 	@Override
 	public EntityConditionType<?> getType() {

@@ -39,9 +39,4 @@ public record UuidStringProvider(EntityParameter source) implements StringProvid
 		return Set.of(source().getParameter());
 	}
 
-	@Override
-	public void validate(ErrorReporter reporter) {
-		StringProvider.super.validate(reporter.makeChild("source"));
-	}
-
 }

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.meta.block;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.meta.AnyOfMetaCondition;
@@ -14,8 +14,8 @@ import java.util.List;
 
 public record AnyOfBlockCondition(List<BlockCondition> conditions) implements BlockCondition, AnyOfMetaCondition<BlockCondition, BlockConditionType<?>> {
 
-	public static final MapCodec<AnyOfBlockCondition> CODEC = NeoApoliCodecs.lazyMap("AnyOfBlockCondition", () -> AnyOfMetaCondition.codec(BlockCondition.CODEC, AnyOfBlockCondition::new));
-	public static final PacketCodec<RegistryByteBuf, AnyOfBlockCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy("AnyOfBlockCondition", () -> AnyOfMetaCondition.packetCodec(BlockCondition.PACKET_CODEC, AnyOfBlockCondition::new));
+	public static final MapCodec<AnyOfBlockCondition> CODEC = NeoApoliMapCodecs.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> AnyOfMetaCondition.codec(BlockCondition.CODEC, AnyOfBlockCondition::new));
+	public static final PacketCodec<RegistryByteBuf, AnyOfBlockCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> AnyOfMetaCondition.packetCodec(BlockCondition.PACKET_CODEC, AnyOfBlockCondition::new));
 
 	@Override
 	public BlockConditionType<?> getType() {

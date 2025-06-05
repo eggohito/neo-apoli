@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.HandProperty;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -18,7 +17,6 @@ import net.minecraft.world.LightType;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class NeoApoliCodecs {
 
@@ -46,13 +44,5 @@ public class NeoApoliCodecs {
 	);
 
 	public static final Codec<Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = Codec.unboundedMap(EntityParameter.CODEC, EntityParameter.CODEC);
-
-	public static <A> MapCodec<A> lazyMap(String name, Supplier<MapCodec<A>> delegate) {
-		return MapCodec.recursive(name, self -> delegate.get());
-	}
-
-	public static <A> MapCodec<A> lazyMap(Supplier<MapCodec<A>> delegate) {
-		return lazyMap(delegate.toString(), delegate);
-	}
 
 }

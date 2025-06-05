@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
@@ -21,7 +22,7 @@ import java.util.Set;
 public record SwapEntityContextBiEntityCondition(BiEntityCondition biEntityCondition, Map<EntityParameter, EntityParameter> parameters) implements BiEntityCondition {
 
 	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.lazyMap(() -> BiEntityCondition.CODEC.fieldOf("bientity_condition")).forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
+		NeoApoliMapCodecs.lazy(() -> BiEntityCondition.CODEC.fieldOf("bientity_condition")).forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
 		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityCondition::parameters)
 	).apply(instance, SwapEntityContextBiEntityCondition::new));
 

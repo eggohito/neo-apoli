@@ -73,9 +73,4 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 		return Set.of(source().getParameter());
 	}
 
-	@Override
-	public void validate(ErrorReporter reporter) {
-		NumberProvider.super.validate(reporter.makeChild("source"));
-	}
-
 }

@@ -34,11 +34,6 @@ public record StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtP
 
 	@Override
 	public double doubleValue(Context context) {
-		return this.longValue(context);
-	}
-
-	@Override
-	public long longValue(Context context) {
 		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
 		return this.path().count(rootNbt);
 	}

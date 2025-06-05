@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.meta.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -17,13 +17,13 @@ import java.util.function.BiFunction;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
 
-	public static final MapCodec<ClampedNumberProvider> CODEC = NeoApoliCodecs.lazyMap("ClampedNumberProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ClampedNumberProvider> CODEC = NeoApoliMapCodecs.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("value").forGetter(ClampedNumberProvider::value),
 		NumberProvider.CODEC.fieldOf("min").forGetter(ClampedNumberProvider::min),
 		NumberProvider.CODEC.fieldOf("max").forGetter(ClampedNumberProvider::max)
 	).apply(instance, ClampedNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, ClampedNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("ClampedNumberProvider", () -> PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, ClampedNumberProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy(ClampedNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::value,
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::min,
 		NumberProvider.PACKET_CODEC, ClampedNumberProvider::max,
@@ -47,9 +47,13 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+
+		NumberProvider.super.validate(reporter);
+
 		value().validate(reporter.makeChild("value"));
 		min().validate(reporter.makeChild("min"));
 		max().validate(reporter.makeChild("max"));
+
 	}
 
 	private <N extends Number> N clamp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<N, N, N, N> processor) {

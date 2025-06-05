@@ -50,6 +50,7 @@ public record TimeNumberProvider(Optional<NumberProvider> modulo) implements Num
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+		NumberProvider.super.validate(reporter);
 		modulo().ifPresent(modulo -> modulo.validate(reporter.makeChild("modulo")));
 	}
 

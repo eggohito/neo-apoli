@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -21,7 +22,7 @@ import java.util.Set;
 public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map<EntityParameter, EntityParameter> parameters) implements BiEntityAction {
 
 	public static final MapCodec<SwapEntityContextBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.lazyMap(() -> BiEntityAction.CODEC.fieldOf("bientity_action")).forGetter(SwapEntityContextBiEntityAction::biEntityAction),
+		NeoApoliMapCodecs.lazy(() -> BiEntityAction.CODEC.fieldOf("bientity_action")).forGetter(SwapEntityContextBiEntityAction::biEntityAction),
 		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityAction::parameters)
 	).apply(instance, SwapEntityContextBiEntityAction::new));
 

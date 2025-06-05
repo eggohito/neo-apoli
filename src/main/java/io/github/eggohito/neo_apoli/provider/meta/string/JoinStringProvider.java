@@ -2,9 +2,10 @@ package io.github.eggohito.neo_apoli.provider.meta.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
+import io.github.eggohito.neo_apoli.provider.misc.MultiStringProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -12,17 +13,18 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import java.util.List;
 
-public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
+public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider, MultiStringProvider {
 
-	public static final MapCodec<JoinStringProvider> CODEC = NeoApoliCodecs.lazyMap("JoinStringProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<JoinStringProvider> CODEC = NeoApoliMapCodecs.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.listOf().fieldOf("strings").forGetter(JoinStringProvider::strings),
 		StringProvider.CODEC.fieldOf("separator").forGetter(JoinStringProvider::separator)
 	).apply(instance, JoinStringProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, JoinStringProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("JoinStringProvider", () -> PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, JoinStringProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy(JoinStringProvider.class.getSimpleName(), () -> PacketCodec.tuple(
 		PacketCodecs.collection(ObjectArrayList::new, StringProvider.PACKET_CODEC), JoinStringProvider::strings,
 		StringProvider.PACKET_CODEC, JoinStringProvider::separator,
 		JoinStringProvider::new
@@ -37,17 +39,34 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	public String stringValue(Context context) {
 
 		StringBuilder result = new StringBuilder();
-		String separator = "";
+		MutableBoolean init = new MutableBoolean(false);
 
-		for (int i = 0; i < strings().size(); i++) {
+		this.iterate((index, provider) -> {
 
-			result
-				.append(separator)
-				.append(strings().get(i).stringValue(context.makeChild("strings[" + i + "]")));
+			Context stringContext = context.makeChild("strings[" + index + "]");
+			String string = provider.stringValue(stringContext);
 
-			separator = separator().stringValue(context.makeChild("separator"));
+			if (!stringContext.hasErrors()) {
 
-		}
+				if (init.isTrue()) {
+
+					Context separatorContext = context.makeChild("separator");
+					String separator = this.separator().stringValue(separatorContext);
+
+					if (!separatorContext.hasErrors()) {
+						result.append(separator).append(string);
+					}
+
+				}
+
+				else {
+					result.append(string);
+					init.setTrue();
+				}
+
+			}
+
+		});
 
 		return result.toString();
 
@@ -55,13 +74,8 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-
-		for (int i = 0; i < strings().size(); i++) {
-			strings().get(i).validate(reporter.makeChild("strings[" + i + "]"));
-		}
-
+		MultiStringProvider.super.validate(reporter);
 		separator().validate(reporter.makeChild("separator"));
-
 	}
 
 }

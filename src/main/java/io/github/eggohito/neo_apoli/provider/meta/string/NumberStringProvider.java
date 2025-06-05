@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.meta.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
@@ -17,7 +17,7 @@ import java.util.Locale;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
-	public static final MapCodec<NumberStringProvider> CODEC = NeoApoliCodecs.lazyMap("NumberStringProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NumberStringProvider> CODEC = NeoApoliMapCodecs.lazy("NumberStringProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
 		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberStringProvider::decimals)
 	).apply(instance, NumberStringProvider::new)));
@@ -51,8 +51,12 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 
 	@Override
 	public void validate(ErrorReporter reporter) {
+
+		StringProvider.super.validate(reporter);
+
 		number().validate(reporter.makeChild("number"));
 		decimals().validate(reporter.makeChild("decimals"));
+
 	}
 
 }
