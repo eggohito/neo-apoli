@@ -12,7 +12,6 @@
 		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
 		"misc.DataCommandStorageMixin",
-		"misc.DataPackContentsMixin",
 		"misc.MinecraftServerMixin",
 		"misc.ServerWorldMixin",
 		"misc.TextCodecsMixin",

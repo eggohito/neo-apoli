@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.MinecraftServerAccess;
 import io.github.eggohito.neo_apoli.mixin.access.DataCommandStorageAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeDataCommandStorageS2CPacket;
+import io.github.eggohito.neo_apoli.power.PowerManager;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.DataCommandStorage;
 import net.minecraft.nbt.NbtCompound;
@@ -14,7 +15,10 @@ import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Collection;
 import java.util.Map;
 
 @Mixin(MinecraftServer.class)
@@ -62,6 +66,11 @@ public abstract class MinecraftServerMixin implements DataCommandStorageHolder {
 
 		}
 
+	}
+
+	@Inject(method = "method_29440", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;onDataPacksReloaded()V"))
+	private void onReloadedDataPacks(Collection<String> dataPacks, MinecraftServer.ResourceManagerHolder resourceManagerHolder, CallbackInfo ci) {
+		PowerManager.validate(resourceManagerHolder.dataPackContents());
 	}
 
 }
