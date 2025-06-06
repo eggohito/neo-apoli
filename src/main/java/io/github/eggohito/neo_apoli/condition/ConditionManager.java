@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -76,19 +77,29 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 					if (jsonElement != null) {
-						prepared.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>()).put(resourceId, new Entry() {
 
-							@Override
-							public String source() {
-								return packName;
-							}
+						if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonElement, directory, ops)) {
 
-							@Override
-							public JsonElement element() {
-								return jsonElement;
-							}
+							Entry entry = new Entry() {
 
-						});
+								@Override
+								public String source() {
+									return packName;
+								}
+
+								@Override
+								public JsonElement element() {
+									return jsonElement;
+								}
+
+							};
+
+							prepared
+								.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
+								.put(resourceId, entry);
+
+						}
+
 					}
 
 					else {
