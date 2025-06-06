@@ -26,6 +26,7 @@ public final class BlockActionTypes {
 	public static final PacketCodec<RegistryByteBuf, BlockActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.BLOCK_ACTION_TYPE);
 
 	public static final BlockActionType<ExecuteCommandBlockAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandBlockAction.CODEC, ExecuteCommandBlockAction.PACKET_CODEC);
+	public static final BlockActionType<IfElseBlockAction> IF_ELSE = registerInternal("if_else", IfElseBlockAction.CODEC, IfElseBlockAction.PACKET_CODEC);
 	public static final BlockActionType<IfElseListBlockAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListBlockAction.CODEC, IfElseListBlockAction.PACKET_CODEC);
 	public static final BlockActionType<NothingBlockAction> NOTHING = registerInternal("nothing", NothingBlockAction.CODEC, NothingBlockAction.PACKET_CODEC);
 	public static final BlockActionType<OffsetBlockAction> OFFSET = registerInternal("offset", OffsetBlockAction.CODEC, OffsetBlockAction.PACKET_CODEC);

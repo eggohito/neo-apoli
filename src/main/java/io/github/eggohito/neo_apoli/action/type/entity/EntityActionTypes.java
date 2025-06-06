@@ -24,6 +24,7 @@ public final class EntityActionTypes {
 	public static final PacketCodec<RegistryByteBuf, EntityActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
 
 	public static final EntityActionType<ExecuteCommandEntityAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandEntityAction.CODEC, ExecuteCommandEntityAction.PACKET_CODEC);
+	public static final EntityActionType<IfElseEntityAction> IF_ELSE = registerInternal("if_else", IfElseEntityAction.CODEC, IfElseEntityAction.PACKET_CODEC);
 	public static final EntityActionType<IfElseListEntityAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListEntityAction.CODEC, IfElseListEntityAction.PACKET_CODEC);
 	public static final EntityActionType<NothingEntityAction> NOTHING = registerInternal("nothing", NothingEntityAction.CODEC, NothingEntityAction.PACKET_CODEC);
 	public static final EntityActionType<OffsetEntityAction> OFFSET = registerInternal("offset", OffsetEntityAction.CODEC, OffsetEntityAction.PACKET_CODEC);
