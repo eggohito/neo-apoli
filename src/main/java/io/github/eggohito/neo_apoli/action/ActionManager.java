@@ -268,9 +268,7 @@ public final class ActionManager implements JsonResourceReloader {
 		Objects.requireNonNull(context.responseSender(), "responseSender");
 
 		TAGS.clear();
-		payload.actionTags().forEach((category, tagEntries) -> tagEntries.forEach((id, entries) -> TAGS
-			.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
-			.put(id, entries)));
+		TAGS.putAll(payload.actionTags());
 		TAGS.trim();
 
 	}
