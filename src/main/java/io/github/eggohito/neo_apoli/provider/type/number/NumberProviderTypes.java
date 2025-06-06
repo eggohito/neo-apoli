@@ -39,6 +39,9 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<AttributeNumberProvider> ATTRIBUTE = registerInternal("attribute", AttributeNumberProvider.CODEC, AttributeNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.CODEC, CommandResultNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusNumberProvider> ENTITIES_IN_RADIUS = registerInternal("entities_in_radius", EntitiesInRadiusNumberProvider.CODEC, EntitiesInRadiusNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<FuelAmountNumberProvider> FUEL_AMOUNT = registerInternal("fuel_amount", FuelAmountNumberProvider.CODEC, FuelAmountNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<ItemCountNumberProvider> ITEM_COUNT = registerInternal("item_count", ItemCountNumberProvider.CODEC, ItemCountNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<ItemMaxCountNumberProvider> ITEM_MAX_COUNT = registerInternal("item_max_count", ItemMaxCountNumberProvider.CODEC, ItemMaxCountNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<PositionNumberProvider> POSITION = registerInternal("position", PositionNumberProvider.CODEC, PositionNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<StorageNumberProvider> STORAGE = registerInternal("storage", StorageNumberProvider.CODEC, StorageNumberProvider.PACKET_CODEC);

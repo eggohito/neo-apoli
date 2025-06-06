@@ -1,10 +1,7 @@
 package io.github.eggohito.neo_apoli.action.category;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.BiEntityAction;
-import io.github.eggohito.neo_apoli.action.BlockAction;
-import io.github.eggohito.neo_apoli.action.EntityAction;
+import io.github.eggohito.neo_apoli.action.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryByteBuf;
@@ -18,6 +15,7 @@ public final class ActionCategories {
 	public static final ActionCategory<BiEntityAction> BIENTITY_ACTION = register("Bi-entity action", NeoApoliRegistryKeys.BIENTITY_ACTION, BiEntityAction.CODEC, BiEntityAction.PACKET_CODEC);
 	public static final ActionCategory<BlockAction> BLOCK_ACTION = register("Block action", NeoApoliRegistryKeys.BLOCK_ACTION, BlockAction.CODEC, BlockAction.PACKET_CODEC);
 	public static final ActionCategory<EntityAction> ENTITY_ACTION = register("Entity action", NeoApoliRegistryKeys.ENTITY_ACTION, EntityAction.CODEC, EntityAction.PACKET_CODEC);
+	public static final ActionCategory<ItemAction> ITEM_ACTION = register("Item action", NeoApoliRegistryKeys.ITEM_ACTION, ItemAction.CODEC, ItemAction.PACKET_CODEC);
 
 	public static void registerAll() {
 

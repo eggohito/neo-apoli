@@ -1,10 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.category;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryByteBuf;
@@ -18,6 +15,7 @@ public final class ConditionCategories {
 	public static final ConditionCategory<BiEntityCondition> BIENTITY_CONDITION = register("Bi-entity condition", NeoApoliRegistryKeys.BIENTITY_CONDITION, BiEntityCondition.CODEC, BiEntityCondition.PACKET_CODEC);
 	public static final ConditionCategory<BlockCondition> BLOCK_CONDITION = register("Block condition", NeoApoliRegistryKeys.BLOCK_CONDITION, BlockCondition.CODEC, BlockCondition.PACKET_CODEC);
 	public static final ConditionCategory<EntityCondition> ENTITY_CONDITION = register("Entity condition", NeoApoliRegistryKeys.ENTITY_CONDITION, EntityCondition.CODEC, EntityCondition.PACKET_CODEC);
+	public static final ConditionCategory<ItemCondition> ITEM_CONDITION = register("Item condition", NeoApoliRegistryKeys.ITEM_CONDITION, ItemCondition.CODEC, ItemCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
