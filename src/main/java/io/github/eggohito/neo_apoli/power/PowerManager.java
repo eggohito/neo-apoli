@@ -23,6 +23,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -46,10 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
@@ -189,10 +189,7 @@ public final class PowerManager implements JsonResourceReloader {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
-			sendSyncPayload(player);
-			sendTagSyncPayload(player);
-		});
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparationCallback.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 
@@ -282,18 +279,30 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
+	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload) {
+	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		Objects.requireNonNull(context.client(), "client");
+		Objects.requireNonNull(context.responseSender(), "responseSender");
+
 		startLoading();
 		payload.powers().forEach(PowerManager::register);
 		endLoading();
+
 	}
 
+	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncTagPayload(SynchronizePowerTagsS2CPacket payload) {
+	public static void receiveSyncTagPayload(SynchronizePowerTagsS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		Objects.requireNonNull(context.client(), "client");
+		Objects.requireNonNull(context.responseSender(), "responseSender");
+
 		TAGS.clear();
 		TAGS.putAll(payload.powerTags());
 		TAGS.trim();
+
 	}
 
 	public static List<PowerEntry<?>> getEntriesFromTagOrEmpty(TagKey<Power> tag) {

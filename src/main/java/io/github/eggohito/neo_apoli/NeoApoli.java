@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -83,6 +84,7 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
+		NeoApoliC2SNetworkHandler.init();
 
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(Power.Impl::onAdded));
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(Power.Impl::onRemoved));

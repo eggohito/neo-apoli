@@ -1,11 +1,13 @@
 package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionEntry;
+import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
@@ -13,8 +15,8 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-@SuppressWarnings("unchecked")
 public record SynchronizeActionTagsS2CPacket(Map<ActionCategory<?>, Map<Identifier, List<ActionEntry<?>>>> actionTags) implements CustomPayload {
 
 	public static final Id<SynchronizeActionTagsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_action_tags"));
@@ -23,28 +25,23 @@ public record SynchronizeActionTagsS2CPacket(Map<ActionCategory<?>, Map<Identifi
 	private static SynchronizeActionTagsS2CPacket read(RegistryByteBuf buf) {
 
 		Map<ActionCategory<?>, Map<Identifier, List<ActionEntry<?>>>> actionTags = new Object2ObjectOpenHashMap<>();
-		int actionTagsCount = buf.readVarInt();
+		int categoriesAndTagIds = buf.readVarInt();
 
-		for (int i = 0; i < actionTagsCount; i++) {
+		for (int i = 0; i < categoriesAndTagIds; i++) {
 
-			ActionCategory<Action<?>> category = (ActionCategory<Action<?>>) ActionCategory.PACKET_CODEC.decode(buf);
-			int tagEntriesCount = buf.readVarInt();
+			ActionCategory<?> category = ActionCategory.PACKET_CODEC.decode(buf);
+			int tagIdsAndEntryIdsCount = buf.readVarInt();
 
-			for (int j = 0; j < tagEntriesCount; j++) {
+			for (int j = 0; j < tagIdsAndEntryIdsCount; j++) {
 
 				Identifier tagId = buf.readIdentifier();
-				int entriesCount = buf.readVarInt();
+				Set<Identifier> entryIds = buf.readCollection(ObjectOpenHashSet::new, PacketByteBuf::readIdentifier);
 
-				for (int k = 0; k < entriesCount; k++) {
-
-					Identifier id = buf.readIdentifier();
-					Action<?> action = category.basePacketCodec().decode(buf);
-
+				for (var entryId : entryIds) {
 					actionTags
-						.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
-						.computeIfAbsent(tagId, key -> new ObjectArrayList<>())
-						.add(new ActionEntry<>(id, action));
-
+						.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
+						.computeIfAbsent(tagId, k -> new ObjectArrayList<>())
+						.add(ActionManager.getEntry(category, entryId));
 				}
 
 			}
@@ -56,26 +53,26 @@ public record SynchronizeActionTagsS2CPacket(Map<ActionCategory<?>, Map<Identifi
 	}
 
 	private void write(RegistryByteBuf buf) {
-		buf.writeVarInt(actionTags().size());
-		actionTags().forEach((category, tagEntries) -> {
 
-			ActionCategory<Action<?>> castedCategory = (ActionCategory<Action<?>>) category;
-			ActionCategory.PACKET_CODEC.encode(buf, castedCategory);
+		Map<ActionCategory<?>, Map<Identifier, Set<Identifier>>> categoriesAndTagIds = new Object2ObjectOpenHashMap<>();
+		actionTags().forEach((category, tagsAndEntries) -> tagsAndEntries.forEach((tagId, entries) -> entries.forEach(entry -> categoriesAndTagIds
+			.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
+			.computeIfAbsent(tagId, k -> new ObjectOpenHashSet<>())
+			.add(entry.id()))));
 
-			buf.writeVarInt(tagEntries.size());
-			tagEntries.forEach((tagId, entries) -> {
+		buf.writeVarInt(categoriesAndTagIds.size());
+		categoriesAndTagIds.forEach((category, tagIdsAndEntryIds) -> {
 
-				buf.writeIdentifier(tagId);
-				buf.writeVarInt(entries.size());
+			ActionCategory.PACKET_CODEC.encode(buf, category);
+			buf.writeVarInt(tagIdsAndEntryIds.size());
 
-				entries.forEach(entry -> {
-					buf.writeIdentifier(entry.id());
-					castedCategory.basePacketCodec().encode(buf, entry.value());
-				});
-
+			tagIdsAndEntryIds.forEach((id, entries) -> {
+				buf.writeIdentifier(id);
+				buf.writeCollection(entries, PacketByteBuf::writeIdentifier);
 			});
 
 		});
+
 	}
 
 	@Override

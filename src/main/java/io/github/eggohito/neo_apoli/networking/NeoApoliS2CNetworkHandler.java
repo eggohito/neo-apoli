@@ -4,6 +4,8 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestActionTagsC2SPacket;
+import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.*;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -30,12 +32,17 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onActionTagsSynchronized(SynchronizeActionTagsS2CPacket payload, ClientPlayNetworking.Context context) {
 		NeoApoli.LOGGER.info("Received {} action tag(s) from server!", payload.actionTags().size());
-		ActionManager.receiveSyncTagPayload(payload);
+		ActionManager.receiveSyncTagPayload(payload, context);
 	}
 
 	private static void onActionsSynchronized(SynchronizeActionsS2CPacket payload, ClientPlayNetworking.Context context) {
+
 		NeoApoli.LOGGER.info("Received {} action(s) from server!", payload.actions().size());
-		ActionManager.receiveSyncPayload(payload);
+		ActionManager.receiveSyncPayload(payload, context);
+
+		NeoApoli.LOGGER.info("Requesting action tags from server...");
+		context.responseSender().sendPacket(new RequestActionTagsC2SPacket());
+
 	}
 
 	private static void onConditionsSynchronized(SynchronizeConditionsS2CPacket payload, ClientPlayNetworking.Context context) {
@@ -45,12 +52,17 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onPowerTagsSynchronized(SynchronizePowerTagsS2CPacket payload, ClientPlayNetworking.Context context) {
 		NeoApoli.LOGGER.info("Received {} power tag(s) from server!", payload.powerTags().size());
-		PowerManager.receiveSyncTagPayload(payload);
+		PowerManager.receiveSyncTagPayload(payload, context);
 	}
 
 	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
+
 		NeoApoli.LOGGER.info("Received {} power(s) from server!", payload.powers().size());
-		PowerManager.receiveSyncPayload(payload);
+		PowerManager.receiveSyncPayload(payload, context);
+
+		NeoApoli.LOGGER.info("Requesting power tags from server...");
+		context.responseSender().sendPacket(new RequestPowerTagsC2SPacket());
+
 	}
 
 }

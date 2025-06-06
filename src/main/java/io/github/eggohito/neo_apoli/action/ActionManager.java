@@ -17,6 +17,9 @@ import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -40,10 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
@@ -204,10 +204,7 @@ public final class ActionManager implements JsonResourceReloader {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
-			sendSyncPayload(player);
-			sendTagSyncPayload(player);
-		});
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 	}
 
@@ -250,20 +247,32 @@ public final class ActionManager implements JsonResourceReloader {
 
 	}
 
+	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload) {
+	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		Objects.requireNonNull(context.client(), "client");
+		Objects.requireNonNull(context.responseSender(), "responseSender");
+
 		startLoading();
 		payload.actions().forEach((category, entries) -> entries.forEach(ActionManager::register));
 		endLoading();
+
 	}
 
+	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncTagPayload(SynchronizeActionTagsS2CPacket payload) {
+	public static void receiveSyncTagPayload(SynchronizeActionTagsS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		Objects.requireNonNull(context.client(), "client");
+		Objects.requireNonNull(context.responseSender(), "responseSender");
+
 		TAGS.clear();
 		payload.actionTags().forEach((category, tagEntries) -> tagEntries.forEach((id, entries) -> TAGS
 			.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
 			.put(id, entries)));
 		TAGS.trim();
+
 	}
 
 	public static <A extends Action<?>> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, TagKey<A> tag) {
