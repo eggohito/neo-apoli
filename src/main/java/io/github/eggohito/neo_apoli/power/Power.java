@@ -171,6 +171,10 @@ public abstract class Power {
 			return this.getPower().getContextType();
 		}
 
+		public PowerType<?> getPowerType() {
+			return this.getPower().getType();
+		}
+
 		public P getPower() {
 			return power;
 		}

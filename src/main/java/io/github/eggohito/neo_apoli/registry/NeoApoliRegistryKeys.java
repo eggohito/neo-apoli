@@ -20,6 +20,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
+import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 
@@ -53,6 +54,7 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<StringProviderType<?>>> STRING_PROVIDER_TYPE = create("string_provider_type");
 
 	public static final RegistryKey<Registry<ComparisonType<?>>> COMPARISON_TYPE = create("comparison_type");
+	public static final RegistryKey<Registry<ContainerType>> CONTAINER_TYPE = create("container_type");
 
 	private static <T> RegistryKey<Registry<T>> create(String path) {
 		return RegistryKey.ofRegistry(NeoApoli.id(path));

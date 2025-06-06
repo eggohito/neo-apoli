@@ -6,30 +6,23 @@ import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.command.argument.NbtPathArgumentType;
-import net.minecraft.loot.context.LootContext;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.function.ValueLists;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 public class NeoApoliPacketCodecs {
 
-	public static final PacketCodec<ByteBuf, Set<Identifier>> MUTABLE_IDENTIFIER_SET = PacketCodecs.collection(ObjectOpenHashSet::new, PacketCodecs.STRING.xmap(Identifier::of, Identifier::toString));
-
 	public static final PacketCodec<ByteBuf, Hand> HAND = HandProperty.PACKET_CODEC.xmap(HandProperty::get, HandProperty::fromHand);
-
-	public static final PacketCodec<PacketByteBuf, LootContext.EntityTarget> ENTITY_TARGET = PacketCodec.ofStatic(PacketByteBuf::writeEnumConstant, buf -> buf.readEnumConstant(LootContext.EntityTarget.class));
 
 	public static final PacketCodec<PacketByteBuf, Number> NUMBER = new PacketCodec<>() {
 
@@ -96,11 +89,11 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<ByteBuf, NbtPathArgumentType.NbtPath> NBT_PATH = PacketCodecs.unlimitedCodec(NbtPathArgumentType.NbtPath.CODEC);
 
-	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(LightType::ordinal, LightType.values(), ValueLists.OutOfBoundsHandling.WRAP), LightType::ordinal);
+	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = enumType(ValueLists.OutOfBoundsHandling.WRAP, LightType::ordinal, LightType::values);
 
 	public static final PacketCodec<ByteBuf, List<Direction>> DIRECTIONS = PacketCodecs.collection(ObjectArrayList::new, Direction.PACKET_CODEC);
 
-	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(Direction.Axis::ordinal, Direction.Axis.values(), ValueLists.OutOfBoundsHandling.CLAMP), Direction.Axis::ordinal);
+	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = enumType(ValueLists.OutOfBoundsHandling.WRAP, Direction.Axis::ordinal, Direction.Axis::values);
 
 	public static final PacketCodec<ByteBuf, Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityParameter.PACKET_CODEC, EntityParameter.PACKET_CODEC);
 
@@ -127,6 +120,10 @@ public class NeoApoliPacketCodecs {
 
 	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(Supplier<PacketCodec<B, A>> delegate) {
 		return lazy(delegate.toString(), delegate);
+	}
+
+	public static <B extends ByteBuf, E extends Enum<E>> PacketCodec<B, E> enumType(ValueLists.OutOfBoundsHandling outOfBoundsHandling, ToIntFunction<E> toOrdinal, Supplier<E[]> valuesSupplier) {
+		return PacketCodecs.indexed(ValueLists.createIndexToValueFunction(toOrdinal, valuesSupplier.get(), outOfBoundsHandling), toOrdinal).cast();
 	}
 
 }

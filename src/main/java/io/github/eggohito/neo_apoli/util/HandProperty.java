@@ -1,14 +1,13 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Hand;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.function.ValueLists;
 
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 public enum HandProperty implements Supplier<Hand>, StringIdentifiable {
@@ -39,10 +38,8 @@ public enum HandProperty implements Supplier<Hand>, StringIdentifiable {
 
 	};
 
-	private static final IntFunction<HandProperty> FROM_ORDINAL = ValueLists.createIndexToValueFunction(HandProperty::ordinal, HandProperty.values(), ValueLists.OutOfBoundsHandling.WRAP);
-
 	public static final Codec<HandProperty> CODEC = StringIdentifiable.createBasicCodec(HandProperty::values);
-	public static final PacketCodec<ByteBuf, HandProperty> PACKET_CODEC = PacketCodecs.indexed(FROM_ORDINAL, HandProperty::ordinal);
+	public static final PacketCodec<ByteBuf, HandProperty> PACKET_CODEC = NeoApoliPacketCodecs.enumType(ValueLists.OutOfBoundsHandling.WRAP, HandProperty::ordinal, HandProperty::values);
 
 	public static HandProperty fromHand(Hand hand) {
 		return switch (hand) {
