@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.entity.EntityTypeEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSprintingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.OnBlockEntityCondition;
@@ -32,6 +33,7 @@ public final class EntityConditionTypes {
 	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<ReferenceEntityCondition> REFERENCE = registerInternal("reference", ReferenceEntityCondition.CODEC, ReferenceEntityCondition.PACKET_CODEC);
 
+	public static final EntityConditionType<EntityTypeEntityCondition> ENTITY_TYPE = registerInternal("entity_type", EntityTypeEntityCondition.CODEC, EntityTypeEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<OnBlockEntityCondition> ON_BLOCK = registerInternal("on_block", OnBlockEntityCondition.CODEC, OnBlockEntityCondition.PACKET_CODEC);
