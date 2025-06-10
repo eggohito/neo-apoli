@@ -128,7 +128,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 
 		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.baseCodec().parse(ops, entry.element())
 			.ifSuccess(condition -> register(id, condition))
-			.ifError(error -> LOGGER.info("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
+			.ifError(error -> LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
 
 		StringBuilder message = new StringBuilder("Finished parsing conditions from data packs. Parsed " + BY_CATEGORY_AND_ID.size() + " condition(s) in total;");
 		BY_CATEGORY_AND_ID.forEach((category, entries) -> message.append("\n\t - Parsed ").append(entries.size()).append(" ").append(StringUtils.uncapitalize(category.toString())).append("(s)"));
