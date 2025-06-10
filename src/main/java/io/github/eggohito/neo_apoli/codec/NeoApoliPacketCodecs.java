@@ -14,6 +14,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.function.ValueLists;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
+import net.minecraft.world.explosion.Explosion;
 
 import java.util.List;
 import java.util.Map;
@@ -89,13 +90,15 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<ByteBuf, NbtPathArgumentType.NbtPath> NBT_PATH = PacketCodecs.unlimitedCodec(NbtPathArgumentType.NbtPath.CODEC);
 
-	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = enumType(ValueLists.OutOfBoundsHandling.WRAP, LightType::ordinal, LightType::values);
+	public static final PacketCodec<ByteBuf, LightType> LIGHT_TYPE = enumType(LightType.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static final PacketCodec<ByteBuf, List<Direction>> DIRECTIONS = PacketCodecs.collection(ObjectArrayList::new, Direction.PACKET_CODEC);
 
-	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = enumType(ValueLists.OutOfBoundsHandling.WRAP, Direction.Axis::ordinal, Direction.Axis::values);
+	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = enumType(Direction.Axis.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static final PacketCodec<ByteBuf, Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityParameter.PACKET_CODEC, EntityParameter.PACKET_CODEC);
+
+	public static final PacketCodec<ByteBuf, Explosion.DestructionType> DESTRUCTION_TYPE = enumType(Explosion.DestructionType.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static <B extends ByteBuf, A> PacketCodec<B, A> lazy(String name, Supplier<PacketCodec<B, A>> delegate) {
 		return new PacketCodec<>() {
@@ -122,8 +125,9 @@ public class NeoApoliPacketCodecs {
 		return lazy(delegate.toString(), delegate);
 	}
 
-	public static <B extends ByteBuf, E extends Enum<E>> PacketCodec<B, E> enumType(ValueLists.OutOfBoundsHandling outOfBoundsHandling, ToIntFunction<E> toOrdinal, Supplier<E[]> valuesSupplier) {
-		return PacketCodecs.indexed(ValueLists.createIndexToValueFunction(toOrdinal, valuesSupplier.get(), outOfBoundsHandling), toOrdinal).cast();
+	public static <B extends ByteBuf, E extends Enum<E>> PacketCodec<B, E> enumType(Class<E> clazz, ValueLists.OutOfBoundsHandling outOfBoundsHandling) {
+		ToIntFunction<E> toOrdinal = Enum::ordinal;
+		return PacketCodecs.indexed(ValueLists.createIndexToValueFunction(toOrdinal, clazz.getEnumConstants(), outOfBoundsHandling), toOrdinal).cast();
 	}
 
 }

@@ -39,7 +39,7 @@ public enum HandProperty implements Supplier<Hand>, StringIdentifiable {
 	};
 
 	public static final Codec<HandProperty> CODEC = StringIdentifiable.createBasicCodec(HandProperty::values);
-	public static final PacketCodec<ByteBuf, HandProperty> PACKET_CODEC = NeoApoliPacketCodecs.enumType(ValueLists.OutOfBoundsHandling.WRAP, HandProperty::ordinal, HandProperty::values);
+	public static final PacketCodec<ByteBuf, HandProperty> PACKET_CODEC = NeoApoliPacketCodecs.enumType(HandProperty.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static HandProperty fromHand(Hand hand) {
 		return switch (hand) {

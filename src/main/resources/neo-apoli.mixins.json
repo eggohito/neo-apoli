@@ -11,6 +11,7 @@
 		"access.ReloadableRegistriesAccessor$LookupAccessor",
 		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
+		"action.meta.ExplodeMetaActionMixin",
 		"misc.DataCommandStorageMixin",
 		"misc.MinecraftServerMixin",
 		"misc.ServerWorldMixin",

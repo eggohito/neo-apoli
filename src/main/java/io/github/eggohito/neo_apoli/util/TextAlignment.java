@@ -17,7 +17,7 @@ public enum TextAlignment implements StringIdentifiable {
 	CENTER("center", (left, right, textWidth) -> OptionalInt.of((left + right - textWidth) / 2));
 
 	public static final Codec<TextAlignment> CODEC = StringIdentifiable.createCodec(TextAlignment::values);
-	public static final PacketCodec<ByteBuf, TextAlignment> PACKET_CODEC = NeoApoliPacketCodecs.enumType(ValueLists.OutOfBoundsHandling.WRAP, TextAlignment::ordinal, TextAlignment::values);
+	public static final PacketCodec<ByteBuf, TextAlignment> PACKET_CODEC = NeoApoliPacketCodecs.enumType(TextAlignment.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	final String name;
 	final HorizontalPosition horizontal;

@@ -13,10 +13,12 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.function.ValueLists;
 import net.minecraft.world.LightType;
+import net.minecraft.world.explosion.Explosion;
 
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 
 public class NeoApoliCodecs {
 
@@ -38,11 +40,21 @@ public class NeoApoliCodecs {
 
 	};
 
-	public static final Codec<LightType> LIGHT_TYPE = Codecs.orCompressed(
-		Codec.stringResolver(Enum::name, str -> LightType.valueOf(str.toUpperCase(Locale.ROOT))),
-		Codecs.rawIdChecked(LightType::ordinal, ValueLists.createIndexToValueFunction(LightType::ordinal, LightType.values(), ValueLists.OutOfBoundsHandling.WRAP), -1)
-	);
+	public static final Codec<LightType> LIGHT_TYPE = enumType(LightType.class, ValueLists.OutOfBoundsHandling.WRAP);
 
 	public static final Codec<Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = Codec.unboundedMap(EntityParameter.CODEC, EntityParameter.CODEC);
+
+	public static final Codec<Explosion.DestructionType> DESTRUCTION_TYPE = enumType(Explosion.DestructionType.class, ValueLists.OutOfBoundsHandling.WRAP);
+
+	public static <E extends Enum<E>> Codec<E> enumType(Class<E> clazz, ValueLists.OutOfBoundsHandling outOfBoundsHandling) {
+
+		ToIntFunction<E> toOrdinal = Enum::ordinal;
+
+		Codec<E> byString = Codec.stringResolver(Enum::name, name -> Enum.valueOf(clazz, name.toUpperCase(Locale.ROOT)));
+		Codec<E> byId = Codecs.rawIdChecked(toOrdinal, ValueLists.createIndexToValueFunction(toOrdinal, clazz.getEnumConstants(), outOfBoundsHandling), -1);
+
+		return Codecs.orCompressed(byString, byId);
+
+	}
 
 }

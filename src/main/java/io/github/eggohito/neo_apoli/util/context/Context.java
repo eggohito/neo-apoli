@@ -102,7 +102,8 @@ public final class Context {
 
 	public static final class Builder {
 
-		private final ContextType contextType;
+		private ContextType contextType;
+
 		private final ContextParameterMap.Builder parameters;
 		private final ContextAware.ErrorReporter reporter;
 
@@ -125,6 +126,11 @@ public final class Context {
 			this.contextType = context.getType();
 			this.reporter = context.getReporter();
 
+		}
+
+		public Builder withContextType(@NotNull ContextType contextType) {
+			this.contextType = contextType;
+			return this;
 		}
 
 		public Builder copy() {
