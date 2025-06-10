@@ -126,6 +126,8 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 		damageableBiEntityCondition().validate(reporter.makeChild("damageable_bientity_condition"));
 		destructibleBlockCondition().validate(reporter.makeChild("destructible_block_condition"));
 
+		property().validate(reporter);
+
 	}
 
 	static <M extends ExplodeMetaAction<?>> MapCodec<M> codec(Function4<BiEntityCondition, BlockCondition, ExplosionProperty, ExplosionDisplay, M> constructor) {
