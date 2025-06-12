@@ -18,12 +18,14 @@ import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
+import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
+import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -77,6 +79,9 @@ public class NeoApoli implements ModInitializer {
 		ActionTypes.registerAll();
 		ActionCategories.registerAll();
 		ActionManager.init();
+
+		NeoApoliContainerTypes.registerAll();
+		NeoApoliParticleTypes.registerAll();
 
 		ComparisonTypes.registerAll();
 
