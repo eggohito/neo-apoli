@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
-import io.github.eggohito.neo_apoli.particle.NothingParticleEffect;
+import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -232,14 +232,14 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 
 		public static final MapCodec<ExplosionDisplay> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			SoundEvent.ENTRY_CODEC.optionalFieldOf("sound", Registries.SOUND_EVENT.getEntry(SoundEvents.INTENTIONALLY_EMPTY)).forGetter(ExplosionDisplay::soundEvent),
-			ParticleTypes.TYPE_CODEC.optionalFieldOf("small_particle", new NothingParticleEffect()).forGetter(ExplosionDisplay::smallParticle),
-			ParticleTypes.TYPE_CODEC.optionalFieldOf("large_particle", new NothingParticleEffect()).forGetter(ExplosionDisplay::largeParticle)
+			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("small_particle", ParticleTypes.EXPLOSION).forGetter(ExplosionDisplay::smallParticle),
+			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("large_particle", ParticleTypes.EXPLOSION_EMITTER).forGetter(ExplosionDisplay::largeParticle)
 		).apply(instance, ExplosionDisplay::new));
 
 		public static final PacketCodec<RegistryByteBuf, ExplosionDisplay> PACKET_CODEC = PacketCodec.tuple(
 			SoundEvent.ENTRY_PACKET_CODEC, ExplosionDisplay::soundEvent,
-			ParticleTypes.PACKET_CODEC, ExplosionDisplay::smallParticle,
-			ParticleTypes.PACKET_CODEC, ExplosionDisplay::largeParticle,
+			NeoApoliParticleTypes.EFFECT_PACKET_CODEC, ExplosionDisplay::smallParticle,
+			NeoApoliParticleTypes.EFFECT_PACKET_CODEC, ExplosionDisplay::largeParticle,
 			ExplosionDisplay::new
 		);
 
