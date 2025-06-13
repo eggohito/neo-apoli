@@ -194,8 +194,8 @@ public abstract class Power {
 			Context subContext = context.makeChild(path);
 			R result = resultFunctor.apply(subContext);
 
-			if (context.hasAnyErrors()) {
-				NeoApoli.logOnce(Level.WARN, errorSupplier.apply(context.getReporter(), path));
+			if (subContext.hasErrors()) {
+				NeoApoli.logOnce(Level.WARN, errorSupplier.apply(subContext.getReporter(), path));
 			}
 
 			return result;
