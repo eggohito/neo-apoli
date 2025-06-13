@@ -1,9 +1,8 @@
-package io.github.eggohito.neo_apoli.power.context;
+package io.github.eggohito.neo_apoli.util.context;
 
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.util.context.ContextType;
 
-public class PowerContextTypes {
+public class ContextTypes {
 
 	public static final ContextType.Builder BUILDER = new ContextType.Builder()
 		.require(ContextParameters.POSITION)

@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
@@ -21,7 +21,7 @@ import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.PowerSerializers;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
@@ -85,14 +85,14 @@ public class NeoApoli implements ModInitializer {
 
 		ComparisonTypes.registerAll();
 
-		PowerTypes.registerAll();
+		PowerSerializers.registerAll();
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();
 
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(Power.Impl::onAdded));
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> NeoApoliEntityComponents.POWERS.get(entity).getPowers(true).forEach(Power.Impl::onRemoved));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onAdded));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onRemoved));
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);

@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.event.PowerPreparationCallback;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
-import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
@@ -213,7 +213,7 @@ public final class PowerManager implements JsonResourceReloader {
 			Power power = entry.value();
 
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter()
-				.withContextType(power.getContextType())
+				.withContextType(power.getSerializer().contextType())
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
 
 			power.validate(reporter);
@@ -373,7 +373,7 @@ public final class PowerManager implements JsonResourceReloader {
 				case PowerReference.Power ignored ->
 					multiplePower.getSubPowers().forEach((subReference, subPower) -> register(new PowerEntry<>(subReference, subPower)));
 				case PowerReference.SubPower subPowerReference ->
-					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getType()) + "\" power type, which isn't allowed!");
+					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getSerializer()) + "\" power type, which isn't allowed!");
 			}
 
 		}

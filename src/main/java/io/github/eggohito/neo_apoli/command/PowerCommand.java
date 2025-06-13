@@ -15,8 +15,7 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -496,14 +495,14 @@ public class PowerCommand {
 				}
 
 				Power power = impl.getPower();
-				PowerType<?> powerType = power.getType();
+				Power.Serializer<?> serializer = power.getSerializer();
 
 				List<Text> sourceTooltips = new ObjectArrayList<>();
 				sources.forEach(id -> sourceTooltips.add(Text.literal(id.toString()).formatted()));
 
 				Text idTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.id", Text.literal("\"" + reference.toString() + "\"").formatted(Formatting.GREEN));
 				Text joinedSourcesTooltip = Text.translatable("commands.neo-apoli.power.list.info.sources", Texts.join(sourceTooltips, Text.of(", ")));
-				Text typeTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.type", Text.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, powerType) + "\"").formatted(Formatting.GOLD));
+				Text typeTooltip = Text.stringifiedTranslatable("commands.neo-apoli.power.list.info.type", Text.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, serializer) + "\"").formatted(Formatting.GOLD));
 
 				Text hoverTooltip = Text.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, joinedSourcesTooltip);
 				HoverEvent hoverEvent = new HoverEvent.ShowText(hoverTooltip);

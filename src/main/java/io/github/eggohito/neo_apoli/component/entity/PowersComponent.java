@@ -10,9 +10,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.internal.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.util.PowerEntry;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -49,13 +48,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	private static final int GRANT_SYNC_ID = 1;
 	private static final int REVOKE_SYNC_ID = 2;
 
-	private final Map<PowerReference, Power.Impl<?>> impls;
+	private final Map<PowerReference, Power.Type<?>> types;
 	private final Map<PowerReference, Set<Identifier>> sources;
 
 	private final Entity holder;
 
 	public PowersComponent(Entity holder) {
-		this.impls = new ConcurrentHashMap<>();
+		this.types = new ConcurrentHashMap<>();
 		this.sources = new ConcurrentHashMap<>();
 		this.holder = holder;
 	}
@@ -66,7 +65,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		RegistryOps<NbtElement> nbtOps = wrapperLookup.getOps(NbtOps.INSTANCE);
 		NbtList powersNbt = new NbtList();
 
-		this.impls.forEach((id, impl) -> {
+		this.types.forEach((id, impl) -> {
 
 			Set<Identifier> sources = this.sources.getOrDefault(id, Set.of());
 			NbtElement data = impl.encodeData(nbtOps)
@@ -74,7 +73,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.orElseGet(nbtOps::emptyMap);
 
-			Entry<NbtElement> entry = new Entry<>(id, impl.getPower().getType(), sources, new Dynamic<>(nbtOps, data));
+			Entry<NbtElement> entry = new Entry<>(id, impl.getPower().getSerializer(), sources, new Dynamic<>(nbtOps, data));
 			Entry.CODEC.encoder().encodeStart(nbtOps, entry)
 				.mapError(error -> "Error trying to encode " + id.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
@@ -94,7 +93,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		NbtList powersNbt = rootNbt.getListOrEmpty("powers");
 		ListIterator<NbtElement> powersNbtIterator = powersNbt.listIterator();
 
-		this.impls.clear();
+		this.types.clear();
 		this.sources.clear();
 
 		while (powersNbtIterator.hasNext()) {
@@ -117,11 +116,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 						Power power = success.value();
 						Dynamic<NbtElement> data = entry.data().convert(nbtOps);
 
-						Power.Impl<?> impl = power.createImpl(holder);
+						Power.Type<?> type = power.createType(holder);
 						Set<Identifier> sources = entry.sources();
 
-						if (Objects.equals(entry.type(), power.getType())) {
-							impl.decodeData(nbtOps, data.getValue())
+						if (Objects.equals(entry.serializer(), power.getSerializer())) {
+							type.decodeData(nbtOps, data.getValue())
 								.mapError(error -> "Error decoding data of " + powerReference.asDisplayString(false) + " from NBT (skipping): " + error)
 								.error()
 								.map(DataResult.Error::message)
@@ -132,7 +131,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 							NeoApoli.LOGGER.warn("Power type of {} has changed. Its data won't be recovered!", powerReference.asDisplayString(false));
 						}
 
-						this.impls.put(powerReference, impl);
+						this.types.put(powerReference, type);
 						this.sources.put(powerReference, sources);
 
 					}
@@ -175,7 +174,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	@Override
 	public void tick() {
 
-		for (var impl : impls.values()) {
+		for (var impl : types.values()) {
 
 			if (impl.shouldTick()) {
 				impl.onTick();
@@ -205,19 +204,19 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	private boolean grantPower(PowerEntry<?> entry, Identifier source) {
 
-		List<Power.Impl<?>> addedPowers = new ObjectArrayList<>();
-		List<Power.Impl<?>> grantedPowers = new ObjectArrayList<>();
+		List<Power.Type<?>> addedPowers = new ObjectArrayList<>();
+		List<Power.Type<?>> grantedPowers = new ObjectArrayList<>();
 
 		boolean granted = this.grantPower(entry, source, addedPowers::add, grantedPowers::add);
 
-		addedPowers.forEach(Power.Impl::onAdded);
-		grantedPowers.forEach(Power.Impl::onGranted);
+		addedPowers.forEach(Power.Type::onAdded);
+		grantedPowers.forEach(Power.Type::onGranted);
 
 		return granted;
 
 	}
 
-	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power.Impl<?>> addedAction, Consumer<Power.Impl<?>> grantedAction) {
+	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power.Type<?>> addedAction, Consumer<Power.Type<?>> grantedAction) {
 
 		PowerReference reference = entry.reference();
 		Set<Identifier> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
@@ -227,16 +226,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		}
 
 		Power power = entry.value();
-		Power.Impl<?> impl = power.createImpl(holder);
+		Power.Type<?> type = power.createType(holder);
 
 		sources.add(source);
-		addedAction.accept(impl);
+		addedAction.accept(type);
 
-		if (!impls.containsKey(reference)) {
-			grantedAction.accept(impl);
+		if (!types.containsKey(reference)) {
+			grantedAction.accept(type);
 		}
 
-		this.impls.put(reference, impl);
+		this.types.put(reference, type);
 		if (power instanceof MultiplePower multiplePower) {
 
 			for (PowerReference.SubPower subReference : multiplePower.getSubPowers().keySet()) {
@@ -267,7 +266,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		List<PowerReference> revokedPowers = new ObjectArrayList<>();
 		boolean result = this.revokePower(entry, source, revokedPowers::add);
 
-		impls.keySet().removeIf(revokedPowers::contains);
+		types.keySet().removeIf(revokedPowers::contains);
 		sources.keySet().removeIf(revokedPowers::contains);
 
 		return result;
@@ -286,13 +285,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		Power power = entry.value();
 		sources.remove(source);
 
-		if (impls.containsKey(reference)) {
+		if (types.containsKey(reference)) {
 
-			Power.Impl<?> impl = impls.get(reference);
-			impl.onRemoved();
+			Power.Type<?> type = types.get(reference);
+			type.onRemoved();
 
 			if (sources.isEmpty()) {
-				impl.onRevoked();
+				type.onRevoked();
 				revokedAction.accept(reference);
 			}
 
@@ -310,9 +309,9 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public void forEach(TriConsumer<PowerReference, Power.Impl<?>, Set<Identifier>> consumer) {
+	public void forEach(TriConsumer<PowerReference, Power.Type<?>, Set<Identifier>> consumer) {
 
-		for (var implEntry : this.impls.entrySet()) {
+		for (var implEntry : this.types.entrySet()) {
 
 			PowerReference reference = implEntry.getKey();
 			Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
@@ -325,13 +324,32 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public List<Power.Impl<?>> getPowers(boolean includeSubPowers) {
+	public List<Power.Type<?>> getPowerTypes() {
 
-		List<Power.Impl<?>> collected = new ObjectArrayList<>();
-		this.forEach((reference, impl, sources) -> {
+		List<Power.Type<?>> collected = new ObjectArrayList<>();
+		this.forEach((reference, type, sources) -> collected.add(type));
 
-			if (includeSubPowers || !reference.isSubPower()) {
-				collected.add(impl);
+		return collected;
+
+	}
+
+	public <T extends Power.Type<?>> List<T> getPowerTypes(Class<T> typeClass) {
+		return this.getPowerTypes(typeClass, type -> true);
+	}
+
+	public <T extends Power.Type<?>> List<T> getPowerTypes(Class<T> typeClass, Predicate<T> filter) {
+
+		List<T> collected = new ObjectArrayList<>();
+		this.forEach((reference, type, sources) -> {
+
+			if (typeClass.isInstance(type)) {
+
+				T castedType = typeClass.cast(type);
+
+				if (filter.test(castedType)) {
+					collected.add(castedType);
+				}
+
 			}
 
 		});
@@ -340,13 +358,28 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public List<Power.Impl<?>> getPowersFromSource(Identifier source) {
+	public List<Power> getPowers(boolean includeSubPowers) {
 
-		List<Power.Impl<?>> collected = new ObjectArrayList<>();
+		List<Power> collected = new ObjectArrayList<>();
+		this.forEach((reference, type, sources) -> {
+
+			if (includeSubPowers || !reference.isSubPower()) {
+				collected.add(type.getPower());
+			}
+
+		});
+
+		return collected;
+
+	}
+
+	public List<Power> getPowersFromSource(Identifier source) {
+
+		List<Power> collected = new ObjectArrayList<>();
 		this.forEach((reference, impl, sources) -> {
 
 			if (sources.contains(source)) {
-				collected.add(impl);
+				collected.add(impl.getPower());
 			}
 
 		});
@@ -355,12 +388,30 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public Power.Impl<?> getPower(PowerReference reference) {
-		return Objects.requireNonNull(impls.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
+	public Power.Type<?> getPowerType(PowerReference reference) {
+		return Objects.requireNonNull(types.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
+	}
+
+	public <T extends Power.Type<?>> boolean hasPowerType(Class<T> typeClass) {
+		return this.hasPowerType(typeClass, type -> true);
+	}
+
+	public <T extends Power.Type<?>> boolean hasPowerType(Class<T> typeClass, Predicate<T> filter) {
+
+		for (var type : types.values()) {
+
+			if (typeClass.isInstance(type) && filter.test(typeClass.cast(type))) {
+				return true;
+			}
+
+		}
+
+		return false;
+
 	}
 
 	public boolean hasPower(PowerReference reference) {
-		return impls.containsKey(reference)
+		return types.containsKey(reference)
 			&& sources.containsKey(reference);
 	}
 
@@ -390,57 +441,31 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public static <I extends Power.Impl<?>> boolean hasPowers(@NotNull Entity entity, Class<I> clazz, Predicate<I> condition) {
-
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
-		for (var impl : powersComponent.impls.values()) {
-
-			if (clazz.isInstance(impl) && condition.test(clazz.cast(impl))) {
-				return true;
-			}
-
-		}
-
-		return false;
-
+	public static <I extends Power.Type<?>> boolean hasPowerType(@NotNull Entity entity, Class<I> typeClass) {
+		return NeoApoliEntityComponents.POWERS.get(entity).hasPowerType(typeClass);
 	}
 
-	public static <I extends Power.Impl<?>> boolean hasPowers(@NotNull Entity entity, Class<I> clazz) {
-		return hasPowers(entity, clazz, i -> true);
+	public static <T extends Power.Type<?>> boolean hasPowerType(@NotNull Entity entity, Class<T> typeClass, Predicate<T> filter) {
+		return NeoApoliEntityComponents.POWERS.get(entity).hasPowerType(typeClass, filter);
 	}
 
-	public static <I extends Power.Impl<?>> List<I> getPowers(@NotNull Entity entity, Class<I> clazz, Predicate<I> condition) {
-
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
-		List<I> collected = new ObjectArrayList<>();
-
-		for (var impl : powersComponent.impls.values()) {
-
-			if (clazz.isInstance(impl)) {
-
-				I casted = clazz.cast(impl);
-
-				if (condition.test(casted)) {
-					collected.add(casted);
-				}
-
-			}
-
-		}
-
-		return collected;
-
+	public static List<Power.Type<?>> getPowerTypes(@NotNull Entity entity) {
+		return NeoApoliEntityComponents.POWERS.get(entity).getPowerTypes();
 	}
 
-	public static <I extends Power.Impl<?>> List<I> getPowers(@NotNull Entity entity, Class<I> clazz) {
-		return getPowers(entity, clazz, i -> true);
+	public static <T extends Power.Type<?>> List<T> getPowerTypes(@NotNull Entity entity, Class<T> typeClass) {
+		return NeoApoliEntityComponents.POWERS.get(entity).getPowerTypes(typeClass);
 	}
 
-	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {
+	public static <I extends Power.Type<?>> List<I> getPowerTypes(@NotNull Entity entity, Class<I> typeClass, Predicate<I> typeFilter) {
+		return NeoApoliEntityComponents.POWERS.get(entity).getPowerTypes(typeClass, typeFilter);
+	}
+
+	public record Entry<T>(PowerReference powerReference, Power.Serializer<?> serializer, Set<Identifier> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
-			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::type),
+			PowerSerializers.CODEC.fieldOf("type").forGetter(Entry::serializer),
 			NeoApoliCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));

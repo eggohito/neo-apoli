@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.power;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.PlayerManager;
@@ -20,7 +20,7 @@ public abstract class PowerMixin {
 		private void onRespawn(ServerPlayerEntity player, boolean alive, Entity.RemovalReason removalReason, CallbackInfoReturnable<ServerPlayerEntity> cir, @Local(ordinal = 1) ServerPlayerEntity newPlayer) {
 
 			if (!alive) {
-				NeoApoliEntityComponents.POWERS.get(newPlayer).getPowers(true).forEach(Power.Impl::onRespawn);
+				PowersComponent.getPowerTypes(newPlayer).forEach(Power.Type::onRespawn);
 			}
 
 		}

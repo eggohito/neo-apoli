@@ -11,8 +11,6 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
@@ -41,10 +39,10 @@ import java.util.function.UnaryOperator;
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> BASE_MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final MapCodec<Power> BASE_MAP_CODEC = PowerSerializers.CODEC.dispatchMap(TYPE_KEY, Power::getSerializer, Serializer::mapCodec);
 
 	public static final Codec<Power> BASE_CODEC = BASE_MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerSerializers.PACKET_CODEC.dispatch(Power::getSerializer, Serializer::packetCodec);
 
 	private final Properties properties;
 	private final EntityCondition activeCondition;
@@ -62,11 +60,9 @@ public abstract class Power {
 		getActiveCondition().validate(reporter.makeChild("active_condition"));
 	}
 
-	public abstract PowerType<?> getType();
+	public abstract Serializer<?> getSerializer();
 
-	public abstract ContextType getContextType();
-
-	public abstract Impl<?> createImpl(Entity holder);
+	public abstract Type<?> createType(Entity holder);
 
 	public final Properties getProperties() {
 		return properties;
@@ -122,11 +118,9 @@ public abstract class Power {
 		};
 	}
 
-	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, EntityCondition> addCommonAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
-		return instance.group(
-			Properties.CODEC.forGetter(Power::getProperties),
-			EntityCondition.CODEC.optionalFieldOf("active_condition", new ConstantEntityCondition(true)).forGetter(Power::getActiveCondition)
-		);
+	protected static <P extends Power> Products.P2<RecordCodecBuilder.Mu<P>, Properties, EntityCondition> addCommonConditionedFields(RecordCodecBuilder.Instance<P> instance) {
+		return addCommonFields(instance)
+			.and(EntityCondition.CODEC.optionalFieldOf("active_condition", new ConstantEntityCondition(true)).forGetter(Power::getActiveCondition));
 	}
 
 	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createCommonConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, TriFunction<RegistryByteBuf, Properties, EntityCondition, P> decoder) {
@@ -142,18 +136,32 @@ public abstract class Power {
 		);
 	}
 
-	public abstract static class Impl<P extends Power> {
+	public interface Serializer<P extends Power> {
+
+		ContextType contextType();
+
+		MapCodec<P> mapCodec();
+
+		PacketCodec<RegistryByteBuf, P> packetCodec();
+
+		default Context.Builder contextBuilder() {
+			return Context.builder(this.contextType());
+		}
+
+	}
+
+	public abstract static class Type<P extends Power> {
 
 		protected final Entity holder;
 		protected final P power;
 
-		protected Impl(@NotNull Entity holder, @NotNull P power) {
+		protected Type(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
 			this.power = power;
 		}
 
-		protected Context createGenericContext() {
-			return new Context.Builder(this.getContextType())
+		protected final Context createGenericContext() {
+			return this.getSerializer().contextBuilder()
 				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.POSITION, holder.getPos())
 				.build(holder.getWorld());
@@ -167,15 +175,11 @@ public abstract class Power {
 			return DataResult.success(Unit.INSTANCE);
 		}
 
-		public ContextType getContextType() {
-			return this.getPower().getContextType();
+		public final Serializer<?> getSerializer() {
+			return this.getPower().getSerializer();
 		}
 
-		public PowerType<?> getPowerType() {
-			return this.getPower().getType();
-		}
-
-		public P getPower() {
+		public final P getPower() {
 			return power;
 		}
 
@@ -197,7 +201,7 @@ public abstract class Power {
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			executeAndReport(path, action, builder.apply(new Context.Builder(this.getContextType())).build(holder.getWorld()));
+			executeAndReport(path, action, builder.apply(new Context.Builder(this.getSerializer().contextType())).build(holder.getWorld()));
 		}
 
 		public <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
@@ -206,7 +210,7 @@ public abstract class Power {
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getContextType())).build(holder.getWorld()));
+			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getSerializer().contextType())).build(holder.getWorld()));
 		}
 
 		public <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
