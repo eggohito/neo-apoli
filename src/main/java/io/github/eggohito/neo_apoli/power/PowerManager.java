@@ -7,6 +7,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.event.PowerPreparationCallback;
+import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
@@ -162,6 +163,8 @@ public final class PowerManager implements JsonResourceReloader {
 
 	private void applyElements(Map<PowerReference.Power, Entry> prepared, ResourceManager manager, Profiler profiler) {
 
+		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
+
 		LOGGER.info("Parsing powers from data packs...");
 		startLoading();
 
@@ -180,6 +183,8 @@ public final class PowerManager implements JsonResourceReloader {
 
 		LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s)", BY_REFERENCE.size());
 		endLoading();
+
+		PowerReloadEvents.AFTER.invoker().afterReload(manager, profiler);
 
 	}
 
@@ -213,7 +218,7 @@ public final class PowerManager implements JsonResourceReloader {
 			Power power = entry.value();
 
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter()
-				.withContextType(power.getSerializer().contextType())
+				.withContextType(power.getType().contextType())
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
 
 			power.validate(reporter);
@@ -362,8 +367,6 @@ public final class PowerManager implements JsonResourceReloader {
 		PowerReference reference = entry.reference();
 		Power power = entry.value();
 
-		power.getProperties().withReference(reference);
-
 		BY_REFERENCE.put(reference, entry);
 		BY_POWER.put(power, reference);
 
@@ -373,7 +376,7 @@ public final class PowerManager implements JsonResourceReloader {
 				case PowerReference.Power ignored ->
 					multiplePower.getSubPowers().forEach((subReference, subPower) -> register(new PowerEntry<>(subReference, subPower)));
 				case PowerReference.SubPower subPowerReference ->
-					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getSerializer()) + "\" power type, which isn't allowed!");
+					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getType()) + "\" power type, which isn't allowed!");
 			}
 
 		}

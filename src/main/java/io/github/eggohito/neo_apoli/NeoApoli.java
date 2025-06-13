@@ -21,11 +21,12 @@ import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -42,19 +43,22 @@ import org.quiltmc.parsers.json.gson.GsonReader;
 import org.quiltmc.parsers.json.gson.GsonWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Set;
 
 public class NeoApoli implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "neo-apoli";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
+	public static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
 
+	private static final Set<String> LOGS = new ObjectOpenHashSet<>();
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
@@ -85,17 +89,19 @@ public class NeoApoli implements ModInitializer {
 
 		ComparisonTypes.registerAll();
 
-		PowerSerializers.registerAll();
+		PowerTypes.registerAll();
 		PowerManager.init();
 
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();
 
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onAdded));
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onRemoved));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onAdded));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onRemoved));
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
+
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> LOGS.clear());
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		NeoApoliConfig.init();
@@ -174,6 +180,14 @@ public class NeoApoli implements ModInitializer {
 
 		else {
 			return CommandOutput.DUMMY;
+		}
+
+	}
+
+	public static void logOnce(Level level, String message) {
+
+		if (LOGS.add(message)) {
+			LOGGER.atLevel(level).log(message);
 		}
 
 	}

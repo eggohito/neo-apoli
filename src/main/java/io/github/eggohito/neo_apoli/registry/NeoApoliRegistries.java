@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
-import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
@@ -21,7 +21,7 @@ import net.minecraft.registry.RegistryKey;
 
 public class NeoApoliRegistries {
 
-	public static final Registry<Power.Serializer<?>> POWER_TYPE = create(NeoApoliRegistryKeys.POWER_TYPE);
+	public static final Registry<PowerType<?>> POWER_TYPE = create(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final Registry<ActionCategory<?>> ACTION_CATEGORY = create(NeoApoliRegistryKeys.ACTION_CATEGORY);
 	public static final Registry<ConditionCategory<?>> CONDITION_CATEGORY = create(NeoApoliRegistryKeys.CONDITION_CATEGORY);

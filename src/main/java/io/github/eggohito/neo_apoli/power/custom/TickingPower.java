@@ -6,19 +6,40 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
 public class TickingPower extends Power {
+
+	public static final MapCodec<TickingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(EntityAction.CODEC.optionalFieldOf("tick_action", new NothingEntityAction()).forGetter(TickingPower::getTickAction))
+		.and(EntityAction.CODEC.optionalFieldOf("first_active_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstActiveTickAction))
+		.and(EntityAction.CODEC.optionalFieldOf("first_inactive_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstInactiveTickAction))
+		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(TickingPower::getInterval))
+		.apply(instance, TickingPower::new));
+
+	public static final PacketCodec<RegistryByteBuf, TickingPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, tickingPower) -> {
+			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getTickAction());
+			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstActiveTickAction());
+			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstInactiveTickAction());
+			NumberProvider.PACKET_CODEC.encode(buf, tickingPower.getInterval());
+		},
+		(buf, properties, condition) -> new TickingPower(properties, condition,
+			EntityAction.PACKET_CODEC.decode(buf),
+			EntityAction.PACKET_CODEC.decode(buf),
+			EntityAction.PACKET_CODEC.decode(buf),
+			NumberProvider.PACKET_CODEC.decode(buf)
+		)
+	);
 
 	private final EntityAction tickAction;
 	private final EntityAction firstActiveTickAction;
@@ -35,13 +56,13 @@ public class TickingPower extends Power {
 	}
 
 	@Override
-	public Power.Serializer<?> getSerializer() {
-		return PowerSerializers.TICKING;
+	public PowerType<?> getType() {
+		return PowerTypes.TICKING;
 	}
 
 	@Override
-	public Power.Type<?> createType(Entity holder) {
-		return new Type(holder, this);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder, this);
 	}
 
 	@Override
@@ -72,55 +93,14 @@ public class TickingPower extends Power {
 		return interval;
 	}
 
-	public static final class Serializer implements Power.Serializer<TickingPower> {
-
-		public static final MapCodec<TickingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-			.and(EntityAction.CODEC.optionalFieldOf("tick_action", new NothingEntityAction()).forGetter(TickingPower::getTickAction))
-			.and(EntityAction.CODEC.optionalFieldOf("first_active_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstActiveTickAction))
-			.and(EntityAction.CODEC.optionalFieldOf("first_inactive_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstInactiveTickAction))
-			.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(TickingPower::getInterval))
-			.apply(instance, TickingPower::new));
-
-		public static final PacketCodec<RegistryByteBuf, TickingPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-			(buf, tickingPower) -> {
-				EntityAction.PACKET_CODEC.encode(buf, tickingPower.getTickAction());
-				EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstActiveTickAction());
-				EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstInactiveTickAction());
-				NumberProvider.PACKET_CODEC.encode(buf, tickingPower.getInterval());
-			},
-			(buf, properties, condition) -> new TickingPower(properties, condition,
-				EntityAction.PACKET_CODEC.decode(buf),
-				EntityAction.PACKET_CODEC.decode(buf),
-				EntityAction.PACKET_CODEC.decode(buf),
-				NumberProvider.PACKET_CODEC.decode(buf)
-			)
-		);
-
-		@Override
-		public ContextType contextType() {
-			return ContextTypes.GENERIC;
-		}
-
-		@Override
-		public MapCodec<TickingPower> mapCodec() {
-			return CODEC;
-		}
-
-		@Override
-		public PacketCodec<RegistryByteBuf, TickingPower> packetCodec() {
-			return PACKET_CODEC;
-		}
-
-	}
-
-	public static class Type extends Power.Type<TickingPower> {
+	public static class Impl extends Power.Impl<TickingPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Type(@NotNull Entity holder, @NotNull TickingPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull TickingPower power) {
 			super(holder, power);
 		}
 

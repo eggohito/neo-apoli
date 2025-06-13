@@ -10,12 +10,12 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -25,10 +25,10 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -51,6 +51,18 @@ public class MultiplePower extends Power {
 
 	});
 
+	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
+		.and(SubPowersCodec.INSTANCE.forGetter(MultiplePower::getSubPowers))
+		.apply(instance, MultiplePower::new));
+
+	public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = createCommonPacketCodec(
+		(buf, multiplePower) ->
+			SubPowersPacketCodec.INSTANCE.encode(buf, multiplePower.getSubPowers()),
+		(buf, properties) -> new MultiplePower(properties,
+			SubPowersPacketCodec.INSTANCE.decode(buf)
+		)
+	);
+
 	private final ImmutableMap<PowerReference.SubPower, Power> subPowers;
 
 	public MultiplePower(Properties properties, ImmutableMap<PowerReference.SubPower, Power> subPowers) {
@@ -59,13 +71,13 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Power.Serializer<?> getSerializer() {
-		return PowerSerializers.MULTIPLE;
+	public PowerType<?> getType() {
+		return PowerTypes.MULTIPLE;
 	}
 
 	@Override
-	public Power.Type<?> createType(Entity holder) {
-		return new Type(holder, this);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder, this);
 	}
 
 	public ImmutableMap<PowerReference.SubPower, Power> getSubPowers() {
@@ -79,9 +91,9 @@ public class MultiplePower extends Power {
 	public static void preProcessSubPowers(Identifier id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
 
 		JsonObject powerJson = entry.element();
-		DataResult<Power.Serializer<?>> powerSerializerResult = PowerSerializers.CODEC.parse(ops, powerJson.get(TYPE_KEY));
+		DataResult<PowerType<?>> powerTypeResult = PowerTypes.CODEC.parse(ops, powerJson.get(TYPE_KEY));
 
-		if (powerSerializerResult.isSuccess() && powerSerializerResult.getOrThrow() instanceof Serializer) {
+		if (powerTypeResult.isSuccess() && Objects.equals(powerTypeResult.getOrThrow(), PowerTypes.MULTIPLE)) {
 
 			powerJson.entrySet().removeIf(e -> !isKeyIgnored(e.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, e.getValue(), directoryPath, ops));
 			JsonObject copy = powerJson.deepCopy();
@@ -132,40 +144,9 @@ public class MultiplePower extends Power {
 
 	}
 
-	public static final class Serializer implements Power.Serializer<MultiplePower> {
+	public static final class Impl extends Power.Impl<MultiplePower> {
 
-		public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
-			.and(SubPowersCodec.INSTANCE.forGetter(MultiplePower::getSubPowers))
-			.apply(instance, MultiplePower::new));
-
-		public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = createCommonPacketCodec(
-			(buf, multiplePower) ->
-				SubPowersPacketCodec.INSTANCE.encode(buf, multiplePower.getSubPowers()),
-			(buf, properties) -> new MultiplePower(properties,
-				SubPowersPacketCodec.INSTANCE.decode(buf)
-			)
-		);
-
-		@Override
-		public ContextType contextType() {
-			return ContextTypes.GENERIC;
-		}
-
-		@Override
-		public MapCodec<MultiplePower> mapCodec() {
-			return CODEC;
-		}
-
-		@Override
-		public PacketCodec<RegistryByteBuf, MultiplePower> packetCodec() {
-			return PACKET_CODEC;
-		}
-
-	}
-
-	public static final class Type extends Power.Type<MultiplePower> {
-
-		private Type(@NotNull Entity holder, @NotNull MultiplePower power) {
+		private Impl(@NotNull Entity holder, @NotNull MultiplePower power) {
 			super(holder, power);
 		}
 
@@ -211,16 +192,16 @@ public class MultiplePower extends Power {
 					if (subReferenceResult.isSuccess()) {
 
 						PowerReference.SubPower subReference = subReferenceResult.getOrThrow();
-						DataResult<Power.Serializer<?>> serializerResult = PowerSerializers.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, subMap)
-							.flatMap(serializer -> serializer instanceof MultiplePower.Serializer
-								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, serializer) + "\" power type, which isn't allowed!")
-								: DataResult.success(serializer));
+						DataResult<PowerType<?>> typeResult = PowerTypes.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, subMap)
+							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
+								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which isn't allowed!")
+								: DataResult.success(type));
 
-						if (serializerResult.isSuccess()) {
+						if (typeResult.isSuccess()) {
 
-							Power.Serializer<?> serializer = serializerResult.getOrThrow();
+							PowerType<?> type = typeResult.getOrThrow();
 							DataResult<Power> subPowerResult = Power.BASE_MAP_CODEC.decode(ops, subMap)
-								.flatMap(subPower -> PowerParsingEvents.DECODING.invoker().decode(subReference, serializer, ops, subMap)
+								.flatMap(subPower -> PowerParsingEvents.DECODING.invoker().decode(subReference, type, ops, subMap)
 									.map(unit -> subPower));
 
 							if (subPowerResult.isSuccess()) {
@@ -236,7 +217,7 @@ public class MultiplePower extends Power {
 						}
 
 						else {
-							return r.apply2stable((u, o) -> u, serializerResult);
+							return r.apply2stable((u, o) -> u, typeResult);
 						}
 
 					}

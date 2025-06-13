@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
@@ -25,10 +27,10 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
-import net.minecraft.util.context.ContextType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.event.Level;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -36,13 +38,25 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+/**
+ * 	<p>A power gives a certain "ability" to an entity upon being granted. As for what kind of "ability" it provides will
+ * 	depend on the implementation (see: {@link Impl}) of the power itself.</p>
+ *
+ * 	<p>It has a set of properties which may determine its functionality, and cosmetics for displaying purposes:</p>
+ * 	<ul>
+ * 	    <li><code>type</code> - determines the type of the power, which provides its functionality. See {@link PowerTypes} for a list of usable power types.</li>
+ * 	    <li><code>name</code> - the name of the power. Usually empty, but may take its {@linkplain PowerReference reference} when loaded via the {@link PowerManager} (e.g: when parsed from a data pack.)</li>
+ * 	    <li><code>description</code> - the description of the power. Usually empty, but may take its {@linkplain PowerReference reference} when loaded via the {@link PowerManager} (e.g: when parsed from a data pack.)</li>
+ * 	    <li><code>hidden</code> - determines whether the power should be excluded from being displayed; to be used by addons.</li>
+ * 	</ul>
+ */
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> BASE_MAP_CODEC = PowerSerializers.CODEC.dispatchMap(TYPE_KEY, Power::getSerializer, Serializer::mapCodec);
+	public static final MapCodec<Power> BASE_MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
 	public static final Codec<Power> BASE_CODEC = BASE_MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerSerializers.PACKET_CODEC.dispatch(Power::getSerializer, Serializer::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 	private final EntityCondition activeCondition;
@@ -57,35 +71,35 @@ public abstract class Power {
 	}
 
 	public void validate(ContextAware.ErrorReporter reporter) {
-		getActiveCondition().validate(reporter.makeChild("active_condition"));
+		activeCondition.validate(reporter.makeChild("active_condition"));
 	}
 
-	public abstract Serializer<?> getSerializer();
+	public abstract PowerType<?> getType();
 
-	public abstract Type<?> createType(Entity holder);
+	public abstract Impl<?> createImpl(Entity holder);
 
-	public final Properties getProperties() {
+	public Properties getProperties() {
 		return properties;
 	}
 
-	public final EntityCondition getActiveCondition() {
+	public EntityCondition getActiveCondition() {
 		return activeCondition;
 	}
 
 	public final Text getName() {
-		return getProperties().name();
+		return properties.name();
 	}
 
 	public final Text getDescription() {
-		return getProperties().description();
+		return properties.description();
 	}
 
 	public final boolean isHidden() {
-		return getProperties().hidden();
+		return properties.hidden();
 	}
 
 	public final boolean isSubPower() {
-		return getProperties().subPower();
+		return properties.subPower();
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -110,9 +124,9 @@ public abstract class Power {
 			}
 
 			@Override
-			public void encode(RegistryByteBuf buf, P value) {
-				Properties.PACKET_CODEC.encode(buf, value.getProperties());
-				encoder.accept(buf, value);
+			public void encode(RegistryByteBuf buf, P power) {
+				Properties.PACKET_CODEC.encode(buf, power.getProperties());
+				encoder.accept(buf, power);
 			}
 
 		};
@@ -136,32 +150,24 @@ public abstract class Power {
 		);
 	}
 
-	public interface Serializer<P extends Power> {
-
-		ContextType contextType();
-
-		MapCodec<P> mapCodec();
-
-		PacketCodec<RegistryByteBuf, P> packetCodec();
-
-		default Context.Builder contextBuilder() {
-			return Context.builder(this.contextType());
-		}
-
-	}
-
-	public abstract static class Type<P extends Power> {
+	/**
+	 * 	<p>The class responsible for providing the functionality of a power. An instance of this class is created
+	 * 	every time a power is granted to an entity to ensure that each instance is unique to each entity.</p>
+	 *
+	 * 	<p>The uniqueness of each impl. instance is especially relevant for storing data.</p>
+	 */
+	public abstract static class Impl<P extends Power> {
 
 		protected final Entity holder;
 		protected final P power;
 
-		protected Type(@NotNull Entity holder, @NotNull P power) {
+		protected Impl(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
 			this.power = power;
 		}
 
 		protected final Context createGenericContext() {
-			return this.getSerializer().contextBuilder()
+			return this.getPowerType().contextBuilder()
 				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.POSITION, holder.getPos())
 				.build(holder.getWorld());
@@ -175,47 +181,47 @@ public abstract class Power {
 			return DataResult.success(Unit.INSTANCE);
 		}
 
-		public final Serializer<?> getSerializer() {
-			return this.getPower().getSerializer();
+		public final PowerType<?> getPowerType() {
+			return this.getPower().getType();
 		}
 
 		public final P getPower() {
 			return power;
 		}
 
-		public boolean isActive(Context context) {
-			return testAndReport("active_condition", getPower().getActiveCondition(), context);
-		}
-
-		protected <R> R processAndReport(Context context, String path, Function<Context, R> resultFunctor, BiFunction<ContextAware.ErrorReporter, String, String> errorSupplier) {
+		protected final <R> R processAndReport(Context context, String path, Function<Context, R> resultFunctor, BiFunction<ContextAware.ErrorReporter, String, String> errorSupplier) {
 
 			Context subContext = context.makeChild(path);
 			R result = resultFunctor.apply(subContext);
 
 			if (context.hasAnyErrors()) {
-				NeoApoli.LOGGER.warn(errorSupplier.apply(context.getReporter(), path));
+				NeoApoli.logOnce(Level.WARN, errorSupplier.apply(context.getReporter(), path));
 			}
 
 			return result;
 
 		}
 
-		public <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			executeAndReport(path, action, builder.apply(new Context.Builder(this.getSerializer().contextType())).build(holder.getWorld()));
+		protected final <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
+			executeAndReport(path, action, builder.apply(new Context.Builder(this.getPowerType().contextType())).build(holder.getWorld()));
 		}
 
-		public <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
+		protected final <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
 			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			processAndReport(context, path, ctx -> MiscUtil.run(() -> action.execute(ctx)), (reporter, _path) -> "Couldn't fully execute " + StringUtils.uncapitalize(action.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString());
+			processAndReport(context, path, ctx -> MiscUtil.run(() -> action.execute(ctx)), (reporter, _path) -> "Couldn't properly execute " + StringUtils.uncapitalize(action.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString());
 		}
 
-		public <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getSerializer().contextType())).build(holder.getWorld()));
+		protected final <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
+			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getPowerType().contextType())).build(holder.getWorld()));
 		}
 
-		public <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
+		protected final <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
 			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			return Boolean.TRUE.equals(processAndReport(context, path, condition::test, (reporter, _path) -> "Couldn't fully test " + StringUtils.uncapitalize(condition.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString()));
+			return Boolean.TRUE.equals(processAndReport(context, path, condition::test, (reporter, _path) -> "Couldn't properly test " + StringUtils.uncapitalize(condition.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString()));
+		}
+
+		public boolean isActive(Context context) {
+			return testAndReport("active_condition", getPower().getActiveCondition(), context);
 		}
 
 		public void onAdded() {

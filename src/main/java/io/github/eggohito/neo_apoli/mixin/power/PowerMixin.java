@@ -20,7 +20,7 @@ public abstract class PowerMixin {
 		private void onRespawn(ServerPlayerEntity player, boolean alive, Entity.RemovalReason removalReason, CallbackInfoReturnable<ServerPlayerEntity> cir, @Local(ordinal = 1) ServerPlayerEntity newPlayer) {
 
 			if (!alive) {
-				PowersComponent.getPowerTypes(newPlayer).forEach(Power.Type::onRespawn);
+				PowersComponent.getPowerImpls(newPlayer).forEach(Power.Impl::onRespawn);
 			}
 
 		}

@@ -8,19 +8,18 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextType;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +27,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BooleanSupplier;
 
 public class HarvestableBlockPower extends Power implements Prioritized<HarvestableBlockPower> {
+
+	public static final MapCodec<HarvestableBlockPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(HarvestableBlockPower::getBlockCondition))
+		.and(Codec.BOOL.fieldOf("allow").forGetter(HarvestableBlockPower::isAllowed))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(HarvestableBlockPower::getPriority))
+		.apply(instance, HarvestableBlockPower::new));
+
+	public static final PacketCodec<RegistryByteBuf, HarvestableBlockPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, harvestableBlockPower) -> {
+			BlockCondition.PACKET_CODEC.encode(buf, harvestableBlockPower.getBlockCondition());
+			buf.writeBoolean(harvestableBlockPower.isAllowed());
+			buf.writeVarInt(harvestableBlockPower.getPriority());
+		},
+		(buf, properties, condition) -> new HarvestableBlockPower(properties, condition,
+			BlockCondition.PACKET_CODEC.decode(buf),
+			buf.readBoolean(),
+			buf.readVarInt()
+		)
+	);
 
 	private final BlockCondition blockCondition;
 
@@ -42,13 +60,13 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 	}
 
 	@Override
-	public Power.Serializer<?> getSerializer() {
-		return PowerSerializers.HARVESTABLE_BLOCK;
+	public PowerType<?> getType() {
+		return PowerTypes.HARVESTABLE_BLOCK;
 	}
 
 	@Override
-	public Power.Type<?> createType(Entity holder) {
-		return new Type(holder, this);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder, this);
 	}
 
 	@Override
@@ -70,52 +88,14 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 		return allow;
 	}
 
-	public static final class Serializer implements Power.Serializer<HarvestableBlockPower> {
+	public static class Impl extends Power.Impl<HarvestableBlockPower> implements Comparable<Impl> {
 
-		public static final MapCodec<HarvestableBlockPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-			.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(HarvestableBlockPower::getBlockCondition))
-			.and(Codec.BOOL.fieldOf("allow").forGetter(HarvestableBlockPower::isAllowed))
-			.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(HarvestableBlockPower::getPriority))
-			.apply(instance, HarvestableBlockPower::new));
-
-		public static final PacketCodec<RegistryByteBuf, HarvestableBlockPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-			(buf, harvestableBlockPower) -> {
-				BlockCondition.PACKET_CODEC.encode(buf, harvestableBlockPower.getBlockCondition());
-				buf.writeBoolean(harvestableBlockPower.isAllowed());
-				buf.writeVarInt(harvestableBlockPower.getPriority());
-			},
-			(buf, properties, condition) -> new HarvestableBlockPower(properties, condition,
-				BlockCondition.PACKET_CODEC.decode(buf),
-				buf.readBoolean(),
-				buf.readVarInt()
-			)
-		);
-
-		@Override
-		public ContextType contextType() {
-			return ContextTypes.BLOCK;
-		}
-
-		@Override
-		public MapCodec<HarvestableBlockPower> mapCodec() {
-			return CODEC;
-		}
-
-		@Override
-		public PacketCodec<RegistryByteBuf, HarvestableBlockPower> packetCodec() {
-			return PACKET_CODEC;
-		}
-
-	}
-
-	public static class Type extends Power.Type<HarvestableBlockPower> implements Comparable<Type> {
-
-		protected Type(@NotNull Entity holder, @NotNull HarvestableBlockPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull HarvestableBlockPower power) {
 			super(holder, power);
 		}
 
 		@Override
-		public int compareTo(@NotNull HarvestableBlockPower.Type that) {
+		public int compareTo(@NotNull HarvestableBlockPower.Impl that) {
 			return this.getPower().compareTo(that.getPower());
 		}
 
@@ -125,7 +105,7 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 
 		public boolean doesApply(BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
 
-			Context.Builder builder = this.getSerializer().contextBuilder()
+			Context.Builder builder = this.getPowerType().contextBuilder()
 				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity);
@@ -145,10 +125,10 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 	}
 
 	public static boolean canHarvest(PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, BooleanSupplier defaultValue) {
-		return PowersComponent.getPowerTypes(player, Type.class, impl -> impl.doesApply(pos, state, blockEntity))
+		return PowersComponent.getPowerImpls(player, Impl.class, impl -> impl.doesApply(pos, state, blockEntity))
 			.stream()
-			.max(Type::compareTo)
-			.map(Type::isAllowed)
+			.max(Impl::compareTo)
+			.map(Impl::isAllowed)
 			.orElseGet(defaultValue::getAsBoolean);
 	}
 

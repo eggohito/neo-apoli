@@ -13,11 +13,11 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -25,7 +25,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +33,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class OnBlockBreakPower extends Power {
+
+	public static final MapCodec<OnBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(BlockAction.CODEC.optionalFieldOf("block_action", new NothingBlockAction()).forGetter(OnBlockBreakPower::getBlockAction))
+		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(OnBlockBreakPower::getBlockCondition))
+		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(OnBlockBreakPower::getEntityAction))
+		.and(Direction.CODEC.listOf().optionalFieldOf("directions", new ObjectArrayList<>()).forGetter(OnBlockBreakPower::getDirections))
+		.and(Codec.BOOL.optionalFieldOf("only_when_harvested", false).forGetter(OnBlockBreakPower::onlyWhenHarvested))
+		.apply(instance, OnBlockBreakPower::new));
+
+	public static final PacketCodec<RegistryByteBuf, OnBlockBreakPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, onBlockBreakPower) -> {
+			BlockAction.PACKET_CODEC.encode(buf, onBlockBreakPower.getBlockAction());
+			BlockCondition.PACKET_CODEC.encode(buf, onBlockBreakPower.getBlockCondition());
+			EntityAction.PACKET_CODEC.encode(buf, onBlockBreakPower.getEntityAction());
+			NeoApoliPacketCodecs.DIRECTIONS.encode(buf, onBlockBreakPower.getDirections());
+			buf.writeBoolean(onBlockBreakPower.onlyWhenHarvested());
+		},
+		(buf, properties, condition) -> new OnBlockBreakPower(properties, condition,
+			BlockAction.PACKET_CODEC.decode(buf),
+			BlockCondition.PACKET_CODEC.decode(buf),
+			EntityAction.PACKET_CODEC.decode(buf),
+			NeoApoliPacketCodecs.DIRECTIONS.decode(buf),
+			buf.readBoolean()
+		)
+	);
 
 	private final BlockAction blockAction;
 	private final BlockCondition blockCondition;
@@ -53,13 +77,13 @@ public class OnBlockBreakPower extends Power {
 	}
 
 	@Override
-	public Power.Serializer<?> getSerializer() {
-		return PowerSerializers.ON_BLOCK_BREAK;
+	public PowerType<?> getType() {
+		return PowerTypes.ON_BLOCK_BREAK;
 	}
 
 	@Override
-	public Power.Type<?> createType(Entity holder) {
-		return new Type(holder, this);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder, this);
 	}
 
 	@Override
@@ -93,53 +117,9 @@ public class OnBlockBreakPower extends Power {
 		return onlyWhenHarvested;
 	}
 
-	public static final class Serializer implements Power.Serializer<OnBlockBreakPower> {
+	public static class Impl extends Power.Impl<OnBlockBreakPower> {
 
-		public static final MapCodec<OnBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-			.and(BlockAction.CODEC.optionalFieldOf("block_action", new NothingBlockAction()).forGetter(OnBlockBreakPower::getBlockAction))
-			.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(OnBlockBreakPower::getBlockCondition))
-			.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(OnBlockBreakPower::getEntityAction))
-			.and(Direction.CODEC.listOf().optionalFieldOf("directions", new ObjectArrayList<>()).forGetter(OnBlockBreakPower::getDirections))
-			.and(Codec.BOOL.optionalFieldOf("only_when_harvested", false).forGetter(OnBlockBreakPower::onlyWhenHarvested))
-			.apply(instance, OnBlockBreakPower::new));
-
-		public static final PacketCodec<RegistryByteBuf, OnBlockBreakPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-			(buf, onBlockBreakPower) -> {
-				BlockAction.PACKET_CODEC.encode(buf, onBlockBreakPower.getBlockAction());
-				BlockCondition.PACKET_CODEC.encode(buf, onBlockBreakPower.getBlockCondition());
-				EntityAction.PACKET_CODEC.encode(buf, onBlockBreakPower.getEntityAction());
-				NeoApoliPacketCodecs.DIRECTIONS.encode(buf, onBlockBreakPower.getDirections());
-				buf.writeBoolean(onBlockBreakPower.onlyWhenHarvested());
-			},
-			(buf, properties, condition) -> new OnBlockBreakPower(properties, condition,
-				BlockAction.PACKET_CODEC.decode(buf),
-				BlockCondition.PACKET_CODEC.decode(buf),
-				EntityAction.PACKET_CODEC.decode(buf),
-				NeoApoliPacketCodecs.DIRECTIONS.decode(buf),
-				buf.readBoolean()
-			)
-		);
-
-		@Override
-		public ContextType contextType() {
-			return ContextTypes.BLOCK;
-		}
-
-		@Override
-		public MapCodec<OnBlockBreakPower> mapCodec() {
-			return CODEC;
-		}
-
-		@Override
-		public PacketCodec<RegistryByteBuf, OnBlockBreakPower> packetCodec() {
-			return PACKET_CODEC;
-		}
-
-	}
-
-	public static class Type extends Power.Type<OnBlockBreakPower> {
-
-		protected Type(@NotNull Entity holder, @NotNull OnBlockBreakPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull OnBlockBreakPower power) {
 			super(holder, power);
 		}
 
@@ -159,9 +139,9 @@ public class OnBlockBreakPower extends Power {
 
 	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
-		for (var impl : PowersComponent.getPowerTypes(player, Type.class)) {
+		for (var impl : PowersComponent.getPowerImpls(player, Impl.class)) {
 
-			Context.Builder builder = impl.getSerializer().contextBuilder()
+			Context.Builder builder = impl.getPowerType().contextBuilder()
 				.add(ContextParameters.THIS_ENTITY, player)
 				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)

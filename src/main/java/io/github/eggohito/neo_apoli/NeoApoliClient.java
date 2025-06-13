@@ -15,8 +15,8 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		NeoApoliS2CNetworkHandler.init();
 
-		ClientEntityEvents.ENTITY_LOAD.register((entity, clientWorld) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onAdded));
-		ClientEntityEvents.ENTITY_UNLOAD.register((entity, clientWorld) -> PowersComponent.getPowerTypes(entity).forEach(Power.Type::onRemoved));
+		ClientEntityEvents.ENTITY_LOAD.register((entity, clientWorld) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onAdded));
+		ClientEntityEvents.ENTITY_UNLOAD.register((entity, clientWorld) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onRemoved));
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ((DataCommandStorageHolder) client).neo_apoli$clear());
 

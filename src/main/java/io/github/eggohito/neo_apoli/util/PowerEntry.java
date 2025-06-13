@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.util;
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -16,7 +17,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 	public static final String VALUE_KEY = "value";
 
 	private static final MapCodec<PowerReference> REFERENCE_MAP_CODEC = PowerReference.CODEC.fieldOf(REFERENCE_KEY);
-	private static final MapCodec<Power.Serializer<?>> SERIALIZER_MAP_CODEC = PowerSerializers.CODEC.fieldOf(Power.TYPE_KEY);
+	private static final MapCodec<PowerType<?>> SERIALIZER_MAP_CODEC = PowerTypes.CODEC.fieldOf(Power.TYPE_KEY);
 
 	public static final MapCodec<PowerEntry<?>> MAP_CODEC = new MapCodec<>() {
 
@@ -55,6 +56,10 @@ public record PowerEntry<P extends Power>(PowerReference reference, P value) {
 		Power.BASE_PACKET_CODEC, PowerEntry::value,
 		PowerEntry::new
 	);
+
+	public PowerEntry {
+		value.getProperties().withReference(reference);
+	}
 
 	public boolean isSubPower() {
 		return reference().isSubPower();

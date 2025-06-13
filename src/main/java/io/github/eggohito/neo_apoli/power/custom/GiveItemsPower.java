@@ -4,10 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerSerializers;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.Entity;
@@ -16,12 +16,27 @@ import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class GiveItemsPower extends Power {
+
+	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
+		.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
+		.and(Codec.BOOL.optionalFieldOf("recurrent", false).forGetter(GiveItemsPower::isRecurrent))
+		.apply(instance, GiveItemsPower::new));
+
+	public static final PacketCodec<RegistryByteBuf, GiveItemsPower> PACKET_CODEC = createCommonPacketCodec(
+		(buf, power) -> {
+			IndexedStack.LIST_PACKET_CODEC.encode(buf, power.getIndexedStacks());
+			buf.writeBoolean(power.isRecurrent());
+		},
+		(buf, properties) -> new GiveItemsPower(properties,
+			IndexedStack.LIST_PACKET_CODEC.decode(buf),
+			buf.readBoolean()
+		)
+	);
 
 	private final List<IndexedStack> indexedStacks;
 	private final boolean recurrent;
@@ -33,13 +48,13 @@ public class GiveItemsPower extends Power {
 	}
 
 	@Override
-	public Power.Serializer<?> getSerializer() {
-		return PowerSerializers.GIVE_ITEMS;
+	public PowerType<?> getType() {
+		return PowerTypes.GIVE_ITEMS;
 	}
 
 	@Override
-	public Power.Type<?> createType(Entity holder) {
-		return new Type(holder, this);
+	public Power.Impl<?> createImpl(Entity holder) {
+		return new Impl(holder, this);
 	}
 
 	public List<IndexedStack> getIndexedStacks() {
@@ -50,44 +65,9 @@ public class GiveItemsPower extends Power {
 		return recurrent;
 	}
 
-	public static final class Serializer implements Power.Serializer<GiveItemsPower> {
+	public static class Impl extends Power.Impl<GiveItemsPower> {
 
-		public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
-			.and(IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsPower::getIndexedStacks))
-			.and(Codec.BOOL.optionalFieldOf("recurrent", false).forGetter(GiveItemsPower::isRecurrent))
-			.apply(instance, GiveItemsPower::new));
-
-		public static final PacketCodec<RegistryByteBuf, GiveItemsPower> PACKET_CODEC = createCommonPacketCodec(
-			(buf, power) -> {
-				IndexedStack.LIST_PACKET_CODEC.encode(buf, power.getIndexedStacks());
-				buf.writeBoolean(power.isRecurrent());
-			},
-			(buf, properties) -> new GiveItemsPower(properties,
-				IndexedStack.LIST_PACKET_CODEC.decode(buf),
-				buf.readBoolean()
-			)
-		);
-
-		@Override
-		public ContextType contextType() {
-			return ContextTypes.GENERIC;
-		}
-
-		@Override
-		public MapCodec<GiveItemsPower> mapCodec() {
-			return CODEC;
-		}
-
-		@Override
-		public PacketCodec<RegistryByteBuf, GiveItemsPower> packetCodec() {
-			return PACKET_CODEC;
-		}
-
-	}
-
-	public static class Type extends Power.Type<GiveItemsPower> {
-
-		protected Type(@NotNull Entity holder, @NotNull GiveItemsPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull GiveItemsPower power) {
 			super(holder, power);
 		}
 
