@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.custom.block.AddBlockBlockAction;
+import io.github.eggohito.neo_apoli.action.custom.block.BoneMealBlockAction;
 import io.github.eggohito.neo_apoli.action.custom.block.ModifyBlockStatePropertyBlockAction;
 import io.github.eggohito.neo_apoli.action.custom.block.SetBlockBlockAction;
 import io.github.eggohito.neo_apoli.action.meta.block.*;
@@ -38,6 +39,7 @@ public final class BlockActionTypes {
 	public static final BlockActionType<SideBlockAction> SIDE = registerInternal("side", SideBlockAction.CODEC, SideBlockAction.PACKET_CODEC);
 
 	public static final BlockActionType<AddBlockBlockAction> ADD_BLOCK = registerInternal("add_block", AddBlockBlockAction.CODEC, AddBlockBlockAction.PACKET_CODEC);
+	public static final BlockActionType<BoneMealBlockAction> BONE_MEAL = registerInternal("bone_meal", BoneMealBlockAction.CODEC, BoneMealBlockAction.PACKET_CODEC);
 	public static final BlockActionType<ModifyBlockStatePropertyBlockAction> MODIFY_BLOCK_STATE_PROPERTY = registerInternal("modify_block_state_property", ModifyBlockStatePropertyBlockAction.CODEC, ModifyBlockStatePropertyBlockAction.PACKET_CODEC);
 	public static final BlockActionType<SetBlockBlockAction> SET_BLOCK = registerInternal("set_block", SetBlockBlockAction.CODEC, SetBlockBlockAction.PACKET_CODEC);
 
