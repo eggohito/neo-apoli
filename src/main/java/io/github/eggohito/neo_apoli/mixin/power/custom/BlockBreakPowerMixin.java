@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.lang.ref.WeakReference;
 
 @Mixin(ServerPlayerInteractionManager.class)
-public abstract class OnBlockBreakPowerMixin {
+public abstract class BlockBreakPowerMixin {
 
 	@Shadow
 	@Final
