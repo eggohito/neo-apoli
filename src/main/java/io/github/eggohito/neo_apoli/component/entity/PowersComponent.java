@@ -442,6 +442,10 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
+	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Impl<?>, Set<Identifier>> consumer) {
+		NeoApoliEntityComponents.POWERS.get(holder).forEach(consumer);
+	}
+
 	public static <I extends Power.Impl<?>> boolean hasPowerImpl(@NotNull Entity entity, Class<I> implClass) {
 		return NeoApoliEntityComponents.POWERS.get(entity).hasPowerImpl(implClass);
 	}

@@ -24,6 +24,7 @@ public class PowerTypes {
 	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
+	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.BLOCK, BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.GENERIC, CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", ContextTypes.GENERIC, GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);

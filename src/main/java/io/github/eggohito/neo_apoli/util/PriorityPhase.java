@@ -1,0 +1,34 @@
+package io.github.eggohito.neo_apoli.util;
+
+import java.util.function.IntPredicate;
+
+public enum PriorityPhase implements IntPredicate {
+
+	BEFORE {
+
+		@Override
+		public boolean test(int value) {
+			return value >= 0;
+		}
+
+	},
+
+	AFTER {
+
+		@Override
+		public boolean test(int value) {
+			return value < 0;
+		}
+
+	},
+
+	NONE {
+
+		@Override
+		public boolean test(int value) {
+			return true;
+		}
+
+	}
+
+}

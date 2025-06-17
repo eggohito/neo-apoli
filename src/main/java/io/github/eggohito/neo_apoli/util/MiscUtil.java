@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
 import net.minecraft.registry.RegistryOps;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 
 import java.util.function.Function;
@@ -36,6 +37,23 @@ public class MiscUtil {
 	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonElement jsonElement, String directory, RegistryOps<JsonElement> ops) {
 		return !(jsonElement instanceof JsonObject jsonObject)
 			|| isResourceConditionFulfilled(resourceId, jsonObject, directory, ops);
+	}
+
+	public static boolean shouldOverrideResult(ActionResult oldResult, ActionResult newResult) {
+		return (newResult.isAccepted() && !oldResult.isAccepted())
+			|| (newResult instanceof ActionResult.Success bSuccess && bSuccess.swingSource() != ActionResult.SwingSource.NONE && (!(oldResult instanceof ActionResult.Success aSuccess) || aSuccess.swingSource() == ActionResult.SwingSource.NONE));
+	}
+
+	public static ActionResult overrideResult(ActionResult oldResult, ActionResult newResult) {
+
+		if (shouldOverrideResult(oldResult, newResult)) {
+			return newResult;
+		}
+
+		else {
+			return oldResult;
+		}
+
 	}
 
 }
