@@ -24,13 +24,13 @@ public class PowerTypes {
 	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
+	public static final PowerType<BlockBreakPower> BLOCK_BREAK = registerInternal("block_break", ContextTypes.BLOCK, BlockBreakPower.CODEC, BlockBreakPower.PACKET_CODEC);
 	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.BLOCK, BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.GENERIC, CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<GiveItemsPower> GIVE_ITEMS = registerInternal("give_items", ContextTypes.GENERIC, GiveItemsPower.CODEC, GiveItemsPower.PACKET_CODEC);
 	public static final PowerType<HarvestableBlockPower> HARVESTABLE_BLOCK = registerInternal("harvestable_block", ContextTypes.BLOCK, HarvestableBlockPower.CODEC, HarvestableBlockPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.GENERIC, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
-	public static final PowerType<OnBlockBreakPower> ON_BLOCK_BREAK = registerInternal("on_block_break", ContextTypes.BLOCK, OnBlockBreakPower.CODEC, OnBlockBreakPower.PACKET_CODEC);
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.GENERIC, TickingPower.CODEC, TickingPower.PACKET_CODEC);
 
 	public static void registerAll() {
