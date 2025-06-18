@@ -26,21 +26,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
-public class HarvestableBlockPower extends Power implements Prioritized<HarvestableBlockPower> {
+public class BlockHarvestPower extends Power implements Prioritized<BlockHarvestPower> {
 
-	public static final MapCodec<HarvestableBlockPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(HarvestableBlockPower::getBlockCondition))
-		.and(Codec.BOOL.fieldOf("allow").forGetter(HarvestableBlockPower::isAllowed))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(HarvestableBlockPower::getPriority))
-		.apply(instance, HarvestableBlockPower::new));
+	public static final MapCodec<BlockHarvestPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(BlockHarvestPower::getBlockCondition))
+		.and(Codec.BOOL.fieldOf("allow").forGetter(BlockHarvestPower::isAllowed))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(BlockHarvestPower::getPriority))
+		.apply(instance, BlockHarvestPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, HarvestableBlockPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, harvestableBlockPower) -> {
-			BlockCondition.PACKET_CODEC.encode(buf, harvestableBlockPower.getBlockCondition());
-			buf.writeBoolean(harvestableBlockPower.isAllowed());
-			buf.writeVarInt(harvestableBlockPower.getPriority());
+	public static final PacketCodec<RegistryByteBuf, BlockHarvestPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, blockHarvestPower) -> {
+			BlockCondition.PACKET_CODEC.encode(buf, blockHarvestPower.getBlockCondition());
+			buf.writeBoolean(blockHarvestPower.isAllowed());
+			buf.writeVarInt(blockHarvestPower.getPriority());
 		},
-		(buf, properties, condition) -> new HarvestableBlockPower(properties, condition,
+		(buf, properties, condition) -> new BlockHarvestPower(properties, condition,
 			BlockCondition.PACKET_CODEC.decode(buf),
 			buf.readBoolean(),
 			buf.readVarInt()
@@ -52,7 +52,7 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 	private final boolean allow;
 	private final int priority;
 
-	public HarvestableBlockPower(Properties properties, EntityCondition activeCondition, BlockCondition blockCondition, boolean allow, int priority) {
+	public BlockHarvestPower(Properties properties, EntityCondition activeCondition, BlockCondition blockCondition, boolean allow, int priority) {
 		super(properties, activeCondition);
 		this.blockCondition = blockCondition;
 		this.allow = allow;
@@ -61,7 +61,7 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.HARVESTABLE_BLOCK;
+		return PowerTypes.BLOCK_HARVEST;
 	}
 
 	@Override
@@ -88,14 +88,14 @@ public class HarvestableBlockPower extends Power implements Prioritized<Harvesta
 		return allow;
 	}
 
-	public static class Impl extends Power.Impl<HarvestableBlockPower> implements Comparable<Impl> {
+	public static class Impl extends Power.Impl<BlockHarvestPower> implements Comparable<Impl> {
 
-		protected Impl(@NotNull Entity holder, @NotNull HarvestableBlockPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull BlockHarvestPower power) {
 			super(holder, power);
 		}
 
 		@Override
-		public int compareTo(@NotNull HarvestableBlockPower.Impl that) {
+		public int compareTo(@NotNull BlockHarvestPower.Impl that) {
 			return this.getPower().compareTo(that.getPower());
 		}
 
