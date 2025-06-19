@@ -66,11 +66,14 @@ public final class PowerManager implements JsonResourceReloader {
 	public static final Identifier ID = NeoApoli.id("powers");
 	public static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.ID));
 
-	private static final Object2ObjectOpenHashMap<Identifier, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Power, PowerReference> BY_POWER = new Object2ObjectOpenHashMap<>();
 
-	private final TagGroupLoader<PowerEntry<?>> tagLoader = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), RegistryKeys.getTagPath(NeoApoliRegistryKeys.POWER));
+	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), RegistryKeys.getTagPath(NeoApoliRegistryKeys.POWER));
+
+	private static final Object2ObjectOpenHashMap<Identifier, List<TagGroupLoader.TrackedEntry>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Identifier, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
+
 	private final RegistryOps<JsonElement> ops;
 
 	public PowerManager(RegistryWrapper.WrapperLookup wrapperLookup) {
@@ -81,34 +84,43 @@ public final class PowerManager implements JsonResourceReloader {
 	public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
 		CompletableFuture<Map<Identifier, List<TagGroupLoader.TrackedEntry>>> preparedTagsFuture = CompletableFuture
-			.supplyAsync(() -> this.prepareTags(manager, Profilers.get()), prepareExecutor);
+			.supplyAsync(() -> this.preparePendingTags(manager, Profilers.get()), prepareExecutor);
 		CompletableFuture<Map<PowerReference.Power, Entry>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> this.prepareElements(manager, Profilers.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
 			.thenCompose(synchronizer::whenPrepared)
-			.thenAcceptAsync(
-				preparedTagsAndElements -> {
-					this.applyElements(preparedTagsAndElements.getSecond(), manager, Profilers.get());
-					this.applyTags(preparedTagsAndElements.getFirst(), manager, Profilers.get());
-				},
-				applyExecutor
-			);
+			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profilers.get()), applyExecutor);
 
 	}
 
-	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> prepareTags(ResourceManager manager, Profiler profiler) {
-		return tagLoader.loadTags(manager);
+	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> preparePendingTags(ResourceManager manager, Profiler profiler) {
+
+		PREPARED_TAGS.clear();
+		Map<Identifier, List<TagGroupLoader.TrackedEntry>> pendingTags = TAG_LOADER.loadTags(manager);
+
+		PREPARED_TAGS.putAll(pendingTags);
+		PREPARED_TAGS.trim();
+
+		return PREPARED_TAGS;
+
 	}
 
-	private void applyTags(Map<Identifier, List<TagGroupLoader.TrackedEntry>> prepared, ResourceManager manager, Profiler profiler) {
+	@ApiStatus.Internal
+	public static void applyPendingTags(DataPackContents dataPackContents) {
+
+		if (PREPARED_TAGS.isEmpty()) {
+			return;
+		}
 
 		LOGGER.info("Parsing power tags from data packs...");
 		TAGS.clear();
 
-		TAGS.putAll(this.tagLoader.buildGroup(prepared));
+		TAGS.putAll(TAG_LOADER.buildGroup(PREPARED_TAGS));
 
 		LOGGER.info("Finished parsing power tags from data packs. Parsed {} power tag(s)", TAGS.size());
+
+		PREPARED_TAGS.clear();
 		TAGS.trim();
 
 	}
