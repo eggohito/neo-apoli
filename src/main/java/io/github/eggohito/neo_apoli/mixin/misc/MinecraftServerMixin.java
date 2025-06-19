@@ -68,8 +68,8 @@ public abstract class MinecraftServerMixin implements DataCommandStorageHolder {
 
 	}
 
-	@Inject(method = "method_29440", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;onDataPacksReloaded()V"))
-	private void onReloadedDataPacks(Collection<String> dataPacks, MinecraftServer.ResourceManagerHolder resourceManagerHolder, CallbackInfo ci) {
+	@Inject(method = "method_29440", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/DataPackContents;applyPendingTagLoads()V"))
+	private void onDataPacksReloaded(Collection<String> dataPacks, MinecraftServer.ResourceManagerHolder resourceManagerHolder, CallbackInfo ci) {
 		PowerManager.validate(resourceManagerHolder.dataPackContents());
 	}
 

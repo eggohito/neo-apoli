@@ -14,6 +14,7 @@
 		"action.meta.ExplodeMetaActionMixin",
 		"misc.DataCommandStorageMixin",
 		"misc.MinecraftServerMixin",
+		"misc.SaveLoadingMixin",
 		"misc.ServerWorldMixin",
 		"misc.TextCodecsMixin",
 		"misc.TextCodecsMixin$DispatchingCodecMixin",
