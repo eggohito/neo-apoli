@@ -26,6 +26,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
+import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -88,6 +89,7 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliParticleTypes.registerAll();
 
 		ComparisonTypes.registerAll();
+		ModifierTypes.registerAll();
 
 		PowerTypes.registerAll();
 		PowerManager.init();

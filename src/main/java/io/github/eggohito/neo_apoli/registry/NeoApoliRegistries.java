@@ -15,6 +15,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
+import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -43,6 +44,7 @@ public class NeoApoliRegistries {
 
 	public static final Registry<ComparisonType<?>> COMPARISON_TYPE = create(NeoApoliRegistryKeys.COMPARISON_TYPE);
 	public static final Registry<ContainerType> CONTAINER_TYPE = create(NeoApoliRegistryKeys.CONTAINER_TYPE);
+	public static final Registry<ModifierType<?>> MODIFIER_TYPE = create(NeoApoliRegistryKeys.MODIFIER_TYPE);
 
 	private static <T> Registry<T> create(RegistryKey<Registry<T>> key) {
 		return FabricRegistryBuilder.createSimple(key).buildAndRegister();
