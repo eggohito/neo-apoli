@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -18,7 +20,9 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public record StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtPath path) implements StringProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class StorageStringProvider extends StringProvider {
 
 	public static final MapCodec<StorageStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Identifier.CODEC.fieldOf("storage").forGetter(StorageStringProvider::storage),
@@ -31,13 +35,21 @@ public record StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtP
 		StorageStringProvider::new
 	);
 
+	private final Identifier storage;
+	private final NbtPathArgumentType.NbtPath path;
+
+	public StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtPath path) {
+		this.storage = storage;
+		this.path = path;
+	}
+
 	@Override
 	public StringProviderType<?> getType() {
 		return StringProviderTypes.STORAGE;
 	}
 
 	@Override
-	public String stringValue(Context context) {
+	protected String stringImpl(Context context) {
 
 		try {
 
@@ -60,7 +72,7 @@ public record StorageStringProvider(Identifier storage, NbtPathArgumentType.NbtP
 		}
 
 		catch (CommandSyntaxException cse) {
-			context.getReporter().makeChild("path").report("Error trying to get string from storage \"" + this.storage() + "\" in NBT path \"" + this.path() + "\": " + cse.getMessage());
+			context.getReporter().report("Error trying to get string in NBT path \"" + this.path() + "\" from storage \"" + this.storage() + "\": " + cse.getMessage());
 			return "";
 		}
 

@@ -8,10 +8,14 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ConsumeItemAction extends ItemAction {
 
 	public static final MapCodec<ConsumeItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("amount").forGetter(ConsumeItemAction::amount)
@@ -22,19 +26,25 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 		ConsumeItemAction::new
 	);
 
+	private final NumberProvider amount;
+
+	public ConsumeItemAction(NumberProvider amount) {
+		this.amount = amount;
+	}
+
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.CONSUME;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		if (context.getWorld().isClient()) {
 			return;
 		}
 
-		Context amountContext = context.makeChild("amount");
+		Context amountContext = context.makeChild(".amount");
 		int amount = this.amount().intValue(amountContext);
 
 		if (!amountContext.hasErrors()) {
@@ -45,8 +55,8 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		ItemAction.super.validate(reporter);
-		amount().validate(reporter.makeChild("amount"));
+		super.validate(reporter);
+		amount().validate(reporter.makeChild(".amount"));
 	}
 
 }

@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -15,7 +17,9 @@ import net.minecraft.util.math.Direction;
 
 import java.util.Set;
 
-public record PositionNumberProvider(Direction.Axis axis) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class PositionNumberProvider extends NumberProvider {
 
 	public static final MapCodec<PositionNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(PositionNumberProvider::axis)
@@ -26,13 +30,19 @@ public record PositionNumberProvider(Direction.Axis axis) implements NumberProvi
 		PositionNumberProvider::new
 	);
 
+	private final Direction.Axis axis;
+
+	public PositionNumberProvider(Direction.Axis axis) {
+		this.axis = axis;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.POSITION;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 		return context.required(ContextParameters.POSITION).getComponentAlongAxis(this.axis());
 	}
 

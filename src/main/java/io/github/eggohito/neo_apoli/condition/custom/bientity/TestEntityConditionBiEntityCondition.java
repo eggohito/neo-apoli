@@ -9,13 +9,17 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record TestEntityConditionBiEntityCondition(EntityCondition entityCondition, EntityParameter entity) implements BiEntityCondition {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class TestEntityConditionBiEntityCondition extends BiEntityCondition {
 
 	public static final MapCodec<TestEntityConditionBiEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityCondition.CODEC.fieldOf("entity_condition").forGetter(TestEntityConditionBiEntityCondition::entityCondition),
@@ -28,17 +32,25 @@ public record TestEntityConditionBiEntityCondition(EntityCondition entityConditi
 		TestEntityConditionBiEntityCondition::new
 	);
 
+	private final EntityCondition entityCondition;
+	private final EntityParameter entity;
+
+	public TestEntityConditionBiEntityCondition(EntityCondition entityCondition, EntityParameter entity) {
+		this.entityCondition = entityCondition;
+		this.entity = entity;
+	}
+
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.TEST_ENTITY_CONDITION;
 	}
 
 	@Override
-	public boolean test(Context context) {
+	protected boolean impl(Context context) {
 
 		Context entityConditionContext = context
 			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.required(this.entity().getParameter())))
-			.makeChild("entity_condition");
+			.makeChild(".entity_condition");
 
 		return entityCondition().test(entityConditionContext);
 
@@ -51,8 +63,8 @@ public record TestEntityConditionBiEntityCondition(EntityCondition entityConditi
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityCondition.super.validate(reporter);
-		entityCondition().validate(reporter.makeChild("entity_condition"));
+		super.validate(reporter);
+		entityCondition().validate(reporter.makeChild(".entity_condition"));
 	}
 
 }

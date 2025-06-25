@@ -19,6 +19,7 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -33,6 +34,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@Getter
 public class MultiplePower extends Power {
 
 	public static final Identifier ID = NeoApoli.id("multiple");
@@ -78,10 +80,6 @@ public class MultiplePower extends Power {
 	@Override
 	public Power.Impl<?> createImpl(Entity holder) {
 		return new Impl(holder, this);
-	}
-
-	public ImmutableMap<PowerReference.SubPower, Power> getSubPowers() {
-		return subPowers;
 	}
 
 	/**

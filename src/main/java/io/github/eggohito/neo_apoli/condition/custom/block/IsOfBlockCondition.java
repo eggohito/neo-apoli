@@ -6,6 +6,8 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.block.Block;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -14,7 +16,9 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 
-public record IsOfBlockCondition(RegistryEntry<Block> block) implements BlockCondition {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class IsOfBlockCondition extends BlockCondition {
 
 	public static final MapCodec<IsOfBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Registries.BLOCK.getEntryCodec().fieldOf("block").forGetter(IsOfBlockCondition::block)
@@ -25,13 +29,19 @@ public record IsOfBlockCondition(RegistryEntry<Block> block) implements BlockCon
 		IsOfBlockCondition::new
 	);
 
+	private final RegistryEntry<Block> block;
+
+	public IsOfBlockCondition(RegistryEntry<Block> block) {
+		this.block = block;
+	}
+
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.IS_OF;
 	}
 
 	@Override
-	public boolean test(Context context) {
+	protected boolean impl(Context context) {
 		return this.getBlockState(context).isOf(block());
 	}
 

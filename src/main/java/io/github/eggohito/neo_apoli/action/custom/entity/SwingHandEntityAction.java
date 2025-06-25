@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -18,7 +20,9 @@ import net.minecraft.util.Hand;
 
 import java.util.Optional;
 
-public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class SwingHandEntityAction extends EntityAction {
 
 	public static final MapCodec<SwingHandEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.HAND.optionalFieldOf("hand").forGetter(SwingHandEntityAction::hand)
@@ -29,13 +33,19 @@ public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction
 		SwingHandEntityAction::new
 	);
 
+	private final Optional<Hand> hand;
+
+	public SwingHandEntityAction(Optional<Hand> hand) {
+		this.hand = hand;
+	}
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.SWING_HAND;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		if (context.required(ContextParameters.THIS_ENTITY) instanceof LivingEntity livingEntity) {
 			livingEntity.swingHand(hand().orElseGet(livingEntity::getActiveHand), livingEntity instanceof ServerPlayerEntity);

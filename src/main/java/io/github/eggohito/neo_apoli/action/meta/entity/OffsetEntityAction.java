@@ -7,17 +7,27 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.Set;
-
-public record OffsetEntityAction(EntityAction action, Vec3d offset) implements EntityAction, OffsetMetaAction<EntityAction, EntityActionType<?>> {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class OffsetEntityAction extends EntityAction implements OffsetMetaAction<EntityAction> {
 
 	public static final MapCodec<OffsetEntityAction> CODEC = NeoApoliMapCodecs.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.codec(EntityAction.CODEC, OffsetEntityAction::new));
 	public static final PacketCodec<RegistryByteBuf, OffsetEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.packetCodec(EntityAction.PACKET_CODEC, OffsetEntityAction::new));
+
+	private final EntityAction action;
+	private final Vec3d offset;
+
+	public OffsetEntityAction(EntityAction action, Vec3d offset) {
+		this.action = action;
+		this.offset = offset;
+	}
 
 	@Override
 	public EntityActionType<?> getType() {
@@ -25,8 +35,14 @@ public record OffsetEntityAction(EntityAction action, Vec3d offset) implements E
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
-		return EntityAction.super.getAllowedParameters();
+	public void impl(Context context) {
+		OffsetMetaAction.super.impl(context);
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		OffsetMetaAction.super.validate(reporter);
 	}
 
 }

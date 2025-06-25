@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.ItemAction;
@@ -25,14 +24,15 @@ import io.github.eggohito.neo_apoli.util.BlockInteractionPhase;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@Getter
 public class BlockInteractPower extends Power implements Prioritized<BlockInteractPower> {
 
 	public static final MapCodec<BlockInteractPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
@@ -67,8 +68,6 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			buf.readVarInt()
 		)
 	);
-
-	public static final Identifier ID = NeoApoli.id("block_interact");
 
 	private final Actions actions;
 	private final Conditions conditions;
@@ -94,23 +93,6 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 		return new Impl(holder, this);
 	}
 
-	@Override
-	public int getPriority() {
-		return priority;
-	}
-
-	public Actions getActions() {
-		return actions;
-	}
-
-	public Conditions getConditions() {
-		return conditions;
-	}
-
-	public EnumSet<BlockInteractionPhase> getInteractionPhases() {
-		return interactionPhases;
-	}
-
 	public static class Impl extends Power.Impl<BlockInteractPower> implements Prioritized<BlockInteractPower.Impl> {
 
 		protected Impl(@NotNull Entity holder, @NotNull BlockInteractPower power) {
@@ -127,27 +109,12 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 				&& this.inPriorityPhase(priorityPhase);
 		}
 
-		public boolean doesApply(Hand hand, Context entityAndItemContext, Context blockContext) {
-			Conditions conditions = this.getPower().getConditions();
-			return blockContext.optional(ContextParameters.DIRECTION).map(conditions.directions()::contains).orElse(true)
-				&& conditions.hands().contains(hand)
-				&& this.isActive(entityAndItemContext)
-				&& this.testAndReport("block_condition", conditions.blockCondition(), blockContext)
-				&& this.testAndReport("item_condition", conditions.itemCondition(), entityAndItemContext);
-
+		public boolean doesApply(Context blockContext, Context entityAndItemContext) {
+			return this.getPower().getConditions().test(blockContext, entityAndItemContext);
 		}
 
-		public ActionResult execute(Context entityAndItemContext, Context blockContext) {
-
-			Actions actions = this.getPower().getActions();
-			ActionResult result = actions.result();
-
-			this.executeAndReport("block_action", actions.blockAction(), blockContext);
-			this.executeAndReport("entity_action", actions.entityAction(), entityAndItemContext);
-			this.executeAndReport("item_action", actions.itemAction(), entityAndItemContext);
-
-			return result;
-
+		public ActionResult execute(Context blockContext, Context entityAndItemContext) {
+			return this.getPower().getActions().execute(blockContext, entityAndItemContext);
 		}
 
 	}
@@ -169,6 +136,22 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			Actions::new
 		);
 
+		public ActionResult execute(Context blockContext, Context entityAndItemContext) {
+
+			blockAction().execute(blockContext.makeChild(".block_action"));
+			entityAction().execute(entityAndItemContext.makeChild(".item_action"));
+			itemAction().execute(entityAndItemContext.makeChild(".item_action"));
+
+			return result();
+
+		}
+
+		public void validate(ContextAware.ErrorReporter reporter) {
+			blockAction().validate(reporter.makeChild(".block_action"));
+			entityAction().validate(reporter.makeChild(".entity_action"));
+			itemAction().validate(reporter.makeChild(".item_action"));
+		}
+
 	}
 
 	public record Conditions(BlockCondition blockCondition, ItemCondition itemCondition, EnumSet<Direction> directions, EnumSet<Hand> hands) {
@@ -187,6 +170,18 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			NeoApoliPacketCodecs.HAND_SET, Conditions::hands,
 			Conditions::new
 		);
+
+		public boolean test(Context blockContext, Context entityAndItemContext) {
+			return blockContext.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
+				&& entityAndItemContext.optional(ContextParameters.HAND).map(hands()::contains).orElse(false)
+				&& blockCondition().test(blockContext.makeChild(".block_condition"))
+				&& itemCondition().test(entityAndItemContext.makeChild(".item_condition"));
+		}
+
+		public void validate(ContextAware.ErrorReporter reporter) {
+			blockCondition().validate(reporter.makeChild(".block_condition"));
+			itemCondition().validate(reporter.makeChild(".item_condition"));
+		}
 
 	}
 
@@ -218,7 +213,8 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 			for (var impl : impls) {
 
-				Context.Builder builder = impl.getPowerType().contextBuilder()
+				Context.Builder builder = impl.contextBuilder()
+					.add(ContextParameters.HAND, hand)
 					.add(ContextParameters.THIS_ENTITY, player)
 					.add(ContextParameters.ITEM_STACK, player.getStackInHand(hand))
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
@@ -232,8 +228,8 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 					.add(ContextParameters.POSITION, blockPos.toCenterPos())
 					.build(world);
 
-				if (impl.doesApply(hand, entityAndItemContext, blockContext)) {
-					previousResult = MiscUtil.overrideResult(previousResult, impl.execute(entityAndItemContext, blockContext));
+				if (impl.doesApply(blockContext, entityAndItemContext)) {
+					previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityAndItemContext));
 				}
 
 			}
@@ -305,8 +301,8 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 						.add(ContextParameters.POSITION, blockPos.toCenterPos())
 						.build(world);
 
-					if (impl.doesApply(hand, entityContext, blockContext)) {
-						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(entityContext, blockContext));
+					if (impl.doesApply(blockContext, entityContext)) {
+						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityContext));
 					}
 
 				}

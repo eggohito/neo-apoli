@@ -7,9 +7,11 @@ public class ContextTypes {
 	public static final ContextType.Builder BUILDER = new ContextType.Builder()
 		.require(ContextParameters.POSITION)
 		.require(ContextParameters.THIS_ENTITY)
+		.allow(ContextParameters.HAND)
 		.allow(ContextParameters.ACTOR)
 		.allow(ContextParameters.TARGET)
-		.allow(ContextParameters.ITEM_STACK);
+		.allow(ContextParameters.ITEM_STACK)
+		.allow(ContextParameters.POWER_REFERENCE);
 
 	public static final ContextType GENERIC = BUILDER
 		.build();

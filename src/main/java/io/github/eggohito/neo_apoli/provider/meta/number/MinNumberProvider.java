@@ -6,15 +6,25 @@ import io.github.eggohito.neo_apoli.provider.misc.MultiNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-public record MinNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class MinNumberProvider extends NumberProvider implements MultiNumberProvider {
 
 	public static final MapCodec<MinNumberProvider> CODEC = MultiNumberProvider.simpleCodec(MinNumberProvider::new);
 	public static final PacketCodec<RegistryByteBuf, MinNumberProvider> PACKET_CODEC = MultiNumberProvider.simplePacketCodec(MinNumberProvider::new);
+
+	private final List<NumberProvider> numbers;
+
+	public MinNumberProvider(List<NumberProvider> numbers) {
+		this.numbers = numbers;
+	}
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -22,13 +32,19 @@ public record MinNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	}
 
 	@Override
-	public double doubleValue(Context context) {
-		return iterateAndProcess(context, NumberProvider::doubleValue, Math::min, 0.0D);
+	protected double doubleImpl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::doubleValue, Math::min, 0.0D);
 	}
 
 	@Override
-	public long longValue(Context context) {
-		return iterateAndProcess(context, NumberProvider::longValue, Math::min, 0L);
+	protected long longImpl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::longValue, Math::min, 0L);
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		MultiNumberProvider.super.validate(reporter);
 	}
 
 }

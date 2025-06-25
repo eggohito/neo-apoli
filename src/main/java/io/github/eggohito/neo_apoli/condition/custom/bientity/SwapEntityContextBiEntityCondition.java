@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -19,7 +21,9 @@ import net.minecraft.util.dynamic.Codecs;
 import java.util.Map;
 import java.util.Set;
 
-public record SwapEntityContextBiEntityCondition(BiEntityCondition biEntityCondition, Map<EntityParameter, EntityParameter> parameters) implements BiEntityCondition {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class SwapEntityContextBiEntityCondition extends BiEntityCondition {
 
 	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliMapCodecs.lazy(() -> BiEntityCondition.CODEC.fieldOf("bientity_condition")).forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
@@ -32,18 +36,26 @@ public record SwapEntityContextBiEntityCondition(BiEntityCondition biEntityCondi
 		SwapEntityContextBiEntityCondition::new
 	);
 
+	private final BiEntityCondition biEntityCondition;
+	private final Map<EntityParameter, EntityParameter> parameters;
+
+	public SwapEntityContextBiEntityCondition(BiEntityCondition biEntityCondition, Map<EntityParameter, EntityParameter> parameters) {
+		this.biEntityCondition = biEntityCondition;
+		this.parameters = parameters;
+	}
+
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.SWAP_ENTITY_CONTEXT;
 	}
 
 	@Override
-	public boolean test(Context context) {
+	protected boolean impl(Context context) {
 
 		Context.Builder builder = new Context.Builder(context);
 		parameters().forEach((target, source) -> builder.add(target.getParameter(), context.required(source.getParameter())));
 
-		return biEntityCondition().test(builder.build(context.getWorld()).makeChild("bientity_condition"));
+		return biEntityCondition().test(builder.build(context.getWorld()).makeChild(".bientity_condition"));
 
 	}
 
@@ -59,8 +71,8 @@ public record SwapEntityContextBiEntityCondition(BiEntityCondition biEntityCondi
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityCondition.super.validate(reporter);
-		biEntityCondition().validate(reporter.makeChild("bientity_condition"));
+		super.validate(reporter);
+		biEntityCondition().validate(reporter.makeChild(".bientity_condition"));
 	}
 
 }

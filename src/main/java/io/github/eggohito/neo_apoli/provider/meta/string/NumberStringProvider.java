@@ -10,23 +10,35 @@ import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Locale;
 
-public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class NumberStringProvider extends StringProvider {
 
-	public static final MapCodec<NumberStringProvider> CODEC = NeoApoliMapCodecs.lazy("NumberStringProvider", () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NumberStringProvider> CODEC = NeoApoliMapCodecs.lazy(NumberStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
 		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberStringProvider::decimals)
 	).apply(instance, NumberStringProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy("NumberStringProvider", () -> PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = NeoApoliPacketCodecs.lazy(NumberStringProvider.class.getSimpleName(), () -> PacketCodec.tuple(
 		NumberProvider.PACKET_CODEC, NumberStringProvider::number,
 		NumberProvider.PACKET_CODEC, NumberStringProvider::decimals,
 		NumberStringProvider::new
 	));
+
+	private final NumberProvider number;
+	private final NumberProvider decimals;
+
+	public NumberStringProvider(NumberProvider number, NumberProvider decimals) {
+		this.number = number;
+		this.decimals = decimals;
+	}
 
 	@Override
 	public StringProviderType<?> getType() {
@@ -34,10 +46,10 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	}
 
 	@Override
-	public String stringValue(Context context) {
+	protected String stringImpl(Context context) {
 
-		Context numberContext = context.makeChild("number");
-		int decimals = decimals().intValue(context.makeChild("decimals"));
+		Context numberContext = context.makeChild(".number");
+		int decimals = decimals().intValue(context.makeChild(".decimals"));
 
 		if (decimals == 0) {
 			return Long.toString(number().longValue(numberContext));
@@ -52,10 +64,10 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		StringProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		number().validate(reporter.makeChild("number"));
-		decimals().validate(reporter.makeChild("decimals"));
+		number().validate(reporter.makeChild(".number"));
+		decimals().validate(reporter.makeChild(".decimals"));
 
 	}
 

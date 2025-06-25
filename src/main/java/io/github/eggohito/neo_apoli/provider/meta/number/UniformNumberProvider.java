@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.random.RandomSeed;
@@ -15,7 +17,9 @@ import net.minecraft.util.math.random.RandomSeed;
 import java.util.Random;
 import java.util.function.BiFunction;
 
-public record UniformNumberProvider(NumberProvider min, NumberProvider max, Random random) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class UniformNumberProvider extends NumberProvider {
 
 	public static final MapCodec<UniformNumberProvider> CODEC = NeoApoliMapCodecs.lazy(UniformNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("min", new ConstantNumberProvider(0)).forGetter(UniformNumberProvider::min),
@@ -28,6 +32,17 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max, Rand
 		UniformNumberProvider::new
 	));
 
+	private final NumberProvider min;
+	private final NumberProvider max;
+
+	private final Random random;
+
+	public UniformNumberProvider(NumberProvider min, NumberProvider max, Random random) {
+		this.min = min;
+		this.max = max;
+		this.random = random;
+	}
+
 	public UniformNumberProvider(NumberProvider min, NumberProvider max) {
 		this(min, max, new Random(RandomSeed.getSeed()));
 	}
@@ -38,27 +53,27 @@ public record UniformNumberProvider(NumberProvider min, NumberProvider max, Rand
 	}
 
 	@Override
-	public double doubleValue(Context context) {
-		return random(context, NumberProvider::doubleValue, random()::nextDouble);
+	protected double doubleImpl(Context context) {
+		return this.randomize(context, NumberProvider::doubleValue, random()::nextDouble);
 	}
 
 	@Override
-	public long longValue(Context context) {
-		return random(context, NumberProvider::longValue, random()::nextLong);
+	protected long longImpl(Context context) {
+		return this.randomize(context, NumberProvider::longValue, random()::nextLong);
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		NumberProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		min().validate(reporter.makeChild("min"));
-		max().validate(reporter.makeChild("max"));
+		min().validate(reporter.makeChild(".min"));
+		max().validate(reporter.makeChild(".max"));
 
 	}
 
-	private <N extends Number> N random(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> method) {
-		return method.apply(getter.apply(min(), context.makeChild("min")), getter.apply(max(), context.makeChild("max")));
+	private <N extends Number> N randomize(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> method) {
+		return method.apply(getter.apply(min(), context.makeChild(".min")), getter.apply(max(), context.makeChild(".max")));
 	}
 
 }

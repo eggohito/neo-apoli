@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.network.RegistryByteBuf;
@@ -17,7 +19,9 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryFixedCodec;
 import net.minecraft.server.world.ServerWorld;
 
-public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) implements EntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class DamageEntityAction extends EntityAction {
 
 	public static final MapCodec<DamageEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		RegistryFixedCodec.of(RegistryKeys.DAMAGE_TYPE).fieldOf("damage_type").forGetter(DamageEntityAction::damageType),
@@ -30,29 +34,39 @@ public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberPro
 		DamageEntityAction::new
 	);
 
+	private final RegistryEntry<DamageType> damageType;
+	private final NumberProvider amount;
+
+	public DamageEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) {
+		this.damageType = damageType;
+		this.amount = amount;
+	}
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.DAMAGE;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
-		if (context.getWorld() instanceof ServerWorld serverWorld) {
+		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+			return;
+		}
 
-			DamageSource damageSource = new DamageSource(this.damageType());
-			float amount = amount().floatValue(context.makeChild("amount"));
+		Context amountContext = context.makeChild(".amount");
+		float amount = amount().floatValue(amountContext);
 
-			context.required(ContextParameters.THIS_ENTITY).damage(serverWorld, damageSource, amount);
-
+		if (!amountContext.hasErrors()) {
+			context.required(ContextParameters.THIS_ENTITY).damage(serverWorld, new DamageSource(damageType()), amount);
 		}
 
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		EntityAction.super.validate(reporter);
-		amount().validate(reporter.makeChild("amount"));
+		super.validate(reporter);
+		amount().validate(reporter.makeChild(".amount"));
 	}
 
 }

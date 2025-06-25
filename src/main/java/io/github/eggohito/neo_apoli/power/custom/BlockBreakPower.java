@@ -19,6 +19,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -57,10 +58,13 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 		)
 	);
 
+	@Getter
 	private final Actions actions;
+	@Getter
 	private final Conditions conditions;
 
 	private final boolean onlyWhenHarvested;
+	@Getter
 	private final int priority;
 
 	public BlockBreakPower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, boolean onlyWhenHarvested, int priority) {
@@ -91,19 +95,6 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 	}
 
-	@Override
-	public int getPriority() {
-		return priority;
-	}
-
-	public Actions getActions() {
-		return actions;
-	}
-
-	public Conditions getConditions() {
-		return conditions;
-	}
-
 	public boolean onlyWhenHarvested() {
 		return onlyWhenHarvested;
 	}
@@ -119,21 +110,14 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			return power.getPriority();
 		}
 
-		public void execute(Context blockContext, Context entityAndItemContext) {
-
-			Actions actions = power.getActions();
-
-			this.executeAndReport("block_action", actions.blockAction(), blockContext);
-			this.executeAndReport("entity_action", actions.entityAction(), entityAndItemContext);
-
+		public void execute(Context blockContext, Context entityContext) {
+			power.getActions().execute(blockContext, entityContext);
 		}
 
-		public boolean doesApply(Context blockContext, Context entityAndItemContext, boolean harvested) {
-			Conditions conditions = power.getConditions();
+		public boolean doesApply(Context blockContext, Context entityContext, boolean harvested) {
 			return (!power.onlyWhenHarvested() || harvested)
-				&& (conditions.directions().isEmpty() || blockContext.optional(ContextParameters.DIRECTION).map(conditions.directions()::contains).orElse(true))
-				&& this.testAndReport("block_condition", conditions.blockCondition(), blockContext)
-				&& this.isActive(entityAndItemContext);
+				&& power.getConditions().test(blockContext)
+				&& this.isActive(entityContext);
 		}
 
 	}
@@ -151,9 +135,14 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			Actions::new
 		);
 
+		public void execute(Context blockContext, Context entityContext) {
+			blockAction().execute(blockContext.makeChild(".block_action"));
+			entityAction().execute(entityContext.makeChild(".entity_action"));
+		}
+
 		public void validate(ContextAware.ErrorReporter reporter) {
-			blockAction().validate(reporter.makeChild("block_action"));
-			entityAction().validate(reporter.makeChild("entity_action"));
+			blockAction().validate(reporter.makeChild(".block_action"));
+			entityAction().validate(reporter.makeChild(".entity_action"));
 		}
 
 	}
@@ -171,8 +160,13 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			Conditions::new
 		);
 
+		public boolean test(Context blockContext) {
+			return blockContext.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(true)
+				&& blockCondition().test(blockContext.makeChild(".block_condition"));
+		}
+
 		public void validate(ContextAware.ErrorReporter reporter) {
-			blockCondition().validate(reporter.makeChild("block_condition"));
+			blockCondition().validate(reporter.makeChild(".block_condition"));
 		}
 
 	}
@@ -187,7 +181,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 			for (var impl : impls) {
 
-				Context.Builder builder = impl.getPowerType().contextBuilder()
+				Context.Builder builder = impl.contextBuilder()
 					.add(ContextParameters.THIS_ENTITY, player)
 					.add(ContextParameters.BLOCK_STATE, state)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)

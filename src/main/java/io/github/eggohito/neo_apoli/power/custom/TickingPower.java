@@ -12,11 +12,13 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class TickingPower extends Power {
 
 	public static final MapCodec<TickingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
@@ -70,27 +72,11 @@ public class TickingPower extends Power {
 
 		super.validate(reporter);
 
-		getTickAction().validate(reporter.makeChild("tick_action"));
-		getFirstActiveTickAction().validate(reporter.makeChild("first_active_tick_action"));
-		getFirstInactiveTickAction().validate(reporter.makeChild("first_inactive_tick_action"));
-		getInterval().validate(reporter.makeChild("interval"));
+		getTickAction().validate(reporter.makeChild(".tick_action"));
+		getFirstActiveTickAction().validate(reporter.makeChild(".first_active_tick_action"));
+		getFirstInactiveTickAction().validate(reporter.makeChild(".first_inactive_tick_action"));
+		getInterval().validate(reporter.makeChild(".interval"));
 
-	}
-
-	public EntityAction getTickAction() {
-		return tickAction;
-	}
-
-	public EntityAction getFirstActiveTickAction() {
-		return firstActiveTickAction;
-	}
-
-	public EntityAction getFirstInactiveTickAction() {
-		return firstInactiveTickAction;
-	}
-
-	public NumberProvider getInterval() {
-		return interval;
 	}
 
 	public static class Impl extends Power.Impl<TickingPower> {
@@ -107,8 +93,8 @@ public class TickingPower extends Power {
 		@Override
 		public void onTick() {
 
-			Context context = this.createGenericContext();
-			int interval = this.processAndReport(context, "interval", ctx -> power.getInterval().intValue(ctx), (reporter, path) -> "Couldn't fully process number provider at path \"" + path + "\" due to error(s) " + reporter.getErrorsAsString());
+			Context context = this.genericContext();
+			int interval = power.getInterval().intValue(context.makeChild(".interval"));
 
 			if (context.hasAnyErrors()) {
 
@@ -130,12 +116,12 @@ public class TickingPower extends Power {
 				else if (ticks == startTicks) {
 
 					if (!wasActive) {
-						this.executeAndReport("first_active_tick_action", power.getFirstActiveTickAction(), context);
+						power.getFirstActiveTickAction().execute(context.makeChild(".first_active_tick_action"));
 						wasActive = true;
 					}
 
 					else {
-						this.executeAndReport("tick_action", power.getTickAction(), context);
+						power.getTickAction().execute(context.makeChild(".tick_action"));
 					}
 
 				}
@@ -150,7 +136,7 @@ public class TickingPower extends Power {
 				}
 
 				else if (ticks == endTicks) {
-					this.executeAndReport("first_inactive_tick_action", power.getFirstInactiveTickAction(), context);
+					power.getFirstInactiveTickAction().execute(context.makeChild(".first_inactive_tick_action"));
 					wasActive = false;
 				}
 

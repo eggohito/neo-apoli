@@ -14,23 +14,26 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public interface EntityCondition extends Condition<EntityConditionType<?>> {
+public abstract class EntityCondition extends Condition {
 
-	Codec<EntityCondition> CODEC = EntityConditionTypes.CODEC.dispatch(TYPE_KEY, EntityCondition::getType, EntityConditionType::mapCodec);
-	PacketCodec<RegistryByteBuf, EntityCondition> PACKET_CODEC = EntityConditionTypes.PACKET_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
+	public static final Codec<EntityCondition> CODEC = EntityConditionTypes.CODEC.dispatch("type", EntityCondition::getType, EntityConditionType::mapCodec);
+	public static final PacketCodec<RegistryByteBuf, EntityCondition> PACKET_CODEC = EntityConditionTypes.PACKET_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
 
 	@Override
-	default ConditionCategory<EntityCondition> getCategory() {
+	public abstract EntityConditionType<?> getType();
+
+	@Override
+	public ConditionCategory<EntityCondition> getCategory() {
 		return ConditionCategories.ENTITY_CONDITION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 

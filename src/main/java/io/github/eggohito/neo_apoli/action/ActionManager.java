@@ -62,7 +62,7 @@ public final class ActionManager implements JsonResourceReloader {
 
 	private static final Object2ObjectOpenHashMap<ActionCategory<?>, Map<Identifier, List<ActionEntry<?>>>> TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<ActionCategory<?>, Map<Identifier, ActionEntry<?>>> BY_CATEGORY_AND_ID = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Action<?>, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Action, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -236,7 +236,7 @@ public final class ActionManager implements JsonResourceReloader {
 			return;
 		}
 
-		Map<ActionCategory<?>, Map<Identifier, Action<?>>> filteredEntries = new Object2ObjectOpenHashMap<>();
+		Map<ActionCategory<?>, Map<Identifier, Action>> filteredEntries = new Object2ObjectOpenHashMap<>();
 		BY_CATEGORY_AND_ID.forEach((category, entries) -> entries.forEach((id, entry) -> filteredEntries
 			.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
 			.put(id, entry.value())));
@@ -284,16 +284,16 @@ public final class ActionManager implements JsonResourceReloader {
 
 	}
 
-	public static <A extends Action<?>> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, TagKey<A> tag) {
+	public static <A extends Action> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, TagKey<A> tag) {
 		return TAGS.getOrDefault(category, new Object2ObjectOpenHashMap<>()).getOrDefault(tag.id(), new ObjectArrayList<>());
 	}
 
-	public static <A extends Action<?>> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, Identifier tagId) {
+	public static <A extends Action> List<ActionEntry<?>> getEntriesFromTagOrEmpty(ActionCategory<A> category, Identifier tagId) {
 		return getEntriesFromTagOrEmpty(category, TagKey.of(category.registryRef(), tagId));
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <A extends Action<?>> DataResult<ActionEntry<A>> getEntryAsResult(ActionCategory<A> category, Identifier id) {
+	public static <A extends Action> DataResult<ActionEntry<A>> getEntryAsResult(ActionCategory<A> category, Identifier id) {
 
 		Map<Identifier, ActionEntry<?>> entries = BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>());
 		ActionEntry<?> entry = entries.get(id);
@@ -308,25 +308,25 @@ public final class ActionManager implements JsonResourceReloader {
 
 	}
 
-	public static <A extends Action<?>> ActionEntry<A> getEntry(ActionCategory<A> category, Identifier id) {
+	public static <A extends Action> ActionEntry<A> getEntry(ActionCategory<A> category, Identifier id) {
 		return getEntryAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <A extends Action<?>> DataResult<A> getAsResult(ActionCategory<A> category, Identifier id) {
+	public static <A extends Action> DataResult<A> getAsResult(ActionCategory<A> category, Identifier id) {
 		return getEntryAsResult(category, id).map(ActionEntry::value);
 	}
 
-	public static <A extends Action<?>> A get(ActionCategory<A> category, Identifier id) {
+	public static <A extends Action> A get(ActionCategory<A> category, Identifier id) {
 		return getAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <A extends Action<?>> DataResult<Identifier> getIdAsResult(A action) {
+	public static <A extends Action> DataResult<Identifier> getIdAsResult(A action) {
 		return containsId(action)
 			? DataResult.success(BY_VALUES.get(action))
 			: DataResult.error(() -> action + " doesn't correspond to any identifiers!");
 	}
 
-	public static <A extends Action<?>> Identifier getId(A action) {
+	public static <A extends Action> Identifier getId(A action) {
 		return getIdAsResult(action).getOrThrow(IllegalArgumentException::new);
 	}
 
@@ -337,16 +337,16 @@ public final class ActionManager implements JsonResourceReloader {
 			.flatMap(Collection::stream);
 	}
 
-	public static <A extends Action<?>> boolean contains(ActionCategory<A> category, Identifier id) {
+	public static <A extends Action> boolean contains(ActionCategory<A> category, Identifier id) {
 		return BY_CATEGORY_AND_ID.containsKey(category)
 			&& BY_CATEGORY_AND_ID.get(category).containsKey(id);
 	}
 
-	public static <A extends Action<?>> boolean containsId(A action) {
+	public static <A extends Action> boolean containsId(A action) {
 		return BY_VALUES.containsKey(action);
 	}
 
-	private static void register(Identifier id, Action<?> action) {
+	private static void register(Identifier id, Action action) {
 		BY_VALUES.put(action, id);
 		BY_CATEGORY_AND_ID
 			.computeIfAbsent(action.getCategory(), k -> new Object2ObjectOpenHashMap<>())

@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util.context;
 
 import io.github.eggohito.neo_apoli.mixin.access.ContextParameterMapAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextParameterMap;
 import net.minecraft.util.context.ContextType;
@@ -96,6 +97,10 @@ public final class Context {
 		return new Builder(context);
 	}
 
+	public static Builder builder() {
+		return builder(LootContextTypes.EMPTY);
+	}
+
 	public Context copy(UnaryOperator<Builder> operator) {
 		return operator.apply(builder(this)).build(this.getWorld());
 	}
@@ -103,9 +108,9 @@ public final class Context {
 	public static final class Builder {
 
 		private ContextType contextType;
+		private ContextAware.ErrorReporter reporter;
 
 		private final ContextParameterMap.Builder parameters;
-		private final ContextAware.ErrorReporter reporter;
 
 		Builder(ContextType contextType, ContextParameterMap.Builder parameters, ContextAware.ErrorReporter reporter) {
 			this.contextType = contextType;
@@ -131,6 +136,15 @@ public final class Context {
 		public Builder withContextType(@NotNull ContextType contextType) {
 			this.contextType = contextType;
 			return this;
+		}
+
+		public Builder withReporter(@NotNull ContextAware.ErrorReporter reporter) {
+
+			this.contextType = reporter.getContextType();
+			this.reporter = reporter;
+
+			return this;
+
 		}
 
 		public Builder copy() {

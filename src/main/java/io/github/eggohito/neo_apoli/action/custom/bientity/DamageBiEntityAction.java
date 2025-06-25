@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
@@ -18,7 +20,9 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryFixedCodec;
 import net.minecraft.server.world.ServerWorld;
 
-public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) implements BiEntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class DamageBiEntityAction extends BiEntityAction {
 
 	public static final MapCodec<DamageBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		RegistryFixedCodec.of(RegistryKeys.DAMAGE_TYPE).fieldOf("damage_type").forGetter(DamageBiEntityAction::damageType),
@@ -31,19 +35,27 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 		DamageBiEntityAction::new
 	);
 
+	private final RegistryEntry<DamageType> damageType;
+	private final NumberProvider amount;
+
+	public DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) {
+		this.damageType = damageType;
+		this.amount = amount;
+	}
+
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.DAMAGE;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
 			return;
 		}
 
-		Context amountContext = context.makeChild("amount");
+		Context amountContext = context.makeChild(".amount");
 		float amount = amount().floatValue(amountContext);
 
 		if (!amountContext.hasErrors()) {
@@ -56,6 +68,12 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 		DamageSource damageSource = new DamageSource(this.damageType(), actor);
 		target.damage(serverWorld, damageSource, amount);
 
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		amount().validate(reporter.makeChild(".amount"));
 	}
 
 }

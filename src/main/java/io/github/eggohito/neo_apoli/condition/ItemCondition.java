@@ -14,23 +14,26 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public interface ItemCondition extends Condition<ItemConditionType<?>> {
+public abstract class ItemCondition extends Condition {
 
-	Codec<ItemCondition> CODEC = ItemConditionTypes.CODEC.dispatch(TYPE_KEY, ItemCondition::getType, ItemConditionType::mapCodec);
-	PacketCodec<RegistryByteBuf, ItemCondition> PACKET_CODEC = ItemConditionTypes.PACKET_CODEC.dispatch(ItemCondition::getType, ItemConditionType::packetCodec);
+	public static final Codec<ItemCondition> CODEC = ItemConditionTypes.CODEC.dispatch("type", ItemCondition::getType, ItemConditionType::mapCodec);
+	public static final PacketCodec<RegistryByteBuf, ItemCondition> PACKET_CODEC = ItemConditionTypes.PACKET_CODEC.dispatch(ItemCondition::getType, ItemConditionType::packetCodec);
 
 	@Override
-	default ConditionCategory<ItemCondition> getCategory() {
+	public abstract ItemConditionType<?> getType();
+
+	@Override
+	public ConditionCategory<ItemCondition> getCategory() {
 		return ConditionCategories.ITEM_CONDITION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.ITEM_STACK);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.ITEM_CONDITION_TYPE, this.getType()) + "\"";
 	}
 

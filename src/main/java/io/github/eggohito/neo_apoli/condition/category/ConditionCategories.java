@@ -21,7 +21,7 @@ public final class ConditionCategories {
 
 	}
 
-	public static <C extends Condition<?>> ConditionCategory<C> register(String name, RegistryKey<? extends Registry<C>> registryRef, Codec<C> baseCodec, PacketCodec<RegistryByteBuf, C> basePacketCodec) {
+	public static <C extends Condition> ConditionCategory<C> register(String name, RegistryKey<? extends Registry<C>> registryRef, Codec<C> baseCodec, PacketCodec<RegistryByteBuf, C> basePacketCodec) {
 		return register(registryRef.getValue(), new ConditionCategory<>() {
 
 			@Override
@@ -48,7 +48,7 @@ public final class ConditionCategories {
 
 	}
 
-	public static <C extends Condition<?>> ConditionCategory<C> register(Identifier id, ConditionCategory<C> category) {
+	public static <C extends Condition> ConditionCategory<C> register(Identifier id, ConditionCategory<C> category) {
 		return Registry.register(NeoApoliRegistries.CONDITION_CATEGORY, id, category);
 	}
 

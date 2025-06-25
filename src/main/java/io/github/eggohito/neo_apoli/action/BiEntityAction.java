@@ -16,23 +16,26 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public interface BiEntityAction extends Action<BiEntityActionType<?>> {
+public abstract class BiEntityAction extends Action {
 
-	Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionTypes.CODEC.dispatch(TYPE_KEY, BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions)));
-	PacketCodec<RegistryByteBuf, BiEntityAction> PACKET_CODEC = BiEntityActionTypes.PACKET_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::packetCodec);
+	public static final Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionTypes.CODEC.dispatch("type", BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions)));
+	public static final PacketCodec<RegistryByteBuf, BiEntityAction> PACKET_CODEC = BiEntityActionTypes.PACKET_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::packetCodec);
 
 	@Override
-	default ActionCategory<BiEntityAction> getCategory() {
+	public abstract BiEntityActionType<?> getType();
+
+	@Override
+	public ActionCategory<BiEntityAction> getCategory() {
 		return ActionCategories.BIENTITY_ACTION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 

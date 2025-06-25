@@ -3,10 +3,9 @@ package io.github.eggohito.neo_apoli.action.meta;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -22,12 +21,11 @@ import net.minecraft.util.math.Vec2f;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Action<T> {
+public interface ExecuteCommandMetaAction {
 
 	StringProvider command();
 
-	@Override
-	default void execute(Context context) {
+	default void impl(Context context) {
 
 		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
 			return;
@@ -52,7 +50,7 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 			entity.orElse(null)
 		);
 
-		Context commandContext = context.makeChild("command");
+		Context commandContext = context.makeChild(".command");
 		String command = command().stringValue(commandContext);
 
 		if (!commandContext.hasErrors()) {
@@ -61,10 +59,8 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
-		Action.super.validate(reporter);
-		command().validate(reporter.makeChild("command"));
+	default void validate(ContextAware.ErrorReporter reporter) {
+		command().validate(reporter.makeChild(".command"));
 	}
 
 	static CommandOutput getOutputFromEntity(Entity entity) {
@@ -79,13 +75,13 @@ public interface ExecuteCommandMetaAction<T extends ActionType<?>> extends Actio
 
 	}
 
-	static <M extends ExecuteCommandMetaAction<?>> MapCodec<M> codec(Function<StringProvider, M> constructor) {
+	static <M extends ExecuteCommandMetaAction> MapCodec<M> codec(Function<StringProvider, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			StringProvider.CODEC.fieldOf("command").forGetter(ExecuteCommandMetaAction::command)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ExecuteCommandMetaAction<?>> PacketCodec<RegistryByteBuf, M> packetCodec(Function<StringProvider, M> constructor) {
+	static <M extends ExecuteCommandMetaAction> PacketCodec<RegistryByteBuf, M> packetCodec(Function<StringProvider, M> constructor) {
 		return PacketCodec.tuple(
 			StringProvider.PACKET_CODEC, ExecuteCommandMetaAction::command,
 			constructor

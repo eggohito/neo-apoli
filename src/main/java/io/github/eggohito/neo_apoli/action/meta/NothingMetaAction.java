@@ -1,19 +1,19 @@
 package io.github.eggohito.neo_apoli.action.meta;
 
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import com.mojang.serialization.MapCodec;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 
-public interface NothingMetaAction<T extends ActionType<?>> extends Action<T> {
+import java.util.function.Supplier;
 
-	@Override
-	default void execute(Context context) {
+public interface NothingMetaAction {
 
+	static <M extends NothingMetaAction> MapCodec<M> codec(Supplier<M> constructor) {
+		return MapCodec.unit(constructor);
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
-
+	static <B extends ByteBuf, M extends NothingMetaAction> PacketCodec<B, M> packetCodec(Supplier<M> constructor) {
+		return PacketCodec.unit(constructor.get());
 	}
 
 }

@@ -5,8 +5,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -15,34 +15,32 @@ import net.minecraft.util.function.ValueLists;
 
 import java.util.function.BiFunction;
 
-public interface SideMetaAction<A extends Action<T>, T extends ActionType<?>> extends Action<T> {
+public interface SideMetaAction<A extends Action> {
 
 	A action();
 
 	Side side();
 
-	@Override
-	default void execute(Context context) {
+	default void impl(Context context) {
 
 		if ((side() == Side.CLIENT) != NeoApoli.serverSide()) {
-			action().execute(context.makeChild("action"));
+			action().execute(context.makeChild(".action"));
 		}
 
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
-		action().validate(reporter.makeChild("action"));
+	default void validate(ContextAware.ErrorReporter reporter) {
+		action().validate(reporter.makeChild(".action"));
 	}
 
-	static <A extends Action<?>, M extends SideMetaAction<A, ?>> MapCodec<M> codec(Codec<A> actionCodec, BiFunction<A, Side, M> constructor) {
+	static <A extends Action, M extends SideMetaAction<A>> MapCodec<M> codec(Codec<A> actionCodec, BiFunction<A, Side, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.fieldOf("action").forGetter(SideMetaAction::action),
 			Side.CODEC.fieldOf("side").forGetter(SideMetaAction::side)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, M extends SideMetaAction<A, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Side, M> constructor) {
+	static <B extends ByteBuf, A extends Action, M extends SideMetaAction<A>> PacketCodec<B, M> packetCodec(PacketCodec<B, A> actionCodec, BiFunction<A, Side, M> constructor) {
 		return PacketCodec.tuple(
 			actionCodec, SideMetaAction::action,
 			Side.PACKET_CODEC, SideMetaAction::side,

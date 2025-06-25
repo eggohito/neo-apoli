@@ -21,7 +21,7 @@ public final class ActionCategories {
 
 	}
 
-	public static <A extends Action<?>> ActionCategory<A> register(String name, RegistryKey<? extends Registry<A>> registryRef, Codec<A> baseCodec, PacketCodec<RegistryByteBuf, A> basePacketCodec) {
+	public static <A extends Action> ActionCategory<A> register(String name, RegistryKey<? extends Registry<A>> registryRef, Codec<A> baseCodec, PacketCodec<RegistryByteBuf, A> basePacketCodec) {
 		return register(registryRef.getValue(), new ActionCategory<>() {
 
 			@Override
@@ -47,7 +47,7 @@ public final class ActionCategories {
 		});
 	}
 
-	public static <A extends Action<?>> ActionCategory<A> register(Identifier id, ActionCategory<A> category) {
+	public static <A extends Action> ActionCategory<A> register(Identifier id, ActionCategory<A> category) {
 		return Registry.register(NeoApoliRegistries.ACTION_CATEGORY, id, category);
 	}
 

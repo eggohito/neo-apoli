@@ -10,6 +10,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -19,7 +21,9 @@ import net.minecraft.world.World;
 
 import java.util.Set;
 
-public record EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition, Shape shape, NumberProvider radius) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 
 	public static final MapCodec<EntitiesInRadiusNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(EntitiesInRadiusNumberProvider::biEntityCondition),
@@ -34,15 +38,26 @@ public record EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition
 		EntitiesInRadiusNumberProvider::new
 	);
 
+	private final BiEntityCondition biEntityCondition;
+
+	private final Shape shape;
+	private final NumberProvider radius;
+
+	public EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition, Shape shape, NumberProvider radius) {
+		this.biEntityCondition = biEntityCondition;
+		this.shape = shape;
+		this.radius = radius;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.ENTITIES_IN_RADIUS;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
-		Context radiusContext = context.makeChild("radius");
+		Context radiusContext = context.makeChild(".radius");
 		double radius = this.radius().doubleValue(radiusContext);
 
 		if (radiusContext.hasErrors()) {
@@ -60,7 +75,7 @@ public record EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition
 			Context biEntityConditionContext = builder
 				.add(ContextParameters.TARGET, target)
 				.build(context.getWorld())
-				.makeChild("bientity_condition");
+				.makeChild(".bientity_condition");
 
 			if (this.biEntityCondition().test(biEntityConditionContext)) {
 				matches++;
@@ -80,10 +95,10 @@ public record EntitiesInRadiusNumberProvider(BiEntityCondition biEntityCondition
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		NumberProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		biEntityCondition().validate(reporter.makeChild("bientity_condition"));
-		radius().validate(reporter.makeChild("radius"));
+		biEntityCondition().validate(reporter.makeChild(".bientity_condition"));
+		radius().validate(reporter.makeChild(".radius"));
 
 	}
 

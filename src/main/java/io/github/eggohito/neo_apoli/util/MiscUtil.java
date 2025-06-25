@@ -5,7 +5,10 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
 import net.minecraft.registry.RegistryOps;
@@ -53,6 +56,19 @@ public class MiscUtil {
 		else {
 			return oldResult;
 		}
+
+	}
+
+	public static <V> V provideValue(String name, Context context, Function<Context, V> getter) {
+
+		ContextAware.ErrorReporter reporter = context.getReporter();
+		V value = getter.apply(context);
+
+		if (reporter.isRoot() && reporter.hasAnyErrors()) {
+			NeoApoli.LOGGER.warn("Couldn't properly provide {} value for path {} due to error(s) {}", name, reporter.getFullPath(), reporter.getErrorsAsString());
+		}
+
+		return value;
 
 	}
 

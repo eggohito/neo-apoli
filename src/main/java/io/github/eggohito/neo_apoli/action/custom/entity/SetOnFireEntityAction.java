@@ -8,10 +8,14 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record SetOnFireEntityAction(NumberProvider ticks) implements EntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class SetOnFireEntityAction extends EntityAction {
 
 	public static final MapCodec<SetOnFireEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("ticks").forGetter(SetOnFireEntityAction::ticks)
@@ -22,20 +26,33 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 		SetOnFireEntityAction::new
 	);
 
+	private final NumberProvider ticks;
+
+	public SetOnFireEntityAction(NumberProvider ticks) {
+		this.ticks = ticks;
+	}
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.SET_ON_FIRE;
 	}
 
 	@Override
-	public void execute(Context context) {
-		context.required(ContextParameters.THIS_ENTITY).setOnFireForTicks(ticks().intValue(context.makeChild("ticks")));
+	protected void impl(Context context) {
+
+		Context ticksContext = context.makeChild(".ticks");
+		int ticks = ticks().intValue(ticksContext);
+
+		if (!ticksContext.hasErrors()) {
+			context.required(ContextParameters.THIS_ENTITY).setOnFireForTicks(ticks);
+		}
+
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		EntityAction.super.validate(reporter);
-		ticks().validate(reporter.makeChild("ticks"));
+		super.validate(reporter);
+		ticks().validate(reporter.makeChild(".ticks"));
 	}
 
 }

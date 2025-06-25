@@ -4,7 +4,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.Objects;
 
-public record ConditionEntry<C extends Condition<?>>(Identifier id, C value) {
+public record ConditionEntry<C extends Condition>(Identifier id, C value) {
 
 	@Override
 	public int hashCode() {

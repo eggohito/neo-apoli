@@ -12,25 +12,25 @@ import net.minecraft.util.Identifier;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Identifier, Condition<?>>> conditions) implements CustomPayload {
+public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Identifier, Condition>> conditions) implements CustomPayload {
 
 	public static final Id<SynchronizeConditionsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_conditions"));
 	public static final PacketCodec<RegistryByteBuf, SynchronizeConditionsS2CPacket> CODEC = PacketCodec.of(SynchronizeConditionsS2CPacket::write, SynchronizeConditionsS2CPacket::read);
 
 	private static SynchronizeConditionsS2CPacket read(RegistryByteBuf buf) {
 
-		Map<ConditionCategory<?>, Map<Identifier, Condition<?>>> conditions = new Object2ObjectOpenHashMap<>();
+		Map<ConditionCategory<?>, Map<Identifier, Condition>> conditions = new Object2ObjectOpenHashMap<>();
 		int conditionsCount = buf.readVarInt();
 
 		for (int i = 0; i < conditionsCount; i++) {
 
-			ConditionCategory<Condition<?>> category = (ConditionCategory<Condition<?>>) ConditionCategory.PACKET_CODEC.decode(buf);
+			ConditionCategory<Condition> category = (ConditionCategory<Condition>) ConditionCategory.PACKET_CODEC.decode(buf);
 			int entriesCount = buf.readVarInt();
 
 			for (int j = 0; j < entriesCount; j++) {
 
 				Identifier id = buf.readIdentifier();
-				Condition<?> condition = category.basePacketCodec().decode(buf);
+				Condition condition = category.basePacketCodec().decode(buf);
 
 				conditions.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>()).put(id, condition);
 
@@ -46,7 +46,7 @@ public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Ident
 		buf.writeVarInt(conditions().size());
 		conditions().forEach((category, entries) -> {
 
-			ConditionCategory<Condition<?>> castedCategory = (ConditionCategory<Condition<?>>) category;
+			ConditionCategory<Condition> castedCategory = (ConditionCategory<Condition>) category;
 			ConditionCategory.PACKET_CODEC.encode(buf, castedCategory);
 
 			buf.writeVarInt(entries.size());

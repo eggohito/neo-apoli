@@ -12,25 +12,25 @@ import net.minecraft.util.Identifier;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier, Action<?>>> actions) implements CustomPayload {
+public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier, Action>> actions) implements CustomPayload {
 
 	public static final Id<SynchronizeActionsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_actions"));
 	public static final PacketCodec<RegistryByteBuf, SynchronizeActionsS2CPacket> CODEC = PacketCodec.of(SynchronizeActionsS2CPacket::write, SynchronizeActionsS2CPacket::read);
 
 	private static SynchronizeActionsS2CPacket read(RegistryByteBuf buf) {
 
-		Map<ActionCategory<?>, Map<Identifier, Action<?>>> actions = new Object2ObjectOpenHashMap<>();
+		Map<ActionCategory<?>, Map<Identifier, Action>> actions = new Object2ObjectOpenHashMap<>();
 		int actionsCount = buf.readVarInt();
 
 		for (int i = 0; i < actionsCount; i++) {
 
-			ActionCategory<Action<?>> category = (ActionCategory<Action<?>>) ActionCategory.PACKET_CODEC.decode(buf);
+			ActionCategory<Action> category = (ActionCategory<Action>) ActionCategory.PACKET_CODEC.decode(buf);
 			int entriesCount = buf.readVarInt();
 
 			for (int j = 0; j < entriesCount; j++) {
 
 				Identifier id = buf.readIdentifier();
-				Action<?> action = category.basePacketCodec().decode(buf);
+				Action action = category.basePacketCodec().decode(buf);
 
 				actions
 					.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
@@ -48,7 +48,7 @@ public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier,
 		buf.writeVarInt(actions().size());
 		actions().forEach((category, entries) -> {
 
-			ActionCategory<Action<?>> castedCategory = (ActionCategory<Action<?>>) category;
+			ActionCategory<Action> castedCategory = (ActionCategory<Action>) category;
 			ActionCategory.PACKET_CODEC.encode(buf, castedCategory);
 
 			buf.writeVarInt(entries.size());

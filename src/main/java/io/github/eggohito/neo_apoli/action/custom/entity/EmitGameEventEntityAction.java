@@ -7,6 +7,8 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -15,7 +17,9 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.world.event.GameEvent;
 
-public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) implements EntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class EmitGameEventEntityAction extends EntityAction {
 
 	public static final MapCodec<EmitGameEventEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Registries.GAME_EVENT.getEntryCodec().fieldOf("game_event").forGetter(EmitGameEventEntityAction::gameEvent)
@@ -26,13 +30,19 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 		EmitGameEventEntityAction::new
 	);
 
+	private final RegistryEntry<GameEvent> gameEvent;
+
+	public EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) {
+		this.gameEvent = gameEvent;
+	}
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.EMIT_GAME_EVENT;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 		context.getWorld().emitGameEvent(context.required(ContextParameters.THIS_ENTITY), gameEvent(), context.required(ContextParameters.POSITION));
 	}
 

@@ -6,13 +6,21 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record ExtinguishEntityAction() implements EntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ExtinguishEntityAction extends EntityAction {
 
 	public static final MapCodec<ExtinguishEntityAction> CODEC = MapCodec.unit(ExtinguishEntityAction::new);
 	public static final PacketCodec<RegistryByteBuf, ExtinguishEntityAction> PACKET_CODEC = PacketCodec.unit(new ExtinguishEntityAction());
+
+	public ExtinguishEntityAction() {
+
+	}
 
 	@Override
 	public EntityActionType<?> getType() {
@@ -20,7 +28,7 @@ public record ExtinguishEntityAction() implements EntityAction {
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 		context.required(ContextParameters.THIS_ENTITY).extinguishWithSound();
 	}
 

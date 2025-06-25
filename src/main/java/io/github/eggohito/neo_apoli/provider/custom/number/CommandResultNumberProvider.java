@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +20,9 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public record CommandResultNumberProvider(StringProvider command) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class CommandResultNumberProvider extends NumberProvider {
 
 	public static final MapCodec<CommandResultNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("command").forGetter(CommandResultNumberProvider::command)
@@ -29,15 +33,21 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 		CommandResultNumberProvider::new
 	);
 
+	private final StringProvider command;
+
+	public CommandResultNumberProvider(StringProvider command) {
+		this.command = command;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.COMMAND_RESULT;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
-		Context commandContext = context.makeChild("command");
+		Context commandContext = context.makeChild(".command");
 		String command = command().stringValue(commandContext);
 
 		AtomicInteger result = new AtomicInteger();
@@ -68,8 +78,8 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		command().validate(reporter.makeChild("command"));
+		super.validate(reporter);
+		command().validate(reporter.makeChild(".command"));
 	}
 
 }

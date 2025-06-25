@@ -10,6 +10,8 @@ import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -17,7 +19,9 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import java.util.List;
 
-public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider, MultiStringProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class JoinStringProvider extends StringProvider implements MultiStringProvider {
 
 	public static final MapCodec<JoinStringProvider> CODEC = NeoApoliMapCodecs.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.listOf().fieldOf("strings").forGetter(JoinStringProvider::strings),
@@ -30,36 +34,42 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 		JoinStringProvider::new
 	));
 
+	private final List<StringProvider> strings;
+	private final StringProvider separator;
+
+	public JoinStringProvider(List<StringProvider> strings, StringProvider separator) {
+		this.strings = strings;
+		this.separator = separator;
+	}
+
 	@Override
 	public StringProviderType<?> getType() {
 		return StringProviderTypes.JOIN;
 	}
 
 	@Override
-	public String stringValue(Context context) {
+	protected String stringImpl(Context context) {
 
 		StringBuilder result = new StringBuilder();
 		MutableBoolean init = new MutableBoolean(false);
 
 		this.iterate((index, provider) -> {
 
-			Context stringContext = context.makeChild("strings[" + index + "]");
+			Context stringContext = context.makeChild(".strings[" + index + "]");
 			String string = provider.stringValue(stringContext);
 
 			if (!stringContext.hasErrors()) {
 
 				if (init.isTrue()) {
 
-					Context separatorContext = context.makeChild("separator");
+					Context separatorContext = context.makeChild(".separator");
 					String separator = this.separator().stringValue(separatorContext);
 
 					if (!separatorContext.hasErrors()) {
 						result.append(separator).append(string);
 					}
 
-				}
-
-				else {
+				} else {
 					result.append(string);
 					init.setTrue();
 				}
@@ -75,7 +85,7 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	@Override
 	public void validate(ErrorReporter reporter) {
 		MultiStringProvider.super.validate(reporter);
-		separator().validate(reporter.makeChild("separator"));
+		separator().validate(reporter.makeChild(".separator"));
 	}
 
 }

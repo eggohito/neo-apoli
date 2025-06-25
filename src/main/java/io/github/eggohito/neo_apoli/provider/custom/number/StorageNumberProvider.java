@@ -8,13 +8,17 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
 
-public record StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtPath path) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class StorageNumberProvider extends NumberProvider {
 
 	public static final MapCodec<StorageNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Identifier.CODEC.fieldOf("storage").forGetter(StorageNumberProvider::storage),
@@ -27,13 +31,21 @@ public record StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtP
 		StorageNumberProvider::new
 	);
 
+	private final Identifier storage;
+	private final NbtPathArgumentType.NbtPath path;
+
+	public StorageNumberProvider(Identifier storage, NbtPathArgumentType.NbtPath path) {
+		this.storage = storage;
+		this.path = path;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.STORAGE;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
 		return this.path().count(rootNbt);
 	}

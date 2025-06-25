@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -20,7 +21,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface MultiNumberProvider extends NumberProvider {
+public interface MultiNumberProvider {
 
 	List<NumberProvider> numbers();
 
@@ -41,7 +42,7 @@ public interface MultiNumberProvider extends NumberProvider {
 
 		this.iterate((index, number) -> {
 
-			Context subContext = context.makeChild("numbers[" + index + "]");
+			Context subContext = context.makeChild(".numbers[" + index + "]");
 			N nextValue = valueGetter.apply(number, subContext);
 
 			if (!subContext.hasErrors()) {
@@ -63,9 +64,8 @@ public interface MultiNumberProvider extends NumberProvider {
 
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
-		this.iterate((index, number) -> number.validate(reporter.makeChild("numbers[" + index + "]")));
+	default void validate(ContextAware.ErrorReporter reporter) {
+		this.iterate((index, number) -> number.validate(reporter.makeChild(".numbers[" + index + "]")));
 	}
 
 	static <M extends MultiNumberProvider> MapCodec<M> simpleCodec(Function<List<NumberProvider>, M> constructor) {

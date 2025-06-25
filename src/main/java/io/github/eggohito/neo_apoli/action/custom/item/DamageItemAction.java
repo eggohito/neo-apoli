@@ -10,6 +10,8 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -17,7 +19,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
-public record DamageItemAction(NumberProvider amount, boolean ignoreUnbreaking) implements ItemAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class DamageItemAction extends ItemAction {
 
 	public static final MapCodec<DamageItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("amount", new ConstantNumberProvider(1)).forGetter(DamageItemAction::amount),
@@ -30,19 +34,27 @@ public record DamageItemAction(NumberProvider amount, boolean ignoreUnbreaking) 
 		DamageItemAction::new
 	);
 
+	private final NumberProvider amount;
+	private final boolean ignoreUnbreaking;
+
+	public DamageItemAction(NumberProvider amount, boolean ignoreUnbreaking) {
+		this.amount = amount;
+		this.ignoreUnbreaking = ignoreUnbreaking;
+	}
+
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.DAMAGE;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
 			return;
 		}
 
-		Context amountContext = context.makeChild("amount");
+		Context amountContext = context.makeChild(".amount");
 		int amount = this.amount().intValue(amountContext);
 
 		if (amountContext.hasErrors()) {
@@ -71,6 +83,12 @@ public record DamageItemAction(NumberProvider amount, boolean ignoreUnbreaking) 
 			stack.damage(amount, serverWorld, serverPlayerHolder, item -> {});
 		}
 
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		amount().validate(reporter.makeChild(".amount"));
 	}
 
 }

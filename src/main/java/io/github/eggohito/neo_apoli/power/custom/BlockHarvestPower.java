@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
+@Getter
 public class BlockHarvestPower extends Power implements Prioritized<BlockHarvestPower> {
 
 	public static final MapCodec<BlockHarvestPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
@@ -49,13 +51,13 @@ public class BlockHarvestPower extends Power implements Prioritized<BlockHarvest
 
 	private final BlockCondition blockCondition;
 
-	private final boolean allow;
+	private final boolean allowed;
 	private final int priority;
 
-	public BlockHarvestPower(Properties properties, EntityCondition activeCondition, BlockCondition blockCondition, boolean allow, int priority) {
+	public BlockHarvestPower(Properties properties, EntityCondition activeCondition, BlockCondition blockCondition, boolean allowed, int priority) {
 		super(properties, activeCondition);
 		this.blockCondition = blockCondition;
-		this.allow = allow;
+		this.allowed = allowed;
 		this.priority = priority;
 	}
 
@@ -72,31 +74,18 @@ public class BlockHarvestPower extends Power implements Prioritized<BlockHarvest
 	@Override
 	public void validate(ContextAware.ErrorReporter reporter) {
 		super.validate(reporter);
-		getBlockCondition().validate(reporter.makeChild("block_condition"));
+		getBlockCondition().validate(reporter.makeChild(".block_condition"));
 	}
 
-	@Override
-	public int getPriority() {
-		return priority;
-	}
-
-	public BlockCondition getBlockCondition() {
-		return blockCondition;
-	}
-
-	public boolean isAllowed() {
-		return allow;
-	}
-
-	public static class Impl extends Power.Impl<BlockHarvestPower> implements Comparable<Impl> {
+	public static class Impl extends Power.Impl<BlockHarvestPower> implements Prioritized<Impl> {
 
 		protected Impl(@NotNull Entity holder, @NotNull BlockHarvestPower power) {
 			super(holder, power);
 		}
 
 		@Override
-		public int compareTo(@NotNull BlockHarvestPower.Impl that) {
-			return this.getPower().compareTo(that.getPower());
+		public int getPriority() {
+			return this.getPower().getPriority();
 		}
 
 		public boolean isAllowed() {
@@ -105,7 +94,7 @@ public class BlockHarvestPower extends Power implements Prioritized<BlockHarvest
 
 		public boolean doesApply(BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
 
-			Context.Builder builder = this.getPowerType().contextBuilder()
+			Context.Builder builder = this.contextBuilder()
 				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity);
@@ -117,8 +106,8 @@ public class BlockHarvestPower extends Power implements Prioritized<BlockHarvest
 				.add(ContextParameters.POSITION, pos.toCenterPos())
 				.build(holder.getWorld());
 
-			return this.isActive(entityContext)
-				&& this.testAndReport("block_condition", power.getBlockCondition(), blockContext);
+			return power.getBlockCondition().test(blockContext.makeChild(".block_condition"))
+				&& this.isActive(entityContext);
 
 		}
 

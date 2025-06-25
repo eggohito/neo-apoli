@@ -10,28 +10,30 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class CallbackPower extends Power {
 
 	public static final MapCodec<CallbackPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.optionalFieldOf("on_added_action", new NothingEntityAction()).forGetter(CallbackPower::getAddedAction))
-		.and(EntityAction.CODEC.optionalFieldOf("on_granted_action", new NothingEntityAction()).forGetter(CallbackPower::getGrantedAction))
-		.and(EntityAction.CODEC.optionalFieldOf("on_removed_action", new NothingEntityAction()).forGetter(CallbackPower::getRemovedAction))
-		.and(EntityAction.CODEC.optionalFieldOf("on_revoked_action", new NothingEntityAction()).forGetter(CallbackPower::getRevokedAction))
-		.and(EntityAction.CODEC.optionalFieldOf("on_respawn_action", new NothingEntityAction()).forGetter(CallbackPower::getRespawnAction))
+		.and(EntityAction.CODEC.optionalFieldOf("on_added_action", new NothingEntityAction()).forGetter(CallbackPower::getOnAddedAction))
+		.and(EntityAction.CODEC.optionalFieldOf("on_granted_action", new NothingEntityAction()).forGetter(CallbackPower::getOnGrantedAction))
+		.and(EntityAction.CODEC.optionalFieldOf("on_removed_action", new NothingEntityAction()).forGetter(CallbackPower::getOnRemovedAction))
+		.and(EntityAction.CODEC.optionalFieldOf("on_revoked_action", new NothingEntityAction()).forGetter(CallbackPower::getOnRevokedAction))
+		.and(EntityAction.CODEC.optionalFieldOf("on_respawn_action", new NothingEntityAction()).forGetter(CallbackPower::getOnRespawnAction))
 		.apply(instance, CallbackPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, CallbackPower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, callbackPower) -> {
-			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getAddedAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getGrantedAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getRemovedAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getRevokedAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getRespawnAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getOnAddedAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getOnGrantedAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getOnRemovedAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getOnRevokedAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackPower.getOnRespawnAction());
 		},
 		(buf, properties, condition) -> new CallbackPower(properties, condition,
 			EntityAction.PACKET_CODEC.decode(buf),
@@ -42,21 +44,21 @@ public class CallbackPower extends Power {
 		)
 	);
 
-	private final EntityAction addedAction;
-	private final EntityAction grantedAction;
+	private final EntityAction onAddedAction;
+	private final EntityAction onGrantedAction;
 
-	private final EntityAction removedAction;
-	private final EntityAction revokedAction;
+	private final EntityAction onRemovedAction;
+	private final EntityAction onRevokedAction;
 
-	private final EntityAction respawnAction;
+	private final EntityAction onRespawnAction;
 
-	public CallbackPower(Properties properties, EntityCondition activeCondition, EntityAction addedAction, EntityAction grantedAction, EntityAction removedAction, EntityAction revokedAction, EntityAction respawnAction) {
+	public CallbackPower(Properties properties, EntityCondition activeCondition, EntityAction onAddedAction, EntityAction onGrantedAction, EntityAction onRemovedAction, EntityAction onRevokedAction, EntityAction onRespawnAction) {
 		super(properties, activeCondition);
-		this.addedAction = addedAction;
-		this.grantedAction = grantedAction;
-		this.removedAction = removedAction;
-		this.revokedAction = revokedAction;
-		this.respawnAction = respawnAction;
+		this.onAddedAction = onAddedAction;
+		this.onGrantedAction = onGrantedAction;
+		this.onRemovedAction = onRemovedAction;
+		this.onRevokedAction = onRevokedAction;
+		this.onRespawnAction = onRespawnAction;
 	}
 
 	@Override
@@ -74,32 +76,12 @@ public class CallbackPower extends Power {
 
 		super.validate(reporter);
 
-		getAddedAction().validate(reporter.makeChild("on_added_action"));
-		getGrantedAction().validate(reporter.makeChild("on_granted_action"));
-		getRemovedAction().validate(reporter.makeChild("on_removed_action"));
-		getRevokedAction().validate(reporter.makeChild("on_revoked_action"));
-		getRespawnAction().validate(reporter.makeChild("on_respawn_action"));
+		getOnAddedAction().validate(reporter.makeChild(".on_added_action"));
+		getOnGrantedAction().validate(reporter.makeChild(".on_granted_action"));
+		getOnRemovedAction().validate(reporter.makeChild(".on_removed_action"));
+		getOnRevokedAction().validate(reporter.makeChild(".on_revoked_action"));
+		getOnRespawnAction().validate(reporter.makeChild(".on_respawn_action"));
 
-	}
-
-	public EntityAction getAddedAction() {
-		return addedAction;
-	}
-
-	public EntityAction getGrantedAction() {
-		return grantedAction;
-	}
-
-	public EntityAction getRemovedAction() {
-		return removedAction;
-	}
-
-	public EntityAction getRevokedAction() {
-		return revokedAction;
-	}
-
-	public EntityAction getRespawnAction() {
-		return respawnAction;
 	}
 
 	public static class Impl extends Power.Impl<CallbackPower> {
@@ -111,10 +93,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onAdded() {
 
-			Context context = this.createGenericContext();
+			Context context = this.genericContext();
 
 			if (isActive(context)) {
-				executeAndReport("on_added_action", power.getAddedAction(), context);
+				power.getOnAddedAction().execute(context.makeChild(".on_added_action"));
 			}
 
 		}
@@ -122,10 +104,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onGranted() {
 
-			Context context = this.createGenericContext();
+			Context context = this.genericContext();
 
 			if (isActive(context)) {
-				executeAndReport("on_granted_action", power.getGrantedAction(), context);
+				power.getOnGrantedAction().execute(context.makeChild(".on_granted_action"));
 			}
 
 		}
@@ -133,10 +115,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRemoved() {
 
-			Context context = this.createGenericContext();
+			Context context = this.genericContext();
 
 			if (isActive(context)) {
-				executeAndReport("on_removed_action", power.getRemovedAction(), context);
+				power.getOnRemovedAction().execute(context.makeChild(".on_removed_action"));
 			}
 
 		}
@@ -144,10 +126,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRevoked() {
 
-			Context context = this.createGenericContext();
+			Context context = this.genericContext();
 
 			if (isActive(context)) {
-				executeAndReport("on_revoked_action", power.getRevokedAction(), context);
+				power.getOnRevokedAction().execute(context.makeChild(".on_revoked_action"));
 			}
 
 		}
@@ -155,10 +137,10 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRespawn() {
 
-			Context context = this.createGenericContext();
+			Context context = this.genericContext();
 
 			if (isActive(context)) {
-				executeAndReport("on_respawn_action", power.getRespawnAction(), context);
+				power.getOnRespawnAction().execute(context.makeChild(".on_respawn_action"));
 			}
 
 		}

@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -18,7 +20,9 @@ import net.minecraft.world.World;
 
 import java.util.Set;
 
-public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class AdjacentBlocksNumberProvider extends NumberProvider {
 
 	public static final MapCodec<AdjacentBlocksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.optionalFieldOf("adjacent_block_condition", new ConstantBlockCondition(true)).forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition)
@@ -29,13 +33,19 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 		AdjacentBlocksNumberProvider::new
 	);
 
+	private final BlockCondition adjacentBlockCondition;
+
+	public AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition) {
+		this.adjacentBlockCondition = adjacentBlockCondition;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.ADJACENT_BLOCKS;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
 		World world = context.getWorld();
 		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
@@ -44,9 +54,11 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 		for (Direction direction : Direction.values()) {
 
 			BlockPos offsetPos = pos.offset(direction);
-			Context offsetContext = context.copy(builder -> builder.add(ContextParameters.POSITION, offsetPos.toCenterPos()));
+			Context blockContext = context
+				.copy(builder -> builder.add(ContextParameters.POSITION, offsetPos.toCenterPos()))
+				.makeChild(".adjacent_block_condition");
 
-			if (world.isChunkLoaded(offsetPos) && adjacentBlockCondition().test(offsetContext)) {
+			if (world.isChunkLoaded(offsetPos) && adjacentBlockCondition().test(blockContext)) {
 				matches++;
 			}
 
@@ -63,8 +75,8 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		adjacentBlockCondition().validate(reporter.makeChild("adjacent_block_condition"));
+		super.validate(reporter);
+		adjacentBlockCondition().validate(reporter.makeChild(".adjacent_block_condition"));
 	}
 
 }

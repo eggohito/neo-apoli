@@ -4,8 +4,6 @@ import com.mojang.datafixers.util.Function4;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
@@ -16,6 +14,7 @@ import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
@@ -44,7 +43,7 @@ import net.minecraft.world.explosion.ExplosionImpl;
 import java.util.Optional;
 import java.util.Set;
 
-public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
+public interface ExplodeMetaAction {
 
 	ContextType ENTITY_CONTEXT_TYPE = new ContextType.Builder()
 		.require(ContextParameters.POSITION)
@@ -68,8 +67,7 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 
 	ExplosionDisplay display();
 
-	@Override
-	default void execute(Context context) {
+	default void impl(Context context) {
 
 		World world = context.getWorld();
 		Vec3d position = context.required(ContextParameters.POSITION);
@@ -88,7 +86,7 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 			null,
 			behavior,
 			position,
-			property.power().floatValue(context.makeChild("power")),
+			property.power().floatValue(context.makeChild(".power")),
 			property.createFire(),
 			property.destructionType()
 		);
@@ -113,24 +111,20 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 
 	}
 
-	@Override
 	default Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.POSITION);
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ContextAware.ErrorReporter reporter) {
 
-		Action.super.validate(reporter);
-
-		damageableBiEntityCondition().validate(reporter.makeChild("damageable_bientity_condition"));
-		destructibleBlockCondition().validate(reporter.makeChild("destructible_block_condition"));
+		damageableBiEntityCondition().validate(reporter.makeChild(".damageable_bientity_condition"));
+		destructibleBlockCondition().validate(reporter.makeChild(".destructible_block_condition"));
 
 		property().validate(reporter);
 
 	}
 
-	static <M extends ExplodeMetaAction<?>> MapCodec<M> codec(Function4<BiEntityCondition, BlockCondition, ExplosionProperty, ExplosionDisplay, M> constructor) {
+	static <M extends ExplodeMetaAction> MapCodec<M> codec(Function4<BiEntityCondition, BlockCondition, ExplosionProperty, ExplosionDisplay, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			BiEntityCondition.CODEC.optionalFieldOf("damageable_bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ExplodeMetaAction::damageableBiEntityCondition),
 			BlockCondition.CODEC.optionalFieldOf("destructible_block_condition", new ConstantBlockCondition(true)).forGetter(ExplodeMetaAction::destructibleBlockCondition),
@@ -139,7 +133,7 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 		).apply(instance, constructor));
 	}
 
-	static <M extends ExplodeMetaAction<?>> PacketCodec<RegistryByteBuf, M> packetCodec(Function4<BiEntityCondition, BlockCondition, ExplosionProperty, ExplosionDisplay, M> constructor) {
+	static <M extends ExplodeMetaAction> PacketCodec<RegistryByteBuf, M> packetCodec(Function4<BiEntityCondition, BlockCondition, ExplosionProperty, ExplosionDisplay, M> constructor) {
 		return PacketCodec.tuple(
 			BiEntityCondition.PACKET_CODEC, ExplodeMetaAction::damageableBiEntityCondition,
 			BlockCondition.PACKET_CODEC, ExplodeMetaAction::destructibleBlockCondition,
@@ -172,7 +166,7 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 				.add(ContextParameters.POSITION, pos.toCenterPos())
 				.add(ContextParameters.BLOCK_STATE, state)
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)))
-				.makeChild("destructible_block_condition");
+				.makeChild(".destructible_block_condition");
 
 			return destructibleBlockCondition.test(blockContext);
 
@@ -184,7 +178,8 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 			Context biEntityContext = context.copy(builder -> builder
 				.withContextType(ENTITY_CONTEXT_TYPE)
 				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.THIS_ENTITY))
-				.addNullable(ContextParameters.TARGET, target));
+				.addNullable(ContextParameters.TARGET, target))
+				.makeChild(".damageable_bientity_condition");
 
 			return damageableBiEntityCondition.test(biEntityContext);
 
@@ -196,7 +191,8 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 			Context knockbackContext = context.copy(builder -> builder
 				.withContextType(ENTITY_CONTEXT_TYPE)
 				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ACTOR))
-				.addNullable(ContextParameters.TARGET, target));
+				.addNullable(ContextParameters.TARGET, target))
+				.makeChild(".knockback_modifier");
 
 			return this.property.knockbackMultiplier().floatValue(knockbackContext);
 
@@ -221,9 +217,9 @@ public interface ExplodeMetaAction<T extends ActionType<?>> extends Action<T> {
 			ExplosionProperty::new
 		);
 
-		public void validate(ErrorReporter reporter) {
-			power().validate(reporter.makeChild("power"));
-			knockbackMultiplier().validate(reporter.makeChild("knockback_multiplier"));
+		public void validate(ContextAware.ErrorReporter reporter) {
+			power().validate(reporter.makeChild(".power"));
+			knockbackMultiplier().validate(reporter.makeChild(".knockback_multiplier"));
 		}
 
 	}

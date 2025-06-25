@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -19,7 +21,9 @@ import net.minecraft.util.dynamic.Codecs;
 import java.util.Map;
 import java.util.Set;
 
-public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map<EntityParameter, EntityParameter> parameters) implements BiEntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class SwapEntityContextBiEntityAction extends BiEntityAction {
 
 	public static final MapCodec<SwapEntityContextBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliMapCodecs.lazy(() -> BiEntityAction.CODEC.fieldOf("bientity_action")).forGetter(SwapEntityContextBiEntityAction::biEntityAction),
@@ -32,18 +36,26 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 		SwapEntityContextBiEntityAction::new
 	);
 
+	private final BiEntityAction biEntityAction;
+	private final Map<EntityParameter, EntityParameter> parameters;
+
+	public SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map<EntityParameter, EntityParameter> parameters) {
+		this.biEntityAction = biEntityAction;
+		this.parameters = parameters;
+	}
+
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.SWAP_ENTITY_CONTEXT;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		Context.Builder builder = new Context.Builder(context);
 		parameters().forEach((targetParam, sourceParam) -> builder.add(targetParam.getParameter(), context.required(sourceParam.getParameter())));
 
-		biEntityAction().execute(builder.build(context.getWorld()).makeChild("bientity_action"));
+		biEntityAction().execute(builder.build(context.getWorld()).makeChild(".bientity_action"));
 
 	}
 
@@ -59,8 +71,8 @@ public record SwapEntityContextBiEntityAction(BiEntityAction biEntityAction, Map
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityAction.super.validate(reporter);
-		biEntityAction().validate(reporter.makeChild("bientity_action"));
+		super.validate(reporter);
+		biEntityAction().validate(reporter.makeChild(".bientity_action"));
 	}
 
 }

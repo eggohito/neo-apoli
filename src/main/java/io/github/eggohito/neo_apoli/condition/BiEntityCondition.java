@@ -14,23 +14,26 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public interface BiEntityCondition extends Condition<BiEntityConditionType<?>> {
+public abstract class BiEntityCondition extends Condition {
 
-	Codec<BiEntityCondition> CODEC = BiEntityConditionTypes.CODEC.dispatch(TYPE_KEY, BiEntityCondition::getType, BiEntityConditionType::mapCodec);
-	PacketCodec<RegistryByteBuf, BiEntityCondition> PACKET_CODEC = BiEntityConditionTypes.PACKET_CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::packetCodec);
+	public static final Codec<BiEntityCondition> CODEC = BiEntityConditionTypes.CODEC.dispatch("type", BiEntityCondition::getType, BiEntityConditionType::mapCodec);
+	public static final PacketCodec<RegistryByteBuf, BiEntityCondition> PACKET_CODEC = BiEntityConditionTypes.PACKET_CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::packetCodec);
 
 	@Override
-	default ConditionCategory<BiEntityCondition> getCategory() {
+	public abstract BiEntityConditionType<?> getType();
+
+	@Override
+	public ConditionCategory<BiEntityCondition> getCategory() {
 		return ConditionCategories.BIENTITY_CONDITION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 

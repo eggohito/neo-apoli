@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -20,7 +22,9 @@ import net.minecraft.world.World;
 import java.util.Optional;
 import java.util.Set;
 
-public record LightLevelNumberProvider(Optional<LightType> lightType) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class LightLevelNumberProvider extends NumberProvider {
 
 	public static final MapCodec<LightLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.LIGHT_TYPE.optionalFieldOf("light_type").forGetter(LightLevelNumberProvider::lightType)
@@ -31,13 +35,19 @@ public record LightLevelNumberProvider(Optional<LightType> lightType) implements
 		LightLevelNumberProvider::new
 	);
 
+	private final Optional<LightType> lightType;
+
+	public LightLevelNumberProvider(Optional<LightType> lightType) {
+		this.lightType = lightType;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.LIGHT_LEVEL;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
 		World world = context.getWorld();
 		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));

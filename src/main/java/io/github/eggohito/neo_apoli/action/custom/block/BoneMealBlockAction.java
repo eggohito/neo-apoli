@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BoneMealItem;
 import net.minecraft.item.ItemStack;
@@ -19,9 +21,9 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldEvents;
 
-import java.util.Optional;
-
-public record BoneMealBlockAction(boolean showEffects) implements BlockAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class BoneMealBlockAction extends BlockAction {
 
 	public static final MapCodec<BoneMealBlockAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.BOOL.optionalFieldOf("show_effects", true).forGetter(BoneMealBlockAction::showEffects)
@@ -32,26 +34,30 @@ public record BoneMealBlockAction(boolean showEffects) implements BlockAction {
 		BoneMealBlockAction::new
 	);
 
+	private final boolean showEffects;
+
+	public BoneMealBlockAction(boolean showEffects) {
+		this.showEffects = showEffects;
+	}
+
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.BONE_MEAL;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		World world = context.getWorld();
 		BlockPos blockPos = this.getBlockPos(context);
-
-		Optional<Direction> optDirection = context.optional(ContextParameters.DIRECTION);
 
 		if (BoneMealItem.useOnFertilizable(ItemStack.EMPTY, world, blockPos)) {
 			this.showBoneMealEffect(world, blockPos);
 		}
 
-		else if (optDirection.isPresent()) {
+		else if (context.hasParameter(ContextParameters.DIRECTION)) {
 
-			Direction direction = optDirection.get();
+			Direction direction = context.required(ContextParameters.DIRECTION);
 			BlockState blockState = this.getBlockState(context);
 
 			if (blockState.isSideSolidFullSquare(world, blockPos, direction) && BoneMealItem.useOnGround(ItemStack.EMPTY, world, blockPos.offset(direction), direction)) {

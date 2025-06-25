@@ -9,10 +9,14 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record ConstantNumberProvider(Number value) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ConstantNumberProvider extends NumberProvider {
 
 	public static final MapCodec<ConstantNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.NUMBER.fieldOf("value").forGetter(ConstantNumberProvider::value)
@@ -28,18 +32,24 @@ public record ConstantNumberProvider(Number value) implements NumberProvider {
 		ConstantNumberProvider::value
 	).cast();
 
+	private final Number value;
+
+	public ConstantNumberProvider(Number value) {
+		this.value = value;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 		return value().doubleValue();
 	}
 
 	@Override
-	public long longValue(Context context) {
+	protected long longImpl(Context context) {
 		return value().longValue();
 	}
 

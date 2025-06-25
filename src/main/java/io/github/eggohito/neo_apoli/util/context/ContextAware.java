@@ -48,8 +48,16 @@ public interface ContextAware {
 			this.fullPathSupplier = Suppliers.memoize(fullPathSupplier::get);
 		}
 
+		public ErrorReporter(ContextType contextType, String path) {
+			this(null, Optional.empty(), contextType, HashMultimap.create(), Set.of(), path, () -> path);
+		}
+
+		public ErrorReporter(String path) {
+			this(LootContextTypes.EMPTY, path);
+		}
+
 		public ErrorReporter(ContextType contextType) {
-			this(null, Optional.empty(), contextType, HashMultimap.create(), Set.of(), "", () -> "");
+			this(contextType, "");
 		}
 
 		public ErrorReporter() {
@@ -142,7 +150,7 @@ public interface ContextAware {
 
 		public ErrorReporter getParent() {
 
-			if (parent != null) {
+			if (this.hasParent()) {
 				return parent;
 			}
 
@@ -150,6 +158,10 @@ public interface ContextAware {
 				throw new UnsupportedOperationException("The root reporter cannot have a parent!");
 			}
 
+		}
+
+		public boolean hasParent() {
+			return parent != null;
 		}
 
 		public ErrorReporter getRoot() {
@@ -166,6 +178,11 @@ public interface ContextAware {
 				return this.parent.getRoot();
 			}
 
+		}
+
+		public boolean isRoot() {
+			return this.parent == null
+				|| this.parent.parent == null;
 		}
 
 		public boolean isInStack(ContextKey key) {
@@ -191,8 +208,7 @@ public interface ContextAware {
 		}
 
 		private String appendPath(String path) {
-			String fullPath = this.getFullPath();
-			return fullPath + (fullPath.isEmpty() ? "" : ".") + (path.contains(".") ? "'" + path + "'" : path);
+			return this.getFullPath() + path;
 		}
 
 	}

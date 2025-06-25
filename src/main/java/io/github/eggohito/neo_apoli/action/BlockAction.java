@@ -21,36 +21,39 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-public interface BlockAction extends Action<BlockActionType<?>> {
+public abstract class BlockAction extends Action {
 
-	Codec<BlockAction> CODEC = Codec.recursive(BlockAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BlockActionTypes.CODEC.dispatch(TYPE_KEY, BlockAction::getType, BlockActionType::mapCodec), codec.listOf().xmap(SequenceBlockAction::new, SequenceBlockAction::actions)));
-	PacketCodec<RegistryByteBuf, BlockAction> PACKET_CODEC = BlockActionTypes.PACKET_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
+	public static final Codec<BlockAction> CODEC = Codec.recursive(BlockAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BlockActionTypes.CODEC.dispatch("type", BlockAction::getType, BlockActionType::mapCodec), codec.listOf().xmap(SequenceBlockAction::new, SequenceBlockAction::actions)));
+	public static final PacketCodec<RegistryByteBuf, BlockAction> PACKET_CODEC = BlockActionTypes.PACKET_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
 
 	@Override
-	default ActionCategory<BlockAction> getCategory() {
+	public abstract BlockActionType<?> getType();
+
+	@Override
+	public ActionCategory<BlockAction> getCategory() {
 		return ActionCategories.BLOCK_ACTION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.POSITION);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_ACTION_TYPE, this.getType()) + "\"";
 	}
 
-	default BlockPos getBlockPos(Context context) {
+	protected BlockPos getBlockPos(Context context) {
 		return BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 	}
 
-	default BlockState getBlockState(Context context) {
+	protected BlockState getBlockState(Context context) {
 		return context.optional(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(this.getBlockPos(context)));
 	}
 
 	@Nullable
-	default BlockEntity getBlockEntity(Context context) {
+	protected BlockEntity getBlockEntity(Context context) {
 		return context.optional(ContextParameters.BLOCK_ENTITY).orElseGet(() -> context.getWorld().getBlockEntity(this.getBlockPos(context)));
 	}
 

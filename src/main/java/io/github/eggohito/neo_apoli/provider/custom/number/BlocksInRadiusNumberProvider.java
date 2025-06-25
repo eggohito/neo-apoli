@@ -10,6 +10,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -18,7 +20,9 @@ import net.minecraft.world.World;
 
 import java.util.Set;
 
-public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape shape, NumberProvider radius) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class BlocksInRadiusNumberProvider extends NumberProvider {
 
 	public static final MapCodec<BlocksInRadiusNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(BlocksInRadiusNumberProvider::blockCondition),
@@ -33,15 +37,26 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape 
 		BlocksInRadiusNumberProvider::new
 	);
 
+	private final BlockCondition blockCondition;
+
+	private final Shape shape;
+	private final NumberProvider radius;
+
+	public BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape shape, NumberProvider radius) {
+		this.blockCondition = blockCondition;
+		this.shape = shape;
+		this.radius = radius;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.BLOCKS_IN_RADIUS;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
-		Context radiusContext = context.makeChild("radius");
+		Context radiusContext = context.makeChild(".radius");
 		int radius = this.radius().intValue(radiusContext);
 
 		if (radiusContext.hasErrors()) {
@@ -60,14 +75,14 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape 
 				continue;
 			}
 
-			Context blockConditionContext = builder
+			Context blockContext = builder
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos))
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
 				.add(ContextParameters.POSITION, pos.toCenterPos())
 				.build(context.getWorld())
-				.makeChild("block_condition");
+				.makeChild(".block_condition");
 
-			if (this.blockCondition().test(blockConditionContext)) {
+			if (this.blockCondition().test(blockContext)) {
 				matches++;
 			}
 
@@ -85,10 +100,10 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape 
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		NumberProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		blockCondition().validate(reporter.makeChild("block_condition"));
-		radius().validate(reporter.makeChild("radius"));
+		blockCondition().validate(reporter.makeChild(".block_condition"));
+		radius().validate(reporter.makeChild(".radius"));
 
 	}
 

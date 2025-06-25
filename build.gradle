@@ -40,6 +40,10 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+	//	Lombok
+	compileOnly("org.projectlombok:lombok:1.18.38")
+	annotationProcessor("org.projectlombok:lombok:1.18.38")
+
 	//	QuiltMC's GSON parsers
 	include(implementation("org.quiltmc.parsers:json:0.2.1"))
 	include(implementation("org.quiltmc.parsers:gson:0.2.1"))

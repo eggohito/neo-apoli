@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -17,40 +18,56 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.function.Function;
 
-public interface NumberProvider extends ContextAware, StringDisplayable {
+public abstract class NumberProvider implements ContextAware, StringDisplayable {
 
-	String TYPE_KEY = "type";
-	PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
+	public static final String TYPE_KEY = "type";
+	public static final PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
 
-	MapCodec<NumberProvider> MAP_CODEC = NumberProviderTypes.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, NumberProviderType::mapCodec);
-	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
+	public static final MapCodec<NumberProvider> MAP_CODEC = NumberProviderTypes.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, NumberProviderType::mapCodec);
+	public static final Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
 
-	NumberProviderType<?> getType();
+	public abstract NumberProviderType<?> getType();
 
-	double doubleValue(Context context);
+	public final double doubleValue(Context context) {
+		return MiscUtil.provideValue("double", context, this::doubleImpl);
+	}
+
+	protected abstract double doubleImpl(Context context);
+
+	public final float floatValue(Context context) {
+		return MiscUtil.provideValue("float", context, this::floatImpl);
+	}
+
+	protected float floatImpl(Context context) {
+		return (float) this.doubleImpl(context);
+	}
+
+	public final long longValue(Context context) {
+		return MiscUtil.provideValue("long", context, this::longImpl);
+	}
+
+	protected long longImpl(Context context) {
+		return Math.round(this.doubleImpl(context));
+	}
+
+	public final int intValue(Context context) {
+		return MiscUtil.provideValue("integer", context, this::intImpl);
+	}
+
+	protected int intImpl(Context context) {
+		return (int) this.longValue(context);
+	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return "Number provider with type \"" + RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, this.getType()) + "\"";
 	}
 
-	default float floatValue(Context context) {
-		return (float) doubleValue(context);
-	}
-
-	default long longValue(Context context) {
-		return Math.round(this.doubleValue(context));
-	}
-
-	default int intValue(Context context) {
-		return (int) longValue(context);
-	}
-
-	static Codec<NumberProvider> clamped(Number min, Number max) {
+	public static Codec<NumberProvider> clamped(Number min, Number max) {
 		return clamped(new ConstantNumberProvider(min), new ConstantNumberProvider(max));
 	}
 
-	static Codec<NumberProvider> clamped(NumberProvider min, NumberProvider max) {
+	public static Codec<NumberProvider> clamped(NumberProvider min, NumberProvider max) {
 		return CODEC.xmap(value -> new ClampedNumberProvider(value, min, max), Function.identity());
 	}
 

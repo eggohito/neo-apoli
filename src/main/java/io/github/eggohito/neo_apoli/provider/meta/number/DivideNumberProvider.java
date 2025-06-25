@@ -8,10 +8,14 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record DivideNumberProvider(NumberProvider dividend, NumberProvider divisor) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class DivideNumberProvider extends NumberProvider {
 
 	public static final MapCodec<DivideNumberProvider> CODEC = NeoApoliMapCodecs.lazy(DivideNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("dividend").forGetter(DivideNumberProvider::dividend),
@@ -24,28 +28,36 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 		DivideNumberProvider::new
 	));
 
+	private final NumberProvider dividend;
+	private final NumberProvider divisor;
+
+	public DivideNumberProvider(NumberProvider dividend, NumberProvider divisor) {
+		this.dividend = dividend;
+		this.divisor = divisor;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.DIVIDE;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
-		return dividend().doubleValue(context.makeChild("dividend")) / divisor().doubleValue(context.makeChild("divisor"));
+	protected double doubleImpl(Context context) {
+		return dividend().doubleValue(context.makeChild(".dividend")) / divisor().doubleValue(context.makeChild(".divisor"));
 	}
 
 	@Override
-	public long longValue(Context context) {
-		return dividend().longValue(context.makeChild("dividend")) / divisor().longValue(context.makeChild("divisor"));
+	protected long longImpl(Context context) {
+		return dividend().longValue(context.makeChild(".dividend")) / divisor().longValue(context.makeChild(".divisor"));
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		NumberProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		dividend().validate(reporter.makeChild("dividend"));
-		divisor().validate(reporter.makeChild("divisor"));
+		dividend().validate(reporter.makeChild(".dividend"));
+		divisor().validate(reporter.makeChild(".divisor"));
 
 	}
 

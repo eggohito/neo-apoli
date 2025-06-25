@@ -6,19 +6,16 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -27,16 +24,13 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.event.Level;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 /**
  * 	<p>A power gives a certain "ability" to an entity upon being granted. As for what kind of "ability" it provides will
@@ -50,6 +44,7 @@ import java.util.function.UnaryOperator;
  * 	    <li><code>hidden</code> - determines whether the power should be excluded from being displayed; to be used by addons.</li>
  * 	</ul>
  */
+@Getter
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
@@ -78,28 +73,20 @@ public abstract class Power {
 
 	public abstract Impl<?> createImpl(Entity holder);
 
-	public Properties getProperties() {
-		return properties;
-	}
-
-	public EntityCondition getActiveCondition() {
-		return activeCondition;
-	}
-
 	public final Text getName() {
-		return properties.name();
+		return getProperties().name();
 	}
 
 	public final Text getDescription() {
-		return properties.description();
+		return getProperties().description();
 	}
 
 	public final boolean isHidden() {
-		return properties.hidden();
+		return getProperties().hidden();
 	}
 
 	public final boolean isSubPower() {
-		return properties.subPower();
+		return getProperties().subPower();
 	}
 
 	protected static <P extends Power> MapCodec<P> createSimpleCodec(Function<Properties, P> constructor) {
@@ -166,11 +153,21 @@ public abstract class Power {
 			this.power = power;
 		}
 
-		protected final Context createGenericContext() {
-			return this.getPowerType().contextBuilder()
+		protected final Context genericContext() {
+			return this.contextBuilder().build(holder.getWorld());
+		}
+
+		public final Context.Builder contextBuilder() {
+
+			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.getPowerType().contextType(), "{" + powerReference.map(PowerReference::toString).orElse("UNREGISTERED") + "}");
+
+			return Context.builder()
+				.withReporter(reporter)
+				.addOptional(ContextParameters.POWER_REFERENCE, powerReference)
 				.add(ContextParameters.THIS_ENTITY, holder)
-				.add(ContextParameters.POSITION, holder.getPos())
-				.build(holder.getWorld());
+				.add(ContextParameters.POSITION, holder.getPos());
+
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -189,39 +186,8 @@ public abstract class Power {
 			return power;
 		}
 
-		protected final <R> R processAndReport(Context context, String path, Function<Context, R> resultFunctor, BiFunction<ContextAware.ErrorReporter, String, String> errorSupplier) {
-
-			Context subContext = context.makeChild(path);
-			R result = resultFunctor.apply(subContext);
-
-			if (subContext.hasErrors()) {
-				NeoApoli.logOnce(Level.WARN, errorSupplier.apply(subContext.getReporter(), path));
-			}
-
-			return result;
-
-		}
-
-		protected final <A extends Action<?>> void executeAndReport(String path, A action, UnaryOperator<Context.Builder> builder) {
-			executeAndReport(path, action, builder.apply(new Context.Builder(this.getPowerType().contextType())).build(holder.getWorld()));
-		}
-
-		protected final <A extends Action<?>> void executeAndReport(String path, A action, Context context) {
-			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			processAndReport(context, path, ctx -> MiscUtil.run(() -> action.execute(ctx)), (reporter, _path) -> "Couldn't properly execute " + StringUtils.uncapitalize(action.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString());
-		}
-
-		protected final <C extends Condition<?>> boolean testAndReport(String path, C condition, UnaryOperator<Context.Builder> builder) {
-			return testAndReport(path, condition, builder.apply(new Context.Builder(this.getPowerType().contextType())).build(holder.getWorld()));
-		}
-
-		protected final <C extends Condition<?>> boolean testAndReport(String path, C condition, Context context) {
-			Optional<PowerReference> reference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			return Boolean.TRUE.equals(processAndReport(context, path, condition::test, (reporter, _path) -> "Couldn't properly test " + StringUtils.uncapitalize(condition.getCategory().toString()) + " at path \"" + _path + "\"" + reference.map(ref -> " in " + ref.asDisplayString(false) + " ").orElse("") + "due to error(s) " + reporter.getErrorsAsString()));
-		}
-
 		public boolean isActive(Context context) {
-			return testAndReport("active_condition", getPower().getActiveCondition(), context);
+			return this.getPower().getActiveCondition().test(context.makeChild(".active_condition"));
 		}
 
 		public void onAdded() {

@@ -7,6 +7,8 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -16,7 +18,9 @@ import net.minecraft.registry.tag.TagKey;
 
 import java.util.Optional;
 
-public record IsInTagEntityCondition(TagKey<EntityType<?>> tag) implements EntityCondition {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class IsInTagEntityCondition extends EntityCondition {
 
 	public static final MapCodec<IsInTagEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		TagKey.unprefixedCodec(RegistryKeys.ENTITY_TYPE).fieldOf("tag").forGetter(IsInTagEntityCondition::tag)
@@ -27,23 +31,29 @@ public record IsInTagEntityCondition(TagKey<EntityType<?>> tag) implements Entit
 		IsInTagEntityCondition::new
 	);
 
+	private final TagKey<EntityType<?>> tag;
+
+	public IsInTagEntityCondition(TagKey<EntityType<?>> tag) {
+		this.tag = tag;
+	}
+
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.IS_IN_TAG;
 	}
 
 	@Override
-	public boolean test(Context context) {
+	protected boolean impl(Context context) {
 		return context.required(ContextParameters.THIS_ENTITY).getType().isIn(this.tag());
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		EntityCondition.super.validate(reporter);
+		super.validate(reporter);
 		Optional<RegistryEntryLookup<EntityType<?>>> entityTypeRegistry = reporter.getWrapperLookup().flatMap(wrapperLookup -> wrapperLookup.getOptional(this.tag().registryRef()));
 
-		entityTypeRegistry.ifPresent(lookup -> lookup.getOptional(this.tag()).ifPresentOrElse(entries -> {}, () -> reporter.report("Entity type tag \"" + this.tag().id() + "\" does not exist!")));
+		entityTypeRegistry.ifPresent(lookup -> lookup.getOptional(this.tag()).ifPresentOrElse(entries -> {}, () -> reporter.makeChild(".tag").report("Entity type tag \"" + this.tag().id() + "\" does not exist!")));
 
 	}
 

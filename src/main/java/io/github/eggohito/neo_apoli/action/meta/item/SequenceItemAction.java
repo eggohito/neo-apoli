@@ -7,19 +7,41 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-public record SequenceItemAction(List<ItemAction> actions) implements ItemAction, SequenceMetaAction<ItemAction, ItemActionType<?>> {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class SequenceItemAction extends ItemAction implements SequenceMetaAction<ItemAction> {
 
 	public static final MapCodec<SequenceItemAction> CODEC = NeoApoliMapCodecs.lazy(SequenceItemAction.class.getSimpleName(), () -> SequenceMetaAction.codec(ItemAction.CODEC, SequenceItemAction::new));
 	public static final PacketCodec<RegistryByteBuf, SequenceItemAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(SequenceItemAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(ItemAction.PACKET_CODEC, SequenceItemAction::new));
 
+	private final List<ItemAction> actions;
+
+	public SequenceItemAction(List<ItemAction> actions) {
+		this.actions = actions;
+	}
+
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.SEQUENCE;
+	}
+
+	@Override
+	public void impl(Context context) {
+		SequenceMetaAction.super.impl(context);
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		SequenceMetaAction.super.validate(reporter);
 	}
 
 }

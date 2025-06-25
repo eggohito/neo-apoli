@@ -7,6 +7,8 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -19,7 +21,9 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record AttributeNumberProvider(EntityParameter source, RegistryEntry<EntityAttribute> attribute) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class AttributeNumberProvider extends NumberProvider {
 
 	public static final MapCodec<AttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityParameter.CODEC.fieldOf("source").forGetter(AttributeNumberProvider::source),
@@ -32,16 +36,24 @@ public record AttributeNumberProvider(EntityParameter source, RegistryEntry<Enti
 		AttributeNumberProvider::new
 	);
 
+	private final EntityParameter source;
+	private final RegistryEntry<EntityAttribute> attribute;
+
+	public AttributeNumberProvider(EntityParameter source, RegistryEntry<EntityAttribute> attribute) {
+		this.source = source;
+		this.attribute = attribute;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.ATTRIBUTE;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 
 		ContextParameter<? extends Entity> source = source().getParameter();
-		Context sourceContext = context.makeChild("source");
+		Context sourceContext = context.makeChild(".source");
 
 		return switch (context.nullable(source)) {
 			case LivingEntity livingEntity -> {

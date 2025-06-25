@@ -16,23 +16,26 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public interface EntityAction extends Action<EntityActionType<?>> {
+public abstract class EntityAction extends Action {
 
-	Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(EntityActionTypes.CODEC.dispatch(TYPE_KEY, EntityAction::getType, EntityActionType::mapCodec), codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions)));
-	PacketCodec<RegistryByteBuf, EntityAction> PACKET_CODEC = EntityActionTypes.PACKET_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
+	public static final Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(EntityActionTypes.CODEC.dispatch("type", EntityAction::getType, EntityActionType::mapCodec), codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions)));
+	public static final PacketCodec<RegistryByteBuf, EntityAction> PACKET_CODEC = EntityActionTypes.PACKET_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
 
 	@Override
-	default ActionCategory<EntityAction> getCategory() {
+	public abstract EntityActionType<?> getType();
+
+	@Override
+	public ActionCategory<EntityAction> getCategory() {
 		return ActionCategories.ENTITY_ACTION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 

@@ -229,10 +229,7 @@ public final class PowerManager implements JsonResourceReloader {
 			PowerEntry<?> entry = entryIterator.next();
 			Power power = entry.value();
 
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter()
-				.withContextType(power.getType().contextType())
-				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
-
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(power.getType().contextType(), "{" + entry.reference() + "}").withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
 			power.validate(reporter);
 
 			if (!reporter.hasAnyErrors()) {

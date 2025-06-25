@@ -19,36 +19,39 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-public interface BlockCondition extends Condition<BlockConditionType<?>> {
+public abstract class BlockCondition extends Condition {
 
-	Codec<BlockCondition> CODEC = BlockConditionTypes.CODEC.dispatch(TYPE_KEY, BlockCondition::getType, BlockConditionType::mapCodec);
-	PacketCodec<RegistryByteBuf, BlockCondition> PACKET_CODEC = BlockConditionTypes.PACKET_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
+	public static final Codec<BlockCondition> CODEC = BlockConditionTypes.CODEC.dispatch("type", BlockCondition::getType, BlockConditionType::mapCodec);
+	public static final PacketCodec<RegistryByteBuf, BlockCondition> PACKET_CODEC = BlockConditionTypes.PACKET_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
 
 	@Override
-	default ConditionCategory<BlockCondition> getCategory() {
+	public abstract BlockConditionType<?> getType();
+
+	@Override
+	public ConditionCategory<BlockCondition> getCategory() {
 		return ConditionCategories.BLOCK_CONDITION;
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getAllowedParameters() {
 		return Set.of(ContextParameters.POSITION);
 	}
 
 	@Override
-	default String asDisplayString() {
+	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
-	default BlockPos getBlockPos(Context context) {
+	protected BlockPos getBlockPos(Context context) {
 		return BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 	}
 
-	default BlockState getBlockState(Context context) {
+	protected BlockState getBlockState(Context context) {
 		return context.optional(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(this.getBlockPos(context)));
 	}
 
 	@Nullable
-	default BlockEntity getBlockEntity(Context context) {
+	protected BlockEntity getBlockEntity(Context context) {
 		return context.optional(ContextParameters.BLOCK_ENTITY).orElseGet(() -> context.getWorld().getBlockEntity(this.getBlockPos(context)));
 	}
 

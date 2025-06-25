@@ -4,10 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.codec.PacketCodec;
@@ -20,21 +19,20 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-public interface IfElseListMetaAction<A extends Action<AT>, C extends Condition<CT>, AT extends ActionType<?>, CT extends ConditionType<?>> extends Action<AT> {
+public interface IfElseListMetaAction<A extends Action, C extends Condition> {
 
 	List<Entry<C, A>> entries();
 
-	@Override
-	default void execute(Context context) {
+	default void impl(Context context) {
 
 		MutableBoolean result = new MutableBoolean();
 		this.iterate((index, entry) -> {
 
-			Context subContext = context.makeChild("actions[" + index + "]");
-			boolean shouldExecute = entry.condition().test(subContext.makeChild("condition"));
+			Context subContext = context.makeChild(".actions[" + index + "]");
+			boolean shouldExecute = entry.condition().test(subContext.makeChild(".condition"));
 
 			if (shouldExecute) {
-				entry.action().execute(subContext.makeChild("action"));
+				entry.action().execute(subContext.makeChild(".action"));
 			}
 
 			result.setValue(shouldExecute);
@@ -43,16 +41,15 @@ public interface IfElseListMetaAction<A extends Action<AT>, C extends Condition<
 
 	}
 
-	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ContextAware.ErrorReporter reporter) {
 		this.iterate((index, entry) -> {
 
-			ErrorReporter subReporter = reporter.makeChild("actions[" + index + "]");
+			ContextAware.ErrorReporter subReporter = reporter.makeChild(".actions[" + index + "]");
 
-			entry.condition().validate(subReporter.makeChild("condition"));
-			entry.action().validate(subReporter.makeChild("action"));
+			entry.condition().validate(subReporter.makeChild(".condition"));
+			entry.action().validate(subReporter.makeChild(".action"));
 
-		}, () -> true);
+		});
 	}
 
 	default void iterate(BiConsumer<Integer, Entry<C, A>> processor, BooleanSupplier continueCondition) {
@@ -73,30 +70,34 @@ public interface IfElseListMetaAction<A extends Action<AT>, C extends Condition<
 
 	}
 
-	static <A extends Action<?>, C extends Condition<?>, M extends IfElseListMetaAction<A, C, ?, ?>> MapCodec<M> codec(Codec<C> conditionCodec, Codec<A> actionCodec, Function<List<Entry<C, A>>, M> constructor) {
+	default void iterate(BiConsumer<Integer, Entry<C, A>> processor) {
+		this.iterate(processor, () -> true);
+	}
+
+	static <A extends Action, C extends Condition, M extends IfElseListMetaAction<A, C>> MapCodec<M> codec(Codec<C> conditionCodec, Codec<A> actionCodec, Function<List<Entry<C, A>>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Entry.codec(conditionCodec, actionCodec).listOf().fieldOf("actions").forGetter(IfElseListMetaAction::entries)
 		).apply(instance, constructor));
 	}
 
-	static <B extends ByteBuf, A extends Action<?>, C extends Condition<?>, M extends IfElseListMetaAction<A, C, ?, ?>> PacketCodec<B, M> packetCodec(PacketCodec<B, C> conditionCodec, PacketCodec<B, A> actionCodec, Function<List<Entry<C, A>>, M> constructor) {
+	static <B extends ByteBuf, A extends Action, C extends Condition, M extends IfElseListMetaAction<A, C>> PacketCodec<B, M> packetCodec(PacketCodec<B, C> conditionCodec, PacketCodec<B, A> actionCodec, Function<List<Entry<C, A>>, M> constructor) {
 		return PacketCodecs.collection(ObjectArrayList::new, Entry.packetCodec(conditionCodec, actionCodec)).xmap(constructor, ifElseListMetaAction -> new ObjectArrayList<>(ifElseListMetaAction.entries()));
 	}
 
-	record Entry<C extends Condition<?>, A extends Action<?>>(C condition, A action) {
+	record Entry<C extends Condition, A extends Action>(C condition, A action) {
 
-		public static <C extends Condition<?>, A extends Action<?>> MapCodec<Entry<C, A>> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec) {
+		public static <C extends Condition, A extends Action> MapCodec<Entry<C, A>> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec) {
 			return RecordCodecBuilder.mapCodec(instance -> instance.group(
 				conditionCodec.fieldOf("condition").forGetter(Entry::condition),
 				actionCodec.fieldOf("action").forGetter(Entry::action)
 			).apply(instance, Entry::new));
 		}
 
-		public static <C extends Condition<?>, A extends Action<?>> Codec<Entry<C, A>> codec(Codec<C> conditionCodec, Codec<A> actionCodec) {
+		public static <C extends Condition, A extends Action> Codec<Entry<C, A>> codec(Codec<C> conditionCodec, Codec<A> actionCodec) {
 			return mapCodec(conditionCodec, actionCodec).codec();
 		}
 
-		public static <B extends ByteBuf, C extends Condition<?>, A extends Action<?>> PacketCodec<B, Entry<C, A>> packetCodec(PacketCodec<B, C> conditionCodec, PacketCodec<B, A> actionCodec) {
+		public static <B extends ByteBuf, C extends Condition, A extends Action> PacketCodec<B, Entry<C, A>> packetCodec(PacketCodec<B, C> conditionCodec, PacketCodec<B, A> actionCodec) {
 			return PacketCodec.tuple(
 				conditionCodec, Entry::condition,
 				actionCodec, Entry::action,

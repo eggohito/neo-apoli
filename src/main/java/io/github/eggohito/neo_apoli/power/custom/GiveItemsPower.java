@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@Getter
 public class GiveItemsPower extends Power {
 
 	public static final MapCodec<GiveItemsPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
@@ -55,14 +57,6 @@ public class GiveItemsPower extends Power {
 	@Override
 	public Power.Impl<?> createImpl(Entity holder) {
 		return new Impl(holder, this);
-	}
-
-	public List<IndexedStack> getIndexedStacks() {
-		return indexedStacks;
-	}
-
-	public boolean isRecurrent() {
-		return recurrent;
 	}
 
 	public static class Impl extends Power.Impl<GiveItemsPower> {

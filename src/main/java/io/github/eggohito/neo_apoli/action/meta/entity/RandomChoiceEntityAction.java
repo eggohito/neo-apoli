@@ -7,18 +7,40 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
 
-public record RandomChoiceEntityAction(WeightedList<EntityAction> actions) implements EntityAction, RandomChoiceMetaAction<EntityAction, EntityActionType<?>> {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class RandomChoiceEntityAction extends EntityAction implements RandomChoiceMetaAction<EntityAction> {
 
 	public static final MapCodec<RandomChoiceEntityAction> CODEC = NeoApoliMapCodecs.lazy(RandomChoiceEntityAction.class.getSimpleName(), () -> RandomChoiceMetaAction.codec(EntityAction.CODEC, RandomChoiceEntityAction::new));
 	public static final PacketCodec<RegistryByteBuf, RandomChoiceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(RandomChoiceEntityAction.class.getSimpleName(), () -> RandomChoiceMetaAction.packetCodec(EntityAction.PACKET_CODEC, RandomChoiceEntityAction::new));
 
+	private final WeightedList<EntityAction> actions;
+
+	public RandomChoiceEntityAction(WeightedList<EntityAction> actions) {
+		this.actions = actions;
+	}
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.RANDOM_CHOICE;
+	}
+
+	@Override
+	public void impl(Context context) {
+		RandomChoiceMetaAction.super.impl(context);
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		RandomChoiceMetaAction.super.validate(reporter);
 	}
 
 }

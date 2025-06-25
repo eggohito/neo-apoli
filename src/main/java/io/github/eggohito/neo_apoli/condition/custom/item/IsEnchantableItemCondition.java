@@ -6,13 +6,21 @@ import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record IsEnchantableItemCondition() implements ItemCondition {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class IsEnchantableItemCondition extends ItemCondition {
 
 	public static final MapCodec<IsEnchantableItemCondition> CODEC = MapCodec.unit(IsEnchantableItemCondition::new);
 	public static final PacketCodec<RegistryByteBuf, IsEnchantableItemCondition> PACKET_CODEC = PacketCodec.unit(new IsEnchantableItemCondition());
+
+	public IsEnchantableItemCondition() {
+
+	}
 
 	@Override
 	public ItemConditionType<?> getType() {
@@ -20,7 +28,7 @@ public record IsEnchantableItemCondition() implements ItemCondition {
 	}
 
 	@Override
-	public boolean test(Context context) {
+	protected boolean impl(Context context) {
 		return context.required(ContextParameters.ITEM_STACK).isEnchantable();
 	}
 

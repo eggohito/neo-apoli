@@ -9,19 +9,20 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Property;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.Optional;
 
-public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, boolean cycle) implements BlockAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 
 	private static final MapCodec<ModifyBlockStatePropertyBlockAction> UNVALIDATED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("property").forGetter(ModifyBlockStatePropertyBlockAction::property),
@@ -34,9 +35,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 
 			if (blockAction.value().isPresent() || blockAction.cycle()) {
 				return DataResult.success(blockAction);
-			}
-
-			else {
+			} else {
 				return DataResult.error(() -> "Either a 'value' has to be defined, or 'cycle' be defined as true!");
 			}
 
@@ -51,30 +50,39 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		ModifyBlockStatePropertyBlockAction::new
 	);
 
+	private final StringProvider property;
+	private final Optional<StringProvider> value;
+
+	private final boolean cycle;
+
+	public ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, boolean cycle) {
+		this.property = property;
+		this.value = value;
+		this.cycle = cycle;
+	}
+
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.MODIFY_BLOCK_STATE_PROPERTY;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+		if (context.getWorld().isClient()) {
 			return;
 		}
 
-		Context propertyContext = context.makeChild("property");
+		Context propertyContext = context.makeChild(".property");
 		String propertyString = property().stringValue(propertyContext);
 
 		if (propertyContext.hasErrors()) {
 			return;
 		}
 
-		BlockState state = context
-			.optional(ContextParameters.BLOCK_STATE)
-			.orElseGet(() -> serverWorld.getBlockState(BlockPos.ofFloored(context.required(ContextParameters.POSITION))));
-
+		BlockState state = this.getBlockState(context);
 		Property<?> property = state.getBlock().getStateManager().getProperty(propertyString);
+
 		if (property != null) {
 
 			if (cycle()) {
@@ -95,13 +103,13 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		property().validate(reporter.makeChild("property"));
-		value().ifPresent(value -> value.validate(reporter.makeChild("value")));
+		property().validate(reporter.makeChild(".property"));
+		value().ifPresent(value -> value.validate(reporter.makeChild(".value")));
 	}
 
 	private <T extends Comparable<T>> void setValue(Context context, BlockState state, Property<T> property) {
 
-		Context valueContext = context.makeChild("value");
+		Context valueContext = context.makeChild(".value");
 		Optional<T> value = value()
 			.map(provider -> provider.stringValue(valueContext))
 			.flatMap(property::parse);

@@ -6,6 +6,8 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -13,7 +15,9 @@ import net.minecraft.world.World;
 
 import java.util.Optional;
 
-public record TimeNumberProvider(Optional<NumberProvider> modulo) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class TimeNumberProvider extends NumberProvider {
 
 	public static final MapCodec<TimeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("modulo").forGetter(TimeNumberProvider::modulo)
@@ -24,24 +28,32 @@ public record TimeNumberProvider(Optional<NumberProvider> modulo) implements Num
 		TimeNumberProvider::new
 	);
 
+	private final Optional<NumberProvider> modulo;
+
+	public TimeNumberProvider(Optional<NumberProvider> modulo) {
+		this.modulo = modulo;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.TIME;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
-		return this.longValue(context);
-	}
-
-	@Override
-	public long longValue(Context context) {
+	protected double doubleImpl(Context context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();
 
 		if (modulo().isPresent()) {
-			time %= modulo().get().longValue(context.makeChild("modulo"));
+
+			Context moduloContext = context.makeChild(".modulo");
+			long modulo = modulo().get().longValue(moduloContext);
+
+			if (!moduloContext.hasErrors()) {
+				time %= modulo;
+			}
+
 		}
 
 		return time;
@@ -50,8 +62,8 @@ public record TimeNumberProvider(Optional<NumberProvider> modulo) implements Num
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		modulo().ifPresent(modulo -> modulo.validate(reporter.makeChild("modulo")));
+		super.validate(reporter);
+		modulo().ifPresent(modulo -> modulo.validate(reporter.makeChild(".modulo")));
 	}
 
 }

@@ -9,13 +9,17 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, EntityParameter entity) implements BiEntityAction {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 
 	public static final MapCodec<ExecuteEntityActionBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityAction.CODEC.fieldOf("entity_action").forGetter(ExecuteEntityActionBiEntityAction::entityAction),
@@ -28,17 +32,25 @@ public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, Entit
 		ExecuteEntityActionBiEntityAction::new
 	);
 
+	private final EntityAction entityAction;
+	private final EntityParameter entity;
+
+	public ExecuteEntityActionBiEntityAction(EntityAction entityAction, EntityParameter entity) {
+		this.entityAction = entityAction;
+		this.entity = entity;
+	}
+
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.EXECUTE_ENTITY_ACTION;
 	}
 
 	@Override
-	public void execute(Context context) {
+	protected void impl(Context context) {
 
 		Context entityActionContext = context
 			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.required(this.entity().getParameter())))
-			.makeChild("entity_action");
+			.makeChild(".entity_action");
 
 		entityAction().execute(entityActionContext);
 
@@ -51,8 +63,8 @@ public record ExecuteEntityActionBiEntityAction(EntityAction entityAction, Entit
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		BiEntityAction.super.validate(reporter);
-		entityAction().validate(reporter.makeChild("entity_action"));
+		super.validate(reporter);
+		entityAction().validate(reporter.makeChild(".entity_action"));
 	}
 
 }

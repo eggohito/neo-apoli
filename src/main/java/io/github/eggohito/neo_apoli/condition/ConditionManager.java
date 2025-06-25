@@ -51,7 +51,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	public static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
 	private static final Object2ObjectOpenHashMap<ConditionCategory<?>, Map<Identifier, ConditionEntry<?>>> BY_CATEGORY_AND_ID = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Condition<?>, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Condition, Identifier> BY_VALUES = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -163,7 +163,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 			return;
 		}
 
-		Map<ConditionCategory<?>, Map<Identifier, Condition<?>>> filteredEntries = new Object2ObjectOpenHashMap<>();
+		Map<ConditionCategory<?>, Map<Identifier, Condition>> filteredEntries = new Object2ObjectOpenHashMap<>();
 		BY_CATEGORY_AND_ID.forEach((category, entries) -> entries.forEach((id, entry) -> filteredEntries
 			.computeIfAbsent(category, k -> new Object2ObjectOpenHashMap<>())
 			.put(id, entry.value())));
@@ -181,7 +181,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <C extends Condition<?>> DataResult<ConditionEntry<C>> getEntryAsResult(ConditionCategory<C> category, Identifier id) {
+	public static <C extends Condition> DataResult<ConditionEntry<C>> getEntryAsResult(ConditionCategory<C> category, Identifier id) {
 
 		Map<Identifier, ConditionEntry<?>> entries = BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>());
 		ConditionEntry<?> entry = entries.get(id);
@@ -196,25 +196,25 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 
 	}
 
-	public static <C extends Condition<?>> ConditionEntry<C> getEntry(ConditionCategory<C> category, Identifier id) {
+	public static <C extends Condition> ConditionEntry<C> getEntry(ConditionCategory<C> category, Identifier id) {
 		return getEntryAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <C extends Condition<?>> DataResult<C> getAsResult(ConditionCategory<C> category, Identifier id) {
+	public static <C extends Condition> DataResult<C> getAsResult(ConditionCategory<C> category, Identifier id) {
 		return getEntryAsResult(category, id).map(ConditionEntry::value);
 	}
 
-	public static <C extends Condition<?>> C get(ConditionCategory<C> category, Identifier id) {
+	public static <C extends Condition> C get(ConditionCategory<C> category, Identifier id) {
 		return getAsResult(category, id).getOrThrow(IllegalArgumentException::new);
 	}
 
-	public static <C extends Condition<?>> DataResult<Identifier> getIdAsResult(C condition) {
+	public static <C extends Condition> DataResult<Identifier> getIdAsResult(C condition) {
 		return containsId(condition)
 			? DataResult.success(BY_VALUES.get(condition))
 			: DataResult.error(() -> condition + " doesn't correspond to any identifiers!");
 	}
 
-	public static <C extends Condition<?>> Identifier getId(C condition) {
+	public static <C extends Condition> Identifier getId(C condition) {
 		return getIdAsResult(condition).getOrThrow(IllegalArgumentException::new);
 	}
 
@@ -225,16 +225,16 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 			.flatMap(Collection::stream);
 	}
 
-	public static <C extends Condition<?>> boolean contains(ConditionCategory<C> category, Identifier id) {
+	public static <C extends Condition> boolean contains(ConditionCategory<C> category, Identifier id) {
 		return BY_CATEGORY_AND_ID.containsKey(category)
 			&& BY_CATEGORY_AND_ID.get(category).containsKey(id);
 	}
 
-	public static <C extends Condition<?>> boolean containsId(C condition) {
+	public static <C extends Condition> boolean containsId(C condition) {
 		return BY_VALUES.containsKey(condition);
 	}
 
-	private static void register(Identifier id, Condition<?> condition) {
+	private static void register(Identifier id, Condition condition) {
 		BY_VALUES.put(condition, id);
 		BY_CATEGORY_AND_ID
 			.computeIfAbsent(condition.getCategory(), k -> new Object2ObjectOpenHashMap<>())

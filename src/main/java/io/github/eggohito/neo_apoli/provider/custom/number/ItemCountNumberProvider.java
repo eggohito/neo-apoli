@@ -6,16 +6,24 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-public record ItemCountNumberProvider() implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ItemCountNumberProvider extends NumberProvider {
 
 	public static final MapCodec<ItemCountNumberProvider> CODEC = MapCodec.unit(ItemCountNumberProvider::new);
 	public static final PacketCodec<RegistryByteBuf, ItemCountNumberProvider> PACKET_CODEC = PacketCodec.unit(new ItemCountNumberProvider());
+
+	public ItemCountNumberProvider() {
+
+	}
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -23,7 +31,7 @@ public record ItemCountNumberProvider() implements NumberProvider {
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 		return context.required(ContextParameters.ITEM_STACK).getCount();
 	}
 

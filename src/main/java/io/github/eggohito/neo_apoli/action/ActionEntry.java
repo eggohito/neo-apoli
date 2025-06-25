@@ -4,7 +4,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.Objects;
 
-public record ActionEntry<A extends Action<?>>(Identifier id, A value) {
+public record ActionEntry<A extends Action>(Identifier id, A value) {
 
 	@Override
 	public int hashCode() {

@@ -8,6 +8,8 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.MathHelper;
@@ -15,7 +17,9 @@ import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.function.BiFunction;
 
-public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
+@EqualsAndHashCode(callSuper = false)
+@Data
+public final class ClampedNumberProvider extends NumberProvider {
 
 	public static final MapCodec<ClampedNumberProvider> CODEC = NeoApoliMapCodecs.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("value").forGetter(ClampedNumberProvider::value),
@@ -30,34 +34,44 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		ClampedNumberProvider::new
 	));
 
+	private final NumberProvider value;
+	private final NumberProvider min;
+	private final NumberProvider max;
+
+	public ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) {
+		this.value = value;
+		this.min = min;
+		this.max = max;
+	}
+
 	@Override
 	public NumberProviderType<?> getType() {
 		return NumberProviderTypes.CLAMPED;
 	}
 
 	@Override
-	public double doubleValue(Context context) {
+	protected double doubleImpl(Context context) {
 		return clamp(context, NumberProvider::doubleValue, MathHelper::clamp);
 	}
 
 	@Override
-	public long longValue(Context context) {
+	protected long longImpl(Context context) {
 		return clamp(context, NumberProvider::longValue, MathHelper::clamp);
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		NumberProvider.super.validate(reporter);
+		super.validate(reporter);
 
-		value().validate(reporter.makeChild("value"));
-		min().validate(reporter.makeChild("min"));
-		max().validate(reporter.makeChild("max"));
+		value().validate(reporter.makeChild(".value"));
+		min().validate(reporter.makeChild(".min"));
+		max().validate(reporter.makeChild(".max"));
 
 	}
 
 	private <N extends Number> N clamp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<N, N, N, N> processor) {
-		return processor.apply(getter.apply(value(), context.makeChild("value")), getter.apply(min(), context.makeChild("min")), getter.apply(max(), context.makeChild("max")));
+		return processor.apply(getter.apply(value(), context.makeChild(".value")), getter.apply(min(), context.makeChild(".min")), getter.apply(max(), context.makeChild(".max")));
 	}
 
 }
