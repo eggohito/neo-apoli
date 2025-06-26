@@ -14,13 +14,32 @@ public abstract class Action implements ContextAware, StringDisplayable {
 
 	public abstract ActionCategory<?> getCategory();
 
-	public final void execute(Context context) {
+	public void execute(Context context) {
 
 		ErrorReporter reporter = context.getReporter();
-		this.impl(context);
+		String fullPath = reporter.getFullPath();
 
-		if (reporter.isRoot() && reporter.hasAnyErrors()) {
-			NeoApoli.LOGGER.warn("Couldn't execute {} at path {} properly due to error(s) {}", StringUtils.uncapitalize(this.getCategory().toString()), reporter.getFullPath(), reporter.getErrorsAsString());
+		String category = StringUtils.uncapitalize(this.getCategory().toString());
+		Exception exception = null;
+
+		try {
+			this.impl(context);
+		}
+
+		catch (Exception e) {
+			exception = e;
+		}
+
+		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {
+
+			if (exception != null) {
+				NeoApoli.LOGGER.error("Critical error trying to execute {} at path {}: {}", category, fullPath, exception);
+			}
+
+			else {
+				NeoApoli.LOGGER.warn("Couldn't properly execute {} at path {} due to error(s) {}", category, fullPath, reporter.getErrorsAsString());
+			}
+
 		}
 
 	}

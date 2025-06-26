@@ -25,7 +25,7 @@ public abstract class StringProvider extends ValueProvider<String> {
 
 	@Override
 	public final String next(Context context) {
-		return provideValue("string", context, this::impl);
+		return provideValue("string", context, this::impl, () -> "");
 	}
 
 	protected abstract String impl(Context context);

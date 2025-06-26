@@ -28,23 +28,23 @@ public abstract class NumberProvider extends ValueProvider<Number> {
 
 	@Override
 	public final Number next(Context context) {
-		return provideValue("numeric", context, this::impl);
+		return provideValue("numeric", context, this::impl, () -> 0.0D);
 	}
 
 	public final double nextDouble(Context context) {
-		return provideValue("double", context, this::doubleImpl);
+		return provideValue("double", context, this::doubleImpl, () -> 0.0D);
 	}
 
 	public final float nextFloat(Context context) {
-		return provideValue("float", context, this::floatImpl);
+		return provideValue("float", context, this::floatImpl, () -> 0.0F);
 	}
 
 	public final long nextLong(Context context) {
-		return provideValue("long", context, this::longImpl);
+		return provideValue("long", context, this::longImpl, () -> 0L);
 	}
 
 	public final int nextInt(Context context) {
-		return provideValue("integer", context, this::intImpl);
+		return provideValue("integer", context, this::intImpl, () -> 0);
 	}
 
 	protected abstract Number impl(Context context);

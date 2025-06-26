@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.util.context;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
 import io.github.eggohito.neo_apoli.util.StringDisplayable;
+import lombok.Getter;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
@@ -29,12 +30,15 @@ public interface ContextAware {
 
 		private final ErrorReporter parent;
 
+		@Getter
 		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
+		@Getter
 		private final ContextType contextType;
 
 		private final Multimap<String, String> errors;
 		private final Set<ContextKey> referenceStack;
 
+		@Getter
 		private final String path;
 		private final Supplier<String> fullPathSupplier;
 
@@ -128,24 +132,12 @@ public interface ContextAware {
 
 		}
 
-		public Optional<RegistryWrapper.WrapperLookup> getWrapperLookup() {
-			return wrapperLookup;
-		}
-
 		public boolean hasWrapperLookup() {
 			return wrapperLookup.isPresent();
 		}
 
-		public String getPath() {
-			return path;
-		}
-
 		public String getFullPath() {
 			return fullPathSupplier.get();
-		}
-
-		public ContextType getContextType() {
-			return contextType;
 		}
 
 		public ErrorReporter getParent() {

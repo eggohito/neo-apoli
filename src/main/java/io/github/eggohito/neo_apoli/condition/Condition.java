@@ -14,13 +14,34 @@ public abstract class Condition implements ContextAware, StringDisplayable {
 
 	public abstract ConditionCategory<? extends Condition> getCategory();
 
-	public final boolean test(Context context) {
+	public boolean test(Context context) {
 
 		ErrorReporter reporter = context.getReporter();
-		boolean result = this.impl(context);
 
-		if (reporter.isRoot() && reporter.hasErrors()) {
-			NeoApoli.LOGGER.warn("Couldn't test {} at path {} property due to error(s) {}", StringUtils.uncapitalize(this.getCategory().toString()), reporter.getFullPath(), reporter.getErrorsAsString());
+		String category = StringUtils.uncapitalize(this.getCategory().toString());
+		String fullPath = reporter.getFullPath();
+
+		boolean result = false;
+		Exception exception = null;
+
+		try {
+			result = this.impl(context);
+		}
+
+		catch (Exception e) {
+			exception = e;
+		}
+
+		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {
+
+			if (exception != null) {
+				NeoApoli.LOGGER.error("Critical error trying to test {} at path {}: {}", category, fullPath, exception);
+			}
+
+			else {
+				NeoApoli.LOGGER.warn("Couldn't properly test {} at path {} due to error(s) {}", category, fullPath, reporter.getErrorsAsString());
+			}
+
 		}
 
 		return result;
