@@ -36,7 +36,7 @@ public abstract class SimpleModifier implements Modifier {
 	public double apply(Context context, double base, double total) {
 
 		Context valueContext = context.makeChild(".value");
-		double value = this.getValueProvider().doubleValue(valueContext);
+		double value = this.getValueProvider().nextDouble(valueContext);
 
 		if (valueContext.hasErrors()) {
 			return 0;

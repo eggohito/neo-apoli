@@ -32,8 +32,8 @@ public final class AddNumberProvider extends NumberProvider implements MultiNumb
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::doubleValue, Double::sum, 0.0D);
+	protected Number impl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, Double::sum, 0.0D);
 	}
 
 	@Override

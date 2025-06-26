@@ -31,7 +31,7 @@ public final class ItemCountNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 		return context.required(ContextParameters.ITEM_STACK).getCount();
 	}
 

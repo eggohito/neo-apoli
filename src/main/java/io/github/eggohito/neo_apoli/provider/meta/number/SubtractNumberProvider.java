@@ -32,8 +32,8 @@ public final class SubtractNumberProvider extends NumberProvider implements Mult
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return iterateAndProcess(context, NumberProvider::doubleValue, (a, b) -> a - b, 0.0D);
+	protected Number impl(Context context) {
+		return iterateAndProcess(context, NumberProvider::nextDouble, (a, b) -> a - b, 0.0D);
 	}
 
 	@Override

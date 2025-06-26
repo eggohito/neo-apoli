@@ -43,7 +43,7 @@ public final class ConstantStringProvider extends StringProvider {
 	}
 
 	@Override
-	protected String stringImpl(Context context) {
+	protected String impl(Context context) {
 		return value();
 	}
 

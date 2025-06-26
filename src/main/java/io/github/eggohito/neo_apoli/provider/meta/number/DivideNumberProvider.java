@@ -42,13 +42,22 @@ public final class DivideNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return dividend().doubleValue(context.makeChild(".dividend")) / divisor().doubleValue(context.makeChild(".divisor"));
-	}
+	protected Number impl(Context context) {
 
-	@Override
-	protected long longImpl(Context context) {
-		return dividend().longValue(context.makeChild(".dividend")) / divisor().longValue(context.makeChild(".divisor"));
+		Context dividendContext = context.makeChild(".dividend");
+		double dividend = dividend().nextDouble(dividendContext);
+
+		Context divisorContext = context.makeChild(".divisor");
+		double divisor = divisor().nextDouble(divisorContext);
+
+		if (dividendContext.hasErrors() || divisorContext.hasErrors()) {
+			return 0.0D;
+		}
+
+		else {
+			return dividend / divisor;
+		}
+
 	}
 
 	@Override

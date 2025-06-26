@@ -51,7 +51,7 @@ public interface ExecuteCommandMetaAction {
 		);
 
 		Context commandContext = context.makeChild(".command");
-		String command = command().stringValue(commandContext);
+		String command = command().next(commandContext);
 
 		if (!commandContext.hasErrors()) {
 			server.getCommandManager().executeWithPrefix(commandSource, command);

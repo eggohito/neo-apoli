@@ -44,13 +44,8 @@ public final class ConstantNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return value().doubleValue();
-	}
-
-	@Override
-	protected long longImpl(Context context) {
-		return value().longValue();
+	protected Number impl(Context context) {
+		return value();
 	}
 
 }

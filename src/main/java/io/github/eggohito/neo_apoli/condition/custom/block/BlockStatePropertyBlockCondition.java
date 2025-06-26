@@ -50,10 +50,10 @@ public final class BlockStatePropertyBlockCondition extends BlockCondition {
 	protected boolean impl(Context context) {
 
 		Context propertyContext = context.makeChild(".property");
-		String propertyString = property().stringValue(propertyContext);
+		String propertyString = property().next(propertyContext);
 
 		Context valueContext = context.makeChild(".value");
-		String valueString = value().stringValue(valueContext);
+		String valueString = value().next(valueContext);
 
 		if (propertyContext.hasErrors() || valueContext.hasErrors()) {
 			return false;

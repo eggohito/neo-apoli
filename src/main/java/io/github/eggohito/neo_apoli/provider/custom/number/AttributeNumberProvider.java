@@ -50,9 +50,9 @@ public final class AttributeNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
-		ContextParameter<? extends Entity> source = source().getParameter();
+		ContextParameter<Entity> source = source().getParameter();
 		Context sourceContext = context.makeChild(".source");
 
 		return switch (context.nullable(source)) {

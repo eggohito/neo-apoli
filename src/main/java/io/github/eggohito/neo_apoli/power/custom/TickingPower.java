@@ -94,7 +94,7 @@ public class TickingPower extends Power {
 		public void onTick() {
 
 			Context context = this.genericContext();
-			int interval = power.getInterval().intValue(context.makeChild(".interval"));
+			int interval = power.getInterval().nextInt(context.makeChild(".interval"));
 
 			if (context.hasAnyErrors()) {
 

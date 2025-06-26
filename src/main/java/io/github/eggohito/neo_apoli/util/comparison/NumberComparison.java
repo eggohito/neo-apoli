@@ -43,20 +43,21 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	@Override
 	public boolean compare(Context context) {
 
-		Context decimalsContext = context.makeChild("decimals");
-		int decimals = decimals().intValue(decimalsContext);
+		Context decimalsContext = context.makeChild(".decimals");
+		int decimals = decimals().nextInt(decimalsContext);
 
 		if (decimalsContext.hasErrors()) {
 			return false;
 		}
 
-		Context firstContext = context.makeChild("first");
-		Context secondContext = context.makeChild("second");
+		Context firstContext = context.makeChild(".first");
+		Context secondContext = context.makeChild(".second");
 
 		double firstValue = this.getValue(first(), decimals, () -> firstContext);
 		double secondValue = this.getValue(second(), decimals, () -> secondContext);
 
-		return (!firstContext.hasErrors() && !secondContext.hasErrors())
+		return !firstContext.hasErrors()
+			&& !secondContext.hasErrors()
 			&& comparator().compare(firstValue, secondValue);
 
 	}
@@ -66,8 +67,9 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 
 		Comparison.super.validate(reporter);
 
-		first().validate(reporter.makeChild("first"));
-		second().validate(reporter.makeChild("second"));
+		first().validate(reporter.makeChild(".first"));
+		second().validate(reporter.makeChild(".second"));
+		decimals().validate(reporter.makeChild(".decimals"));
 
 	}
 
@@ -75,12 +77,12 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 
 		Context context = contextSupplier.get();
 		if (decimals == 0) {
-			return provider.longValue(context);
+			return provider.nextLong(context);
 		}
 
 		else {
 			DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", decimals));
-			return Double.parseDouble(decimalFormat.format(provider.doubleValue(context)));
+			return Double.parseDouble(decimalFormat.format(provider.nextDouble(context)));
 		}
 
 	}

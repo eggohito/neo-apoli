@@ -55,7 +55,7 @@ public final class DamageEntityAction extends EntityAction {
 		}
 
 		Context amountContext = context.makeChild(".amount");
-		float amount = amount().floatValue(amountContext);
+		float amount = amount().nextFloat(amountContext);
 
 		if (!amountContext.hasErrors()) {
 			context.required(ContextParameters.THIS_ENTITY).damage(serverWorld, new DamageSource(damageType()), amount);

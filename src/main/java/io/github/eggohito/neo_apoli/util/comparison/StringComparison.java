@@ -41,11 +41,11 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	@Override
 	public boolean compare(Context context) {
 
-		Context firstContext = context.makeChild("first");
-		Context secondContext = context.makeChild("second");
+		Context firstContext = context.makeChild(".first");
+		Context secondContext = context.makeChild(".second");
 
-		String firstValue = first().stringValue(firstContext);
-		String secondValue = second().stringValue(secondContext);
+		String firstValue = first().next(firstContext);
+		String secondValue = second().next(secondContext);
 
 		if (!firstContext.hasErrors() && !secondContext.hasErrors()) {
 
@@ -69,8 +69,8 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 
 		Comparison.super.validate(reporter);
 
-		first().validate(reporter.makeChild("first"));
-		second().validate(reporter.makeChild("second"));
+		first().validate(reporter.makeChild(".first"));
+		second().validate(reporter.makeChild(".second"));
 
 	}
 

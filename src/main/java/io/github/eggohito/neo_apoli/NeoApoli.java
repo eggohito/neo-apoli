@@ -22,8 +22,7 @@ import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
@@ -72,10 +71,9 @@ public class NeoApoli implements ModInitializer {
 	public void onInitialize() {
 
 		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
-		NeoApoliArgumentTypes.registerAll();
 
-		NumberProviderTypes.registerAll();
-		StringProviderTypes.registerAll();
+		NeoApoliArgumentTypes.registerAll();
+		ValueProviderTypes.registerAll();
 
 		ConditionTypes.registerAll();
 		ConditionCategories.registerAll();

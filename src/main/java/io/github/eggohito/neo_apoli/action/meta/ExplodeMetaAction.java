@@ -86,7 +86,7 @@ public interface ExplodeMetaAction {
 			null,
 			behavior,
 			position,
-			property.power().floatValue(context.makeChild(".power")),
+			property.power().nextFloat(context.makeChild(".power")),
 			property.createFire(),
 			property.destructionType()
 		);
@@ -194,7 +194,7 @@ public interface ExplodeMetaAction {
 				.addNullable(ContextParameters.TARGET, target))
 				.makeChild(".knockback_modifier");
 
-			return this.property.knockbackMultiplier().floatValue(knockbackContext);
+			return this.property.knockbackMultiplier().nextFloat(knockbackContext);
 
 		}
 

@@ -55,10 +55,10 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		Context radiusContext = context.makeChild(".radius");
-		double radius = this.radius().doubleValue(radiusContext);
+		double radius = this.radius().nextDouble(radiusContext);
 
 		if (radiusContext.hasErrors()) {
 			return 0.0;
@@ -74,10 +74,9 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 
 			Context biEntityConditionContext = builder
 				.add(ContextParameters.TARGET, target)
-				.build(context.getWorld())
-				.makeChild(".bientity_condition");
+				.build(context.getWorld());
 
-			if (this.biEntityCondition().test(biEntityConditionContext)) {
+			if (this.biEntityCondition().test(biEntityConditionContext.makeChild(".bientity_condition"))) {
 				matches++;
 			}
 

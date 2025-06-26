@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.command.argument.NbtPathArgumentType;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
@@ -45,9 +44,8 @@ public final class StorageNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		NbtCompound rootNbt = ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage());
-		return this.path().count(rootNbt);
+	protected Number impl(Context context) {
+		return this.path().count(((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.storage()));
 	}
 
 }

@@ -32,13 +32,8 @@ public final class MaxNumberProvider extends NumberProvider implements MultiNumb
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::doubleValue, Math::max, 0.0D);
-	}
-
-	@Override
-	protected long longImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::longValue, Math::max, 0L);
+	protected Number impl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::max, 0.0D);
 	}
 
 	@Override

@@ -13,9 +13,6 @@ import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.MathHelper;
-import org.apache.commons.lang3.function.TriFunction;
-
-import java.util.function.BiFunction;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -50,13 +47,25 @@ public final class ClampedNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return clamp(context, NumberProvider::doubleValue, MathHelper::clamp);
-	}
+	protected Number impl(Context context) {
 
-	@Override
-	protected long longImpl(Context context) {
-		return clamp(context, NumberProvider::longValue, MathHelper::clamp);
+		Context minContext = context.makeChild(".min");
+		double min = min().nextDouble(minContext);
+
+		Context maxContext = context.makeChild(".max");
+		double max = max().nextDouble(maxContext);
+
+		Context valueContext = context.makeChild(".value");
+		double value = value().nextDouble(valueContext);
+
+		if (minContext.hasErrors() || maxContext.hasErrors()) {
+			return value;
+		}
+
+		else {
+			return MathHelper.clamp(value, min, max);
+		}
+
 	}
 
 	@Override
@@ -68,10 +77,6 @@ public final class ClampedNumberProvider extends NumberProvider {
 		min().validate(reporter.makeChild(".min"));
 		max().validate(reporter.makeChild(".max"));
 
-	}
-
-	private <N extends Number> N clamp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<N, N, N, N> processor) {
-		return processor.apply(getter.apply(value(), context.makeChild(".value")), getter.apply(min(), context.makeChild(".min")), getter.apply(max(), context.makeChild(".max")));
 	}
 
 }

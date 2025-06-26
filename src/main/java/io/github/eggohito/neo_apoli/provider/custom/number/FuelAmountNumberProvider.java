@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import net.minecraft.world.World;
 
 import java.util.Set;
 
@@ -32,9 +33,13 @@ public final class FuelAmountNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
+
+		World world = context.getWorld();
 		ItemStack stack = context.required(ContextParameters.ITEM_STACK);
-		return context.getWorld().getFuelRegistry().getFuelTicks(stack);
+
+		return world.getFuelRegistry().getFuelTicks(stack);
+
 	}
 
 	@Override

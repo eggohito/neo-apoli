@@ -46,17 +46,17 @@ public final class NumberStringProvider extends StringProvider {
 	}
 
 	@Override
-	protected String stringImpl(Context context) {
+	protected String impl(Context context) {
 
 		Context numberContext = context.makeChild(".number");
-		int decimals = decimals().intValue(context.makeChild(".decimals"));
+		int decimals = decimals().nextInt(context.makeChild(".decimals"));
 
 		if (decimals == 0) {
-			return Long.toString(number().longValue(numberContext));
+			return Long.toString(number().nextLong(numberContext));
 		}
 
 		else {
-			return String.format(Locale.ROOT, ("%." + decimals + "f"), number().doubleValue(numberContext));
+			return String.format(Locale.ROOT, ("%." + decimals + "f"), number().nextDouble(numberContext));
 		}
 
 	}

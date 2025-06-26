@@ -74,7 +74,7 @@ public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 		}
 
 		Context propertyContext = context.makeChild(".property");
-		String propertyString = property().stringValue(propertyContext);
+		String propertyString = property().next(propertyContext);
 
 		if (propertyContext.hasErrors()) {
 			return;
@@ -111,7 +111,7 @@ public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 
 		Context valueContext = context.makeChild(".value");
 		Optional<T> value = value()
-			.map(provider -> provider.stringValue(valueContext))
+			.map(provider -> provider.next(valueContext))
 			.flatMap(property::parse);
 
 		if (value.isPresent() && !valueContext.hasErrors()) {

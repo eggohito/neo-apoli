@@ -42,7 +42,7 @@ public final class PositionNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 		return context.required(ContextParameters.POSITION).getComponentAlongAxis(this.axis());
 	}
 

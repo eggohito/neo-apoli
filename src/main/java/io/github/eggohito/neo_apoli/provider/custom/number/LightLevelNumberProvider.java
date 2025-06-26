@@ -47,7 +47,7 @@ public final class LightLevelNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		World world = context.getWorld();
 		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));

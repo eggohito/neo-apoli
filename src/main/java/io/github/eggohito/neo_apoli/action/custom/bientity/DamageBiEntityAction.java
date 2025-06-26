@@ -56,7 +56,7 @@ public final class DamageBiEntityAction extends BiEntityAction {
 		}
 
 		Context amountContext = context.makeChild(".amount");
-		float amount = amount().floatValue(amountContext);
+		float amount = amount().nextFloat(amountContext);
 
 		if (!amountContext.hasErrors()) {
 			return;

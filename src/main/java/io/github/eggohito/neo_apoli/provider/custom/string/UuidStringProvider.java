@@ -40,7 +40,7 @@ public final class UuidStringProvider extends StringProvider {
 	}
 
 	@Override
-	protected String stringImpl(Context context) {
+	protected String impl(Context context) {
 		return context.required(source().getParameter()).getUuidAsString();
 	}
 

@@ -45,7 +45,7 @@ public final class ConsumeItemAction extends ItemAction {
 		}
 
 		Context amountContext = context.makeChild(".amount");
-		int amount = this.amount().intValue(amountContext);
+		int amount = this.amount().nextInt(amountContext);
 
 		if (!amountContext.hasErrors()) {
 			context.required(ContextParameters.ITEM_STACK).decrement(amount);

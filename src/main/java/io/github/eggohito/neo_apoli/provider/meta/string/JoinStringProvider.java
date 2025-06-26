@@ -48,7 +48,7 @@ public final class JoinStringProvider extends StringProvider implements MultiStr
 	}
 
 	@Override
-	protected String stringImpl(Context context) {
+	protected String impl(Context context) {
 
 		StringBuilder result = new StringBuilder();
 		MutableBoolean init = new MutableBoolean(false);
@@ -56,14 +56,14 @@ public final class JoinStringProvider extends StringProvider implements MultiStr
 		this.iterate((index, provider) -> {
 
 			Context stringContext = context.makeChild(".strings[" + index + "]");
-			String string = provider.stringValue(stringContext);
+			String string = provider.next(stringContext);
 
 			if (!stringContext.hasErrors()) {
 
 				if (init.isTrue()) {
 
 					Context separatorContext = context.makeChild(".separator");
-					String separator = this.separator().stringValue(separatorContext);
+					String separator = this.separator().next(separatorContext);
 
 					if (!separatorContext.hasErrors()) {
 						result.append(separator).append(string);

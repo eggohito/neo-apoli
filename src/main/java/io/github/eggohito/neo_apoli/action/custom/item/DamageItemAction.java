@@ -55,7 +55,7 @@ public final class DamageItemAction extends ItemAction {
 		}
 
 		Context amountContext = context.makeChild(".amount");
-		int amount = this.amount().intValue(amountContext);
+		int amount = this.amount().nextInt(amountContext);
 
 		if (amountContext.hasErrors()) {
 			return;

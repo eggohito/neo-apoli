@@ -45,7 +45,7 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		World world = context.getWorld();
 		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
@@ -54,11 +54,9 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 		for (Direction direction : Direction.values()) {
 
 			BlockPos offsetPos = pos.offset(direction);
-			Context blockContext = context
-				.copy(builder -> builder.add(ContextParameters.POSITION, offsetPos.toCenterPos()))
-				.makeChild(".adjacent_block_condition");
+			Context blockContext = context.copy(builder -> builder.add(ContextParameters.POSITION, offsetPos.toCenterPos()));
 
-			if (world.isChunkLoaded(offsetPos) && adjacentBlockCondition().test(blockContext)) {
+			if (world.isChunkLoaded(offsetPos) && adjacentBlockCondition().test(blockContext.makeChild(".adjacent_block_condition"))) {
 				matches++;
 			}
 

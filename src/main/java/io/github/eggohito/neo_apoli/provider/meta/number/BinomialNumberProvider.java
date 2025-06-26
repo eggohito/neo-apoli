@@ -43,15 +43,18 @@ public final class BinomialNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		Random random = context.getWorld().getRandom();
 		long result = 0;
 
-		long attempts = attempts().longValue(context.makeChild(".attempts"));
-		double probability = probability().doubleValue(context.makeChild(".probability"));
+		Context attemptsContext = context.makeChild(".attempts");
+		long attempts = attempts().nextLong(attemptsContext);
 
-		for (int i = 0; !context.hasAnyErrors() && i < attempts; i++) {
+		Context probabilityContext = context.makeChild(".probability");
+		double probability = probability().nextDouble(probabilityContext);
+
+		for (int i = 0; !attemptsContext.hasErrors() && !probabilityContext.hasErrors() && i < attempts; i++) {
 
 			if (random.nextDouble() < probability) {
 				result++;

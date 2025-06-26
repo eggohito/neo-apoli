@@ -56,12 +56,12 @@ public final class AddExperienceEntityAction extends EntityAction {
 		Context levelsContext = context.makeChild(".levels");
 
 		this.points()
-			.map(pointsProvider -> pointsProvider.intValue(pointsContext))
+			.map(pointsProvider -> pointsProvider.nextInt(pointsContext))
 			.filter(points -> !pointsContext.hasErrors())
 			.ifPresent(serverPlayer::addExperience);
 
 		this.levels()
-			.map(levelsProvider -> levelsProvider.intValue(levelsContext))
+			.map(levelsProvider -> levelsProvider.nextInt(levelsContext))
 			.filter(levels -> !levelsContext.hasErrors())
 			.ifPresent(serverPlayer::addExperienceLevels);
 

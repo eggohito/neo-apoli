@@ -41,7 +41,7 @@ public final class SetOnFireEntityAction extends EntityAction {
 	protected void impl(Context context) {
 
 		Context ticksContext = context.makeChild(".ticks");
-		int ticks = ticks().intValue(ticksContext);
+		int ticks = ticks().nextInt(ticksContext);
 
 		if (!ticksContext.hasErrors()) {
 			context.required(ContextParameters.THIS_ENTITY).setOnFireForTicks(ticks);

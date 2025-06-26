@@ -49,7 +49,7 @@ public final class StorageStringProvider extends StringProvider {
 	}
 
 	@Override
-	protected String stringImpl(Context context) {
+	protected String impl(Context context) {
 
 		try {
 

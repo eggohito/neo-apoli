@@ -32,8 +32,8 @@ public final class MultiplyNumberProvider extends NumberProvider implements Mult
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::doubleValue, (a, b) -> a * b, 0.0D);
+	protected Number impl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, (a, b) -> a * b, 0.0D);
 	}
 
 	@Override

@@ -53,13 +53,13 @@ public final class UniformNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return this.randomize(context, NumberProvider::doubleValue, random()::nextDouble);
+	protected Number impl(Context context) {
+		return this.randomize(context, NumberProvider::nextDouble, random()::nextDouble);
 	}
 
 	@Override
-	protected long longImpl(Context context) {
-		return this.randomize(context, NumberProvider::longValue, random()::nextLong);
+	public long longImpl(Context context) {
+		return this.randomize(context, NumberProvider::nextLong, random()::nextLong);
 	}
 
 	@Override

@@ -32,13 +32,8 @@ public final class MinNumberProvider extends NumberProvider implements MultiNumb
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::doubleValue, Math::min, 0.0D);
-	}
-
-	@Override
-	protected long longImpl(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::longValue, Math::min, 0L);
+	protected Number impl(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::min, 0.0D);
 	}
 
 	@Override

@@ -45,10 +45,10 @@ public final class CommandResultNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		Context commandContext = context.makeChild(".command");
-		String command = command().stringValue(commandContext);
+		String command = command().next(commandContext);
 
 		AtomicInteger result = new AtomicInteger();
 		if (!commandContext.hasErrors()) {

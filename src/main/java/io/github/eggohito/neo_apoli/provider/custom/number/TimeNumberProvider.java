@@ -40,7 +40,7 @@ public final class TimeNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();
@@ -48,7 +48,7 @@ public final class TimeNumberProvider extends NumberProvider {
 		if (modulo().isPresent()) {
 
 			Context moduloContext = context.makeChild(".modulo");
-			long modulo = modulo().get().longValue(moduloContext);
+			long modulo = modulo().get().nextLong(moduloContext);
 
 			if (!moduloContext.hasErrors()) {
 				time %= modulo;

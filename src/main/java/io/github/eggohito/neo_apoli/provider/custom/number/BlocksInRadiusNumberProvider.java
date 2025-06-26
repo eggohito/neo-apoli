@@ -54,10 +54,10 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected double doubleImpl(Context context) {
+	protected Number impl(Context context) {
 
 		Context radiusContext = context.makeChild(".radius");
-		int radius = this.radius().intValue(radiusContext);
+		int radius = this.radius().nextInt(radiusContext);
 
 		if (radiusContext.hasErrors()) {
 			return 0.0;
@@ -79,10 +79,9 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos))
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
 				.add(ContextParameters.POSITION, pos.toCenterPos())
-				.build(context.getWorld())
-				.makeChild(".block_condition");
+				.build(context.getWorld());
 
-			if (this.blockCondition().test(blockContext)) {
+			if (this.blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
 			}
 
