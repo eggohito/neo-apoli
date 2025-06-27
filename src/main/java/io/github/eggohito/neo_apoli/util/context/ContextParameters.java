@@ -24,6 +24,7 @@ public final class ContextParameters {
 	public static final ContextParameter<BlockEntity> BLOCK_ENTITY = new ContextParameter<>(NeoApoli.id("block_entity"));
 	public static final ContextParameter<Direction> DIRECTION = new ContextParameter<>(NeoApoli.id("direction"));
 
+	public static final ContextParameter<StackReference> STACK_REFERENCE = new ContextParameter<>(NeoApoli.id("stack_reference"));
 	public static final ContextParameter<ItemStack> ITEM_STACK = new ContextParameter<>(NeoApoli.id("item_stack"));
 	public static final ContextParameter<Hand> HAND = new ContextParameter<>(NeoApoli.id("hand"));
 
