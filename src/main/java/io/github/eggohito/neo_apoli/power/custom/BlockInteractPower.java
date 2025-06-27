@@ -29,6 +29,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.ActionResult;
@@ -212,6 +213,8 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 		BlockPos blockPos = blockHitResult.getBlockPos();
 
 		CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> impl.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
+		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
+
 		for (int priority = implInstances.getMaxPriority(); priority >= implInstances.getMinPriority(); priority--) {
 
 			if (!implInstances.hasImpls(priority)) {
@@ -224,12 +227,12 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			for (var impl : impls) {
 
 				Context.Builder builder = impl.contextBuilder()
-					.add(ContextParameters.HAND, hand)
-					.add(ContextParameters.THIS_ENTITY, player)
-					.add(ContextParameters.ITEM_STACK, player.getStackInHand(hand))
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 					.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos));
+					.add(ContextParameters.ITEM_STACK, stackReference.get())
+					.add(ContextParameters.STACK_REFERENCE, stackReference)
+					.add(ContextParameters.HAND, hand);
 
 				Context blockContext = builder
 					.add(ContextParameters.POSITION, blockPos.toCenterPos())
@@ -275,7 +278,9 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 		ActionResult modified = ActionResult.PASS;
 
 		ActionResult zeroPriorityResult = zeroPriorityResultGetter.get();
+
 		World world = player.getWorld();
+		BlockPos blockPos = blockHitResult.getBlockPos();
 
 		if (zeroPriorityResult != null && zeroPriorityResult != ActionResult.PASS) {
 			modified = zeroPriorityResult;
@@ -284,7 +289,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 		else if (original == ActionResult.PASS) {
 
 			CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> impl.shouldExecute(interactionPhase, PriorityPhase.AFTER));
-			BlockPos blockPos = blockHitResult.getBlockPos();
+			StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
 			for (int priority = implInstances.getMaxPriority(); priority >= implInstances.getMinPriority(); priority--) {
 
@@ -298,12 +303,12 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 				for (var impl : impls) {
 
 					Context.Builder builder = impl.contextBuilder()
-						.add(ContextParameters.HAND, hand)
-						.add(ContextParameters.THIS_ENTITY, player)
-						.add(ContextParameters.ITEM_STACK, player.getStackInHand(hand))
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 						.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos));
+						.add(ContextParameters.ITEM_STACK, stackReference.get())
+						.add(ContextParameters.STACK_REFERENCE, stackReference)
+						.add(ContextParameters.HAND, hand);
 
 					Context blockContext = builder
 						.add(ContextParameters.POSITION, blockPos.toCenterPos())

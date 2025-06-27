@@ -36,7 +36,7 @@ public abstract class BlockInteractPowerMixin {
 
 	@WrapOperation(method = "interactBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;onUseWithItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/util/hit/BlockHitResult;)Lnet/minecraft/util/ActionResult;"))
 	private ActionResult beforeUseBlockWithItem(BlockState blockState, ItemStack stack, World world, PlayerEntity player, Hand hand, BlockHitResult blockHitResult, Operation<ActionResult> original, @Share("zeroPriority$withItemResult") LocalRef<ActionResult> zeroPriority$withItemResultRef) {
-		return BlockInteractPower.execute(player, hand, blockHitResult, BlockInteractionPhase.BLOCK_WITH_ITEM, PriorityPhase.BEFORE, zeroPriority$withItemResultRef::set, zeroPriority$withItemResultRef::get, () -> original.call(blockState, stack, world, player, hand, blockHitResult));
+		return BlockInteractPower.execute(player, hand, blockHitResult, BlockInteractionPhase.BLOCK_WITH_ITEM, PriorityPhase.BEFORE, zeroPriority$withItemResultRef::set, zeroPriority$withItemResultRef::get, () -> original.call(blockState, player.getStackInHand(hand), world, player, hand, blockHitResult));
 	}
 
 	@ModifyVariable(method = "interactBlock", at = @At("STORE"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;onUseWithItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/util/hit/BlockHitResult;)Lnet/minecraft/util/ActionResult;")), ordinal = 0)
