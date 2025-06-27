@@ -93,6 +93,16 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 		return new Impl(holder, this);
 	}
 
+	@Override
+	public void validate(ContextAware.ErrorReporter reporter) {
+
+		super.validate(reporter);
+
+		getActions().validate(reporter);
+		getConditions().validate(reporter);
+
+	}
+
 	public static class Impl extends Power.Impl<BlockInteractPower> implements Prioritized<BlockInteractPower.Impl> {
 
 		protected Impl(@NotNull Entity holder, @NotNull BlockInteractPower power) {
@@ -221,11 +231,11 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 					.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos));
 
-				Context entityAndItemContext = builder
-					.add(ContextParameters.POSITION, player.getPos())
-					.build(world);
 				Context blockContext = builder
 					.add(ContextParameters.POSITION, blockPos.toCenterPos())
+					.build(world);
+				Context entityAndItemContext = builder
+					.add(ContextParameters.POSITION, player.getPos())
 					.build(world);
 
 				if (impl.doesApply(blockContext, entityAndItemContext)) {
@@ -287,22 +297,23 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 				for (var impl : impls) {
 
-					Context.Builder builder = impl.getPowerType().contextBuilder()
+					Context.Builder builder = impl.contextBuilder()
+						.add(ContextParameters.HAND, hand)
 						.add(ContextParameters.THIS_ENTITY, player)
 						.add(ContextParameters.ITEM_STACK, player.getStackInHand(hand))
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos));
 
-					Context entityContext = builder
-						.add(ContextParameters.POSITION, player.getPos())
-						.build(world);
 					Context blockContext = builder
 						.add(ContextParameters.POSITION, blockPos.toCenterPos())
 						.build(world);
+					Context entityAndItemContext = builder
+						.add(ContextParameters.POSITION, player.getPos())
+						.build(world);
 
-					if (impl.doesApply(blockContext, entityContext)) {
-						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityContext));
+					if (impl.doesApply(blockContext, entityAndItemContext)) {
+						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityAndItemContext));
 					}
 
 				}
