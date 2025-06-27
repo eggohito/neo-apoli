@@ -5,8 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.ItemAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.inventory.StackReference;
@@ -21,7 +21,6 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryEntryLookup;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.Optional;
@@ -47,21 +46,17 @@ public final class ApplyModifierItemAction extends ItemAction {
 	}
 
 	@Override
-	protected void impl(Context context) {
-
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
-			return;
-		}
+	protected void impl(ServerContext context) {
 
 		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
 		ItemStack oldStack = stackReference.get();
 
 		//	Since the ID is already validated, there should be no need to validate here...
-		LootFunction modifier = serverWorld.getServer().getReloadableRegistries().createRegistryLookup()
+		LootFunction modifier = context.getServer().getReloadableRegistries().createRegistryLookup()
 			.getEntryOrThrow(this.modifier())
 			.value();
 
-		LootWorldContext lootWorldContext = new LootWorldContext.Builder(serverWorld)
+		LootWorldContext lootWorldContext = new LootWorldContext.Builder(context.getWorld())
 			.add(LootContextParameters.ORIGIN, context.optional(ContextParameters.POSITION).orElse(Vec3d.ZERO))
 			.addOptional(LootContextParameters.THIS_ENTITY, context.nullable(ContextParameters.THIS_ENTITY))
 			.build(LootContextTypes.COMMAND);
@@ -91,4 +86,5 @@ public final class ApplyModifierItemAction extends ItemAction {
 		);
 
 	}
+
 }

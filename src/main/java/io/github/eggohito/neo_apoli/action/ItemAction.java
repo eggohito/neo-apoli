@@ -9,9 +9,12 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
@@ -28,6 +31,17 @@ public abstract class ItemAction extends Action {
 	public ActionCategory<ItemAction> getCategory() {
 		return ActionCategories.ITEM_ACTION;
 	}
+
+	@Override
+	protected final void impl(Context context) {
+
+		if (context.getWorld() instanceof ServerWorld serverWorld) {
+			this.impl(new ServerContext(context, serverWorld));
+		}
+
+	}
+
+	protected abstract void impl(ServerContext context);
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {

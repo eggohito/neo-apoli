@@ -5,16 +5,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -28,11 +25,8 @@ public final class SetBlockBlockAction extends BlockAction {
 		PacketCodecs.registryCodec(BlockState.CODEC), SetBlockBlockAction::state,
 		SetBlockBlockAction::new
 	);
-	private final BlockState state;
 
-	public SetBlockBlockAction(BlockState state) {
-		this.state = state;
-	}
+	private final BlockState state;
 
 	@Override
 	public BlockActionType<?> getType() {
@@ -40,12 +34,8 @@ public final class SetBlockBlockAction extends BlockAction {
 	}
 
 	@Override
-	protected void impl(Context context) {
-
-		if (context.getWorld() instanceof ServerWorld serverWorld) {
-			serverWorld.setBlockState(BlockPos.ofFloored(context.required(ContextParameters.POSITION)), state());
-		}
-
+	protected void impl(ServerContext context) {
+		context.getWorld().setBlockState(this.getBlockPos(context), state());
 	}
 
 }

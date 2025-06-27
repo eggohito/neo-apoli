@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.inventory.StackReference;
@@ -18,7 +19,6 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -38,22 +38,13 @@ public final class DamageItemAction extends ItemAction {
 	private final NumberProvider amount;
 	private final boolean ignoreUnbreaking;
 
-	public DamageItemAction(NumberProvider amount, boolean ignoreUnbreaking) {
-		this.amount = amount;
-		this.ignoreUnbreaking = ignoreUnbreaking;
-	}
-
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.DAMAGE;
 	}
 
 	@Override
-	protected void impl(Context context) {
-
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
-			return;
-		}
+	protected void impl(ServerContext context) {
 
 		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
@@ -83,7 +74,7 @@ public final class DamageItemAction extends ItemAction {
 		}
 
 		else {
-			stack.damage(amount, serverWorld, serverPlayerHolder, item -> {});
+			stack.damage(amount, context.getWorld(), serverPlayerHolder, item -> {});
 		}
 
 	}

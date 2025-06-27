@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -38,11 +39,7 @@ public final class ConsumeItemAction extends ItemAction {
 	}
 
 	@Override
-	protected void impl(Context context) {
-
-		if (context.getWorld().isClient()) {
-			return;
-		}
+	protected void impl(ServerContext context) {
 
 		Context amountContext = context.makeChild(".amount");
 		int amount = Math.abs(this.amount().nextInt(amountContext));

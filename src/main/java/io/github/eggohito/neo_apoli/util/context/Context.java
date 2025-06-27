@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util.context;
 
 import io.github.eggohito.neo_apoli.mixin.access.ContextParameterMapAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.Getter;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextParameterMap;
@@ -14,22 +15,25 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
-public final class Context {
+public class Context {
 
-	private final ContextParameterMap parameters;
-	private final ContextAware.ErrorReporter reporter;
+	protected final ContextParameterMap parameters;
+	@Getter
+	protected final ContextAware.ErrorReporter reporter;
 
-	private final ContextType type;
-	private final World world;
+	@Getter
+	protected final ContextType type;
+	@Getter
+	protected final World world;
 
-	private final Set<ContextAware> activeContextAwares;
+	protected final Set<ContextAware> activeEntries;
 
 	Context(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, World world) {
 		this.parameters = parameters;
 		this.reporter = reporter;
 		this.type = type;
 		this.world = world;
-		this.activeContextAwares = new ObjectOpenHashSet<>();
+		this.activeEntries = new ObjectOpenHashSet<>();
 	}
 
 	public Context makeChild(String path) {
@@ -41,27 +45,15 @@ public final class Context {
 	}
 
 	public boolean isActive(ContextAware contextAware) {
-		return activeContextAwares.contains(contextAware);
+		return activeEntries.contains(contextAware);
 	}
 
 	public boolean markActive(ContextAware contextAware) {
-		return activeContextAwares.add(contextAware);
+		return activeEntries.add(contextAware);
 	}
 
 	public void markInactive(ContextAware contextAware) {
-		activeContextAwares.remove(contextAware);
-	}
-
-	public ContextAware.ErrorReporter getReporter() {
-		return reporter;
-	}
-
-	public ContextType getType() {
-		return type;
-	}
-
-	public World getWorld() {
-		return world;
+		activeEntries.remove(contextAware);
 	}
 
 	public <T> T required(ContextParameter<T> parameter) {
@@ -105,7 +97,7 @@ public final class Context {
 		return operator.apply(builder(this)).build(this.getWorld());
 	}
 
-	public static final class Builder {
+	public static class Builder {
 
 		private ContextType contextType;
 		private ContextAware.ErrorReporter reporter;

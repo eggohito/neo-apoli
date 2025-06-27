@@ -11,10 +11,12 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +35,17 @@ public abstract class BlockAction extends Action {
 	public ActionCategory<BlockAction> getCategory() {
 		return ActionCategories.BLOCK_ACTION;
 	}
+
+	@Override
+	public final void impl(Context context) {
+
+		if (context.getWorld() instanceof ServerWorld serverWorld) {
+			this.impl(new ServerContext(context, serverWorld));
+		}
+
+	}
+
+	protected abstract void impl(ServerContext context);
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {

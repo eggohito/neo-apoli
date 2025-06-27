@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
@@ -55,23 +56,13 @@ public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 
 	private final boolean cycle;
 
-	public ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, boolean cycle) {
-		this.property = property;
-		this.value = value;
-		this.cycle = cycle;
-	}
-
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.MODIFY_BLOCK_STATE_PROPERTY;
 	}
 
 	@Override
-	protected void impl(Context context) {
-
-		if (context.getWorld().isClient()) {
-			return;
-		}
+	protected void impl(ServerContext context) {
 
 		Context propertyContext = context.makeChild(".property");
 		String propertyString = property().next(propertyContext);
