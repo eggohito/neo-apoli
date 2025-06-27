@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -54,14 +55,16 @@ public final class DamageItemAction extends ItemAction {
 			return;
 		}
 
+		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
+		ItemStack stack = stackReference.get();
+
 		Context amountContext = context.makeChild(".amount");
-		int amount = this.amount().nextInt(amountContext);
+		int amount = Math.abs(this.amount().nextInt(amountContext)) + stack.getDamage();
 
 		if (amountContext.hasErrors()) {
 			return;
 		}
 
-		ItemStack stack = context.required(ContextParameters.ITEM_STACK);
 		ServerPlayerEntity serverPlayerHolder = context.optional(ContextParameters.THIS_ENTITY)
 			.filter(ServerPlayerEntity.class::isInstance)
 			.map(ServerPlayerEntity.class::cast)
@@ -69,12 +72,12 @@ public final class DamageItemAction extends ItemAction {
 
 		if (this.ignoreUnbreaking()) {
 
-			if (amount >= stack.getMaxCount()) {
+			if (amount >= stack.getMaxDamage()) {
 				stack.decrement(1);
 			}
 
 			else {
-				stack.setDamage(stack.getDamage() + amount);
+				stack.setDamage(amount);
 			}
 
 		}

@@ -45,10 +45,10 @@ public final class ConsumeItemAction extends ItemAction {
 		}
 
 		Context amountContext = context.makeChild(".amount");
-		int amount = this.amount().nextInt(amountContext);
+		int amount = Math.abs(this.amount().nextInt(amountContext));
 
 		if (!amountContext.hasErrors()) {
-			context.required(ContextParameters.ITEM_STACK).decrement(amount);
+			context.required(ContextParameters.STACK_REFERENCE).get().decrement(amount);
 		}
 
 	}

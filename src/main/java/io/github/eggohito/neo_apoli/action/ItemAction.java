@@ -31,7 +31,7 @@ public abstract class ItemAction extends Action {
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.ITEM_STACK);
+		return Set.of(ContextParameters.STACK_REFERENCE);
 	}
 
 	@Override
