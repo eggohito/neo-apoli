@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ItemAction;
+import io.github.eggohito.neo_apoli.action.custom.item.ApplyModifierItemAction;
 import io.github.eggohito.neo_apoli.action.custom.item.ConsumeItemAction;
 import io.github.eggohito.neo_apoli.action.custom.item.DamageItemAction;
 import io.github.eggohito.neo_apoli.action.meta.item.*;
@@ -33,6 +34,7 @@ public final class ItemActionTypes {
 	public static final ItemActionType<ReferenceItemAction> REFERENCE = registerInternal("reference", ReferenceItemAction.CODEC, ReferenceItemAction.PACKET_CODEC);
 	public static final ItemActionType<SequenceItemAction> SEQUENCE = registerInternal("sequence", SequenceItemAction.CODEC, SequenceItemAction.PACKET_CODEC);
 
+	public static final ItemActionType<ApplyModifierItemAction> APPLY_MODIFIER = registerInternal("apply_modifier", ApplyModifierItemAction.CODEC, ApplyModifierItemAction.PACKET_CODEC);
 	public static final ItemActionType<ConsumeItemAction> CONSUME = registerInternal("consume", ConsumeItemAction.CODEC, ConsumeItemAction.PACKET_CODEC);
 	public static final ItemActionType<DamageItemAction> DAMAGE = registerInternal("damage", DamageItemAction.CODEC, DamageItemAction.PACKET_CODEC);
 
