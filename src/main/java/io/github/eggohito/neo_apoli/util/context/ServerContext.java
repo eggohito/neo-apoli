@@ -5,6 +5,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextParameterMap;
 import net.minecraft.util.context.ContextType;
 
+import java.util.function.UnaryOperator;
+
 public class ServerContext extends Context {
 
 	ServerContext(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, ServerWorld world) {
@@ -28,6 +30,12 @@ public class ServerContext extends Context {
 	@Override
 	public ServerWorld getWorld() {
 		return (ServerWorld) super.getWorld();
+	}
+
+	@Override
+	public ServerContext copy(UnaryOperator<Builder> operator) {
+		Context context = operator.apply(builder(this)).build(this.getWorld());
+		return new ServerContext(context, this.getWorld());
 	}
 
 	public MinecraftServer getServer() {
