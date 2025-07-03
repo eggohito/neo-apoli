@@ -22,7 +22,7 @@ import net.minecraft.world.World;
 import java.util.Optional;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class LightLevelNumberProvider extends NumberProvider {
 

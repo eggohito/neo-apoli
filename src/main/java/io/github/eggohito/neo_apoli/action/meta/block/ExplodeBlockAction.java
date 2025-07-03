@@ -7,13 +7,13 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ExplodeBlockAction extends BlockAction implements ExplodeMetaAction {
 
@@ -39,8 +39,8 @@ public final class ExplodeBlockAction extends BlockAction implements ExplodeMeta
 	}
 
 	@Override
-	public void impl(Context context) {
-		ExplodeMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		ExplodeMetaAction.super.internalImpl(context);
 	}
 
 	@Override

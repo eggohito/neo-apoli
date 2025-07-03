@@ -13,7 +13,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SetBlockBlockAction extends BlockAction {
 

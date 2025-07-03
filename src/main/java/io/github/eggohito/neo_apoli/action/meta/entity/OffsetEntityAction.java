@@ -14,7 +14,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.Vec3d;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class OffsetEntityAction extends EntityAction implements OffsetMetaAction<EntityAction> {
 
@@ -36,7 +36,7 @@ public final class OffsetEntityAction extends EntityAction implements OffsetMeta
 
 	@Override
 	public void impl(Context context) {
-		OffsetMetaAction.super.impl(context);
+		OffsetMetaAction.super.internalImpl(context);
 	}
 
 	@Override

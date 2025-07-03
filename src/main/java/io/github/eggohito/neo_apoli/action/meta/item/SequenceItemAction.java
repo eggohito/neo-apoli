@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -15,7 +15,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SequenceItemAction extends ItemAction implements SequenceMetaAction<ItemAction> {
 
@@ -34,8 +34,8 @@ public final class SequenceItemAction extends ItemAction implements SequenceMeta
 	}
 
 	@Override
-	public void impl(Context context) {
-		SequenceMetaAction.super.impl(context);
+	protected void impl(ServerContext context) {
+		SequenceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

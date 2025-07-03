@@ -20,7 +20,7 @@ import net.minecraft.util.Hand;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SwingHandEntityAction extends EntityAction {
 

@@ -17,7 +17,7 @@ import net.minecraft.registry.RegistryKeys;
 
 import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class EntityTypeEntityCondition extends EntityCondition {
 

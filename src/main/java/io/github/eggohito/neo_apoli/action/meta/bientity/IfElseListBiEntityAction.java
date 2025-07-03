@@ -16,7 +16,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class IfElseListBiEntityAction extends BiEntityAction implements IfElseListMetaAction<BiEntityAction, BiEntityCondition> {
 
@@ -36,7 +36,7 @@ public final class IfElseListBiEntityAction extends BiEntityAction implements If
 
 	@Override
 	public void impl(Context context) {
-		IfElseListMetaAction.super.impl(context);
+		IfElseListMetaAction.super.internalImpl(context);
 	}
 
 	@Override

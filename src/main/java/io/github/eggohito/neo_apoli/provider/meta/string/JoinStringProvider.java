@@ -19,7 +19,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class JoinStringProvider extends StringProvider implements MultiStringProvider {
 

@@ -21,7 +21,7 @@ import net.minecraft.state.property.Property;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 

@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SideEntityAction extends EntityAction implements SideMetaAction<EntityAction> {
 
@@ -35,7 +35,7 @@ public final class SideEntityAction extends EntityAction implements SideMetaActi
 
 	@Override
 	public void impl(Context context) {
-		SideMetaAction.super.impl(context);
+		SideMetaAction.super.internalImpl(context);
 	}
 
 	@Override

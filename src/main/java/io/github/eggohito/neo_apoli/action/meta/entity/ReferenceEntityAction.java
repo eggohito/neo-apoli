@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ReferenceEntityAction extends EntityAction implements ReferenceMetaAction<EntityAction> {
 
@@ -32,7 +32,7 @@ public final class ReferenceEntityAction extends EntityAction implements Referen
 
 	@Override
 	public void impl(Context context) {
-		ReferenceMetaAction.super.impl(context);
+		ReferenceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

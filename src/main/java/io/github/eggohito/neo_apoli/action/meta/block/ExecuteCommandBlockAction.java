@@ -6,13 +6,13 @@ import io.github.eggohito.neo_apoli.action.meta.ExecuteCommandMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ExecuteCommandBlockAction extends BlockAction implements ExecuteCommandMetaAction {
 
@@ -31,8 +31,8 @@ public final class ExecuteCommandBlockAction extends BlockAction implements Exec
 	}
 
 	@Override
-	public void impl(Context context) {
-		ExecuteCommandMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		ExecuteCommandMetaAction.super.internalImpl(context);
 	}
 
 	@Override

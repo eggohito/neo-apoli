@@ -5,14 +5,14 @@ import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.meta.ReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ReferenceBlockAction extends BlockAction implements ReferenceMetaAction<BlockAction> {
 
@@ -31,8 +31,8 @@ public final class ReferenceBlockAction extends BlockAction implements Reference
 	}
 
 	@Override
-	public void impl(Context context) {
-		ReferenceMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		ReferenceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

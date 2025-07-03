@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
 
@@ -22,7 +23,8 @@ public interface IfElseMetaAction<A extends Action, C extends Condition> {
 
 	Optional<A> elseAction();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		Context conditionContext = context.makeChild(".condition");
 		boolean shouldExecute = this.condition().test(conditionContext);

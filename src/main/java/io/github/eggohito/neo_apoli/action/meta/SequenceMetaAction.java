@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -20,7 +21,8 @@ public interface SequenceMetaAction<A extends Action> {
 
 	List<A> actions();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 		this.iterate((index, action) -> action.execute(context.makeChild(".actions[" + index + "]")));
 	}
 

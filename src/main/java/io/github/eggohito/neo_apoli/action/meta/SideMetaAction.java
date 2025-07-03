@@ -12,6 +12,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.function.ValueLists;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiFunction;
 
@@ -21,7 +22,8 @@ public interface SideMetaAction<A extends Action> {
 
 	Side side();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		if ((side() == Side.CLIENT) != NeoApoli.serverSide()) {
 			action().execute(context.makeChild(".action"));

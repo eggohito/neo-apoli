@@ -17,7 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class AddExperienceEntityAction extends EntityAction {
 

@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.Vec3d;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class OffsetBlockAction extends BlockAction implements OffsetMetaAction<BlockAction> {
 
@@ -35,8 +35,8 @@ public final class OffsetBlockAction extends BlockAction implements OffsetMetaAc
 	}
 
 	@Override
-	public void impl(Context context) {
-		OffsetMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		OffsetMetaAction.super.internalImpl(context);
 	}
 
 	@Override

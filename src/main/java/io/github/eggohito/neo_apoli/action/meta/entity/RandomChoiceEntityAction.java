@@ -14,7 +14,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class RandomChoiceEntityAction extends EntityAction implements RandomChoiceMetaAction<EntityAction> {
 
@@ -34,7 +34,7 @@ public final class RandomChoiceEntityAction extends EntityAction implements Rand
 
 	@Override
 	public void impl(Context context) {
-		RandomChoiceMetaAction.super.impl(context);
+		RandomChoiceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

@@ -15,7 +15,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SequenceEntityAction extends EntityAction implements SequenceMetaAction<EntityAction> {
 
@@ -35,7 +35,7 @@ public final class SequenceEntityAction extends EntityAction implements Sequence
 
 	@Override
 	public void impl(Context context) {
-		SequenceMetaAction.super.impl(context);
+		SequenceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

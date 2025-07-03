@@ -17,7 +17,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Locale;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class NumberStringProvider extends StringProvider {
 

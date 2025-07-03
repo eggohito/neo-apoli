@@ -39,6 +39,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 import net.minecraft.world.explosion.ExplosionBehavior;
 import net.minecraft.world.explosion.ExplosionImpl;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +68,8 @@ public interface ExplodeMetaAction {
 
 	ExplosionDisplay display();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		World world = context.getWorld();
 		Vec3d position = context.required(ContextParameters.POSITION);

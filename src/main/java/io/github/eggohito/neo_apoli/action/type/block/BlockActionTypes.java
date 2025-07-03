@@ -36,7 +36,6 @@ public final class BlockActionTypes {
 	public static final BlockActionType<RandomChoiceBlockAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceBlockAction.CODEC, RandomChoiceBlockAction.PACKET_CODEC);
 	public static final BlockActionType<ReferenceBlockAction> REFERENCE = registerInternal("reference", ReferenceBlockAction.CODEC, ReferenceBlockAction.PACKET_CODEC);
 	public static final BlockActionType<SequenceBlockAction> SEQUENCE = registerInternal("sequence", SequenceBlockAction.CODEC, SequenceBlockAction.PACKET_CODEC);
-	public static final BlockActionType<SideBlockAction> SIDE = registerInternal("side", SideBlockAction.CODEC, SideBlockAction.PACKET_CODEC);
 
 	public static final BlockActionType<AddBlockBlockAction> ADD_BLOCK = registerInternal("add_block", AddBlockBlockAction.CODEC, AddBlockBlockAction.PACKET_CODEC);
 	public static final BlockActionType<BoneMealBlockAction> BONE_MEAL = registerInternal("bone_meal", BoneMealBlockAction.CODEC, BoneMealBlockAction.PACKET_CODEC);

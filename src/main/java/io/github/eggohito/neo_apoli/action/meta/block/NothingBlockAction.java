@@ -5,13 +5,13 @@ import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.action.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class NothingBlockAction extends BlockAction implements NothingMetaAction {
 
@@ -28,7 +28,7 @@ public final class NothingBlockAction extends BlockAction implements NothingMeta
 	}
 
 	@Override
-	protected void impl(Context context) {
+	protected void impl(ServerContext context) {
 
 	}
 

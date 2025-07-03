@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -23,7 +24,8 @@ public interface IfElseListMetaAction<A extends Action, C extends Condition> {
 
 	List<Entry<C, A>> entries();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		MutableBoolean result = new MutableBoolean();
 		this.iterate((index, entry) -> {

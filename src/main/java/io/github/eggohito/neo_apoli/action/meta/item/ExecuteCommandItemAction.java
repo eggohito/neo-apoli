@@ -6,13 +6,13 @@ import io.github.eggohito.neo_apoli.action.meta.ExecuteCommandMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ExecuteCommandItemAction extends ItemAction implements ExecuteCommandMetaAction {
 
@@ -31,8 +31,8 @@ public final class ExecuteCommandItemAction extends ItemAction implements Execut
 	}
 
 	@Override
-	public void impl(Context context) {
-		ExecuteCommandMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		ExecuteCommandMetaAction.super.internalImpl(context);
 	}
 
 	@Override

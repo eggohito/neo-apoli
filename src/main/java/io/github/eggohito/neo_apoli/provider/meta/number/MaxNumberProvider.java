@@ -13,7 +13,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class MaxNumberProvider extends NumberProvider implements MultiNumberProvider {
 

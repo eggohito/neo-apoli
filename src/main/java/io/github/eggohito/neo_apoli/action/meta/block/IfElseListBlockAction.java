@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -16,7 +16,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class IfElseListBlockAction extends BlockAction implements IfElseListMetaAction<BlockAction, BlockCondition> {
 
@@ -35,8 +35,8 @@ public final class IfElseListBlockAction extends BlockAction implements IfElseLi
 	}
 
 	@Override
-	public void impl(Context context) {
-		IfElseListMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		IfElseListMetaAction.super.internalImpl(context);
 	}
 
 	@Override

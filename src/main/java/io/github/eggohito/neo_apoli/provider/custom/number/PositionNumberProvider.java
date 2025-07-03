@@ -17,7 +17,7 @@ import net.minecraft.util.math.Direction;
 
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class PositionNumberProvider extends NumberProvider {
 

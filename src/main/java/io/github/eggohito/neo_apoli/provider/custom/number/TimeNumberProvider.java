@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class TimeNumberProvider extends NumberProvider {
 

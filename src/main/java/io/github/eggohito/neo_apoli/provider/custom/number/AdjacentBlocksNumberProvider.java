@@ -20,7 +20,7 @@ import net.minecraft.world.World;
 
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class AdjacentBlocksNumberProvider extends NumberProvider {
 

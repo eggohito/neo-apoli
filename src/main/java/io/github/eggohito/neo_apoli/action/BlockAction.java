@@ -36,8 +36,7 @@ public abstract class BlockAction extends Action {
 		return ActionCategories.BLOCK_ACTION;
 	}
 
-	@Override
-	public final void impl(Context context) {
+	protected final void impl(Context context) {
 
 		if (context.getWorld() instanceof ServerWorld serverWorld) {
 			this.impl(new ServerContext(context, serverWorld));

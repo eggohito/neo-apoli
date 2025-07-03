@@ -5,14 +5,14 @@ import io.github.eggohito.neo_apoli.action.ItemAction;
 import io.github.eggohito.neo_apoli.action.meta.ReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ReferenceItemAction extends ItemAction implements ReferenceMetaAction<ItemAction> {
 
@@ -31,8 +31,8 @@ public final class ReferenceItemAction extends ItemAction implements ReferenceMe
 	}
 
 	@Override
-	public void impl(Context context) {
-		ReferenceMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		ReferenceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

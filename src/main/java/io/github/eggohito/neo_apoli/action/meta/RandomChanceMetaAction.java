@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
 
@@ -21,7 +22,8 @@ public interface RandomChanceMetaAction<A extends Action> {
 
 	float chance();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		if (context.getWorld().getRandom().nextFloat() < chance()) {
 			successAction().execute(context.makeChild(".success_action"));

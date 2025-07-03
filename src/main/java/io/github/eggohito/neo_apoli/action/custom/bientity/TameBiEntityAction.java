@@ -14,7 +14,7 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class TameBiEntityAction extends BiEntityAction {
 

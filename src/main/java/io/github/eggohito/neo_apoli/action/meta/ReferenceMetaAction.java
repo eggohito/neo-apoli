@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.Function;
 
@@ -17,7 +18,8 @@ public interface ReferenceMetaAction<A extends Action> {
 
 	ActionCategory<A> getCategory();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		Identifier value = this.value();
 		ActionCategory<A> category = this.getCategory();

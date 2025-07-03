@@ -15,7 +15,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class RandomChanceEntityAction extends EntityAction implements RandomChanceMetaAction<EntityAction> {
 
@@ -40,7 +40,7 @@ public final class RandomChanceEntityAction extends EntityAction implements Rand
 
 	@Override
 	public void impl(Context context) {
-		RandomChanceMetaAction.super.impl(context);
+		RandomChanceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

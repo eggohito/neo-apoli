@@ -17,7 +17,7 @@ import net.minecraft.util.math.random.RandomSeed;
 import java.util.Random;
 import java.util.function.BiFunction;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class UniformNumberProvider extends NumberProvider {
 

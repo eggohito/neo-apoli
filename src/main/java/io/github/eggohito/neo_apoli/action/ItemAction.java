@@ -32,7 +32,6 @@ public abstract class ItemAction extends Action {
 		return ActionCategories.ITEM_ACTION;
 	}
 
-	@Override
 	protected final void impl(Context context) {
 
 		if (context.getWorld() instanceof ServerWorld serverWorld) {

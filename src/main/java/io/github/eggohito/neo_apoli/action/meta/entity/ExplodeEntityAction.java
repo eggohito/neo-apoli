@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ExplodeEntityAction extends EntityAction implements ExplodeMetaAction {
 
@@ -40,7 +40,7 @@ public final class ExplodeEntityAction extends EntityAction implements ExplodeMe
 
 	@Override
 	public void impl(Context context) {
-		ExplodeMetaAction.super.impl(context);
+		ExplodeMetaAction.super.internalImpl(context);
 	}
 
 	@Override

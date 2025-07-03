@@ -21,7 +21,7 @@ import net.minecraft.util.dynamic.Codecs;
 import java.util.Map;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class SwapEntityContextBiEntityAction extends BiEntityAction {
 

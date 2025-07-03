@@ -13,7 +13,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class EqualsBiEntityCondition extends BiEntityCondition {
 

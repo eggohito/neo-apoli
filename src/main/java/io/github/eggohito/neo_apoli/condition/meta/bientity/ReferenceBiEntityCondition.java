@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.Identifier;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ReferenceBiEntityCondition extends BiEntityCondition implements ReferenceMetaCondition<BiEntityCondition> {
 

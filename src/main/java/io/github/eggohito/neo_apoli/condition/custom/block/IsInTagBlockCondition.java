@@ -17,7 +17,7 @@ import net.minecraft.registry.tag.TagKey;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class IsInTagBlockCondition extends BlockCondition {
 

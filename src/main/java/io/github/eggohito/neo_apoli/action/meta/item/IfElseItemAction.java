@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -16,7 +16,7 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class IfElseItemAction extends ItemAction implements IfElseMetaAction<ItemAction, ItemCondition> {
 
@@ -40,8 +40,8 @@ public final class IfElseItemAction extends ItemAction implements IfElseMetaActi
 	}
 
 	@Override
-	public void impl(Context context) {
-		IfElseMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		IfElseMetaAction.super.internalImpl(context);
 	}
 
 	@Override

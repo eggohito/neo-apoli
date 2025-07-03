@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class RandomChoiceItemAction extends ItemAction implements RandomChoiceMetaAction<ItemAction> {
 
@@ -33,8 +33,8 @@ public final class RandomChoiceItemAction extends ItemAction implements RandomCh
 	}
 
 	@Override
-	public void impl(Context context) {
-		RandomChoiceMetaAction.super.impl(context);
+	public void impl(ServerContext context) {
+		RandomChoiceMetaAction.super.internalImpl(context);
 	}
 
 	@Override

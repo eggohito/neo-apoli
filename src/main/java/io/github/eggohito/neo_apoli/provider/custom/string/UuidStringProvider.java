@@ -15,7 +15,7 @@ import net.minecraft.util.context.ContextParameter;
 
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class UuidStringProvider extends StringProvider {
 

@@ -20,7 +20,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class CommandResultNumberProvider extends NumberProvider {
 

@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.collection.WeightedList;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -19,7 +20,8 @@ public interface RandomChoiceMetaAction<A extends Action> {
 
 	WeightedList<A> actions();
 
-	default void impl(Context context) {
+	@ApiStatus.Internal
+	default void internalImpl(Context context) {
 
 		actions().shuffle();
 		ListIterator<A> actionIterator = actions().stream().toList().listIterator();

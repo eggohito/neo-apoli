@@ -17,7 +17,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class OnBlockEntityCondition extends EntityCondition {
 

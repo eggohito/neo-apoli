@@ -25,7 +25,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Optional;
 
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 @Data
 public final class ApplyModifierItemAction extends ItemAction {
 
