@@ -16,23 +16,19 @@ import java.util.function.Supplier;
 
 public record NumberComparison(Comparator comparator, NumberProvider first, NumberProvider second, NumberProvider decimals) implements Comparison {
 
-	public static final MapCodec<NumberComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> Comparison.addComparatorField(instance)
-		.and(NumberProvider.CODEC.fieldOf("first").forGetter(NumberComparison::first))
-		.and(NumberProvider.CODEC.fieldOf("second").forGetter(NumberComparison::second))
-		.and(NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberComparison::decimals))
-		.apply(instance, NumberComparison::new));
+	public static final MapCodec<NumberComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Comparator.CODEC.fieldOf("comparator").forGetter(NumberComparison::comparator),
+		NumberProvider.CODEC.fieldOf("first").forGetter(NumberComparison::first),
+		NumberProvider.CODEC.fieldOf("second").forGetter(NumberComparison::second),
+		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberComparison::decimals)
+	).apply(instance, NumberComparison::new));
 
-	public static final PacketCodec<RegistryByteBuf, NumberComparison> PACKET_CODEC = Comparison.createPacketCodec(
-		(buf, comparison) -> {
-			NumberProvider.PACKET_CODEC.encode(buf, comparison.first());
-			NumberProvider.PACKET_CODEC.encode(buf, comparison.second());
-			NumberProvider.PACKET_CODEC.encode(buf, comparison.decimals());
-		},
-		(buf, comparator) -> new NumberComparison(comparator,
-			NumberProvider.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, NumberComparison> PACKET_CODEC = PacketCodec.tuple(
+		Comparator.PACKET_CODEC, NumberComparison::comparator,
+		NumberProvider.PACKET_CODEC, NumberComparison::first,
+		NumberProvider.PACKET_CODEC, NumberComparison::second,
+		NumberProvider.PACKET_CODEC, NumberComparison::decimals,
+		NumberComparison::new
 	);
 
 	@Override

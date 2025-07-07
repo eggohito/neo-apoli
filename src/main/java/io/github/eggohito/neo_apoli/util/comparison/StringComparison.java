@@ -9,28 +9,25 @@ import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 
 import java.util.Locale;
 
 public record StringComparison(Comparator comparator, StringProvider first, StringProvider second, boolean caseSensitive) implements Comparison {
 
-	public static final MapCodec<StringComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> Comparison.addComparatorField(instance)
-		.and(StringProvider.CODEC.fieldOf("first").forGetter(StringComparison::first))
-		.and(StringProvider.CODEC.fieldOf("second").forGetter(StringComparison::second))
-		.and(Codec.BOOL.optionalFieldOf("case_sensitive", true).forGetter(StringComparison::caseSensitive))
-		.apply(instance, StringComparison::new));
+	public static final MapCodec<StringComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Comparator.CODEC.fieldOf("comparator").forGetter(StringComparison::comparator),
+		StringProvider.CODEC.fieldOf("first").forGetter(StringComparison::first),
+		StringProvider.CODEC.fieldOf("second").forGetter(StringComparison::second),
+		Codec.BOOL.optionalFieldOf("case_sensitive", true).forGetter(StringComparison::caseSensitive)
+	).apply(instance, StringComparison::new));
 
-	public static final PacketCodec<RegistryByteBuf, StringComparison> PACKET_CODEC = Comparison.createPacketCodec(
-		(buf, comparison) -> {
-			StringProvider.PACKET_CODEC.encode(buf, comparison.first());
-			StringProvider.PACKET_CODEC.encode(buf, comparison.second());
-			buf.writeBoolean(comparison.caseSensitive());
-		},
-		(buf, comparator) -> new StringComparison(comparator,
-			StringProvider.PACKET_CODEC.decode(buf),
-			StringProvider.PACKET_CODEC.decode(buf),
-			buf.readBoolean()
-		)
+	public static final PacketCodec<RegistryByteBuf, StringComparison> PACKET_CODEC = PacketCodec.tuple(
+		Comparator.PACKET_CODEC, StringComparison::comparator,
+		StringProvider.PACKET_CODEC, StringComparison::first,
+		StringProvider.PACKET_CODEC, StringComparison::second,
+		PacketCodecs.BOOLEAN, StringComparison::caseSensitive,
+		StringComparison::new
 	);
 
 	@Override

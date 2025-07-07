@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
+import io.github.eggohito.neo_apoli.util.comparison.NbtComparison;
 import io.github.eggohito.neo_apoli.util.comparison.NumberComparison;
 import io.github.eggohito.neo_apoli.util.comparison.StringComparison;
 import net.minecraft.network.RegistryByteBuf;
@@ -19,6 +20,7 @@ public final class ComparisonTypes {
 	public static final Codec<ComparisonType<?>> CODEC = NeoApoliRegistries.COMPARISON_TYPE.getCodec();
 	public static final PacketCodec<RegistryByteBuf, ComparisonType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.COMPARISON_TYPE);
 
+	public static final ComparisonType<NbtComparison> NBT = registerInternal("nbt", NbtComparison.CODEC, NbtComparison.PACKET_CODEC);
 	public static final ComparisonType<NumberComparison> NUMBER = registerInternal("number", NumberComparison.CODEC, NumberComparison.PACKET_CODEC);
 	public static final ComparisonType<StringComparison> STRING = registerInternal("string", StringComparison.CODEC, StringComparison.PACKET_CODEC);
 
