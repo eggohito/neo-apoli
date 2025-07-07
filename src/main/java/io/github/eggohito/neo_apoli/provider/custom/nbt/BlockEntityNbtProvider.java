@@ -8,11 +8,15 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.context.ContextParameter;
 
+import java.util.Optional;
 import java.util.Set;
 
 @EqualsAndHashCode
@@ -29,7 +33,18 @@ public final class BlockEntityNbtProvider extends NbtProvider {
 
 	@Override
 	protected NbtElement impl(Context context) {
-		return context.required(ContextParameters.BLOCK_ENTITY).createNbtWithIdentifyingData(context.getWorld().getRegistryManager());
+
+		RegistryWrapper.WrapperLookup wrapperLookup = context.getWorld().getRegistryManager();
+		Optional<BlockEntity> blockEntity = context.optional(ContextParameters.BLOCK_ENTITY);
+
+		if (blockEntity.isEmpty()) {
+			context.getReporter().report("Couldn't get and provide NBT from non-existent block entity!");
+		}
+
+		return blockEntity
+			.map(be -> be.createNbtWithIdentifyingData(wrapperLookup))
+			.orElseGet(NbtCompound::new);
+
 	}
 
 	@Override
