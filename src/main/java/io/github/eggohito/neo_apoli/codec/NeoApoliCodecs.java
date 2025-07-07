@@ -3,14 +3,20 @@ package io.github.eggohito.neo_apoli.codec;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
+import io.github.eggohito.neo_apoli.mixin.access.StringNbtReaderAccessor;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.HandProperty;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.visitor.StringNbtWriter;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -65,6 +71,35 @@ public class NeoApoliCodecs {
 		.put("consume", ActionResult.CONSUME)
 		.put("fail", ActionResult.FAIL)
 		.put("pass", ActionResult.PASS));
+
+	public static final Codec<NbtElement> STRINGIFIED_NBT = Codec.STRING.comapFlatMap(
+		str -> {
+
+			try {
+				return DataResult.success(StringNbtReaderAccessor.getDefaultReader().read(str));
+			}
+
+			catch (CommandSyntaxException e) {
+				return DataResult.error(() -> "Error parsing string NBT: " + e.getMessage());
+			}
+
+		},
+		nbtElement -> {
+
+			StringNbtWriter nbtWriter = new StringNbtWriter();
+			nbtElement.accept(nbtWriter);
+
+			return nbtWriter.getString();
+
+		}
+	);
+
+	public static final Codec<NbtElement> NBT_ELEMENT = Codec.PASSTHROUGH.xmap(
+		dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(),
+		nbtElement -> new Dynamic<>(NbtOps.INSTANCE, nbtElement)
+	);
+
+	public static final Codec<NbtElement> REGULAR_OR_STRINGIFIED_NBT_ELEMENT = new MultiAlternativeCodec<>(NBT_ELEMENT, STRINGIFIED_NBT);
 
 	public static <E extends Enum<E>> Codec<E> enumType(Class<E> clazz, ValueLists.OutOfBoundsHandling outOfBoundsHandling) {
 

@@ -9,6 +9,7 @@
 		"access.DataCommandStorageAccessor$PersistentStateAccessor",
 		"access.ReloadableRegistriesAccessor",
 		"access.ReloadableRegistriesAccessor$LookupAccessor",
+		"access.StringNbtReaderAccessor",
 		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
 		"action.meta.ExplodeMetaActionMixin",

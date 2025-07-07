@@ -21,6 +21,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
@@ -61,6 +62,7 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<ItemActionType<?>>> ITEM_ACTION_TYPE = create("item_action_type");
 	public static final RegistryKey<Registry<ItemAction>> ITEM_ACTION = create("item_action");
 
+	public static final RegistryKey<Registry<NbtProviderType<?>>> NBT_PROVIDER_TYPE = create("nbt_provider_type");
 	public static final RegistryKey<Registry<NumberProviderType<?>>> NUMBER_PROVIDER_TYPE = create("number_provider_type");
 	public static final RegistryKey<Registry<StringProviderType<?>>> STRING_PROVIDER_TYPE = create("string_provider_type");
 
