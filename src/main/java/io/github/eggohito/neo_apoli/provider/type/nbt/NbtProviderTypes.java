@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.BlockEntityNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.EntityNbtProvider;
+import io.github.eggohito.neo_apoli.provider.custom.nbt.ItemNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.StorageNbtProvider;
 import io.github.eggohito.neo_apoli.provider.meta.nbt.ConstantNbtProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -29,6 +30,7 @@ public final class NbtProviderTypes {
 
 	public static final NbtProviderType<BlockEntityNbtProvider> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityNbtProvider.CODEC, BlockEntityNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<ItemNbtProvider> ITEM = registerInternal("item", ItemNbtProvider.CODEC, ItemNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<StorageNbtProvider> STORAGE = registerInternal("storage", StorageNbtProvider.CODEC, StorageNbtProvider.PACKET_CODEC);
 
 	public static void registerAll() {
