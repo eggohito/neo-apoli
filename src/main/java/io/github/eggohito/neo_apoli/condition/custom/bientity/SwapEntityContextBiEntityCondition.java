@@ -25,16 +25,16 @@ import java.util.Set;
 @Data
 public final class SwapEntityContextBiEntityCondition extends BiEntityCondition {
 
-	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliMapCodecs.lazy(() -> BiEntityCondition.CODEC.fieldOf("bientity_condition")).forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
+	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = NeoApoliMapCodecs.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BiEntityCondition.CODEC.fieldOf("bientity_condition").forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
 		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityCondition::parameters)
-	).apply(instance, SwapEntityContextBiEntityCondition::new));
+	).apply(instance, SwapEntityContextBiEntityCondition::new)));
 
-	public static final PacketCodec<RegistryByteBuf, SwapEntityContextBiEntityCondition> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, SwapEntityContextBiEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
 		BiEntityCondition.PACKET_CODEC, SwapEntityContextBiEntityCondition::biEntityCondition,
 		NeoApoliPacketCodecs.ENTITY_PARAMETER_MAP, SwapEntityContextBiEntityCondition::parameters,
 		SwapEntityContextBiEntityCondition::new
-	);
+	));
 
 	private final BiEntityCondition biEntityCondition;
 	private final Map<EntityParameter, EntityParameter> parameters;
