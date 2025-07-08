@@ -8,8 +8,10 @@ import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.ActionResult;
@@ -108,5 +110,7 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, Explosion.DestructionType> DESTRUCTION_TYPE = PacketCodecUtil.enumType(Explosion.DestructionType.class);
 
 	public static final PacketCodec<PacketByteBuf, ActionResult> ACTION_RESULT = PacketCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
+
+	public static final PacketCodec<RegistryByteBuf, BlockState> BLOCK_STATE = PacketCodecs.unlimitedRegistryCodec(BlockState.CODEC);
 
 }

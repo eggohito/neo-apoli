@@ -13,9 +13,12 @@ import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.block.BlockState;
+import net.minecraft.command.argument.BlockArgumentParser;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.visitor.StringNbtWriter;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -92,5 +95,22 @@ public class NeoApoliCodecs {
 	);
 
 	public static final Codec<NbtElement> REGULAR_OR_STRINGIFIED_NBT_ELEMENT = new MultiAlternativeCodec<>(NBT_ELEMENT, STRINGIFIED_NBT);
+
+	public static final Codec<BlockState> STRINGIFIED_BLOCK_STATE = Codec.STRING.comapFlatMap(
+		str -> {
+
+			try {
+				return DataResult.success(BlockArgumentParser.block(Registries.BLOCK, str, true).blockState());
+			}
+
+			catch (CommandSyntaxException e) {
+				return DataResult.error(() -> "Couldn't parse string as block state: " + e.getMessage());
+			}
+
+		},
+		BlockArgumentParser::stringifyBlockState
+	);
+
+	public static final Codec<BlockState> REGULAR_OR_STRINGIFIED_BLOCK_STATE = Codec.withAlternative(BlockState.CODEC, STRINGIFIED_BLOCK_STATE);
 
 }
