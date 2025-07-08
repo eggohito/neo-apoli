@@ -5,9 +5,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.function.ValueLists;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -24,8 +22,8 @@ public enum Shape implements StringIdentifiable {
 	SPHERE("sphere", (x, y, z) -> Math.sqrt(x * x + y * y + z * z), (x, y, z) -> Math.sqrt(x * x + y * y + z * z)),
 	EUCLIDEAN("euclidean", SPHERE.distanceGetter, SPHERE.blockDistanceGetter);
 
-	public static final Codec<Shape> CODEC = StringIdentifiable.createCodec(Shape::values);
-	public static final PacketCodec<ByteBuf, Shape> PACKET_CODEC = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(Shape::ordinal, Shape.values(), ValueLists.OutOfBoundsHandling.WRAP), Shape::ordinal);
+	public static final Codec<Shape> CODEC = CodecUtil.enumType(Shape.class);
+	public static final PacketCodec<ByteBuf, Shape> PACKET_CODEC = PacketCodecUtil.enumType(Shape.class);
 
 	final String name;
 	final DistanceGetter distanceGetter;

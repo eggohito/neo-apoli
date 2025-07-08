@@ -4,12 +4,13 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,12 +26,12 @@ import java.util.Set;
 @Data
 public final class SwapEntityContextBiEntityCondition extends BiEntityCondition {
 
-	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = NeoApoliMapCodecs.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<SwapEntityContextBiEntityCondition> CODEC = MapCodecUtil.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.fieldOf("bientity_condition").forGetter(SwapEntityContextBiEntityCondition::biEntityCondition),
 		Codecs.nonEmptyMap(NeoApoliCodecs.ENTITY_PARAMETER_MAP).fieldOf("parameters").forGetter(SwapEntityContextBiEntityCondition::parameters)
 	).apply(instance, SwapEntityContextBiEntityCondition::new)));
 
-	public static final PacketCodec<RegistryByteBuf, SwapEntityContextBiEntityCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, SwapEntityContextBiEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(SwapEntityContextBiEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
 		BiEntityCondition.PACKET_CODEC, SwapEntityContextBiEntityCondition::biEntityCondition,
 		NeoApoliPacketCodecs.ENTITY_PARAMETER_MAP, SwapEntityContextBiEntityCondition::parameters,
 		SwapEntityContextBiEntityCondition::new

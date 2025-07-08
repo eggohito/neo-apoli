@@ -5,8 +5,8 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.OffsetMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,8 +18,8 @@ import net.minecraft.util.math.Vec3d;
 @Data
 public final class OffsetEntityAction extends EntityAction implements OffsetMetaAction<EntityAction> {
 
-	public static final MapCodec<OffsetEntityAction> CODEC = NeoApoliMapCodecs.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.codec(EntityAction.CODEC, OffsetEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, OffsetEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.packetCodec(EntityAction.PACKET_CODEC, OffsetEntityAction::new));
+	public static final MapCodec<OffsetEntityAction> CODEC = MapCodecUtil.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.codec(EntityAction.CODEC, OffsetEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, OffsetEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(OffsetEntityAction.class.getSimpleName(), () -> OffsetMetaAction.packetCodec(EntityAction.PACKET_CODEC, OffsetEntityAction::new));
 
 	private final EntityAction action;
 	private final Vec3d offset;

@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.ImmutableStringReader;
@@ -15,6 +16,14 @@ import net.minecraft.util.Identifier;
 import java.util.function.Function;
 
 public class MiscUtil {
+
+	public static ImmutableBiMap<String, ActionResult> ACTION_RESULTS = ImmutableBiMap.<String, ActionResult>builder()
+		.put("success", ActionResult.SUCCESS)
+		.put("success_server", ActionResult.SUCCESS_SERVER)
+		.put("consume", ActionResult.CONSUME)
+		.put("fail", ActionResult.FAIL)
+		.put("pass", ActionResult.PASS)
+		.build();
 
 	public static CommandSyntaxException createCommandException(Message message) {
 		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message);

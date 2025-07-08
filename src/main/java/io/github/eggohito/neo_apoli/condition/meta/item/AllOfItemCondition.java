@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli.condition.meta.item;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.meta.AllOfMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,8 +19,8 @@ import java.util.List;
 @Data
 public final class AllOfItemCondition extends ItemCondition implements AllOfMetaCondition<ItemCondition> {
 
-	public static final MapCodec<AllOfItemCondition> CODEC = NeoApoliMapCodecs.lazy(AllOfItemCondition.class.getSimpleName(), () -> AllOfMetaCondition.codec(ItemCondition.CODEC, AllOfItemCondition::new));
-	public static final PacketCodec<RegistryByteBuf, AllOfItemCondition> PACKET_CODEC = NeoApoliPacketCodecs.lazy(AllOfItemCondition.class.getSimpleName(), () -> AllOfMetaCondition.packetCodec(ItemCondition.PACKET_CODEC, AllOfItemCondition::new));
+	public static final MapCodec<AllOfItemCondition> CODEC = MapCodecUtil.lazy(AllOfItemCondition.class.getSimpleName(), () -> AllOfMetaCondition.codec(ItemCondition.CODEC, AllOfItemCondition::new));
+	public static final PacketCodec<RegistryByteBuf, AllOfItemCondition> PACKET_CODEC = PacketCodecUtil.lazy(AllOfItemCondition.class.getSimpleName(), () -> AllOfMetaCondition.packetCodec(ItemCondition.PACKET_CODEC, AllOfItemCondition::new));
 
 	private final List<ItemCondition> conditions;
 

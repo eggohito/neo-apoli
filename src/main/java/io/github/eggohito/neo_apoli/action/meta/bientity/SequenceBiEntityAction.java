@@ -5,8 +5,8 @@ import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.meta.SequenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,8 +19,8 @@ import java.util.List;
 @Data
 public final class SequenceBiEntityAction extends BiEntityAction implements SequenceMetaAction<BiEntityAction> {
 
-	public static final MapCodec<SequenceBiEntityAction> CODEC = NeoApoliMapCodecs.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.codec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, SequenceBiEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(BiEntityAction.PACKET_CODEC, SequenceBiEntityAction::new));
+	public static final MapCodec<SequenceBiEntityAction> CODEC = MapCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.codec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, SequenceBiEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(BiEntityAction.PACKET_CODEC, SequenceBiEntityAction::new));
 
 	private final List<BiEntityAction> actions;
 

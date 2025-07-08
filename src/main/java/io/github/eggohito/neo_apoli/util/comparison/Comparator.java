@@ -1,11 +1,11 @@
 package io.github.eggohito.neo_apoli.util.comparison;
 
 import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.function.ValueLists;
 
 public enum Comparator implements StringIdentifiable {
 
@@ -16,8 +16,8 @@ public enum Comparator implements StringIdentifiable {
 	LESS_THAN("<"),
 	LESS_THAN_OR_EQUAL("<=");
 
-	public static final Codec<Comparator> CODEC = StringIdentifiable.createCodec(Comparator::values);
-	public static final PacketCodec<ByteBuf, Comparator> PACKET_CODEC = PacketCodecs.indexed(ValueLists.createIndexToValueFunction(Comparator::ordinal, Comparator.values(), ValueLists.OutOfBoundsHandling.WRAP), Comparator::ordinal);
+	public static final Codec<Comparator> CODEC = CodecUtil.enumType(Comparator.class);
+	public static final PacketCodec<ByteBuf, Comparator> PACKET_CODEC = PacketCodecUtil.enumType(Comparator.class);
 
 	final String stringForm;
 	Comparator(String stringForm) {

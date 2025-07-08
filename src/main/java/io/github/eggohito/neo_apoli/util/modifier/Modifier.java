@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.util.modifier;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
@@ -12,7 +12,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.function.ValueLists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -108,8 +107,8 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 		};
 
-		public static final Codec<Phase> CODEC = NeoApoliCodecs.enumType(Phase.class, ValueLists.OutOfBoundsHandling.WRAP);
-		public static final PacketCodec<ByteBuf, Phase> PACKET_CODEC = NeoApoliPacketCodecs.enumType(Phase.class, ValueLists.OutOfBoundsHandling.WRAP);
+		public static final Codec<Phase> CODEC = CodecUtil.enumType(Phase.class);
+		public static final PacketCodec<ByteBuf, Phase> PACKET_CODEC = PacketCodecUtil.enumType(Phase.class);
 
 	}
 

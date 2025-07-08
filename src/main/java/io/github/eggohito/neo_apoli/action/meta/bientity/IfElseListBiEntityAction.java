@@ -5,9 +5,9 @@ import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.meta.IfElseListMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,8 +20,8 @@ import java.util.List;
 @Data
 public final class IfElseListBiEntityAction extends BiEntityAction implements IfElseListMetaAction<BiEntityAction, BiEntityCondition> {
 
-	public static final MapCodec<IfElseListBiEntityAction> CODEC = NeoApoliMapCodecs.lazy(IfElseListBiEntityAction.class.getSimpleName(), () -> IfElseListMetaAction.codec(BiEntityCondition.CODEC, BiEntityAction.CODEC, IfElseListBiEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, IfElseListBiEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(IfElseListBiEntityAction.class.getSimpleName(), () -> IfElseListMetaAction.packetCodec(BiEntityCondition.PACKET_CODEC, BiEntityAction.PACKET_CODEC, IfElseListBiEntityAction::new));
+	public static final MapCodec<IfElseListBiEntityAction> CODEC = MapCodecUtil.lazy(IfElseListBiEntityAction.class.getSimpleName(), () -> IfElseListMetaAction.codec(BiEntityCondition.CODEC, BiEntityAction.CODEC, IfElseListBiEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, IfElseListBiEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(IfElseListBiEntityAction.class.getSimpleName(), () -> IfElseListMetaAction.packetCodec(BiEntityCondition.PACKET_CODEC, BiEntityAction.PACKET_CODEC, IfElseListBiEntityAction::new));
 
 	private final List<Entry<BiEntityCondition, BiEntityAction>> entries;
 

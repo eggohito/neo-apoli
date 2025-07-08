@@ -5,8 +5,8 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.meta.RandomChanceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,8 +19,8 @@ import java.util.Optional;
 @Data
 public final class RandomChanceEntityAction extends EntityAction implements RandomChanceMetaAction<EntityAction> {
 
-	public static final MapCodec<RandomChanceEntityAction> CODEC = NeoApoliMapCodecs.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.codec(EntityAction.CODEC, RandomChanceEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, RandomChanceEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.packetCodec(EntityAction.PACKET_CODEC, RandomChanceEntityAction::new));
+	public static final MapCodec<RandomChanceEntityAction> CODEC = MapCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.codec(EntityAction.CODEC, RandomChanceEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, RandomChanceEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.packetCodec(EntityAction.PACKET_CODEC, RandomChanceEntityAction::new));
 
 	private final EntityAction successAction;
 	private final Optional<EntityAction> failAction;

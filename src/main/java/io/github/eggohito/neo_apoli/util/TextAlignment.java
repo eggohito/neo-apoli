@@ -1,11 +1,9 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.function.ValueLists;
 
 import java.util.OptionalInt;
 
@@ -16,8 +14,8 @@ public enum TextAlignment implements StringIdentifiable {
 	RIGHT("right", (left, right, textWidth) -> OptionalInt.of(right - textWidth + 1)),
 	CENTER("center", (left, right, textWidth) -> OptionalInt.of((left + right - textWidth) / 2));
 
-	public static final Codec<TextAlignment> CODEC = StringIdentifiable.createCodec(TextAlignment::values);
-	public static final PacketCodec<ByteBuf, TextAlignment> PACKET_CODEC = NeoApoliPacketCodecs.enumType(TextAlignment.class, ValueLists.OutOfBoundsHandling.WRAP);
+	public static final Codec<TextAlignment> CODEC = CodecUtil.enumType(TextAlignment.class);
+	public static final PacketCodec<ByteBuf, TextAlignment> PACKET_CODEC = PacketCodecUtil.enumType(TextAlignment.class);
 
 	final String name;
 	final HorizontalPosition horizontal;

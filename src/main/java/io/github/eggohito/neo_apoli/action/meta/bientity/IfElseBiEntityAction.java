@@ -5,9 +5,9 @@ import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.meta.IfElseMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,8 +20,8 @@ import java.util.Optional;
 @Data
 public final class IfElseBiEntityAction extends BiEntityAction implements IfElseMetaAction<BiEntityAction, BiEntityCondition> {
 
-	public static final MapCodec<IfElseBiEntityAction> CODEC = NeoApoliMapCodecs.lazy(IfElseBiEntityAction.class.getSimpleName(), () -> IfElseMetaAction.codec(BiEntityCondition.CODEC, BiEntityAction.CODEC, IfElseBiEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, IfElseBiEntityAction> PACKET_CODEC = NeoApoliPacketCodecs.lazy(IfElseBiEntityAction.class.getSimpleName(), () -> IfElseMetaAction.packetCodec(BiEntityCondition.PACKET_CODEC, BiEntityAction.PACKET_CODEC, IfElseBiEntityAction::new));
+	public static final MapCodec<IfElseBiEntityAction> CODEC = MapCodecUtil.lazy(IfElseBiEntityAction.class.getSimpleName(), () -> IfElseMetaAction.codec(BiEntityCondition.CODEC, BiEntityAction.CODEC, IfElseBiEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, IfElseBiEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(IfElseBiEntityAction.class.getSimpleName(), () -> IfElseMetaAction.packetCodec(BiEntityCondition.PACKET_CODEC, BiEntityAction.PACKET_CODEC, IfElseBiEntityAction::new));
 
 	private final BiEntityCondition condition;
 	private final BiEntityAction ifAction;
