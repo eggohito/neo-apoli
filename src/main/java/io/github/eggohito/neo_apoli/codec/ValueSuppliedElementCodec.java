@@ -25,25 +25,21 @@ public final class ValueSuppliedElementCodec<E> implements Codec<E> {
 
 	@Override
 	public <I> DataResult<Pair<E, I>> decode(DynamicOps<I> ops, I input) {
+		return switch (Identifier.CODEC.parse(ops, input)) {
+			case DataResult.Success<Identifier> success ->
+				elementGetter.apply(success.value()).map(e -> Pair.of(e, input));
+			case DataResult.Error<Identifier> ignored -> {
 
-		DataResult<Identifier> elementIdResult = Identifier.CODEC.parse(ops, input);
-		if (elementIdResult.isError()) {
+				if (allowInlineDefinitions) {
+					yield elementCodec.decode(ops, input);
+				}
 
-			if (allowInlineDefinitions) {
-				return elementCodec.decode(ops, input);
+				else {
+					yield DataResult.error(() -> "Inline definitions are not allowed here!");
+				}
+
 			}
-
-			else {
-				return DataResult.error(() -> "Inline definitions are not allowed here!");
-			}
-
-		}
-
-		else {
-			Identifier elementId = elementIdResult.getOrThrow();
-			return elementGetter.apply(elementId).map(e -> Pair.of(e, input));
-		}
-
+		};
 	}
 
 	@Override

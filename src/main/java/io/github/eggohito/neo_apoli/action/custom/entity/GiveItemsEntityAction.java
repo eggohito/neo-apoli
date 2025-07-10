@@ -66,7 +66,7 @@ public final class GiveItemsEntityAction extends EntityAction {
 
 			StackReference givenStackReference = InventoryUtil.createStackReference(slottedStack.stack());
 			Context itemContext = context.copy(builder -> builder
-				.withContextType(MiscUtil.mergeContextTypes(context.getType(), ContextTypes.GENERIC_WITH_ITEM))
+				.withContextType(MiscUtil.mergeContextTypes(context.getType(), ContextTypes.ITEM))
 				.add(ContextParameters.STACK_REFERENCE, givenStackReference)
 				.add(ContextParameters.ITEM_STACK, givenStackReference.get()));
 
@@ -117,7 +117,7 @@ public final class GiveItemsEntityAction extends EntityAction {
 		super.validate(reporter);
 
 		itemAction().validate(reporter
-			.withContextType(MiscUtil.mergeContextTypes(reporter.getContextType(), ContextTypes.GENERIC_WITH_ITEM))
+			.withContextType(MiscUtil.mergeContextTypes(reporter.getContextType(), ContextTypes.ITEM))
 			.makeChild(".item_action"));
 
 	}

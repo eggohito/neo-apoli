@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -24,6 +25,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.command.CommandSource;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
@@ -31,6 +33,7 @@ import net.minecraft.registry.tag.TagGroupLoader;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
@@ -330,6 +333,12 @@ public final class ActionManager implements JsonResourceReloader {
 		return getIdAsResult(action).getOrThrow(IllegalArgumentException::new);
 	}
 
+	public static Stream<Identifier> streamIds(ActionCategory<?> category) {
+		return BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>())
+			.keySet()
+			.stream();
+	}
+
 	public static Stream<Identifier> streamIds() {
 		return BY_CATEGORY_AND_ID.values()
 			.stream()
@@ -344,6 +353,10 @@ public final class ActionManager implements JsonResourceReloader {
 
 	public static <A extends Action> boolean containsId(A action) {
 		return BY_VALUES.containsKey(action);
+	}
+
+	public static SuggestionProvider<ServerCommandSource> createSuggestionProvider(ActionCategory<?> category) {
+		return (context, builder) -> CommandSource.suggestIdentifiers(streamIds(category), builder);
 	}
 
 	private static void register(Identifier id, Action action) {

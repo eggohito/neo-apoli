@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.context.ContextType;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -76,6 +77,12 @@ public class MiscUtil {
 
 		return builder.build();
 
+	}
+
+	public static ContextType mergeContextTypes(ContextType... contextTypes) {
+		return Arrays.stream(contextTypes)
+			.reduce(MiscUtil::mergeContextTypes)
+			.orElseThrow();
 	}
 
 	public static void tryCatch(Runnable action, Consumer<Exception> catcher) {

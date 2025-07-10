@@ -8,6 +8,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
+import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
@@ -35,6 +36,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Identifier;
 import org.quiltmc.parsers.json.JsonReader;
@@ -70,7 +72,20 @@ public class NeoApoli implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> PowerCommand.register(commandDispatcher.getRoot()));
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+
+			var rootNode = dispatcher.getRoot();
+			var baseNode = CommandManager.literal("neo-apoli").build();
+
+			ActionCommand.register(registryAccess, rootNode);
+			PowerCommand.register(rootNode);
+
+			ActionCommand.register(registryAccess, baseNode);
+			PowerCommand.register(baseNode);
+
+			rootNode.addChild(baseNode);
+
+		});
 
 		NeoApoliArgumentTypes.registerAll();
 		ValueProviderTypes.registerAll();
