@@ -29,6 +29,7 @@ public class PowerTypes {
 	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM), BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.GENERIC, CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
+	public static final PowerType<EntityModelColorPower> ENTITY_MODEL_COLOR = registerInternal("entity_model_color", ContextTypes.GENERIC, EntityModelColorPower.CODEC, EntityModelColorPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.GENERIC, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.GENERIC, TickingPower.CODEC, TickingPower.PACKET_CODEC);
 

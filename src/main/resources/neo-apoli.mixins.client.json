@@ -4,7 +4,10 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"misc.ClientWorldMixin",
-		"misc.MinecraftClientMixin"
+		"misc.EntityRendererMixin",
+		"misc.EntityRenderStateMixin",
+		"misc.MinecraftClientMixin",
+		"power.custom.EntityModelColorPowerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

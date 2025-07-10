@@ -153,7 +153,7 @@ public abstract class Power {
 			this.power = power;
 		}
 
-		protected final Context genericContext() {
+		public final Context genericContext() {
 			return this.contextBuilder().build(holder.getWorld());
 		}
 

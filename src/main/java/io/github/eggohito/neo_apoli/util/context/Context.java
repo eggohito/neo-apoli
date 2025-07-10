@@ -36,6 +36,10 @@ public class Context {
 		this.activeEntries = new ObjectOpenHashSet<>();
 	}
 
+	public Context copy(UnaryOperator<Builder> operator) {
+		return operator.apply(builder(this)).build(this.getWorld());
+	}
+
 	public Context makeChild(String path) {
 		return new Context(this.parameters, this.reporter.makeChild(path), this.type, this.world);
 	}
@@ -91,10 +95,6 @@ public class Context {
 
 	public static Builder builder() {
 		return builder(LootContextTypes.EMPTY);
-	}
-
-	public Context copy(UnaryOperator<Builder> operator) {
-		return operator.apply(builder(this)).build(this.getWorld());
 	}
 
 	public static class Builder {
