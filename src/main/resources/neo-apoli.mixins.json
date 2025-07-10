@@ -15,6 +15,7 @@
 		"action.meta.ExplodeMetaActionMixin",
 		"misc.DataCommandStorageMixin",
 		"misc.DataPackContentsMixin",
+		"misc.EntityMixin",
 		"misc.MinecraftServerMixin",
 		"misc.ServerWorldMixin",
 		"misc.TextCodecsMixin",

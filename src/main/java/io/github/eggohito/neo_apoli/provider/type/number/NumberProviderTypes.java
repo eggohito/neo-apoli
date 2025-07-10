@@ -47,6 +47,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<NbtNumberProvider> NBT = registerInternal("nbt", NbtNumberProvider.CODEC, NbtNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<PositionNumberProvider> POSITION = registerInternal("position", PositionNumberProvider.CODEC, PositionNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity_magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
 
 	public static void registerAll() {
 
