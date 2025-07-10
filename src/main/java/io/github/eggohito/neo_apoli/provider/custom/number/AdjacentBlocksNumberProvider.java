@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -54,9 +55,17 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 		for (Direction direction : Direction.values()) {
 
 			BlockPos offsetPos = pos.offset(direction);
-			Context blockContext = context.copy(builder -> builder.add(ContextParameters.POSITION, offsetPos.toCenterPos()));
+			if (!world.isChunkLoaded(offsetPos)) {
+				continue;
+			}
 
-			if (world.isChunkLoaded(offsetPos) && adjacentBlockCondition().test(blockContext.makeChild(".adjacent_block_condition"))) {
+			Context blockContext = context.copy(builder -> builder
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
+				.add(ContextParameters.POSITION, offsetPos.toCenterPos())
+				.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
+
+			if (adjacentBlockCondition().test(blockContext.makeChild(".adjacent_block_condition"))) {
 				matches++;
 			}
 
@@ -74,7 +83,9 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 	@Override
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
-		adjacentBlockCondition().validate(reporter.makeChild(".adjacent_block_condition"));
+		adjacentBlockCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.makeChild(".adjacent_block_condition"));
 	}
 
 }
