@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -48,19 +49,22 @@ public final class OnBlockEntityCondition extends EntityCondition {
 		BlockPos steppingPos = entity.getSteppingPos();
 
 		World world = context.getWorld();
-		Context blockConditionContext = context.copy(builder -> builder
+		Context blockContext = context.copy(builder -> builder
+			.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
 			.add(ContextParameters.POSITION, steppingPos.toCenterPos())
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
 			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
 
-		return blockCondition().test(blockConditionContext.makeChild(".block_condition"));
+		return blockCondition().test(blockContext.makeChild(".block_condition"));
 
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
-		blockCondition().validate(reporter.makeChild(".block_condition"));
+		blockCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.makeChild(".block_condition"));
 	}
 
 }

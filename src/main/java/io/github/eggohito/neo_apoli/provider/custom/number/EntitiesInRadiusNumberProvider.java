@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -67,16 +68,16 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 		World world = context.getWorld();
 		Vec3d centerPos = context.required(ContextParameters.POSITION);
 
-		Context.Builder builder = new Context.Builder(context).add(ContextParameters.ACTOR, context.required(ContextParameters.THIS_ENTITY));
 		int matches = 0;
 
 		for (Entity target : this.shape().getEntities(world, centerPos, radius)) {
 
-			Context biEntityConditionContext = builder
-				.add(ContextParameters.TARGET, target)
-				.build(context.getWorld());
+			Context biEntityContext = context.copy(builder -> builder
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
+				.add(ContextParameters.ACTOR, context.required(ContextParameters.THIS_ENTITY))
+				.add(ContextParameters.TARGET, target));
 
-			if (this.biEntityCondition().test(biEntityConditionContext.makeChild(".bientity_condition"))) {
+			if (this.biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				matches++;
 			}
 
@@ -96,7 +97,9 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 
 		super.validate(reporter);
 
-		biEntityCondition().validate(reporter.makeChild(".bientity_condition"));
+		biEntityCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BIENTITY))
+			.makeChild(".bientity_condition"));
 		radius().validate(reporter.makeChild(".radius"));
 
 	}

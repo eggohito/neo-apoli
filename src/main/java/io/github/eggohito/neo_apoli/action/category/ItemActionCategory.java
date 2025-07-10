@@ -72,7 +72,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 
 			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
-				.withContextType(MiscUtil.mergeContextTypes(ContextTypes.BLOCK, ContextTypes.ITEM))
+				.withContextType(ContextTypes.merge(ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
 			if (serverWorld.getBlockEntity(blockPos) instanceof Inventory inventory) {
@@ -126,7 +126,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 
 			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
-				.withContextType(MiscUtil.mergeContextTypes(ContextTypes.GENERIC, ContextTypes.ITEM))
+				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandContext.getSource().getServer().getReloadableRegistries()).getRegistries());
 
 			for (int slotId : slotRange.getSlotIds()) {

@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.ImmutableStringReader;
@@ -13,11 +12,7 @@ import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.context.ContextType;
 
-import java.util.Arrays;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class MiscUtil {
@@ -63,26 +58,6 @@ public class MiscUtil {
 			return oldResult;
 		}
 
-	}
-
-	public static ContextType mergeContextTypes(ContextType first, ContextType second) {
-
-		ContextType.Builder builder = new ContextType.Builder();
-
-		Set<ContextParameter<?>> requiredParameters = Sets.union(first.getRequired(), second.getRequired());
-		Set<ContextParameter<?>> allowedParameters = Sets.union(first.getAllowed(), second.getAllowed());
-
-		requiredParameters.forEach(parameter -> tryCatch(() -> builder.require(parameter), e -> {}));
-		allowedParameters.forEach(parameter -> tryCatch(() -> builder.allow(parameter), e -> {}));
-
-		return builder.build();
-
-	}
-
-	public static ContextType mergeContextTypes(ContextType... contextTypes) {
-		return Arrays.stream(contextTypes)
-			.reduce(MiscUtil::mergeContextTypes)
-			.orElseThrow();
 	}
 
 	public static void tryCatch(Runnable action, Consumer<Exception> catcher) {

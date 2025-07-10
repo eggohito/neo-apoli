@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
@@ -66,7 +65,7 @@ public final class GiveItemsEntityAction extends EntityAction {
 
 			StackReference givenStackReference = InventoryUtil.createStackReference(slottedStack.stack());
 			Context itemContext = context.copy(builder -> builder
-				.withContextType(MiscUtil.mergeContextTypes(context.getType(), ContextTypes.ITEM))
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.ITEM))
 				.add(ContextParameters.STACK_REFERENCE, givenStackReference)
 				.add(ContextParameters.ITEM_STACK, givenStackReference.get()));
 
@@ -117,7 +116,7 @@ public final class GiveItemsEntityAction extends EntityAction {
 		super.validate(reporter);
 
 		itemAction().validate(reporter
-			.withContextType(MiscUtil.mergeContextTypes(reporter.getContextType(), ContextTypes.ITEM))
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.ITEM))
 			.makeChild(".item_action"));
 
 	}

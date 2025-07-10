@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -66,7 +67,6 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 		World world = context.getWorld();
 		BlockPos centerPos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
 
-		Context.Builder builder = new Context.Builder(context);
 		int matches = 0;
 
 		for (BlockPos pos : this.shape().getBlockPositions(centerPos, radius)) {
@@ -75,11 +75,11 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 				continue;
 			}
 
-			Context blockContext = builder
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos))
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
+			Context blockContext = context.copy(builder -> builder
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.POSITION, pos.toCenterPos())
-				.build(context.getWorld());
+				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
 
 			if (this.blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -101,7 +101,9 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 
 		super.validate(reporter);
 
-		blockCondition().validate(reporter.makeChild(".block_condition"));
+		blockCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.makeChild(".block_condition"));
 		radius().validate(reporter.makeChild(".radius"));
 
 	}
