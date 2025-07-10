@@ -13,6 +13,7 @@ import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 @EqualsAndHashCode
 @Data
@@ -20,10 +21,6 @@ public final class TameBiEntityAction extends BiEntityAction {
 
 	public static final MapCodec<TameBiEntityAction> CODEC = MapCodec.unit(TameBiEntityAction::new);
 	public static final PacketCodec<RegistryByteBuf, TameBiEntityAction> PACKET_CODEC = PacketCodec.unit(new TameBiEntityAction());
-
-	public TameBiEntityAction() {
-
-	}
 
 	@Override
 	public BiEntityActionType<?> getType() {
@@ -33,13 +30,13 @@ public final class TameBiEntityAction extends BiEntityAction {
 	@Override
 	protected void impl(Context context) {
 
-		if (context.required(ContextParameters.ACTOR) instanceof LivingEntity livingEntity) {
+		if (context.required(ContextParameters.ACTOR) instanceof ServerPlayerEntity serverPlayer) {
 
 			switch (context.required(ContextParameters.TARGET)) {
 				case TameableEntity tameableEntity ->
-					tameableEntity.setOwner(livingEntity);
+					tameableEntity.setTamedBy(serverPlayer);
 				case AbstractHorseEntity abstractHorseEntity ->
-					abstractHorseEntity.setOwner(livingEntity);
+					abstractHorseEntity.bondWithPlayer(serverPlayer);
 				default -> {
 
 				}
