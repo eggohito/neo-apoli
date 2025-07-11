@@ -32,6 +32,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<MaxNumberProvider> MAX = registerInternal("max", MaxNumberProvider.CODEC, MaxNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MinNumberProvider> MIN = registerInternal("min", MinNumberProvider.CODEC, MinNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MultiplyNumberProvider> MULTIPLY = registerInternal("multiply", MultiplyNumberProvider.CODEC, MultiplyNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<NbtNumberProvider> NBT = registerInternal("nbt", NbtNumberProvider.CODEC, NbtNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<SubtractNumberProvider> SUBTRACT = registerInternal("subtract", SubtractNumberProvider.CODEC, SubtractNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<UniformNumberProvider> UNIFORM = registerInternal("uniform", UniformNumberProvider.CODEC, UniformNumberProvider.PACKET_CODEC);
 
@@ -44,7 +45,6 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<ItemCountNumberProvider> ITEM_COUNT = registerInternal("item_count", ItemCountNumberProvider.CODEC, ItemCountNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<ItemMaxCountNumberProvider> ITEM_MAX_COUNT = registerInternal("item_max_count", ItemMaxCountNumberProvider.CODEC, ItemMaxCountNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.PACKET_CODEC);
-	public static final NumberProviderType<NbtNumberProvider> NBT = registerInternal("nbt", NbtNumberProvider.CODEC, NbtNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<PositionNumberProvider> POSITION = registerInternal("position", PositionNumberProvider.CODEC, PositionNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity_magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
