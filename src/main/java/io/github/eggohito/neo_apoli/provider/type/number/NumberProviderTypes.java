@@ -23,6 +23,7 @@ public final class NumberProviderTypes {
 	public static final Codec<NumberProviderType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, ALIASES);
 	public static final PacketCodec<RegistryByteBuf, NumberProviderType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 
+	public static final NumberProviderType<AbsoluteNumberProvider> ABSOLUTE = registerInternal("absolute", AbsoluteNumberProvider.CODEC, AbsoluteNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<AddNumberProvider> ADD = registerInternal("add", AddNumberProvider.CODEC, AddNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<BinomialNumberProvider> BINOMIAL = registerInternal("binomial", BinomialNumberProvider.CODEC, BinomialNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<ClampedNumberProvider> CLAMPED = registerInternal("clamped", ClampedNumberProvider.CODEC, ClampedNumberProvider.PACKET_CODEC);
@@ -50,6 +51,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity_magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
 
 	public static void registerAll() {
+		ALIASES.addPathAlias("abs", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, ABSOLUTE));
 		ALIASES.addPathAlias("lerp", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, LINEAR_INTERPOLATION));
 	}
 
