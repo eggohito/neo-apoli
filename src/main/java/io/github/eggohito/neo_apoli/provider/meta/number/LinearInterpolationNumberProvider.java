@@ -19,19 +19,19 @@ import java.util.function.BiFunction;
 
 @EqualsAndHashCode
 @Data
-public class LerpNumberProvider extends NumberProvider {
+public class LinearInterpolationNumberProvider extends NumberProvider {
 
-	public static final MapCodec<LerpNumberProvider> CODEC = MapCodecUtil.lazy(LerpNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.fieldOf("delta").forGetter(LerpNumberProvider::delta),
-		NumberProvider.CODEC.fieldOf("start").forGetter(LerpNumberProvider::start),
-		NumberProvider.CODEC.fieldOf("end").forGetter(LerpNumberProvider::end)
-	).apply(instance, LerpNumberProvider::new)));
+	public static final MapCodec<LinearInterpolationNumberProvider> CODEC = MapCodecUtil.lazy(LinearInterpolationNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NumberProvider.CODEC.fieldOf("delta").forGetter(LinearInterpolationNumberProvider::delta),
+		NumberProvider.CODEC.fieldOf("start").forGetter(LinearInterpolationNumberProvider::start),
+		NumberProvider.CODEC.fieldOf("end").forGetter(LinearInterpolationNumberProvider::end)
+	).apply(instance, LinearInterpolationNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, LerpNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(LerpNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, LerpNumberProvider::delta,
-		NumberProvider.PACKET_CODEC, LerpNumberProvider::start,
-		NumberProvider.PACKET_CODEC, LerpNumberProvider::end,
-		LerpNumberProvider::new
+	public static final PacketCodec<RegistryByteBuf, LinearInterpolationNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(LinearInterpolationNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
+		NumberProvider.PACKET_CODEC, LinearInterpolationNumberProvider::delta,
+		NumberProvider.PACKET_CODEC, LinearInterpolationNumberProvider::start,
+		NumberProvider.PACKET_CODEC, LinearInterpolationNumberProvider::end,
+		LinearInterpolationNumberProvider::new
 	));
 
 	private final NumberProvider delta;
@@ -40,7 +40,7 @@ public class LerpNumberProvider extends NumberProvider {
 
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.LERP;
+		return NumberProviderTypes.LINEAR_INTERPOLATION;
 	}
 
 	@Override

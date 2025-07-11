@@ -28,7 +28,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<ClampedNumberProvider> CLAMPED = registerInternal("clamped", ClampedNumberProvider.CODEC, ClampedNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<ConstantNumberProvider> CONSTANT = registerInternal("constant", ConstantNumberProvider.CODEC, ConstantNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<DivideNumberProvider> DIVIDE = registerInternal("divide", DivideNumberProvider.CODEC, DivideNumberProvider.PACKET_CODEC);
-	public static final NumberProviderType<LerpNumberProvider> LERP = registerInternal("lerp", LerpNumberProvider.CODEC, LerpNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<LinearInterpolationNumberProvider> LINEAR_INTERPOLATION = registerInternal("linear_interpolation", LinearInterpolationNumberProvider.CODEC, LinearInterpolationNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MaxNumberProvider> MAX = registerInternal("max", MaxNumberProvider.CODEC, MaxNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MinNumberProvider> MIN = registerInternal("min", MinNumberProvider.CODEC, MinNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MultiplyNumberProvider> MULTIPLY = registerInternal("multiply", MultiplyNumberProvider.CODEC, MultiplyNumberProvider.PACKET_CODEC);
@@ -50,7 +50,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity_magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
 
 	public static void registerAll() {
-
+		ALIASES.addPathAlias("lerp", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, LINEAR_INTERPOLATION));
 	}
 
 	private static <P extends NumberProvider> NumberProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
