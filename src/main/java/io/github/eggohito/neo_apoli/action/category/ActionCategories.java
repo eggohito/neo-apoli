@@ -1,8 +1,18 @@
 package io.github.eggohito.neo_apoli.action.category;
 
+import com.mojang.brigadier.builder.ArgumentBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.registry.Registry;
+import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public final class ActionCategories {
 
@@ -17,6 +27,29 @@ public final class ActionCategories {
 
 	public static <A extends Action, C extends ActionCategory<A>> C register(C category) {
 		return Registry.register(NeoApoliRegistries.ACTION_CATEGORY, category.registryRef().getValue(), category);
+	}
+
+	public static ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder) {
+
+		for (var category : NeoApoliRegistries.ACTION_CATEGORY) {
+
+			String categoryId = category.registryRef().getValue().toString();
+			Function<String, ActionCategory.CommandBuilder> commandBuilderFactory = category.commandBuilderFactory();
+
+			if (commandBuilderFactory == null) {
+				continue;
+			}
+
+			Consumer<String> finalizer = key -> builder
+				.then(literal(categoryId)
+					.then(commandBuilderFactory.apply(key).addArguments(registryAccess, argument(key, ActionArgumentType.action(registryAccess, category)))));
+
+			finalizer.accept("action");
+
+		}
+
+		return builder;
+
 	}
 
 }

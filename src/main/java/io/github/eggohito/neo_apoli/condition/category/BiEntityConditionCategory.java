@@ -1,14 +1,17 @@
-package io.github.eggohito.neo_apoli.action.category;
+package io.github.eggohito.neo_apoli.condition.category;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.BiEntityAction;
-import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
+import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
+import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.mixin.access.ExecuteCommandAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
@@ -23,32 +26,32 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
-public final class BiEntityActionCategory extends ActionCategory<BiEntityAction> {
+public class BiEntityConditionCategory extends ConditionCategory<BiEntityCondition> {
 
-	private static final Function<String, CommandBuilder> BUILDER_FACTORY = actionKey -> new CommandBuilder() {
+	private static final Function<String, CommandBuilder> BUILDER_FACTORY = conditionKey -> new CommandBuilder() {
 
 		@Override
-		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder) {
+		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
 			return builder
 				.then(argument("actor", EntityArgumentType.entity())
-					.then(argument("target", EntityArgumentType.entity())
-						.executes(this::execute)));
+					.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("target", EntityArgumentType.entity()), positive, this::test)));
 		}
 
-		public int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		public boolean test(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 
 			ServerCommandSource commandSource = commandContext.getSource();
+			BiEntityCondition biEntityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
 
 			Entity actor = EntityArgumentType.getEntity(commandContext, "actor");
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
 
-			BiEntityAction biEntityAction = ActionArgumentType.getAction(commandContext, actionKey);
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(biEntityAction).mapOrElse(Identifier::toString, error -> biEntityAction.toString()) + "}")
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(biEntityCondition).mapOrElse(Identifier::toString, err -> biEntityCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
@@ -60,25 +63,21 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 				.add(ContextParameters.TARGET, target)
 				.build(commandSource.getWorld());
 
-			biEntityAction.validate(reporter);
+			biEntityCondition.validate(reporter);
 
 			if (reporter.hasAnyErrors()) {
-				commandSource.sendError(Text.literal("Error validating bi-entity action due to error(s) " + reporter.getErrorsAsString()));
-				return 0;
+				throw MiscUtil.createCommandException(Text.literal("Error(s) while validating bi-entity condition " + reporter.getErrorsAsString()));
 			}
 
 			else {
 
-				biEntityAction.execute(context);
-
+				boolean result = biEntityCondition.test(context);
 				if (reporter.hasAnyErrors()) {
-					commandSource.sendError(Text.literal("Error(s) while executing bi-entity action " + reporter.getErrorsAsString()));
-					return 0;
+					throw MiscUtil.createCommandException(Text.literal("Error(s) while testing bi-entity condition " + reporter.getErrorsAsString()));
 				}
 
 				else {
-					commandSource.sendFeedback(() -> Text.literal("Successfully executed bi-entity action!"), true);
-					return 1;
+					return result;
 				}
 
 			}
@@ -87,33 +86,33 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 
 	};
 
-	BiEntityActionCategory() {
+	BiEntityConditionCategory() {
 
 	}
 
 	@Override
-	public RegistryKey<? extends Registry<BiEntityAction>> registryRef() {
-		return NeoApoliRegistryKeys.BIENTITY_ACTION;
+	public RegistryKey<? extends Registry<BiEntityCondition>> registryRef() {
+		return NeoApoliRegistryKeys.BIENTITY_CONDITION;
 	}
 
 	@Override
-	public Function<String, CommandBuilder> commandBuilderFactory() {
+	public @Nullable Function<String, CommandBuilder> commandBuilderFactory() {
 		return BUILDER_FACTORY;
 	}
 
 	@Override
-	public Codec<BiEntityAction> baseCodec() {
-		return BiEntityAction.CODEC;
+	public Codec<BiEntityCondition> baseCodec() {
+		return BiEntityCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, BiEntityAction> basePacketCodec() {
-		return BiEntityAction.PACKET_CODEC;
+	public PacketCodec<RegistryByteBuf, BiEntityCondition> basePacketCodec() {
+		return BiEntityCondition.PACKET_CODEC;
 	}
 
 	@Override
 	public String toString() {
-		return "Bi-entity action";
+		return "Bi-entity condition";
 	}
 
 }

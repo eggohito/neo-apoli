@@ -1,55 +1,56 @@
 package io.github.eggohito.neo_apoli.condition.category;
 
-import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.condition.*;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.tree.CommandNode;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public final class ConditionCategories {
 
-	public static final ConditionCategory<BiEntityCondition> BIENTITY_CONDITION = register("Bi-entity condition", NeoApoliRegistryKeys.BIENTITY_CONDITION, BiEntityCondition.CODEC, BiEntityCondition.PACKET_CODEC);
-	public static final ConditionCategory<BlockCondition> BLOCK_CONDITION = register("Block condition", NeoApoliRegistryKeys.BLOCK_CONDITION, BlockCondition.CODEC, BlockCondition.PACKET_CODEC);
-	public static final ConditionCategory<EntityCondition> ENTITY_CONDITION = register("Entity condition", NeoApoliRegistryKeys.ENTITY_CONDITION, EntityCondition.CODEC, EntityCondition.PACKET_CODEC);
-	public static final ConditionCategory<ItemCondition> ITEM_CONDITION = register("Item condition", NeoApoliRegistryKeys.ITEM_CONDITION, ItemCondition.CODEC, ItemCondition.PACKET_CODEC);
+	public static final BiEntityConditionCategory BIENTITY_CONDITION = register(new BiEntityConditionCategory());
+	public static final BlockConditionCategory BLOCK_CONDITION = register(new BlockConditionCategory());
+	public static final EntityConditionCategory ENTITY_CONDITION = register(new EntityConditionCategory());
+	public static final ItemConditionCategory ITEM_CONDITION = register(new ItemConditionCategory());
 
 	public static void registerAll() {
 
 	}
 
-	public static <C extends Condition> ConditionCategory<C> register(String name, RegistryKey<? extends Registry<C>> registryRef, Codec<C> baseCodec, PacketCodec<RegistryByteBuf, C> basePacketCodec) {
-		return register(registryRef.getValue(), new ConditionCategory<>() {
-
-			@Override
-			public RegistryKey<? extends Registry<C>> registryRef() {
-				return registryRef;
-			}
-
-			@Override
-			public Codec<C> baseCodec() {
-				return baseCodec;
-			}
-
-			@Override
-			public PacketCodec<RegistryByteBuf, C> basePacketCodec() {
-				return basePacketCodec;
-			}
-
-			@Override
-			public String toString() {
-				return name;
-			}
-
-		});
-
+	public static <C extends Condition, CC extends ConditionCategory<C>> CC register(CC category) {
+		return Registry.register(NeoApoliRegistries.CONDITION_CATEGORY, category.registryRef().getValue(), category);
 	}
 
-	public static <C extends Condition> ConditionCategory<C> register(Identifier id, ConditionCategory<C> category) {
-		return Registry.register(NeoApoliRegistries.CONDITION_CATEGORY, id, category);
+	public static ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
+
+		for (var category : NeoApoliRegistries.CONDITION_CATEGORY) {
+
+			String categoryId = category.registryRef().getValue().toString();
+			Function<String, ConditionCategory.CommandBuilder> commandBuilderFactory = category.commandBuilderFactory();
+
+			if (commandBuilderFactory == null) {
+				continue;
+			}
+
+			Consumer<String> finalizer = key -> builder
+				.then(literal(categoryId)
+					.then(commandBuilderFactory.apply(key).addArguments(root, registryAccess, argument(key, ConditionArgumentType.condition(registryAccess, category)), positive)));
+
+			finalizer.accept("condition");
+
+		}
+
+		return builder;
+
 	}
 
 }

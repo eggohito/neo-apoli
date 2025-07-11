@@ -1,12 +1,14 @@
-package io.github.eggohito.neo_apoli.action.category;
+package io.github.eggohito.neo_apoli.condition.category;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.ItemAction;
-import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
+import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.condition.ItemCondition;
+import io.github.eggohito.neo_apoli.mixin.access.ExecuteCommandAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -30,11 +32,11 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Function;
@@ -42,24 +44,22 @@ import java.util.function.Function;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-public class ItemActionCategory extends ActionCategory<ItemAction> {
+public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 
-	private static final Function<String, CommandBuilder> BUILDER_FACTORY = actionKey -> new CommandBuilder() {
+	private static final Function<String, CommandBuilder> BUILDER_FACTORY = conditionKey -> new CommandBuilder() {
 
 		@Override
-		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder) {
+		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
 			return builder
 				.then(literal("block")
 					.then(argument("pos", BlockPosArgumentType.blockPos())
-						.then(argument("slot", SlotRangeArgumentType.slotRange())
-							.executes(this::executeBlock))))
+						.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testBlock))))
 				.then(literal("entity")
 					.then(argument("target", EntityArgumentType.entity())
-						.then(argument("slot", SlotRangeArgumentType.slotRange())
-							.executes(this::executeEntity))));
+						.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testEntity))));
 		}
 
-		public int executeBlock(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		public boolean testBlock(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 
 			ServerCommandSource commandSource = commandContext.getSource();
 			ServerWorld serverWorld = commandSource.getWorld();
@@ -70,8 +70,8 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
+			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
@@ -82,7 +82,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 					if (slotId >= 0 && slotId < inventory.size()) {
 
 						StackReference stackReference = StackReference.of(inventory, slotId);
-						Context context = new Context.Builder(reporter.getContextType())
+						Context context = Context.builder(reporter.getContextType())
 							.withReporter(reporter)
 							.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
 							.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))
@@ -105,7 +105,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 				}
 
 				else {
-					return this.execute(commandSource, reporter, itemAction, contexts);
+					return this.test(reporter, itemCondition, contexts);
 				}
 
 			}
@@ -116,7 +116,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 
 		}
 
-		public int executeEntity(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		public boolean testEntity(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
 			SlotRange slotRange = SlotRangeArgumentType.getSlotRange(commandContext, "slot");
@@ -124,15 +124,14 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
+			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandContext.getSource().getServer().getReloadableRegistries()).getRegistries());
 
 			for (int slotId : slotRange.getSlotIds()) {
 
 				StackReference stackReference = target.getStackReference(slotId);
-
 				if (stackReference != StackReference.EMPTY) {
 
 					Context context = new Context.Builder(reporter.getContextType())
@@ -158,76 +157,67 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 			}
 
 			else {
-
-				int result = this.execute(commandContext.getSource(), reporter, itemAction, contexts);
-				if (result > 0 && target instanceof ServerPlayerEntity serverPlayer) {
-					serverPlayer.currentScreenHandler.sendContentUpdates();
-				}
-
-				return result;
-
+				return this.test(reporter, itemCondition, contexts);
 			}
 
 		}
 
-		public int execute(ServerCommandSource commandSource, ContextAware.ErrorReporter reporter, ItemAction itemAction, List<Context> contexts) {
+		public boolean test(ContextAware.ErrorReporter reporter, ItemCondition itemCondition, List<Context> contexts) throws CommandSyntaxException {
 
-			itemAction.validate(reporter);
+			itemCondition.validate(reporter);
+			if (reporter.hasAnyErrors()) {
+				throw MiscUtil.createCommandException(Text.literal("Error(s) while validating item condition " + reporter.getErrorsAsString()));
+			}
 
-			if (reporter.hasErrors()) {
-				commandSource.sendError(Text.literal("Error validating item action due to error(s) " + reporter.getErrorsAsString()));
-				return 0;
+			for (var context : contexts) {
+
+				boolean result = itemCondition.test(context);
+
+				if (!reporter.hasAnyErrors() && result) {
+					return true;
+				}
+
+			}
+
+			if (reporter.hasAnyErrors()) {
+				throw MiscUtil.createCommandException(Text.literal("Error(s) while testing item condition " + reporter.getErrorsAsString()));
 			}
 
 			else {
-
-				for (var context : contexts) {
-					itemAction.execute(context);
-				}
-
-				if (reporter.hasAnyErrors()) {
-					commandSource.sendError(Text.literal("Error(s) while executing item action " + reporter.getErrorsAsString()));
-					return 0;
-				}
-
-				else {
-					commandSource.sendFeedback(() -> Text.literal("Successfully executed item action!"), true);
-					return 1;
-				}
-
+				return false;
 			}
 
 		}
 
 	};
 
-	ItemActionCategory() {
+	ItemConditionCategory() {
 
 	}
 
 	@Override
-	public RegistryKey<? extends Registry<ItemAction>> registryRef() {
-		return NeoApoliRegistryKeys.ITEM_ACTION;
+	public RegistryKey<? extends Registry<ItemCondition>> registryRef() {
+		return NeoApoliRegistryKeys.ITEM_CONDITION;
 	}
 
 	@Override
-	public Function<String, CommandBuilder> commandBuilderFactory() {
+	public @Nullable Function<String, CommandBuilder> commandBuilderFactory() {
 		return BUILDER_FACTORY;
 	}
 
 	@Override
-	public Codec<ItemAction> baseCodec() {
-		return ItemAction.CODEC;
+	public Codec<ItemCondition> baseCodec() {
+		return ItemCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, ItemAction> basePacketCodec() {
-		return ItemAction.PACKET_CODEC;
+	public PacketCodec<RegistryByteBuf, ItemCondition> basePacketCodec() {
+		return ItemCondition.PACKET_CODEC;
 	}
 
 	@Override
 	public String toString() {
-		return "Item action";
+		return "Item condition";
 	}
 
 }

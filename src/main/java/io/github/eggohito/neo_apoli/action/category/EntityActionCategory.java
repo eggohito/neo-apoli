@@ -34,10 +34,9 @@ public class EntityActionCategory extends ActionCategory<EntityAction> {
 
 		@Override
 		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder) {
-			return builder.then(
-				argument("target", EntityArgumentType.entity())
-					.executes(this::execute)
-			);
+			return builder
+				.then(argument("target", EntityArgumentType.entity())
+					.executes(this::execute));
 		}
 
 		public int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
@@ -54,7 +53,7 @@ public class EntityActionCategory extends ActionCategory<EntityAction> {
 				.withReporter(reporter)
 				.add(ContextParameters.THIS_ENTITY, target)
 				.add(ContextParameters.POSITION, target.getPos())
-				.build(target.getWorld());
+				.build(commandSource.getWorld());
 
 			entityAction.validate(reporter);
 

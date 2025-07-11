@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
+import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
@@ -78,9 +79,12 @@ public class NeoApoli implements ModInitializer {
 			var baseNode = CommandManager.literal("neo-apoli").build();
 
 			ActionCommand.register(registryAccess, rootNode);
-			PowerCommand.register(rootNode);
-
 			ActionCommand.register(registryAccess, baseNode);
+
+			ConditionCommand.register(registryAccess, rootNode);
+			ConditionCommand.register(registryAccess, baseNode);
+
+			PowerCommand.register(rootNode);
 			PowerCommand.register(baseNode);
 
 			rootNode.addChild(baseNode);

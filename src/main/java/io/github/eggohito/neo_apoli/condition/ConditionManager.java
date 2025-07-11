@@ -218,6 +218,12 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		return getIdAsResult(condition).getOrThrow(IllegalArgumentException::new);
 	}
 
+	public static Stream<Identifier> streamIds(ConditionCategory<?> category) {
+		return BY_CATEGORY_AND_ID.getOrDefault(category, new Object2ObjectOpenHashMap<>())
+			.keySet()
+			.stream();
+	}
+
 	public static Stream<Identifier> streamIds() {
 		return BY_CATEGORY_AND_ID.values()
 			.stream()
