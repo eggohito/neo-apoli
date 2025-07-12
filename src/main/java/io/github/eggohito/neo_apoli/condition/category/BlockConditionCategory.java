@@ -8,7 +8,6 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.mixin.access.ExecuteCommandAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -31,6 +30,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -40,9 +40,9 @@ public class BlockConditionCategory extends ConditionCategory<BlockCondition> {
 	private static final Function<String, CommandBuilder> BUILDER_FACTORY = conditionKey -> new CommandBuilder() {
 
 		@Override
-		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
+		public ArgumentBuilder<ServerCommandSource, ?> addArguments(Optional<CommandNode<ServerCommandSource>> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
 			return builder
-				.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("pos", BlockPosArgumentType.blockPos()), positive, this::test));
+				.then(CommandBuilder.optionallyAddForkedConditionLogic(root, argument("pos", BlockPosArgumentType.blockPos()), positive, this::test));
 		}
 
 		public boolean test(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {

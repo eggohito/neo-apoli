@@ -9,6 +9,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.command.ServerCommandSource;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -30,7 +31,7 @@ public final class ConditionCategories {
 		return Registry.register(NeoApoliRegistries.CONDITION_CATEGORY, category.registryRef().getValue(), category);
 	}
 
-	public static ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
+	public static ArgumentBuilder<ServerCommandSource, ?> addArguments(Optional<CommandNode<ServerCommandSource>> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
 
 		for (var category : NeoApoliRegistries.CONDITION_CATEGORY) {
 

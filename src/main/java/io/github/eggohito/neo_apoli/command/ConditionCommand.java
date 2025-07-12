@@ -21,6 +21,8 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
+import java.util.Optional;
+
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -86,7 +88,7 @@ public class ConditionCommand {
 	static final class TestSubCommand {
 
 		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
-			return ConditionCategories.addArguments(NODE, registryAccess, literal("test"), true).build();
+			return ConditionCategories.addArguments(Optional.empty(), registryAccess, literal("test"), true).build();
 		}
 
 	}

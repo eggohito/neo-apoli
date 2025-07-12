@@ -8,7 +8,6 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
-import io.github.eggohito.neo_apoli.mixin.access.ExecuteCommandAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -39,6 +38,7 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -49,14 +49,14 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 	private static final Function<String, CommandBuilder> BUILDER_FACTORY = conditionKey -> new CommandBuilder() {
 
 		@Override
-		public ArgumentBuilder<ServerCommandSource, ?> addArguments(CommandNode<ServerCommandSource> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
+		public ArgumentBuilder<ServerCommandSource, ?> addArguments(Optional<CommandNode<ServerCommandSource>> root, CommandRegistryAccess registryAccess, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive) {
 			return builder
 				.then(literal("block")
 					.then(argument("pos", BlockPosArgumentType.blockPos())
-						.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testBlock))))
+						.then(CommandBuilder.optionallyAddForkedConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testBlock))))
 				.then(literal("entity")
 					.then(argument("target", EntityArgumentType.entity())
-						.then(ExecuteCommandAccessor.callAddConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testEntity))));
+						.then(CommandBuilder.optionallyAddForkedConditionLogic(root, argument("slot", SlotRangeArgumentType.slotRange()), positive, this::testEntity))));
 		}
 
 		public boolean testBlock(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
