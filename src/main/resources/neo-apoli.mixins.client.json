@@ -7,9 +7,9 @@
 		"misc.EntityRendererMixin",
 		"misc.EntityRenderStateMixin",
 		"misc.MinecraftClientMixin",
-		"power.custom.ModifyModelColorSelfMixin$EntityModelApplier",
-		"power.custom.ModifyModelColorSelfMixin$PlayerArmPartApplier",
-		"power.custom.ModifyModelColorSelfMixin$PlayerCache"
+		"power.custom.ModifyModelColorSelfPowerMixin$EntityModelApplier",
+		"power.custom.ModifyModelColorSelfPowerMixin$PlayerArmPartApplier",
+		"power.custom.ModifyModelColorSelfPowerMixin$PlayerCache"
 	],
 	"injectors": {
 		"defaultRequire": 1

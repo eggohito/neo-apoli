@@ -33,7 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
-public abstract class ModifyModelColorSelfMixin {
+public abstract class ModifyModelColorSelfPowerMixin {
 
 	@Mixin(LivingEntityRenderer.class)
 	public static abstract class EntityModelApplier {
