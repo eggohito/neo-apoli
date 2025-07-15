@@ -7,8 +7,10 @@ import io.github.eggohito.neo_apoli.client.duck.PlayerRendererHelper;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
 import io.github.eggohito.neo_apoli.util.Color;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -41,10 +43,13 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@WrapOperation(method = "render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;III)V"))
 		private <S extends LivingEntityRenderState> void impl(EntityModel<S> model, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, int argb, Operation<Void> original, S renderState) {
 
+			MinecraftClient client = MinecraftClient.getInstance();
+			ClientPlayerEntity viewer = client.player;
+
 			if (renderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 				argb = PowersComponent.getPowerImpls(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Impl.class, impl -> true)
 					.stream()
-					.map(ModifyModelColorSelfPower.Impl::getColor)
+					.map(impl -> impl.getColorWithViewer(viewer))
 					.flatMap(Optional::stream)
 					.reduce(Color.fromArgb(argb), Color::mix)
 					.toArgb();
@@ -79,7 +84,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 
 				int argb = PowersComponent.getPowerImpls(this.neo_apoli$getPlayer(), ModifyModelColorSelfPower.Impl.class, impl -> true)
 					.stream()
-					.map(ModifyModelColorSelfPower.Impl::getColor)
+					.map(ModifyModelColorSelfPower.Impl::getColorWithoutViewer)
 					.flatMap(Optional::stream)
 					.reduce(Color.DEFAULT, Color::mix)
 					.toArgb();

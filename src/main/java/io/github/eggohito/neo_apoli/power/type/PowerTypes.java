@@ -29,7 +29,8 @@ public class PowerTypes {
 	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM), BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.GENERIC, CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
-	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model_color/self", ContextTypes.GENERIC, ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC);
+	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model_color/other", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY), ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.PACKET_CODEC);
+	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model_color/self", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY), ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.GENERIC, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.GENERIC, TickingPower.CODEC, TickingPower.PACKET_CODEC);
 

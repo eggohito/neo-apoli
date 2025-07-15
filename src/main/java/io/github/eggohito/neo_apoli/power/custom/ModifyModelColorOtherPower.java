@@ -21,23 +21,23 @@ import java.util.Optional;
 
 //	TODO: Create more custom classes for color types
 @Getter
-public class ModifyModelColorSelfPower extends Power {
+public class ModifyModelColorOtherPower extends Power {
 
-	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(ModifyModelColorSelfPower::getAlpha))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("red").forGetter(ModifyModelColorSelfPower::getRed))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("green").forGetter(ModifyModelColorSelfPower::getGreen))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("blue").forGetter(ModifyModelColorSelfPower::getBlue))
-		.apply(instance, ModifyModelColorSelfPower::new));
+	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(ModifyModelColorOtherPower::getAlpha))
+		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("red").forGetter(ModifyModelColorOtherPower::getRed))
+		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("green").forGetter(ModifyModelColorOtherPower::getGreen))
+		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("blue").forGetter(ModifyModelColorOtherPower::getBlue))
+		.apply(instance, ModifyModelColorOtherPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyModelColorSelfPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+	public static final PacketCodec<RegistryByteBuf, ModifyModelColorOtherPower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, power) -> {
 			NumberProvider.PACKET_CODEC.encode(buf, power.getAlpha());
 			NumberProvider.PACKET_CODEC.encode(buf, power.getRed());
 			NumberProvider.PACKET_CODEC.encode(buf, power.getGreen());
 			NumberProvider.PACKET_CODEC.encode(buf, power.getBlue());
 		},
-		(buf, properties, condition) -> new ModifyModelColorSelfPower(properties, condition,
+		(buf, properties, condition) -> new ModifyModelColorOtherPower(properties, condition,
 			NumberProvider.PACKET_CODEC.decode(buf),
 			NumberProvider.PACKET_CODEC.decode(buf),
 			NumberProvider.PACKET_CODEC.decode(buf),
@@ -50,7 +50,7 @@ public class ModifyModelColorSelfPower extends Power {
 	private final NumberProvider green;
 	private final NumberProvider blue;
 
-	public ModifyModelColorSelfPower(Properties properties, EntityCondition activeCondition, NumberProvider alpha, NumberProvider red, NumberProvider green, NumberProvider blue) {
+	public ModifyModelColorOtherPower(Properties properties, EntityCondition activeCondition, NumberProvider alpha, NumberProvider red, NumberProvider green, NumberProvider blue) {
 		super(properties, activeCondition);
 		this.alpha = alpha;
 		this.red = red;
@@ -60,7 +60,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_MODEL_COLOR_SELF;
+		return PowerTypes.MODIFY_MODEL_COLOR_OTHER;
 	}
 
 	@Override
@@ -68,24 +68,21 @@ public class ModifyModelColorSelfPower extends Power {
 		return new Impl(holder, this);
 	}
 
-	public static class Impl extends Power.Impl<ModifyModelColorSelfPower> {
+	public static class Impl extends Power.Impl<ModifyModelColorOtherPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyModelColorSelfPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull ModifyModelColorOtherPower power) {
 			super(holder, power);
 		}
 
-		public Optional<Color> getColorWithoutViewer() {
-			return getColor(this.genericContext());
-		}
+		public Optional<Color> getColor(@Nullable Entity renderedEntity) {
 
-		public Optional<Color> getColorWithViewer(@Nullable Entity viewer) {
-			return getColor(this.contextBuilder()
-				.addNullable(ContextParameters.ACTOR, viewer)
-				.add(ContextParameters.TARGET, holder)
-				.build(holder.getWorld()));
-		}
-
-		protected Optional<Color> getColor(Context context) {
+			Optional<Entity> wrappedRenderedEntity = Optional.ofNullable(renderedEntity);
+			Context context = this.contextBuilder()
+				.addOptional(ContextParameters.THIS_ENTITY, wrappedRenderedEntity)
+				.addOptional(ContextParameters.POSITION, wrappedRenderedEntity.map(Entity::getPos))
+				.add(ContextParameters.ACTOR, holder)
+				.addOptional(ContextParameters.TARGET, wrappedRenderedEntity)
+				.build(holder.getWorld());
 
 			if (this.isActive(context)) {
 
