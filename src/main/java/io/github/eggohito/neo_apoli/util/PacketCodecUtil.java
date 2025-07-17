@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 
 public final class PacketCodecUtil {
+
 	public static <B extends PacketByteBuf, E> PacketCodec<B, E> mapped(Supplier<BiMap<String, E>> supplier) {
 		return new PacketCodec<>() {
 
@@ -98,6 +99,10 @@ public final class PacketCodecUtil {
 			}
 
 		};
+	}
+
+	public static <B extends ByteBuf, T> PacketCodec<B, T> unit(Supplier<T> supplier) {
+		return PacketCodec.ofStatic((buf, value) -> supplier.get(), buf -> supplier.get());
 	}
 
 }
