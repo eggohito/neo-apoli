@@ -7,3 +7,4 @@ accessible method net/minecraft/util/ErrorReporter$Impl <init> (Lcom/google/comm
 accessible class net/minecraft/command/DataCommandStorage$PersistentState
 accessible class net/minecraft/server/MinecraftServer$ResourceManagerHolder
 accessible class net/minecraft/server/command/ExecuteCommand$Condition
+accessible method net/minecraft/util/math/ColorHelper floatFromChannel (I)F

@@ -2,12 +2,14 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.util.Color;
+import io.github.eggohito.neo_apoli.util.color.Argb;
+import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
@@ -19,43 +21,32 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-//	TODO: Create more custom classes for color types
 @Getter
 public class ModifyModelColorSelfPower extends Power {
 
 	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(ModifyModelColorSelfPower::getAlpha))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("red").forGetter(ModifyModelColorSelfPower::getRed))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("green").forGetter(ModifyModelColorSelfPower::getGreen))
-		.and(NumberProvider.clamped(0.0, 1.0).fieldOf("blue").forGetter(ModifyModelColorSelfPower::getBlue))
+		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyModelColorSelfPower::getBiEntityCondition))
+		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::getColor))
 		.apply(instance, ModifyModelColorSelfPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyModelColorSelfPower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, power) -> {
-			NumberProvider.PACKET_CODEC.encode(buf, power.getAlpha());
-			NumberProvider.PACKET_CODEC.encode(buf, power.getRed());
-			NumberProvider.PACKET_CODEC.encode(buf, power.getGreen());
-			NumberProvider.PACKET_CODEC.encode(buf, power.getBlue());
+			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
+			Color.PACKET_CODEC.encode(buf, power.getColor());
 		},
 		(buf, properties, condition) -> new ModifyModelColorSelfPower(properties, condition,
-			NumberProvider.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf)
+			BiEntityCondition.PACKET_CODEC.decode(buf),
+			Color.PACKET_CODEC.decode(buf)
 		)
 	);
 
-	private final NumberProvider alpha;
-	private final NumberProvider red;
-	private final NumberProvider green;
-	private final NumberProvider blue;
+	private final BiEntityCondition biEntityCondition;
+	private final Color color;
 
-	public ModifyModelColorSelfPower(Properties properties, EntityCondition activeCondition, NumberProvider alpha, NumberProvider red, NumberProvider green, NumberProvider blue) {
+	public ModifyModelColorSelfPower(Properties properties, EntityCondition activeCondition, BiEntityCondition biEntityCondition, Color color) {
 		super(properties, activeCondition);
-		this.alpha = alpha;
-		this.red = red;
-		this.green = green;
-		this.blue = blue;
+		this.biEntityCondition = biEntityCondition;
+		this.color = color;
 	}
 
 	@Override
@@ -74,92 +65,25 @@ public class ModifyModelColorSelfPower extends Power {
 			super(holder, power);
 		}
 
-		public Optional<Color> getColorWithoutViewer() {
+		public Optional<Argb> getColorWithoutViewer() {
 			return getColor(this.genericContext());
 		}
 
-		public Optional<Color> getColorWithViewer(@Nullable Entity viewer) {
+		public Optional<Argb> getColorWithViewer(@Nullable Entity viewer) {
 			return getColor(this.contextBuilder()
 				.addNullable(ContextParameters.ACTOR, viewer)
 				.add(ContextParameters.TARGET, holder)
 				.build(holder.getWorld()));
 		}
 
-		protected Optional<Color> getColor(Context context) {
+		protected Optional<Argb> getColor(Context context) {
 
-			if (this.isActive(context)) {
-
-				float alpha = this.getAlpha(context).orElse(1.0F);
-				float red = this.getRed(context).orElse(1.0F);
-				float green = this.getGreen(context).orElse(1.0F);
-				float blue = this.getBlue(context).orElse(1.0F);
-
-				return Optional.of(new Color(alpha, red, green, blue));
-
+			if (this.isActive(context) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))) {
+				return Optional.of(this.power.getColor().toArgb(context));
 			}
 
 			else {
 				return Optional.empty();
-			}
-
-		}
-
-		public Optional<Float> getAlpha(Context context) {
-
-			Context alphaContext = context.makeChild(".alpha");
-			float alpha = power.getAlpha().nextFloat(alphaContext);
-
-			if (alphaContext.hasErrors()) {
-				return Optional.empty();
-			}
-
-			else {
-				return Optional.of(alpha);
-			}
-
-		}
-
-		public Optional<Float> getRed(Context context) {
-
-			Context redContext = context.makeChild(".red");
-			float red = power.getRed().nextFloat(redContext);
-
-			if (redContext.hasErrors()) {
-				return Optional.empty();
-			}
-
-			else {
-				return Optional.of(red);
-			}
-
-		}
-
-		public Optional<Float> getGreen(Context context) {
-
-			Context greenContext = context.makeChild(".green");
-			float green = power.getGreen().nextFloat(greenContext);
-
-			if (greenContext.hasErrors()) {
-				return Optional.empty();
-			}
-
-			else {
-				return Optional.of(green);
-			}
-
-		}
-
-		public Optional<Float> getBlue(Context context) {
-
-			Context blueContext = context.makeChild(".blue");
-			float blue = power.getBlue().nextFloat(blueContext);
-
-			if (blueContext.hasErrors()) {
-				return Optional.empty();
-			}
-
-			else {
-				return Optional.of(blue);
 			}
 
 		}

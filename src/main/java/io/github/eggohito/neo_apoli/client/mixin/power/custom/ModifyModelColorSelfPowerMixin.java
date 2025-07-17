@@ -6,11 +6,12 @@ import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.client.duck.PlayerRendererHelper;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
-import io.github.eggohito.neo_apoli.util.Color;
+import io.github.eggohito.neo_apoli.util.color.Argb;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -23,6 +24,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,29 +35,46 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class ModifyModelColorSelfPowerMixin {
 
 	@Mixin(LivingEntityRenderer.class)
-	public static abstract class EntityModelApplier {
+	public static abstract class EntityModelApplier<S extends LivingEntityRenderState> {
+
+		@Shadow
+		public abstract Identifier getTexture(S state);
 
 		@WrapOperation(method = "render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;III)V"))
-		private <S extends LivingEntityRenderState> void impl(EntityModel<S> model, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, int argb, Operation<Void> original, S renderState) {
+		private void impl(EntityModel<S> model, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, int packedArgb, Operation<Void> original, S renderState, MatrixStack methodMatrixStack, VertexConsumerProvider methodVertexConsumerProvider, int methodLight) {
 
 			MinecraftClient client = MinecraftClient.getInstance();
 			ClientPlayerEntity viewer = client.player;
 
 			if (renderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
-				argb = PowersComponent.getPowerImpls(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Impl.class, impl -> true)
-					.stream()
-					.map(impl -> impl.getColorWithViewer(viewer))
-					.flatMap(Optional::stream)
-					.reduce(Color.fromArgb(argb), Color::mix)
-					.toArgb();
+
+				List<ModifyModelColorSelfPower.Impl> impls = PowersComponent.getPowerImpls(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Impl.class);
+
+				if (!impls.isEmpty()) {
+
+					Argb unpackedArgb = impls
+						.stream()
+						.map(impl -> impl.getColorWithViewer(viewer))
+						.flatMap(Optional::stream)
+						.reduce(Argb.unpack(packedArgb), Argb::mix);
+
+					packedArgb = unpackedArgb.pack();
+
+					if (unpackedArgb.alpha() < 1.0F) {
+						vertexConsumer = methodVertexConsumerProvider.getBuffer(RenderLayer.getItemEntityTranslucentCull(this.getTexture(renderState)));
+					}
+
+				}
+
 			}
 
-			original.call(model, matrixStack, vertexConsumer, light, overlay, argb);
+			original.call(model, matrixStack, vertexConsumer, light, overlay, packedArgb);
 
 		}
 
@@ -86,8 +105,8 @@ public abstract class ModifyModelColorSelfPowerMixin {
 					.stream()
 					.map(ModifyModelColorSelfPower.Impl::getColorWithoutViewer)
 					.flatMap(Optional::stream)
-					.reduce(Color.DEFAULT, Color::mix)
-					.toArgb();
+					.reduce(Argb.DEFAULT, Argb::mix)
+					.pack();
 
 				armPart.render(matrices, vertices, light, overlay, argb);
 

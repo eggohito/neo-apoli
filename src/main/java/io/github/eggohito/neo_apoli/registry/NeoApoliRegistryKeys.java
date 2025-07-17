@@ -24,6 +24,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
+import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
@@ -69,6 +70,7 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<ComparisonType<?>>> COMPARISON_TYPE = create("comparison_type");
 	public static final RegistryKey<Registry<ContainerType>> CONTAINER_TYPE = create("container_type");
 	public static final RegistryKey<Registry<ModifierType<?>>> MODIFIER_TYPE = create("modifier_type");
+	public static final RegistryKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
 
 	private static <T> RegistryKey<Registry<T>> create(String path) {
 		return RegistryKey.ofRegistry(NeoApoli.id(path));
