@@ -29,7 +29,7 @@ public abstract class EntityMixin implements MovingEntity {
 	private Vec3d neo_apoli$prevPos;
 
 	@Unique
-	private Vec3d neo_apoli$velocity;
+	private Vec3d neo_apoli$velocity = Vec3d.ZERO;
 
 	@Override
 	public Vec3d neo_apoli$getVelocity() {
