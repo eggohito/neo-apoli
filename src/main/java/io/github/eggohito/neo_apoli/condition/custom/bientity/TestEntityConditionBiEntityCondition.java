@@ -11,9 +11,11 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Set;
 
@@ -48,11 +50,14 @@ public final class TestEntityConditionBiEntityCondition extends BiEntityConditio
 	@Override
 	protected boolean impl(Context context) {
 
-		Context entityConditionContext = context
-			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.required(this.entity().getParameter())))
-			.makeChild(".entity_condition");
+		Entity entity = context.required(this.entity().getParameter());
+		Vec3d pos = entity.getPos();
 
-		return entityCondition().test(entityConditionContext);
+		Context entityContext = context.copy(builder -> builder
+			.add(ContextParameters.THIS_ENTITY, entity)
+			.add(ContextParameters.POSITION, pos));
+
+		return entityCondition().test(entityContext.makeChild(".entity_condition"));
 
 	}
 
