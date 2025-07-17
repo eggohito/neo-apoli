@@ -50,7 +50,8 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<PositionNumberProvider> POSITION = registerInternal("position", PositionNumberProvider.CODEC, PositionNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.PACKET_CODEC);
-	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity_magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity/magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<VelocityNumberProvider> VELOCITY = registerInternal("velocity", VelocityNumberProvider.CODEC, VelocityNumberProvider.PACKET_CODEC);
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("abs", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, ABSOLUTE));

@@ -44,20 +44,17 @@ public abstract class EntityMixin implements MovingEntity {
 	@Inject(method = "baseTick", at = @At("TAIL"))
 	private void updateVelocity(CallbackInfo ci) {
 
-		if (neo_apoli$prevPos == null) {
-			this.neo_apoli$prevPos = this.getPos();
-		}
+		if (neo_apoli$prevPos != null) {
 
-		else {
-
-			double dx = this.neo_apoli$prevPos.x - this.getX();
-			double dy = this.neo_apoli$prevPos.y - this.getY();
-			double dz = this.neo_apoli$prevPos.z - this.getZ();
+			double dx = this.getX() - this.neo_apoli$prevPos.x;
+			double dy = this.getY() - this.neo_apoli$prevPos.y;
+			double dz = this.getZ() - this.neo_apoli$prevPos.z;
 
 			this.neo_apoli$setVelocity(dx, dy, dz);
-			this.neo_apoli$prevPos = this.getPos();
 
 		}
+
+		this.neo_apoli$prevPos = this.getPos();
 
 	}
 
