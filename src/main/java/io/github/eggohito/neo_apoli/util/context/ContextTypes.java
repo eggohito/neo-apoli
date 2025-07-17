@@ -11,6 +11,8 @@ import java.util.Set;
 public class ContextTypes {
 
 	public static final ContextType GENERIC = new ContextType.Builder()
+		.require(ContextParameters.THIS_ENTITY)
+		.require(ContextParameters.POSITION)
 		.allow(ContextParameters.POWER_REFERENCE)
 		.build();
 
@@ -24,11 +26,6 @@ public class ContextTypes {
 		.require(ContextParameters.BLOCK_STATE)
 		.allow(ContextParameters.BLOCK_ENTITY)
 		.allow(ContextParameters.DIRECTION)
-		.build();
-
-	public static final ContextType ENTITY = new ContextType.Builder()
-		.require(ContextParameters.THIS_ENTITY)
-		.require(ContextParameters.POSITION)
 		.build();
 
 	public static final ContextType ITEM = new ContextType.Builder()

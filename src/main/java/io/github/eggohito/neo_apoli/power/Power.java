@@ -164,7 +164,9 @@ public abstract class Power {
 
 			return Context.builder()
 				.withReporter(reporter)
-				.addOptional(ContextParameters.POWER_REFERENCE, powerReference);
+				.addOptional(ContextParameters.POWER_REFERENCE, powerReference)
+				.add(ContextParameters.THIS_ENTITY, holder)
+				.add(ContextParameters.POSITION, holder.getPos());
 
 		}
 
