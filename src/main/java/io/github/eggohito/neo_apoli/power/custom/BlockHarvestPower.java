@@ -95,9 +95,9 @@ public class BlockHarvestPower extends Power implements Prioritized<BlockHarvest
 		public boolean doesApply(BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
 
 			Context.Builder builder = this.contextBuilder()
-				.add(ContextParameters.THIS_ENTITY, holder)
 				.add(ContextParameters.BLOCK_STATE, state)
-				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity);
+				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
+				.add(ContextParameters.THIS_ENTITY, holder);
 
 			Context entityContext = builder
 				.add(ContextParameters.POSITION, holder.getPos())

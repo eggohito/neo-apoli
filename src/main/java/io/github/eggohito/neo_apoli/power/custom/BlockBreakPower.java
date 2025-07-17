@@ -182,10 +182,10 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			for (var impl : impls) {
 
 				Context.Builder builder = impl.contextBuilder()
-					.add(ContextParameters.THIS_ENTITY, player)
 					.add(ContextParameters.BLOCK_STATE, state)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-					.addNullable(ContextParameters.DIRECTION, direction);
+					.addNullable(ContextParameters.DIRECTION, direction)
+					.add(ContextParameters.THIS_ENTITY, player);
 
 				Context entityContext = builder
 					.add(ContextParameters.POSITION, player.getPos())
