@@ -1,10 +1,10 @@
-package io.github.eggohito.neo_apoli.util;
+package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 

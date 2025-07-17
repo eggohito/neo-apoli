@@ -36,7 +36,7 @@ public record MultiAlternativeCodec<T>(Codec<T> primary, Codec<? extends T>... a
 
 		}
 
-		return DataResult.error(() -> "Failed to parse." + errorBuilder);
+		return DataResult.error(errorBuilder::toString);
 
 	}
 
