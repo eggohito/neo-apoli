@@ -19,6 +19,7 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -67,14 +68,13 @@ public class ModifyModelColorOtherPower extends Power {
 
 		public Optional<Argb> getColorForEntity(@Nullable Entity renderedEntity) {
 
-			Optional<Entity> wrappedRenderedEntity = Optional.ofNullable(renderedEntity);
 			Context context = this.contextBuilder()
 				.add(ContextParameters.ACTOR, holder)
-				.addOptional(ContextParameters.TARGET, wrappedRenderedEntity)
+				.addNullable(ContextParameters.TARGET, renderedEntity)
 				.build(holder.getWorld());
 
-			if (this.isActive(context) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))) {
-				return Optional.of(this.power.getColor().toArgb(context));
+			if (!Objects.equals(holder, renderedEntity) && this.isActive(context) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))) {
+				return Optional.of(this.power.getColor().toArgb(context.makeChild(".color")));
 			}
 
 			else {

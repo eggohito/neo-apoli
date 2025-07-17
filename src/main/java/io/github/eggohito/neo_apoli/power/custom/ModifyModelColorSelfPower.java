@@ -19,6 +19,7 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -66,20 +67,18 @@ public class ModifyModelColorSelfPower extends Power {
 		}
 
 		public Optional<Argb> getColorWithoutViewer() {
-			return getColor(this.genericContext());
+			return getColorWithViewer(null);
 		}
 
 		public Optional<Argb> getColorWithViewer(@Nullable Entity viewer) {
-			return getColor(this.contextBuilder()
+
+			Context context = this.contextBuilder()
 				.addNullable(ContextParameters.ACTOR, viewer)
 				.add(ContextParameters.TARGET, holder)
-				.build(holder.getWorld()));
-		}
+				.build(holder.getWorld());
 
-		protected Optional<Argb> getColor(Context context) {
-
-			if (this.isActive(context) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))) {
-				return Optional.of(this.power.getColor().toArgb(context));
+			if (viewer == null || Objects.equals(holder, viewer) || (this.isActive(context) && this.power.getBiEntityCondition().test(context.makeChild(".bientity_condition")))) {
+				return Optional.of(power.getColor().toArgb(context.makeChild(".color")));
 			}
 
 			else {
@@ -87,6 +86,18 @@ public class ModifyModelColorSelfPower extends Power {
 			}
 
 		}
+
+//		protected Optional<Argb> getColor(Context context, boolean withViewer) {
+//
+//			if (this.isActive(context) && (!withViewer || (!Objects.equals(context.nullable(ContextParameters.ACTOR), context.required(ContextParameters.TARGET)) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))))) {
+//				return Optional.of(this.power.getColor().toArgb(context));
+//			}
+//
+//			else {
+//				return Optional.empty();
+//			}
+//
+//		}
 
 	}
 
