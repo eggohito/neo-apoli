@@ -93,8 +93,16 @@ public abstract class Power {
 		return RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance).apply(instance, constructor));
 	}
 
+	protected static <P extends Power> MapCodec<P> createSimpleConditionedCodec(BiFunction<Properties, EntityCondition, P> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance).apply(instance, constructor));
+	}
+
 	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createSimplePacketCodec(Function<Properties, P> constructor) {
-		return createCommonPacketCodec((buf, power) -> {}, (buf, metadata) -> constructor.apply(metadata));
+		return createCommonPacketCodec((buf, power) -> {}, (buf, properties) -> constructor.apply(properties));
+	}
+
+	protected static <P extends Power> PacketCodec<RegistryByteBuf, P> createSimpleConditionedPacketCodec(BiFunction<Properties, EntityCondition, P> constructor) {
+		return createCommonConditionedPacketCodec((buf, power) -> {}, (buf, properties, condition) -> constructor.apply(properties, condition));
 	}
 
 	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Properties> addCommonFields(RecordCodecBuilder.Instance<P> instance) {

@@ -12,7 +12,8 @@
 		"power.custom.ModifyModelColorOtherPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$PlayerArmPartApplier",
-		"power.custom.ModifyModelColorSelfPowerMixin$PlayerCache"
+		"power.custom.ModifyModelColorSelfPowerMixin$PlayerCache",
+		"power.custom.ModifyShakingPowerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
