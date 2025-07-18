@@ -65,6 +65,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 						.reduce(Argb.unpack(packedArgb), Argb::mix);
 
 					packedArgb = unpackedArgb.pack();
+					renderCache.neo_apoli$setColor(unpackedArgb);
 
 					if (unpackedArgb.alpha() < 1.0F) {
 						vertexConsumer = methodVertexConsumerProvider.getBuffer(RenderLayer.getItemEntityTranslucentCull(this.getTexture(renderState)));

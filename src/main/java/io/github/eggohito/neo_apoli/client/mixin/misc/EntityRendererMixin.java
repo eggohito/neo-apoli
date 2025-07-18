@@ -17,6 +17,7 @@ public abstract class EntityRendererMixin<T extends Entity, S extends EntityRend
 
 		if (state instanceof EntityRenderCache renderCache) {
 			renderCache.neo_apoli$setEntity(entity);
+			renderCache.neo_apoli$setColor(null);
 		}
 
 	}

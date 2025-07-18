@@ -4,9 +4,11 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"misc.ClientWorldMixin",
+		"misc.EntityRenderDispatcherMixin",
 		"misc.EntityRendererMixin",
 		"misc.EntityRenderStateMixin",
 		"misc.MinecraftClientMixin",
+		"power.custom.ModifyInvisibilityPowerMixin",
 		"power.custom.ModifyModelColorOtherPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$PlayerArmPartApplier",
