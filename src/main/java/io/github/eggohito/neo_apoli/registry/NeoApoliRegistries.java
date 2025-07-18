@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
@@ -41,6 +42,7 @@ public class NeoApoliRegistries {
 	public static final Registry<ItemConditionType<?>> ITEM_CONDITION_TYPE = create(NeoApoliRegistryKeys.ITEM_CONDITION_TYPE);
 	public static final Registry<ItemActionType<?>> ITEM_ACTION_TYPE = create(NeoApoliRegistryKeys.ITEM_ACTION_TYPE);
 
+	public static final Registry<BooleanProviderType<?>> BOOLEAN_PROVIDER_TYPE = create(NeoApoliRegistryKeys.BOOLEAN_PROVIDER_TYPE);
 	public static final Registry<NbtProviderType<?>> NBT_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NBT_PROVIDER_TYPE);
 	public static final Registry<NumberProviderType<?>> NUMBER_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 	public static final Registry<StringProviderType<?>> STRING_PROVIDER_TYPE = create(NeoApoliRegistryKeys.STRING_PROVIDER_TYPE);
