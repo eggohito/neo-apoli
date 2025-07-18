@@ -29,6 +29,7 @@ public final class BiEntityConditionTypes {
 	public static final BiEntityConditionType<AllOfBiEntityCondition> ALL_OF = registerInternal("all_of", AllOfBiEntityCondition.CODEC, AllOfBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<AnyOfBiEntityCondition> ANY_OF = registerInternal("any_of", AnyOfBiEntityCondition.CODEC, AnyOfBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<CompareBiEntityCondition> COMPARE = registerInternal("compare", CompareBiEntityCondition.CODEC, CompareBiEntityCondition.PACKET_CODEC);
+	public static final BiEntityConditionType<CompareToRangeBiEntityCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeBiEntityCondition.CODEC, CompareToRangeBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<ConstantBiEntityCondition> CONSTANT = registerInternal("constant", ConstantBiEntityCondition.CODEC, ConstantBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<InvertedBiEntityCondition> INVERTED = registerInternal("inverted", InvertedBiEntityCondition.CODEC, InvertedBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<ReferenceBiEntityCondition> REFERENCE = registerInternal("reference", ReferenceBiEntityCondition.CODEC, ReferenceBiEntityCondition.PACKET_CODEC);
