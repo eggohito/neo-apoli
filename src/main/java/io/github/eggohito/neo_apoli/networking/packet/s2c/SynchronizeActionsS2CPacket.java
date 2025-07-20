@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.RegistryByteBuf;
@@ -24,7 +25,7 @@ public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier,
 
 		for (int i = 0; i < actionsCount; i++) {
 
-			ActionCategory<Action> category = (ActionCategory<Action>) ActionCategory.PACKET_CODEC.decode(buf);
+			ActionCategory<Action> category = (ActionCategory<Action>) ActionCategories.PACKET_CODEC.decode(buf);
 			int entriesCount = buf.readVarInt();
 
 			for (int j = 0; j < entriesCount; j++) {
@@ -49,7 +50,7 @@ public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier,
 		actions().forEach((category, entries) -> {
 
 			ActionCategory<Action> castedCategory = (ActionCategory<Action>) category;
-			ActionCategory.PACKET_CODEC.encode(buf, castedCategory);
+			ActionCategories.PACKET_CODEC.encode(buf, castedCategory);
 
 			buf.writeVarInt(entries.size());
 			entries.forEach((id, action) -> {

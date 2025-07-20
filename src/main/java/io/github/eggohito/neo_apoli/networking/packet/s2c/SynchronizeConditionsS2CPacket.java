@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.RegistryByteBuf;
@@ -24,7 +25,7 @@ public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Ident
 
 		for (int i = 0; i < conditionsCount; i++) {
 
-			ConditionCategory<Condition> category = (ConditionCategory<Condition>) ConditionCategory.PACKET_CODEC.decode(buf);
+			ConditionCategory<Condition> category = (ConditionCategory<Condition>) ConditionCategories.PACKET_CODEC.decode(buf);
 			int entriesCount = buf.readVarInt();
 
 			for (int j = 0; j < entriesCount; j++) {
@@ -47,7 +48,7 @@ public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Ident
 		conditions().forEach((category, entries) -> {
 
 			ConditionCategory<Condition> castedCategory = (ConditionCategory<Condition>) category;
-			ConditionCategory.PACKET_CODEC.encode(buf, castedCategory);
+			ConditionCategories.PACKET_CODEC.encode(buf, castedCategory);
 
 			buf.writeVarInt(entries.size());
 			entries.forEach((id, condition) -> {

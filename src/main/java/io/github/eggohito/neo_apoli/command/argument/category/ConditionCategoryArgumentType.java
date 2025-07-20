@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.command.argument.category;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.server.command.ServerCommandSource;
@@ -9,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 public class ConditionCategoryArgumentType extends CategoryArgumentType<ConditionCategory<?>> {
 
 	public ConditionCategoryArgumentType() {
-		super(NeoApoliRegistries.CONDITION_CATEGORY, ConditionCategory.CODEC);
+		super(NeoApoliRegistries.CONDITION_CATEGORY, ConditionCategories.CODEC);
 	}
 
 	public static ConditionCategoryArgumentType category() {

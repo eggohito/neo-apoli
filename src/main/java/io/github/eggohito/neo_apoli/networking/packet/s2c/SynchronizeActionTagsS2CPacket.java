@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionEntry;
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -29,7 +30,7 @@ public record SynchronizeActionTagsS2CPacket(Map<ActionCategory<?>, Map<Identifi
 
 		for (int i = 0; i < categoriesAndTagIds; i++) {
 
-			ActionCategory<?> category = ActionCategory.PACKET_CODEC.decode(buf);
+			ActionCategory<?> category = ActionCategories.PACKET_CODEC.decode(buf);
 			int tagIdsAndEntryIdsCount = buf.readVarInt();
 
 			for (int j = 0; j < tagIdsAndEntryIdsCount; j++) {
@@ -63,7 +64,7 @@ public record SynchronizeActionTagsS2CPacket(Map<ActionCategory<?>, Map<Identifi
 		buf.writeVarInt(categoriesAndTagIds.size());
 		categoriesAndTagIds.forEach((category, tagIdsAndEntryIds) -> {
 
-			ActionCategory.PACKET_CODEC.encode(buf, category);
+			ActionCategories.PACKET_CODEC.encode(buf, category);
 			buf.writeVarInt(tagIdsAndEntryIds.size());
 
 			tagIdsAndEntryIds.forEach((id, entries) -> {

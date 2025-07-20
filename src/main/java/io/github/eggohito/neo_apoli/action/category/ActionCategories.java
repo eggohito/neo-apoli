@@ -1,10 +1,15 @@
 package io.github.eggohito.neo_apoli.action.category;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -15,6 +20,9 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class ActionCategories {
+
+	public static final Codec<ActionCategory<?>> CODEC = NeoApoliRegistries.ACTION_CATEGORY.getCodec();
+	public static final PacketCodec<RegistryByteBuf, ActionCategory<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ACTION_CATEGORY);
 
 	public static final BiEntityActionCategory BIENTITY_ACTION = register(new BiEntityActionCategory());
 	public static final BlockActionCategory BLOCK_ACTION = register(new BlockActionCategory());

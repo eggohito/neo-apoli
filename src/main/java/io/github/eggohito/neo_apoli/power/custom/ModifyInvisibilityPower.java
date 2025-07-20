@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
@@ -10,6 +9,8 @@ import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCond
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.provider.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
@@ -18,39 +19,40 @@ import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@Getter
 public class ModifyInvisibilityPower extends Power {
 
 	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
 		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyInvisibilityPower::getBiEntityCondition))
-		.and(Codec.BOOL.optionalFieldOf("render_armor", true).forGetter(ModifyInvisibilityPower::shouldRenderArmor))
-		.and(Codec.BOOL.optionalFieldOf("render_outline", true).forGetter(ModifyInvisibilityPower::shouldRenderOutline))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmorProvider))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutlineProvider))
 		.apply(instance, ModifyInvisibilityPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyInvisibilityPower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, power) -> {
 			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
-			buf.writeBoolean(power.shouldRenderArmor());
-			buf.writeBoolean(power.shouldRenderOutline());
+			BooleanProvider.PACKET_CODEC.encode(buf, power.getRenderArmorProvider());
+			BooleanProvider.PACKET_CODEC.encode(buf, power.getRenderOutlineProvider());
 		},
 		(buf, properties, condition) -> new ModifyInvisibilityPower(properties, condition,
 			BiEntityCondition.PACKET_CODEC.decode(buf),
-			buf.readBoolean(),
-			buf.readBoolean()
+			BooleanProvider.PACKET_CODEC.decode(buf),
+			BooleanProvider.PACKET_CODEC.decode(buf)
 		)
 	);
 
-	@Getter
 	private final BiEntityCondition biEntityCondition;
 
-	private final boolean renderArmor;
-	private final boolean renderOutline;
+	private final BooleanProvider renderArmorProvider;
+	private final BooleanProvider renderOutlineProvider;
 
-	public ModifyInvisibilityPower(Properties properties, EntityCondition activeCondition, BiEntityCondition biEntityCondition, boolean renderArmor, boolean renderOutline) {
+	public ModifyInvisibilityPower(Properties properties, EntityCondition activeCondition, BiEntityCondition biEntityCondition, BooleanProvider renderArmorProvider, BooleanProvider renderOutlineProvider) {
 		super(properties, activeCondition);
 		this.biEntityCondition = biEntityCondition;
-		this.renderArmor = renderArmor;
-		this.renderOutline = renderOutline;
+		this.renderArmorProvider = renderArmorProvider;
+		this.renderOutlineProvider = renderOutlineProvider;
 	}
 
 	@Override
@@ -83,7 +85,7 @@ public class ModifyInvisibilityPower extends Power {
 		public boolean isInvisibleTo(Entity viewer) {
 
 			Context context = this.contextBuilder()
-				.add(ContextParameters.ACTOR, viewer)
+				.addNullable(ContextParameters.ACTOR, viewer)
 				.add(ContextParameters.TARGET, holder)
 				.build(holder.getWorld());
 
@@ -92,12 +94,12 @@ public class ModifyInvisibilityPower extends Power {
 
 		}
 
-		public boolean shouldRenderArmor() {
-			return power.shouldRenderArmor();
+		public boolean shouldRenderArmor(Context context) {
+			return power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
 		}
 
-		public boolean shouldRenderOutline() {
-			return power.shouldRenderOutline();
+		public boolean shouldRenderOutline(Context context) {
+			return power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
 		}
 
 		public boolean isActive() {
@@ -108,6 +110,44 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static boolean isInvisibleTo(@NotNull Entity target, @NotNull Entity actor) {
 		return PowersComponent.hasPowerImpl(target, Impl.class, impl -> impl.isInvisibleTo(actor));
+	}
+
+	public static boolean shouldRenderArmor(@NotNull Entity target, @Nullable Entity viewer) {
+
+		for (Impl impl : PowersComponent.getPowerImpls(target, Impl.class)) {
+
+			Context context = impl.contextBuilder()
+				.addNullable(ContextParameters.ACTOR, viewer)
+				.add(ContextParameters.TARGET, target)
+				.build(target.getWorld());
+
+			if (!impl.shouldRenderArmor(context.makeChild(".render_armor")) && impl.isActive(context)) {
+				return false;
+			}
+
+		}
+
+		return true;
+
+	}
+
+	public static boolean shouldRenderOutline(@NotNull Entity target, @Nullable Entity viewer) {
+
+		for (Impl impl : PowersComponent.getPowerImpls(target, Impl.class)) {
+
+			Context context = impl.contextBuilder()
+				.addNullable(ContextParameters.ACTOR, viewer)
+				.add(ContextParameters.TARGET, target)
+				.build(target.getWorld());
+
+			if (!impl.shouldRenderOutline(context.makeChild(".render_outline")) && impl.isActive(context)) {
+				return false;
+			}
+
+		}
+
+		return true;
+
 	}
 
 }
