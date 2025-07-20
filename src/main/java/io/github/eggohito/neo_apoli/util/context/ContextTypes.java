@@ -29,8 +29,8 @@ public class ContextTypes {
 		.build();
 
 	public static final ContextType ITEM = new ContextType.Builder()
-		.require(ContextParameters.STACK_REFERENCE)
-		.require(ContextParameters.ITEM_STACK)
+		.allow(ContextParameters.STACK_REFERENCE)
+		.allow(ContextParameters.ITEM_STACK)
 		.allow(ContextParameters.HAND)
 		.build();
 

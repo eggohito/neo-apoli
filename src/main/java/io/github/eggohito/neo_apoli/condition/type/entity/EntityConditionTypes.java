@@ -32,6 +32,7 @@ public final class EntityConditionTypes {
 	public static final EntityConditionType<ReferenceEntityCondition> REFERENCE = registerInternal("reference", ReferenceEntityCondition.CODEC, ReferenceEntityCondition.PACKET_CODEC);
 
 	public static final EntityConditionType<EntityTypeEntityCondition> ENTITY_TYPE = registerInternal("entity_type", EntityTypeEntityCondition.CODEC, EntityTypeEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<EquippedItemEntityCondition> EQUIPPED_ITEM = registerInternal("equipped_item", EquippedItemEntityCondition.CODEC, EquippedItemEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsInTagEntityCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEntityCondition.CODEC, IsInTagEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
