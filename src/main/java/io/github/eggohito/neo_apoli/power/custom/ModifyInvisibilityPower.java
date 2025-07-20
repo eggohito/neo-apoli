@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -62,12 +63,15 @@ public class ModifyInvisibilityPower extends Power {
 		return new Impl(holder, this);
 	}
 
-	public boolean shouldRenderArmor() {
-		return renderArmor;
-	}
+	@Override
+	public void validate(ContextAware.ErrorReporter reporter) {
 
-	public boolean shouldRenderOutline() {
-		return renderOutline;
+		super.validate(reporter);
+
+		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
+		getRenderArmorProvider().validate(reporter.makeChild(".render_armor"));
+		getRenderOutlineProvider().validate(reporter.makeChild(".render_outline"));
+
 	}
 
 	public static class Impl extends Power.Impl<ModifyInvisibilityPower> {
