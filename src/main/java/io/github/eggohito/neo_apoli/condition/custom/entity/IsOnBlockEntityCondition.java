@@ -20,26 +20,26 @@ import net.minecraft.world.World;
 
 @EqualsAndHashCode
 @Data
-public final class OnBlockEntityCondition extends EntityCondition {
+public final class IsOnBlockEntityCondition extends EntityCondition {
 
-	public static final MapCodec<OnBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(OnBlockEntityCondition::blockCondition)
-	).apply(instance, OnBlockEntityCondition::new));
+	public static final MapCodec<IsOnBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsOnBlockEntityCondition::blockCondition)
+	).apply(instance, IsOnBlockEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, OnBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, OnBlockEntityCondition::blockCondition,
-		OnBlockEntityCondition::new
+	public static final PacketCodec<RegistryByteBuf, IsOnBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
+		BlockCondition.PACKET_CODEC, IsOnBlockEntityCondition::blockCondition,
+		IsOnBlockEntityCondition::new
 	);
 
 	private final BlockCondition blockCondition;
 
-	public OnBlockEntityCondition(BlockCondition blockCondition) {
+	public IsOnBlockEntityCondition(BlockCondition blockCondition) {
 		this.blockCondition = blockCondition;
 	}
 
 	@Override
 	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.ON_BLOCK;
+		return EntityConditionTypes.IS_ON_BLOCK;
 	}
 
 	@Override
