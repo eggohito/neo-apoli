@@ -110,14 +110,14 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			return power.getPriority();
 		}
 
-		public void execute(Context blockContext, Context entityContext) {
-			power.getActions().execute(blockContext, entityContext);
+		public void execute(Context context) {
+			power.getActions().execute(context);
 		}
 
-		public boolean doesApply(Context blockContext, Context entityContext, boolean harvested) {
+		public boolean doesApply(Context context, boolean harvested) {
 			return (!power.onlyWhenHarvested() || harvested)
-				&& power.getConditions().test(blockContext)
-				&& this.isActive(entityContext);
+				&& power.getConditions().test(context)
+				&& this.isActive(context);
 		}
 
 	}
@@ -135,9 +135,9 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			Actions::new
 		);
 
-		public void execute(Context blockContext, Context entityContext) {
-			blockAction().execute(blockContext.makeChild(".block_action"));
-			entityAction().execute(entityContext.makeChild(".entity_action"));
+		public void execute(Context context) {
+			blockAction().execute(context.makeChild(".block_action"));
+			entityAction().execute(context.makeChild(".entity_action"));
 		}
 
 		public void validate(ContextAware.ErrorReporter reporter) {
@@ -160,9 +160,9 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 			Conditions::new
 		);
 
-		public boolean test(Context blockContext) {
-			return blockContext.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(true)
-				&& blockCondition().test(blockContext.makeChild(".block_condition"));
+		public boolean test(Context context) {
+			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(true)
+				&& blockCondition().test(context.makeChild(".block_condition"));
 		}
 
 		public void validate(ContextAware.ErrorReporter reporter) {
@@ -171,7 +171,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 	}
 
-	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
+	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
 		CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> true);
 
@@ -181,21 +181,15 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 			for (var impl : impls) {
 
-				Context.Builder builder = impl.contextBuilder()
-					.add(ContextParameters.BLOCK_STATE, state)
+				Context context = impl.contextBuilder()
+					.add(ContextParameters.BLOCK_POS, blockPos)
+					.add(ContextParameters.BLOCK_STATE, blockState)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
 					.addNullable(ContextParameters.DIRECTION, direction)
-					.add(ContextParameters.THIS_ENTITY, player);
-
-				Context entityContext = builder
-					.add(ContextParameters.POSITION, player.getPos())
-					.build(player.getWorld());
-				Context blockContext = builder
-					.add(ContextParameters.POSITION, blockPos.toCenterPos())
 					.build(player.getWorld());
 
-				if (impl.doesApply(blockContext, entityContext, harvested)) {
-					impl.execute(blockContext, entityContext);
+				if (impl.doesApply(context, harvested)) {
+					impl.execute(context);
 				}
 
 			}

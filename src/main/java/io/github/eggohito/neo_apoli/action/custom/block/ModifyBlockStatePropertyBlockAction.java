@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -71,7 +72,7 @@ public final class ModifyBlockStatePropertyBlockAction extends BlockAction {
 			return;
 		}
 
-		BlockState state = this.getBlockState(context);
+		BlockState state = context.required(ContextParameters.BLOCK_STATE);
 		Property<?> property = state.getBlock().getStateManager().getProperty(propertyString);
 
 		if (property != null) {

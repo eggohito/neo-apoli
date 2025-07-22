@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -31,7 +32,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.context.ContextType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
@@ -45,20 +45,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface ExplodeMetaAction {
-
-	ContextType ENTITY_CONTEXT_TYPE = new ContextType.Builder()
-		.require(ContextParameters.POSITION)
-		.allow(ContextParameters.THIS_ENTITY)
-		.allow(ContextParameters.ACTOR)
-		.allow(ContextParameters.TARGET)
-		.build();
-
-	ContextType BLOCK_CONTEXT_TYPE = new ContextType.Builder()
-		.require(ContextParameters.POSITION)
-		.require(ContextParameters.BLOCK_STATE)
-		.allow(ContextParameters.THIS_ENTITY)
-		.allow(ContextParameters.BLOCK_ENTITY)
-		.build();
 
 	BiEntityCondition damageableBiEntityCondition();
 
@@ -84,7 +70,7 @@ public interface ExplodeMetaAction {
 		CustomExplosionBehavior behavior = new CustomExplosionBehavior(this.damageableBiEntityCondition(), this.destructibleBlockCondition(), property, context);
 		ExplosionImpl explosion = new ExplosionImpl(
 			serverWorld,
-			context.nullable(ContextParameters.THIS_ENTITY),
+			context.nullable(ContextParameters.ENTITY),
 			null,
 			behavior,
 			position,
@@ -119,8 +105,12 @@ public interface ExplodeMetaAction {
 
 	default void validate(ContextAware.ErrorReporter reporter) {
 
-		damageableBiEntityCondition().validate(reporter.makeChild(".damageable_bientity_condition"));
-		destructibleBlockCondition().validate(reporter.makeChild(".destructible_block_condition"));
+		damageableBiEntityCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BIENTITY))
+			.makeChild(".damageable_bientity_condition"));
+		destructibleBlockCondition().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.makeChild(".destructible_block_condition"));
 
 		property().validate(reporter);
 
@@ -161,16 +151,15 @@ public interface ExplodeMetaAction {
 		}
 
 		@Override
-		public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power) {
+		public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos blockPos, BlockState blockState, float power) {
 
 			Context blockContext = context.copy(builder -> builder
-				.withContextType(BLOCK_CONTEXT_TYPE)
-				.add(ContextParameters.POSITION, pos.toCenterPos())
-				.add(ContextParameters.BLOCK_STATE, state)
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)))
-				.makeChild(".destructible_block_condition");
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, blockState)
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
-			return destructibleBlockCondition.test(blockContext);
+			return destructibleBlockCondition.test(blockContext.makeChild(".destructible_block_condition"));
 
 		}
 
@@ -178,25 +167,23 @@ public interface ExplodeMetaAction {
 		public boolean shouldDamage(Explosion explosion, Entity target) {
 
 			Context biEntityContext = context.copy(builder -> builder
-				.withContextType(ENTITY_CONTEXT_TYPE)
-				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.THIS_ENTITY))
-				.addNullable(ContextParameters.TARGET, target))
-				.makeChild(".damageable_bientity_condition");
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
+				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ENTITY))
+				.addNullable(ContextParameters.TARGET, target));
 
-			return damageableBiEntityCondition.test(biEntityContext);
+			return damageableBiEntityCondition.test(biEntityContext.makeChild(".damageable_bientity_condition"));
 
 		}
 
 		@Override
 		public float getKnockbackModifier(Entity target) {
 
-			Context knockbackContext = context.copy(builder -> builder
-				.withContextType(ENTITY_CONTEXT_TYPE)
+			Context biEntityContext = context.copy(builder -> builder
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
 				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ACTOR))
-				.addNullable(ContextParameters.TARGET, target))
-				.makeChild(".knockback_modifier");
+				.addNullable(ContextParameters.TARGET, target));
 
-			return this.property.knockbackMultiplier().nextFloat(knockbackContext);
+			return this.property.knockbackMultiplier().nextFloat(biEntityContext.makeChild(".knockback_multiplayer"));
 
 		}
 

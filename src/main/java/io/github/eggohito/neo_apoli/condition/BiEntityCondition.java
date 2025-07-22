@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -29,7 +29,7 @@ public abstract class BiEntityCondition extends Condition {
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
+		return ContextTypes.BIENTITY.getAllowed();
 	}
 
 	@Override

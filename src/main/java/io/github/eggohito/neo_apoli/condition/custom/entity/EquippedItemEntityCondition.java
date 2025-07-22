@@ -45,7 +45,7 @@ public final class EquippedItemEntityCondition extends EntityCondition {
 	@Override
 	protected boolean impl(Context context) {
 
-		if (!(context.required(ContextParameters.THIS_ENTITY) instanceof LivingEntity livingEntity)) {
+		if (!(context.required(ContextParameters.ENTITY) instanceof LivingEntity livingEntity)) {
 			return false;
 		}
 

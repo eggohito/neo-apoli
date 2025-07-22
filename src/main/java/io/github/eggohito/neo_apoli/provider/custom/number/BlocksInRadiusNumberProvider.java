@@ -77,7 +77,7 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 
 			Context blockContext = context.copy(builder -> builder
 				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.POSITION, pos.toCenterPos())
+				.add(ContextParameters.BLOCK_POS, pos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
 

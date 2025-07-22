@@ -45,13 +45,13 @@ public final class OnBlockEntityCondition extends EntityCondition {
 	@Override
 	protected boolean impl(Context context) {
 
-		Entity entity = context.required(ContextParameters.THIS_ENTITY);
+		Entity entity = context.required(ContextParameters.ENTITY);
 		BlockPos steppingPos = entity.getSteppingPos();
 
 		World world = context.getWorld();
 		Context blockContext = context.copy(builder -> builder
 			.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
-			.add(ContextParameters.POSITION, steppingPos.toCenterPos())
+			.add(ContextParameters.BLOCK_POS, steppingPos)
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
 			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
 

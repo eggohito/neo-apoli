@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.network.RegistryByteBuf;
@@ -48,20 +46,16 @@ public final class BlockActionCategory extends ActionCategory<BlockAction> {
 			ServerWorld serverWorld = commandSource.getWorld();
 
 			BlockPos blockPos = BlockPosArgumentType.getLoadedBlockPos(commandContext, "pos");
-
-			BlockState blockState = serverWorld.getBlockState(blockPos);
-			BlockEntity blockEntity = serverWorld.getBlockEntity(blockPos);
-
 			BlockAction blockAction = ActionArgumentType.getAction(commandContext, actionKey);
+
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(blockAction).mapOrElse(Identifier::toString, error -> blockAction.toString()) + "}")
-				.withContextType(ContextTypes.BLOCK)
+				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = new Context.Builder(reporter.getContextType())
-				.withReporter(reporter)
-				.add(ContextParameters.POSITION, blockPos.toCenterPos())
-				.add(ContextParameters.BLOCK_STATE, blockState)
-				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
+			Context context = Context.builder(reporter)
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))
 				.build(serverWorld);
 
 			blockAction.validate(reporter);

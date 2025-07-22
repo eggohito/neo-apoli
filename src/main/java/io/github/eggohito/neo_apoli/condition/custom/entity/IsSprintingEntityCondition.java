@@ -29,7 +29,7 @@ public final class IsSprintingEntityCondition extends EntityCondition {
 
 	@Override
 	protected boolean impl(Context context) {
-		return context.required(ContextParameters.THIS_ENTITY).isSprinting();
+		return context.required(ContextParameters.ENTITY).isSprinting();
 	}
 
 }

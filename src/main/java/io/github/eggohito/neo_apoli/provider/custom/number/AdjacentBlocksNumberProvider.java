@@ -61,7 +61,7 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 
 			Context blockContext = context.copy(builder -> builder
 				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.POSITION, offsetPos.toCenterPos())
+				.add(ContextParameters.BLOCK_POS, offsetPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
 

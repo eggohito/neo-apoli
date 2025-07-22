@@ -29,7 +29,7 @@ public final class IsSneakingEntityCondition extends EntityCondition {
 
 	@Override
 	protected boolean impl(Context context) {
-		return context.required(ContextParameters.THIS_ENTITY).isSneaking();
+		return context.required(ContextParameters.ENTITY).isSneaking();
 	}
 
 }

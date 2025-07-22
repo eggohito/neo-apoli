@@ -43,7 +43,7 @@ public final class EntityTypeEntityCondition extends EntityCondition {
 
 	@Override
 	protected boolean impl(Context context) {
-		return Objects.equals(context.required(ContextParameters.THIS_ENTITY).getType(), this.entityType());
+		return Objects.equals(context.required(ContextParameters.ENTITY).getType(), this.entityType());
 	}
 
 }

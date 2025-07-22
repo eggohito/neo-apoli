@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -54,7 +55,7 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 	protected void impl(Context context) {
 
 		World world = context.getWorld();
-		Vec3d originPos = context.required(ContextParameters.POSITION);
+		Vec3d originPos = context.required(ContextParameters.ENTITY_POS);
 
 		Context radiusContext = context.makeChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
@@ -66,7 +67,8 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 		for (Entity target : shape().getEntities(world, originPos, radius)) {
 
 			Context biEntityContext = context.copy(builder -> builder
-				.add(ContextParameters.ACTOR, context.required(ContextParameters.THIS_ENTITY))
+				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
+				.add(ContextParameters.ACTOR, context.required(ContextParameters.ENTITY))
 				.add(ContextParameters.TARGET, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
@@ -81,9 +83,10 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 	public void validate(ErrorReporter reporter) {
 
 		super.validate(reporter);
+		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BIENTITY));
 
-		biEntityAction().validate(reporter.makeChild(".bientity_action"));
-		biEntityCondition().validate(reporter.makeChild(".bientity_condition"));
+		biEntityAction().validate(biEntityReporter.makeChild(".bientity_action"));
+		biEntityCondition().validate(biEntityReporter.makeChild(".bientity_condition"));
 
 		radius().validate(reporter.makeChild(".radius"));
 

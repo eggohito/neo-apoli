@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
@@ -59,7 +60,7 @@ public final class BlockStatePropertyBlockCondition extends BlockCondition {
 			return false;
 		}
 
-		BlockState state = this.getBlockState(context);
+		BlockState state = context.required(ContextParameters.BLOCK_STATE);
 		Property<?> property = state.getBlock().getStateManager().getProperty(propertyString);
 
 		if (property == null) {

@@ -54,7 +54,7 @@ public final class GiveItemsEntityAction extends EntityAction {
 	protected void impl(Context context) {
 
 		World world = context.getWorld();
-		Entity entity = context.required(ContextParameters.THIS_ENTITY);
+		Entity entity = context.required(ContextParameters.ENTITY);
 
 		if (!(world instanceof ServerWorld serverWorld)) {
 			return;

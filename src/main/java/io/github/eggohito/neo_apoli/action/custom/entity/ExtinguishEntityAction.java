@@ -29,7 +29,7 @@ public final class ExtinguishEntityAction extends EntityAction {
 
 	@Override
 	protected void impl(Context context) {
-		context.required(ContextParameters.THIS_ENTITY).extinguishWithSound();
+		context.required(ContextParameters.ENTITY).extinguishWithSound();
 	}
 
 }

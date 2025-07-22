@@ -7,11 +7,13 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 @EqualsAndHashCode
@@ -36,7 +38,12 @@ public final class OffsetBlockAction extends BlockAction implements OffsetMetaAc
 
 	@Override
 	public void impl(ServerContext context) {
-		OffsetMetaAction.super.internalImpl(context);
+
+		Vec3d offsetPos = context.required(ContextParameters.BLOCK_POS).toCenterPos().add(offset());
+		ServerContext actionContext = context.copy(builder -> builder.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos)));
+
+		action().execute(actionContext.makeChild(".action"));
+
 	}
 
 	@Override

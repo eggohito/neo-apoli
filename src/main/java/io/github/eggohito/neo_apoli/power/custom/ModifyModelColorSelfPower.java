@@ -87,18 +87,6 @@ public class ModifyModelColorSelfPower extends Power {
 
 		}
 
-//		protected Optional<Argb> getColor(Context context, boolean withViewer) {
-//
-//			if (this.isActive(context) && (!withViewer || (!Objects.equals(context.nullable(ContextParameters.ACTOR), context.required(ContextParameters.TARGET)) && power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))))) {
-//				return Optional.of(this.power.getColor().toArgb(context));
-//			}
-//
-//			else {
-//				return Optional.empty();
-//			}
-//
-//		}
-
 	}
 
 }

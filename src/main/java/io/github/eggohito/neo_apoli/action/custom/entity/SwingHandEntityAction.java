@@ -47,7 +47,7 @@ public final class SwingHandEntityAction extends EntityAction {
 	@Override
 	protected void impl(Context context) {
 
-		if (context.required(ContextParameters.THIS_ENTITY) instanceof LivingEntity livingEntity) {
+		if (context.required(ContextParameters.ENTITY) instanceof LivingEntity livingEntity) {
 			livingEntity.swingHand(hand().orElseGet(livingEntity::getActiveHand), livingEntity instanceof ServerPlayerEntity);
 		}
 

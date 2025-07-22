@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -33,7 +34,7 @@ public final class DistanceBetweenBiEntities extends NumberProvider {
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.ACTOR, ContextParameters.TARGET);
+		return ContextTypes.BIENTITY.getAllowed();
 	}
 
 }

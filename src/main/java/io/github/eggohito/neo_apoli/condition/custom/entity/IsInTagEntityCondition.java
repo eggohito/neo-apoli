@@ -44,7 +44,7 @@ public final class IsInTagEntityCondition extends EntityCondition {
 
 	@Override
 	protected boolean impl(Context context) {
-		return context.required(ContextParameters.THIS_ENTITY).getType().isIn(this.tag());
+		return context.required(ContextParameters.ENTITY).getType().isIn(this.tag());
 	}
 
 	@Override

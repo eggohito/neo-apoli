@@ -52,7 +52,7 @@ public final class AreaOfEffectBlockAction extends BlockAction {
 	protected void impl(ServerContext context) {
 
 		ServerWorld world = context.getWorld();
-		BlockPos originPos = this.getBlockPos(context);
+		BlockPos originPos = context.required(ContextParameters.BLOCK_POS);
 
 		ServerContext radiusContext = context.makeChild(".radius");
 		int radius = radius().nextInt(radiusContext);
@@ -61,12 +61,12 @@ public final class AreaOfEffectBlockAction extends BlockAction {
 			return;
 		}
 
-		for (BlockPos pos : shape().getBlockPositions(originPos, radius)) {
+		for (BlockPos blockPos : shape().getBlockPositions(originPos, radius)) {
 
 			ServerContext blockContext = context.copy(builder -> builder
-				.add(ContextParameters.POSITION, pos.toCenterPos())
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				blockAction().execute(blockContext.makeChild(".block_action"));

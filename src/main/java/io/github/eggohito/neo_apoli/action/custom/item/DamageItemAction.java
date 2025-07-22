@@ -52,29 +52,31 @@ public final class DamageItemAction extends ItemAction {
 		Context amountContext = context.makeChild(".amount");
 		int amount = Math.abs(this.amount().nextInt(amountContext)) + stack.getDamage();
 
-		if (amountContext.hasErrors()) {
-			return;
-		}
+		if (!amountContext.hasErrors()) {
 
-		ServerPlayerEntity serverPlayerHolder = context.optional(ContextParameters.THIS_ENTITY)
-			.filter(ServerPlayerEntity.class::isInstance)
-			.map(ServerPlayerEntity.class::cast)
-			.orElse(null);
+			if (this.ignoreUnbreaking()) {
 
-		if (this.ignoreUnbreaking()) {
+				if (amount >= stack.getMaxDamage()) {
+					stack.decrement(1);
+				}
 
-			if (amount >= stack.getMaxDamage()) {
-				stack.decrement(1);
+				else {
+					stack.setDamage(amount);
+				}
+
 			}
 
 			else {
-				stack.setDamage(amount);
+
+				ServerPlayerEntity serverPlayerHolder = context.optional(ContextParameters.ENTITY)
+					.filter(ServerPlayerEntity.class::isInstance)
+					.map(ServerPlayerEntity.class::cast)
+					.orElse(null);
+
+				stack.damage(amount, context.getWorld(), serverPlayerHolder, item -> {});
+
 			}
 
-		}
-
-		else {
-			stack.damage(amount, context.getWorld(), serverPlayerHolder, item -> {});
 		}
 
 	}

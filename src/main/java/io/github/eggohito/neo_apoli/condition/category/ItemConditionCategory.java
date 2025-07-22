@@ -72,7 +72,7 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 
 			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
-				.withContextType(ContextTypes.merge(ContextTypes.BLOCK, ContextTypes.ITEM))
+				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
 			if (serverWorld.getBlockEntity(blockPos) instanceof Inventory inventory) {
@@ -82,8 +82,8 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 					if (slotId >= 0 && slotId < inventory.size()) {
 
 						StackReference stackReference = StackReference.of(inventory, slotId);
-						Context context = Context.builder(reporter.getContextType())
-							.withReporter(reporter)
+						Context context = Context.builder(reporter)
+							.add(ContextParameters.BLOCK_POS, blockPos)
 							.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
 							.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))
 							.add(ContextParameters.STACK_REFERENCE, stackReference)
@@ -134,10 +134,9 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 				StackReference stackReference = target.getStackReference(slotId);
 				if (stackReference != StackReference.EMPTY) {
 
-					Context context = new Context.Builder(reporter.getContextType())
-						.withReporter(reporter)
-						.add(ContextParameters.THIS_ENTITY, target)
-						.add(ContextParameters.POSITION, target.getPos())
+					Context context = Context.builder(reporter)
+						.add(ContextParameters.ENTITY, target)
+						.add(ContextParameters.ENTITY_POS, target.getPos())
 						.add(ContextParameters.STACK_REFERENCE, stackReference)
 						.add(ContextParameters.ITEM_STACK, stackReference.get())
 						.build(commandContext.getSource().getWorld());

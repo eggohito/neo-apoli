@@ -49,13 +49,12 @@ public class EntityConditionCategory extends ConditionCategory<EntityCondition> 
 
 			EntityCondition entityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(entityCondition).mapOrElse(Identifier::toString, error -> entityCondition.toString()) + "}")
-				.withContextType(ContextTypes.GENERIC)
+				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = new Context.Builder(reporter.getContextType())
-				.withReporter(reporter)
-				.add(ContextParameters.THIS_ENTITY, target)
-				.add(ContextParameters.POSITION, target.getPos())
+			Context context = Context.builder(reporter)
+				.add(ContextParameters.ENTITY, target)
+				.add(ContextParameters.ENTITY_POS, target.getPos())
 				.build(commandSource.getWorld());
 
 			entityCondition.validate(reporter);

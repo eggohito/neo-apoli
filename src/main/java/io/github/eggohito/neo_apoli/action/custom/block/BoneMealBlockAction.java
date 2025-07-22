@@ -46,7 +46,7 @@ public final class BoneMealBlockAction extends BlockAction {
 	protected void impl(ServerContext context) {
 
 		ServerWorld serverWorld = context.getWorld();
-		BlockPos blockPos = this.getBlockPos(context);
+		BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
 
 		if (BoneMealItem.useOnFertilizable(ItemStack.EMPTY, serverWorld, blockPos)) {
 			this.showBoneMealEffect(serverWorld, blockPos);
@@ -55,7 +55,7 @@ public final class BoneMealBlockAction extends BlockAction {
 		else if (context.hasParameter(ContextParameters.DIRECTION)) {
 
 			Direction direction = context.required(ContextParameters.DIRECTION);
-			BlockState blockState = this.getBlockState(context);
+			BlockState blockState = context.required(ContextParameters.BLOCK_STATE);
 
 			if (blockState.isSideSolidFullSquare(serverWorld, blockPos, direction) && BoneMealItem.useOnGround(ItemStack.EMPTY, serverWorld, blockPos.offset(direction), direction)) {
 				this.showBoneMealEffect(serverWorld, blockPos);

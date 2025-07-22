@@ -11,15 +11,13 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.BlockPos;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -39,7 +37,12 @@ public abstract class BlockAction extends Action {
 	protected final void impl(Context context) {
 
 		if (context.getWorld() instanceof ServerWorld serverWorld) {
-			this.impl(new ServerContext(context, serverWorld));
+
+			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
+			ServerContext serverContext = new ServerContext(context, serverWorld).copy(builder -> builder.add(ContextParameters.POSITION, blockPos.toCenterPos()));
+
+			this.impl(serverContext);
+
 		}
 
 	}
@@ -48,25 +51,12 @@ public abstract class BlockAction extends Action {
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.POSITION);
+		return ContextTypes.BLOCK.getAllowed();
 	}
 
 	@Override
 	public String asDisplayString() {
 		return this.getCategory() + " with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_ACTION_TYPE, this.getType()) + "\"";
-	}
-
-	protected BlockPos getBlockPos(Context context) {
-		return BlockPos.ofFloored(context.required(ContextParameters.POSITION));
-	}
-
-	protected BlockState getBlockState(Context context) {
-		return context.optional(ContextParameters.BLOCK_STATE).orElseGet(() -> context.getWorld().getBlockState(this.getBlockPos(context)));
-	}
-
-	@Nullable
-	protected BlockEntity getBlockEntity(Context context) {
-		return context.optional(ContextParameters.BLOCK_ENTITY).orElseGet(() -> context.getWorld().getBlockEntity(this.getBlockPos(context)));
 	}
 
 }

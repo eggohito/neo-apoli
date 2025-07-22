@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -28,7 +29,7 @@ public final class HasBlockEntityBlockCondition extends BlockCondition {
 
 	@Override
 	protected boolean impl(Context context) {
-		return this.getBlockState(context).hasBlockEntity();
+		return context.required(ContextParameters.BLOCK_STATE).hasBlockEntity();
 	}
 
 }

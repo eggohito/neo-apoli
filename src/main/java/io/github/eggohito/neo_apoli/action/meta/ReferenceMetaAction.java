@@ -31,7 +31,7 @@ public interface ReferenceMetaAction<A extends Action> {
 				if (context.markActive(action)) {
 
 					try {
-						action.execute(context.makeChild("{" + value() + "}", value()));
+						action.execute(context.makeChild("{" + value + "}", value));
 					}
 
 					finally {

@@ -85,6 +85,10 @@ public class Context {
 		return reporter.hasAnyErrors();
 	}
 
+	public static Builder builder(ContextAware.ErrorReporter reporter) {
+		return new Builder(reporter);
+	}
+
 	public static Builder builder(ContextType contextType) {
 		return new Builder(contextType);
 	}
@@ -112,6 +116,10 @@ public class Context {
 
 		public Builder(ContextType contextType) {
 			this(contextType, new ContextParameterMap.Builder(), new ContextAware.ErrorReporter(contextType));
+		}
+
+		public Builder(ContextAware.ErrorReporter reporter) {
+			this(reporter.getContextType(), new ContextParameterMap.Builder(), reporter);
 		}
 
 		public Builder(Context context) {

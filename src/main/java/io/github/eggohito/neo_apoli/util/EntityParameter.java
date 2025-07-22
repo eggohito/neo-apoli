@@ -11,7 +11,7 @@ import net.minecraft.util.context.ContextParameter;
 
 public enum EntityParameter implements StringIdentifiable {
 
-	THIS("this", ContextParameters.THIS_ENTITY),
+	THIS("this", ContextParameters.ENTITY),
 	ACTOR("actor", ContextParameters.ACTOR),
 	TARGET("target", ContextParameters.TARGET);
 

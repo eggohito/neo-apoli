@@ -48,7 +48,7 @@ public final class AddExperienceEntityAction extends EntityAction {
 	@Override
 	protected void impl(Context context) {
 
-		if (!(context.required(ContextParameters.THIS_ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
+		if (!(context.required(ContextParameters.ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
 			return;
 		}
 

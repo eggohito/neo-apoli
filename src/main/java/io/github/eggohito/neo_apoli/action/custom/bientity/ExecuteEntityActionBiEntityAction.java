@@ -9,8 +9,10 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -48,11 +50,13 @@ public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 	@Override
 	protected void impl(Context context) {
 
-		Context entityActionContext = context
-			.copy(builder -> builder.add(ContextParameters.THIS_ENTITY, context.required(this.entity().getParameter())))
-			.makeChild(".entity_action");
+		Entity entity = context.required(entity().getParameter());
+		Context entityContext = context.copy(builder -> builder
+			.withContextType(ContextTypes.merge(context.getType(), ContextTypes.ENTITY))
+			.add(ContextParameters.ENTITY, entity)
+			.add(ContextParameters.ENTITY_POS, entity.getPos()));
 
-		entityAction().execute(entityActionContext);
+		entityAction().execute(entityContext);
 
 	}
 
@@ -64,7 +68,9 @@ public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 	@Override
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
-		entityAction().validate(reporter.makeChild(".entity_action"));
+		entityAction().validate(reporter
+			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.makeChild(".entity_action"));
 	}
 
 }

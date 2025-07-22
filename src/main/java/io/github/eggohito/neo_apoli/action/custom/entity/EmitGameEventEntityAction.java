@@ -43,7 +43,7 @@ public final class EmitGameEventEntityAction extends EntityAction {
 
 	@Override
 	protected void impl(Context context) {
-		context.getWorld().emitGameEvent(context.required(ContextParameters.THIS_ENTITY), gameEvent(), context.required(ContextParameters.POSITION));
+		context.getWorld().emitGameEvent(context.required(ContextParameters.ENTITY), gameEvent(), context.required(ContextParameters.ENTITY_POS));
 	}
 
 }

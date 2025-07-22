@@ -14,7 +14,6 @@ import lombok.EqualsAndHashCode;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
 
 @EqualsAndHashCode
 @Data
@@ -38,10 +37,9 @@ public final class AddBlockBlockAction extends BlockAction {
 
 	@Override
 	protected void impl(ServerContext context) {
-		BlockPos pos = this.getBlockPos(context);
 		context.optional(ContextParameters.DIRECTION)
-			.map(pos::offset)
-			.ifPresent(offsetPos -> context.getWorld().setBlockState(offsetPos, state()));
+			.map(direction -> context.required(ContextParameters.BLOCK_POS).offset(direction))
+			.ifPresent(blockPos -> context.getWorld().setBlockState(blockPos, state()));
 	}
 
 }

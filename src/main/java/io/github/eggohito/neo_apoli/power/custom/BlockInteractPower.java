@@ -230,16 +230,16 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 					.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-					.add(ContextParameters.THIS_ENTITY, player)
+					.add(ContextParameters.ENTITY, player)
 					.add(ContextParameters.STACK_REFERENCE, stackReference)
 					.add(ContextParameters.ITEM_STACK, stackReference.get())
 					.add(ContextParameters.HAND, hand);
 
 				Context blockContext = builder
-					.add(ContextParameters.POSITION, blockPos.toCenterPos())
+					.add(ContextParameters.ENTITY_POS, blockPos.toCenterPos())
 					.build(world);
 				Context entityAndItemContext = builder
-					.add(ContextParameters.POSITION, player.getPos())
+					.add(ContextParameters.ENTITY_POS, player.getPos())
 					.build(world);
 
 				if (impl.doesApply(blockContext, entityAndItemContext)) {
@@ -307,16 +307,16 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 						.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-						.add(ContextParameters.THIS_ENTITY, player)
+						.add(ContextParameters.ENTITY, player)
 						.add(ContextParameters.STACK_REFERENCE, stackReference)
 						.add(ContextParameters.ITEM_STACK, stackReference.get())
 						.add(ContextParameters.HAND, hand);
 
 					Context blockContext = builder
-						.add(ContextParameters.POSITION, blockPos.toCenterPos())
+						.add(ContextParameters.ENTITY_POS, blockPos.toCenterPos())
 						.build(world);
 					Context entityAndItemContext = builder
-						.add(ContextParameters.POSITION, player.getPos())
+						.add(ContextParameters.ENTITY_POS, player.getPos())
 						.build(world);
 
 					if (impl.doesApply(blockContext, entityAndItemContext)) {

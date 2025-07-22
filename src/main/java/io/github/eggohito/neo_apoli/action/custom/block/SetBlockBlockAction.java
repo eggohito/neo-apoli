@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,7 +37,7 @@ public final class SetBlockBlockAction extends BlockAction {
 
 	@Override
 	protected void impl(ServerContext context) {
-		context.getWorld().setBlockState(this.getBlockPos(context), state());
+		context.getWorld().setBlockState(context.required(ContextParameters.BLOCK_POS), state());
 	}
 
 }

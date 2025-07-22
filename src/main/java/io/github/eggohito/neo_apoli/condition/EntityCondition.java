@@ -7,10 +7,13 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Set;
 
@@ -23,13 +26,23 @@ public abstract class EntityCondition extends Condition {
 	public abstract EntityConditionType<?> getType();
 
 	@Override
+	public boolean test(Context context) {
+
+		Vec3d thisPos = context.required(ContextParameters.ENTITY_POS);
+		Context adjustedContext = context.copy(builder -> builder.add(ContextParameters.POSITION, thisPos));
+
+		return super.test(adjustedContext);
+
+	}
+
+	@Override
 	public ConditionCategory<EntityCondition> getCategory() {
 		return ConditionCategories.ENTITY_CONDITION;
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.POSITION);
+		return ContextTypes.ENTITY.getAllowed();
 	}
 
 	@Override

@@ -15,8 +15,6 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.network.RegistryByteBuf;
@@ -51,20 +49,16 @@ public class BlockConditionCategory extends ConditionCategory<BlockCondition> {
 			ServerWorld serverWorld = commandSource.getWorld();
 
 			BlockPos blockPos = BlockPosArgumentType.getLoadedBlockPos(commandContext, "pos");
-
-			BlockState blockState = serverWorld.getBlockState(blockPos);
-			BlockEntity blockEntity = serverWorld.getBlockEntity(blockPos);
-
 			BlockCondition blockCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(blockCondition).mapOrElse(Identifier::toString, error -> blockCondition.toString()) + "}")
-				.withContextType(ContextTypes.BLOCK)
+				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = new Context.Builder(reporter.getContextType())
-				.withReporter(reporter)
-				.add(ContextParameters.POSITION, blockPos.toCenterPos())
-				.add(ContextParameters.BLOCK_STATE, blockState)
-				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
+			Context context = Context.builder(reporter)
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))
 				.build(serverWorld);
 
 			blockCondition.validate(reporter);

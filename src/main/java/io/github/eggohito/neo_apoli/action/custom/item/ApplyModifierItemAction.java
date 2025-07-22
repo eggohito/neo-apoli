@@ -57,8 +57,8 @@ public final class ApplyModifierItemAction extends ItemAction {
 			.value();
 
 		LootWorldContext lootWorldContext = new LootWorldContext.Builder(context.getWorld())
-			.add(LootContextParameters.ORIGIN, context.optional(ContextParameters.POSITION).orElse(Vec3d.ZERO))
-			.addOptional(LootContextParameters.THIS_ENTITY, context.nullable(ContextParameters.THIS_ENTITY))
+			.add(LootContextParameters.ORIGIN, context.optional(ContextParameters.ENTITY_POS).orElse(Vec3d.ZERO))
+			.addOptional(LootContextParameters.THIS_ENTITY, context.nullable(ContextParameters.ENTITY))
 			.build(LootContextTypes.COMMAND);
 
 		LootContext lootContext = new LootContext.Builder(lootWorldContext).build(Optional.empty());
