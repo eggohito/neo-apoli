@@ -43,6 +43,7 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<BiEntitiesInRadiusNumberProvider> BIENTITIES_IN_RADIUS = registerInternal("bientities_in_radius", BiEntitiesInRadiusNumberProvider.CODEC, BiEntitiesInRadiusNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.CODEC, CommandResultNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<DistanceBetweenBiEntities> DISTANCE_BETWEEN_BIENTITIES = registerInternal("distance_between_bientities", DistanceBetweenBiEntities.CODEC, DistanceBetweenBiEntities.PACKET_CODEC);
+	public static final NumberProviderType<DistanceBetweenEntityAndBlockNumberProvider> DISTANCE_BETWEEN_ENTITY_AND_BLOCK = registerInternal("distance_between_entity_and_block", DistanceBetweenEntityAndBlockNumberProvider.CODEC, DistanceBetweenEntityAndBlockNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusNumberProvider> ENTITIES_IN_RADIUS = registerInternal("entities_in_radius", EntitiesInRadiusNumberProvider.CODEC, EntitiesInRadiusNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<FuelAmountNumberProvider> FUEL_AMOUNT = registerInternal("fuel_amount", FuelAmountNumberProvider.CODEC, FuelAmountNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<ItemCountNumberProvider> ITEM_COUNT = registerInternal("item_count", ItemCountNumberProvider.CODEC, ItemCountNumberProvider.PACKET_CODEC);
@@ -54,12 +55,20 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<VelocityNumberProvider> VELOCITY = registerInternal("velocity", VelocityNumberProvider.CODEC, VelocityNumberProvider.PACKET_CODEC);
 
 	public static void registerAll() {
-		ALIASES.addPathAlias("abs", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, ABSOLUTE));
-		ALIASES.addPathAlias("lerp", RegistryUtil.getIdPath(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, LINEAR_INTERPOLATION));
+
+		ALIASES.addPathAlias("abs", getId(ABSOLUTE).getPath());
+		ALIASES.addPathAlias("lerp", getId(LINEAR_INTERPOLATION).getPath());
+
+		ALIASES.addPathAlias("entity_block_distance", getId(DISTANCE_BETWEEN_ENTITY_AND_BLOCK).getPath());
+
 	}
 
 	private static <P extends NumberProvider> NumberProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	}
+
+	public static Identifier getId(NumberProviderType<?> type) {
+		return RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, type);
 	}
 
 	public static <P extends NumberProvider> NumberProviderType<P> register(Identifier id, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
