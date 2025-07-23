@@ -32,6 +32,7 @@ public final class BlockConditionTypes {
 	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.PACKET_CODEC);
 
 	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.PACKET_CODEC);

@@ -1,0 +1,50 @@
+package io.github.eggohito.neo_apoli.condition.meta.block;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.condition.BlockCondition;
+import io.github.eggohito.neo_apoli.condition.meta.OffsetMetaCondition;
+import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
+import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+
+@EqualsAndHashCode
+@Data
+public final class OffsetBlockCondition extends BlockCondition implements OffsetMetaCondition<BlockCondition> {
+
+	public static final MapCodec<OffsetBlockCondition> CODEC = MapCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> OffsetMetaCondition.codec(BlockCondition.CODEC, OffsetBlockCondition::new));
+	public static final PacketCodec<RegistryByteBuf, OffsetBlockCondition> PACKET_CODEC = PacketCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> OffsetMetaCondition.packetCodec(BlockCondition.PACKET_CODEC, OffsetBlockCondition::new));
+
+	private final BlockCondition condition;
+	private final Vec3d offset;
+
+	@Override
+	public BlockConditionType<?> getType() {
+		return BlockConditionTypes.OFFSET;
+	}
+
+	@Override
+	protected boolean impl(Context context) {
+
+		Vec3d offsetPos = context.required(ContextParameters.BLOCK_POS).toCenterPos().add(offset());
+		Context conditionContext = context.copy(builder -> builder.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos)));
+
+		return condition().test(conditionContext.makeChild(".condition"));
+
+	}
+
+	@Override
+	public void validate(ErrorReporter reporter) {
+		super.validate(reporter);
+		OffsetMetaCondition.super.validate(reporter);
+	}
+
+}

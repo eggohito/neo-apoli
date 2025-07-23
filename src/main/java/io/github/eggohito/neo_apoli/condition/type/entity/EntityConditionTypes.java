@@ -29,6 +29,7 @@ public final class EntityConditionTypes {
 	public static final EntityConditionType<CompareToRangeEntityCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeEntityCondition.CODEC, CompareToRangeEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<ConstantEntityCondition> CONSTANT = registerInternal("constant", ConstantEntityCondition.CODEC, ConstantEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<OffsetEntityCondition> OFFSET = registerInternal("offset", OffsetEntityCondition.CODEC, OffsetEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<ReferenceEntityCondition> REFERENCE = registerInternal("reference", ReferenceEntityCondition.CODEC, ReferenceEntityCondition.PACKET_CODEC);
 
 	public static final EntityConditionType<EntityTypeEntityCondition> ENTITY_TYPE = registerInternal("entity_type", EntityTypeEntityCondition.CODEC, EntityTypeEntityCondition.PACKET_CODEC);
