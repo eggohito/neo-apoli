@@ -17,10 +17,10 @@ import java.util.Set;
 
 @EqualsAndHashCode
 @Data
-public final class DistanceBetweenBiEntities extends NumberProvider {
+public final class DistanceBetweenBiEntitiesNumberProvider extends NumberProvider {
 
-	public static final MapCodec<DistanceBetweenBiEntities> CODEC = MapCodec.unit(DistanceBetweenBiEntities::new);
-	public static final PacketCodec<RegistryByteBuf, DistanceBetweenBiEntities> PACKET_CODEC = PacketCodec.unit(new DistanceBetweenBiEntities());
+	public static final MapCodec<DistanceBetweenBiEntitiesNumberProvider> CODEC = MapCodec.unit(DistanceBetweenBiEntitiesNumberProvider::new);
+	public static final PacketCodec<RegistryByteBuf, DistanceBetweenBiEntitiesNumberProvider> PACKET_CODEC = PacketCodec.unit(new DistanceBetweenBiEntitiesNumberProvider());
 
 	@Override
 	public NumberProviderType<?> getType() {
