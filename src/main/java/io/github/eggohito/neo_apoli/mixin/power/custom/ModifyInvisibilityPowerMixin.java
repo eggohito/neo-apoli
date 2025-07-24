@@ -5,57 +5,122 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+
+import java.lang.ref.WeakReference;
 
 public abstract class ModifyInvisibilityPowerMixin {
 
 	@Mixin(Entity.class)
 	public static abstract class ProxyImpl {
 
+		@Shadow
+		public abstract World getWorld();
+
+		@Shadow
+		public abstract Vec3d getPos();
+
+		@Unique
+		protected final ThreadLocal<WeakReference<Context>> neo_apoli$invisibilityContext = new ThreadLocal<>();
+
+		@Unique
+		protected Context neo_apoli$getOrCreateInvisibilityContext(@Nullable Entity viewer) {
+
+			WeakReference<Context> contextReference = neo_apoli$invisibilityContext.get();
+			if (contextReference == null || contextReference.get() == null) {
+
+				Entity thisAsEntity = this.neo_apoli$thisAsEntity();
+				Context context = Context.builder(PowerTypes.MODIFY_INVISIBILITY.contextType())
+					.addNullable(ContextParameters.ACTOR, viewer)
+					.add(ContextParameters.TARGET, thisAsEntity)
+					.add(ContextParameters.ENTITY, thisAsEntity)
+					.add(ContextParameters.ENTITY_POS, this.getPos())
+					.build(this.getWorld());
+
+				contextReference = new WeakReference<>(context);
+				this.neo_apoli$invisibilityContext.set(contextReference);
+
+			}
+
+			return contextReference.get();
+
+		}
+
+		@Unique
+		private Entity neo_apoli$thisAsEntity() {
+			return (Entity) (Object) this;
+		}
+
 		@ModifyReturnValue(method = "isInvisible", at = @At("RETURN"))
 		private boolean invisibleProxy(boolean original) {
-			return original
-				|| PowersComponent.hasPowerImpl(thisAsEntity(), ModifyInvisibilityPower.Impl.class, ModifyInvisibilityPower.Impl::isActive);
+
+			if (!original && PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class)) {
+
+				Context context = this.neo_apoli$getOrCreateInvisibilityContext(null);
+				boolean result = PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisible(context));
+
+				this.neo_apoli$invisibilityContext.remove();
+				return result;
+
+			}
+
+			else {
+				return original;
+			}
+
 		}
 
 		@WrapOperation(method = "isInvisibleTo", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isInvisible()Z"))
 		private boolean invisibleToProxy(Entity entity, Operation<Boolean> original, PlayerEntity viewer) {
 
-			if (viewer == null || !PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
-				return original.call(entity);
+			if (viewer != null && PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
+
+				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
+				boolean result = PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisibleTo(context));
+
+				this.neo_apoli$invisibilityContext.remove();
+				return result;
+
 			}
 
 			else {
-				return ModifyInvisibilityPower.isInvisibleTo(entity, viewer);
+				return original.call(entity);
 			}
 
-		}
-
-		@Unique
-		private Entity thisAsEntity() {
-			return (Entity) (Object) this;
 		}
 
 	}
 
 	@Mixin(LivingEntity.class)
-	public static abstract class ScalingProxyImpl {
+	public static abstract class ScalingProxyImpl extends ProxyImpl {
 
 		@WrapOperation(method = "getAttackDistanceScalingFactor", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isInvisible()Z"))
 		private boolean invisibleToProxy(LivingEntity entity, Operation<Boolean> original, @Nullable Entity viewer) {
 
-			if (viewer == null || !PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
-				return original.call(entity);
+			if (viewer != null && PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
+
+				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
+				boolean result = PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisibleTo(context));
+
+				this.neo_apoli$invisibilityContext.remove();
+				return result;
+
 			}
 
 			else {
-				return ModifyInvisibilityPower.isInvisibleTo(entity, viewer);
+				return original.call(entity);
 			}
 
 		}

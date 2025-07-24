@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.event.Level;
 
 import java.util.stream.Stream;
 
@@ -77,11 +78,23 @@ public abstract class Condition implements ContextAware, StringDisplayable {
 		Exception exception = null;
 
 		try {
-			result = this.impl(context);
+
+			if (context.markActive(this)) {
+				result = this.impl(context);
+			}
+
+			else {
+				NeoApoli.logOnce(Level.WARN, "Recursively tested " + category + " at path " + fullPath + "!");
+			}
+
 		}
 
 		catch (Exception e) {
 			exception = e;
+		}
+
+		finally {
+			context.markInactive(this);
 		}
 
 		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {

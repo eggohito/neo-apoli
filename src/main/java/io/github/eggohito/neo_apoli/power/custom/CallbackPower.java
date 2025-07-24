@@ -93,7 +93,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onAdded() {
 
-			Context context = this.genericContext();
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				power.getOnAddedAction().execute(context.makeChild(".on_added_action"));
@@ -104,7 +104,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onGranted() {
 
-			Context context = this.genericContext();
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				power.getOnGrantedAction().execute(context.makeChild(".on_granted_action"));
@@ -115,7 +115,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRemoved() {
 
-			Context context = this.genericContext();
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				power.getOnRemovedAction().execute(context.makeChild(".on_removed_action"));
@@ -126,7 +126,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRevoked() {
 
-			Context context = this.genericContext();
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				power.getOnRevokedAction().execute(context.makeChild(".on_revoked_action"));
@@ -137,7 +137,7 @@ public class CallbackPower extends Power {
 		@Override
 		public void onRespawn() {
 
-			Context context = this.genericContext();
+			Context context = this.createGenericContext();
 
 			if (isActive(context)) {
 				power.getOnRespawnedAction().execute(context.makeChild(".on_respawned_action"));

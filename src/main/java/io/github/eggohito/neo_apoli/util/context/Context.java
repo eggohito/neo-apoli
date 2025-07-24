@@ -28,12 +28,12 @@ public class Context {
 
 	protected final Set<ContextAware> activeEntries;
 
-	Context(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, World world) {
+	Context(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, World world, Set<ContextAware> activeEntries) {
 		this.parameters = parameters;
 		this.reporter = reporter;
 		this.type = type;
 		this.world = world;
-		this.activeEntries = new ObjectOpenHashSet<>();
+		this.activeEntries = activeEntries;
 	}
 
 	public Context copy(UnaryOperator<Builder> operator) {
@@ -41,11 +41,11 @@ public class Context {
 	}
 
 	public Context makeChild(String path) {
-		return new Context(this.parameters, this.reporter.makeChild(path), this.type, this.world);
+		return new Context(this.parameters, this.reporter.makeChild(path), this.type, this.world, this.activeEntries);
 	}
 
 	public Context makeChild(String path, ContextKey key) {
-		return new Context(this.parameters, this.reporter.makeChild(path, key), this.type, this.world);
+		return new Context(this.parameters, this.reporter.makeChild(path, key), this.type, this.world, this.activeEntries);
 	}
 
 	public boolean isActive(ContextAware contextAware) {
@@ -107,19 +107,21 @@ public class Context {
 		private ContextAware.ErrorReporter reporter;
 
 		private final ContextParameterMap.Builder parameters;
+		private final Set<ContextAware> activeEntries;
 
-		Builder(ContextType contextType, ContextParameterMap.Builder parameters, ContextAware.ErrorReporter reporter) {
+		Builder(ContextType contextType, ContextParameterMap.Builder parameters, ContextAware.ErrorReporter reporter, Set<ContextAware> activeEntries) {
 			this.contextType = contextType;
-			this.parameters = parameters;
 			this.reporter = reporter;
+			this.parameters = parameters;
+			this.activeEntries = activeEntries;
 		}
 
 		public Builder(ContextType contextType) {
-			this(contextType, new ContextParameterMap.Builder(), new ContextAware.ErrorReporter(contextType));
+			this(contextType, new ContextParameterMap.Builder(), new ContextAware.ErrorReporter(contextType), new ObjectOpenHashSet<>());
 		}
 
 		public Builder(ContextAware.ErrorReporter reporter) {
-			this(reporter.getContextType(), new ContextParameterMap.Builder(), reporter);
+			this(reporter.getContextType(), new ContextParameterMap.Builder(), reporter, new ObjectOpenHashSet<>());
 		}
 
 		public Builder(Context context) {
@@ -127,9 +129,10 @@ public class Context {
 			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
 			((ContextParameterMapAccessor) context.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
 
-			this.parameters = newParameters;
 			this.contextType = context.getType();
 			this.reporter = context.getReporter();
+			this.parameters = newParameters;
+			this.activeEntries = context.activeEntries;
 
 		}
 
@@ -144,15 +147,6 @@ public class Context {
 			this.reporter = reporter;
 
 			return this;
-
-		}
-
-		public Builder copy() {
-
-			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
-			((ContextParameterMapAccessor.BuilderAccessor) this.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
-
-			return new Builder(this.contextType, newParameters, this.reporter);
 
 		}
 
@@ -184,7 +178,7 @@ public class Context {
 		}
 
 		public Context build(World world) {
-			return new Context(this.parameters.build(this.contextType), this.reporter.withWrapperLookup(world.getRegistryManager()), this.contextType, world);
+			return new Context(this.parameters.build(this.contextType), this.reporter.withWrapperLookup(world.getRegistryManager()), this.contextType, world, this.activeEntries);
 		}
 
 	}

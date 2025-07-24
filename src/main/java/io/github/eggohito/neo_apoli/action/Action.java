@@ -75,11 +75,23 @@ public abstract class Action implements ContextAware, StringDisplayable {
 		Exception exception = null;
 
 		try {
-			this.impl(context);
+
+			if (context.markActive(this)) {
+				this.impl(context);
+			}
+
+			else {
+				NeoApoli.LOGGER.warn("Recursively executed {} at path {}!", category, fullPath);
+			}
+
 		}
 
 		catch (Exception e) {
 			exception = e;
+		}
+
+		finally {
+			context.markInactive(this);
 		}
 
 		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {

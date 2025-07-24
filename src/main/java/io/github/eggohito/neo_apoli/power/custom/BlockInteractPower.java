@@ -120,12 +120,12 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 				&& this.inPriorityPhase(priorityPhase);
 		}
 
-		public boolean doesApply(Context blockContext, Context entityAndItemContext) {
-			return this.getPower().getConditions().test(blockContext, entityAndItemContext);
+		public boolean doesApply(Context context) {
+			return this.getPower().getConditions().test(context);
 		}
 
-		public ActionResult execute(Context blockContext, Context entityAndItemContext) {
-			return this.getPower().getActions().execute(blockContext, entityAndItemContext);
+		public ActionResult execute(Context context) {
+			return this.getPower().getActions().execute(context);
 		}
 
 	}
@@ -147,11 +147,11 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			Actions::new
 		);
 
-		public ActionResult execute(Context blockContext, Context entityAndItemContext) {
+		public ActionResult execute(Context context) {
 
-			blockAction().execute(blockContext.makeChild(".block_action"));
-			entityAction().execute(entityAndItemContext.makeChild(".item_action"));
-			itemAction().execute(entityAndItemContext.makeChild(".item_action"));
+			blockAction().execute(context.makeChild(".block_action"));
+			entityAction().execute(context.makeChild(".item_action"));
+			itemAction().execute(context.makeChild(".item_action"));
 
 			return result();
 
@@ -182,11 +182,11 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 			Conditions::new
 		);
 
-		public boolean test(Context blockContext, Context entityAndItemContext) {
-			return blockContext.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
-				&& entityAndItemContext.optional(ContextParameters.HAND).map(hands()::contains).orElse(false)
-				&& blockCondition().test(blockContext.makeChild(".block_condition"))
-				&& itemCondition().test(entityAndItemContext.makeChild(".item_condition"));
+		public boolean test(Context context) {
+			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
+				&& context.optional(ContextParameters.HAND).map(hands()::contains).orElse(false)
+				&& blockCondition().test(context.makeChild(".block_condition"))
+				&& itemCondition().test(context.makeChild(".item_condition"));
 		}
 
 		public void validate(ContextAware.ErrorReporter reporter) {
@@ -226,24 +226,18 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 			for (var impl : impls) {
 
-				Context.Builder builder = impl.contextBuilder()
+				Context context = impl.createContextBuilder()
+					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-					.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-					.add(ContextParameters.ENTITY, player)
+					.add(ContextParameters.DIRECTION, blockHitResult.getSide())
 					.add(ContextParameters.STACK_REFERENCE, stackReference)
 					.add(ContextParameters.ITEM_STACK, stackReference.get())
-					.add(ContextParameters.HAND, hand);
-
-				Context blockContext = builder
-					.add(ContextParameters.ENTITY_POS, blockPos.toCenterPos())
-					.build(world);
-				Context entityAndItemContext = builder
-					.add(ContextParameters.ENTITY_POS, player.getPos())
+					.add(ContextParameters.HAND, hand)
 					.build(world);
 
-				if (impl.doesApply(blockContext, entityAndItemContext)) {
-					previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityAndItemContext));
+				if (impl.doesApply(context)) {
+					previousResult = MiscUtil.overrideResult(previousResult, impl.execute(context));
 				}
 
 			}
@@ -261,7 +255,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 			}
 
-			if (previousResult instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext itemContext) && swingSource != ActionResult.SwingSource.NONE) {
+			if (previousResult instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext ignored) && swingSource != ActionResult.SwingSource.NONE) {
 				player.swingHand(hand, swingSource == ActionResult.SwingSource.SERVER);
 			}
 
@@ -303,24 +297,18 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 				for (var impl : impls) {
 
-					Context.Builder builder = impl.contextBuilder()
+					Context context = impl.createContextBuilder()
+						.add(ContextParameters.BLOCK_POS, blockPos)
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-						.addNullable(ContextParameters.DIRECTION, blockHitResult.getSide())
-						.add(ContextParameters.ENTITY, player)
+						.add(ContextParameters.DIRECTION, blockHitResult.getSide())
 						.add(ContextParameters.STACK_REFERENCE, stackReference)
 						.add(ContextParameters.ITEM_STACK, stackReference.get())
-						.add(ContextParameters.HAND, hand);
-
-					Context blockContext = builder
-						.add(ContextParameters.ENTITY_POS, blockPos.toCenterPos())
-						.build(world);
-					Context entityAndItemContext = builder
-						.add(ContextParameters.ENTITY_POS, player.getPos())
+						.add(ContextParameters.HAND, hand)
 						.build(world);
 
-					if (impl.doesApply(blockContext, entityAndItemContext)) {
-						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(blockContext, entityAndItemContext));
+					if (impl.doesApply(context)) {
+						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(context));
 					}
 
 				}
@@ -334,7 +322,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 		}
 
-		if (modified instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext itemContext) && swingSource != ActionResult.SwingSource.NONE) {
+		if (modified instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext ignored) && swingSource != ActionResult.SwingSource.NONE) {
 			player.swingHand(hand, swingSource == ActionResult.SwingSource.SERVER);
 		}
 

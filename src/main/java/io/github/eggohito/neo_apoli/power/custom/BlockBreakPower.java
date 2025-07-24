@@ -161,7 +161,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 		);
 
 		public boolean test(Context context) {
-			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(true)
+			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
 				&& blockCondition().test(context.makeChild(".block_condition"));
 		}
 
@@ -181,7 +181,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 			for (var impl : impls) {
 
-				Context context = impl.contextBuilder()
+				Context context = impl.createContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, blockState)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)

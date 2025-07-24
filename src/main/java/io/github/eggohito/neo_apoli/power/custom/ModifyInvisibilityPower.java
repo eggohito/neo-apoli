@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
@@ -13,13 +12,11 @@ import io.github.eggohito.neo_apoli.provider.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @Getter
 public class ModifyInvisibilityPower extends Power {
@@ -82,71 +79,26 @@ public class ModifyInvisibilityPower extends Power {
 			super(holder, power);
 		}
 
-		public boolean isInvisibleTo(Entity viewer) {
+		public boolean isInvisible(Context context) {
+			context = this.copyWithPowerContext(context);
+			return this.isActive(context);
+		}
 
-			Context context = this.contextBuilder()
-				.addNullable(ContextParameters.ACTOR, viewer)
-				.add(ContextParameters.TARGET, holder)
-				.build(holder.getWorld());
-
-			return power.getBiEntityCondition().test(context.makeChild(".bientity_condition"))
-				&& this.isActive(context);
-
+		public boolean isInvisibleTo(Context context) {
+			context = this.copyWithPowerContext(context);
+			return this.isActive(context)
+				&& power.getBiEntityCondition().test(context.makeChild(".bientity_condition"));
 		}
 
 		public boolean shouldRenderArmor(Context context) {
+			context = this.copyWithPowerContext(context);
 			return power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
 		}
 
 		public boolean shouldRenderOutline(Context context) {
+			context = this.copyWithPowerContext(context);
 			return power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
 		}
-
-		public boolean isActive() {
-			return this.isActive(this.genericContext());
-		}
-
-	}
-
-	public static boolean isInvisibleTo(@NotNull Entity target, @NotNull Entity actor) {
-		return PowersComponent.hasPowerImpl(target, Impl.class, impl -> impl.isInvisibleTo(actor));
-	}
-
-	public static boolean shouldRenderArmor(@NotNull Entity target, @Nullable Entity viewer) {
-
-		for (Impl impl : PowersComponent.getPowerImpls(target, Impl.class)) {
-
-			Context context = impl.contextBuilder()
-				.addNullable(ContextParameters.ACTOR, viewer)
-				.add(ContextParameters.TARGET, target)
-				.build(target.getWorld());
-
-			if (!impl.shouldRenderArmor(context.makeChild(".render_armor")) && impl.isActive(context)) {
-				return false;
-			}
-
-		}
-
-		return true;
-
-	}
-
-	public static boolean shouldRenderOutline(@NotNull Entity target, @Nullable Entity viewer) {
-
-		for (Impl impl : PowersComponent.getPowerImpls(target, Impl.class)) {
-
-			Context context = impl.contextBuilder()
-				.addNullable(ContextParameters.ACTOR, viewer)
-				.add(ContextParameters.TARGET, target)
-				.build(target.getWorld());
-
-			if (!impl.shouldRenderOutline(context.makeChild(".render_outline")) && impl.isActive(context)) {
-				return false;
-			}
-
-		}
-
-		return true;
 
 	}
 

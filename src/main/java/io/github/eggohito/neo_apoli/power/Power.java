@@ -24,6 +24,7 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
+import net.minecraft.util.context.ContextType;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
@@ -161,21 +162,29 @@ public abstract class Power {
 			this.power = power;
 		}
 
-		public final Context genericContext() {
-			return this.contextBuilder().build(holder.getWorld());
-		}
-
-		public final Context.Builder contextBuilder() {
+		public final Context.Builder copyWithPowerContext(Context.Builder builder) {
 
 			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.getPowerType().contextType(), "{" + powerReference.map(PowerReference::toString).orElse("UNREGISTERED") + "}");
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.getContextType(), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
 
-			return Context.builder()
+			return builder
 				.withReporter(reporter)
-				.addOptional(ContextParameters.POWER_REFERENCE, powerReference)
-				.add(ContextParameters.ENTITY, holder)
-				.add(ContextParameters.ENTITY_POS, holder.getPos());
+				.addOptional(ContextParameters.POWER_REFERENCE, powerReference);
 
+		}
+
+		public final Context copyWithPowerContext(Context context) {
+			return copyWithPowerContext(Context.builder(context)).build(context.getWorld());
+		}
+
+		public final Context.Builder createContextBuilder() {
+			return copyWithPowerContext(Context.builder()
+				.add(ContextParameters.ENTITY, holder)
+				.add(ContextParameters.ENTITY_POS, holder.getPos()));
+		}
+
+		public final Context createGenericContext() {
+			return createContextBuilder().build(holder.getWorld());
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -184,6 +193,10 @@ public abstract class Power {
 
 		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
 			return DataResult.success(Unit.INSTANCE);
+		}
+
+		public final ContextType getContextType() {
+			return this.getPowerType().contextType();
 		}
 
 		public final PowerType<?> getPowerType() {

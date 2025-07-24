@@ -68,7 +68,7 @@ public class ModifyModelColorOtherPower extends Power {
 
 		public Optional<Argb> getColorForEntity(@Nullable Entity renderedEntity) {
 
-			Context context = this.contextBuilder()
+			Context context = this.createContextBuilder()
 				.add(ContextParameters.ACTOR, holder)
 				.addNullable(ContextParameters.TARGET, renderedEntity)
 				.build(holder.getWorld());
