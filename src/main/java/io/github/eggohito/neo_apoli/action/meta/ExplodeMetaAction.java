@@ -25,7 +25,6 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -180,7 +179,7 @@ public interface ExplodeMetaAction {
 
 			Context biEntityContext = context.copy(builder -> builder
 				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
-				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ACTOR))
+				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ENTITY))
 				.addNullable(ContextParameters.TARGET, target));
 
 			return this.property.knockbackMultiplier().nextFloat(biEntityContext.makeChild(".knockback_multiplayer"));
@@ -216,7 +215,7 @@ public interface ExplodeMetaAction {
 	record ExplosionDisplay(RegistryEntry<SoundEvent> soundEvent, ParticleEffect smallParticle, ParticleEffect largeParticle) {
 
 		public static final MapCodec<ExplosionDisplay> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			SoundEvent.ENTRY_CODEC.optionalFieldOf("sound", Registries.SOUND_EVENT.getEntry(SoundEvents.INTENTIONALLY_EMPTY)).forGetter(ExplosionDisplay::soundEvent),
+			SoundEvent.ENTRY_CODEC.optionalFieldOf("sound", SoundEvents.ENTITY_GENERIC_EXPLODE).forGetter(ExplosionDisplay::soundEvent),
 			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("small_particle", ParticleTypes.EXPLOSION).forGetter(ExplosionDisplay::smallParticle),
 			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("large_particle", ParticleTypes.EXPLOSION_EMITTER).forGetter(ExplosionDisplay::largeParticle)
 		).apply(instance, ExplosionDisplay::new));
