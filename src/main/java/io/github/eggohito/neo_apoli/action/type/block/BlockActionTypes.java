@@ -27,6 +27,7 @@ public final class BlockActionTypes {
 	public static final BlockActionType<ExplodeBlockAction>	EXPLODE = registerInternal("explode", ExplodeBlockAction.CODEC, ExplodeBlockAction.PACKET_CODEC);
 	public static final BlockActionType<IfElseBlockAction> IF_ELSE = registerInternal("if_else", IfElseBlockAction.CODEC, IfElseBlockAction.PACKET_CODEC);
 	public static final BlockActionType<IfElseListBlockAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListBlockAction.CODEC, IfElseListBlockAction.PACKET_CODEC);
+	public static final BlockActionType<LoopBlockAction> LOOP = registerInternal("loop", LoopBlockAction.CODEC, LoopBlockAction.PACKET_CODEC);
 	public static final BlockActionType<NothingBlockAction> NOTHING = registerInternal("nothing", NothingBlockAction.CODEC, NothingBlockAction.PACKET_CODEC);
 	public static final BlockActionType<OffsetBlockAction> OFFSET = registerInternal("offset", OffsetBlockAction.CODEC, OffsetBlockAction.PACKET_CODEC);
 	public static final BlockActionType<RandomChanceBlockAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBlockAction.CODEC, RandomChanceBlockAction.PACKET_CODEC);

@@ -28,6 +28,7 @@ public final class ItemActionTypes {
 	public static final ItemActionType<ExecuteCommandItemAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandItemAction.CODEC, ExecuteCommandItemAction.PACKET_CODEC);
 	public static final ItemActionType<IfElseItemAction> IF_ELSE = registerInternal("if_else", IfElseItemAction.CODEC, IfElseItemAction.PACKET_CODEC);
 	public static final ItemActionType<IfElseListItemAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListItemAction.CODEC, IfElseListItemAction.PACKET_CODEC);
+	public static final ItemActionType<LoopItemAction> LOOP = registerInternal("loop", LoopItemAction.CODEC, LoopItemAction.PACKET_CODEC);
 	public static final ItemActionType<NothingItemAction> NOTHING = registerInternal("nothing", NothingItemAction.CODEC, NothingItemAction.PACKET_CODEC);
 	public static final ItemActionType<RandomChanceItemAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceItemAction.CODEC, RandomChanceItemAction.PACKET_CODEC);
 	public static final ItemActionType<RandomChoiceItemAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceItemAction.CODEC, RandomChoiceItemAction.PACKET_CODEC);

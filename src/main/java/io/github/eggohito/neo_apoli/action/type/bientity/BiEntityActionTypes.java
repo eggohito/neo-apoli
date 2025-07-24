@@ -29,6 +29,7 @@ public final class BiEntityActionTypes {
 	public static final BiEntityActionType<ExecuteCommandBiEntityAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandBiEntityAction.CODEC, ExecuteCommandBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<IfElseBiEntityAction> IF_ELSE = registerInternal("if_else", IfElseBiEntityAction.CODEC, IfElseBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<IfElseListBiEntityAction> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListBiEntityAction.CODEC, IfElseListBiEntityAction.PACKET_CODEC);
+	public static final BiEntityActionType<LoopBiEntityAction> LOOP = registerInternal("loop", LoopBiEntityAction.CODEC, LoopBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<NothingBiEntityAction> NOTHING = registerInternal("nothing", NothingBiEntityAction.CODEC, NothingBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<RandomChanceBiEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBiEntityAction.CODEC, RandomChanceBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<RandomChoiceBiEntityAction> RANDOM_CHOICE = registerInternal("random_choice", RandomChoiceBiEntityAction.CODEC, RandomChoiceBiEntityAction.PACKET_CODEC);
