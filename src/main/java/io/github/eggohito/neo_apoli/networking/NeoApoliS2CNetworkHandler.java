@@ -10,12 +10,17 @@ import io.github.eggohito.neo_apoli.networking.packet.s2c.*;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.World;
 
 public class NeoApoliS2CNetworkHandler {
 
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((clientPlayNetworkHandler, minecraftClient) -> {
+			ClientPlayNetworking.registerReceiver(MountEntityS2CPacket.ID, NeoApoliS2CNetworkHandler::onEntityMounted);
 			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowersSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerTagsS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowerTagsSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeConditionsS2CPacket.ID, NeoApoliS2CNetworkHandler::onConditionsSynchronized);
@@ -24,6 +29,36 @@ public class NeoApoliS2CNetworkHandler {
 			ClientPlayNetworking.registerReceiver(SynchronizeDataCommandStorageS2CPacket.ID, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
 		});
 
+	}
+
+	private static void onEntityMounted(MountEntityS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		ClientPlayerEntity clientPlayer = context.player();
+		World world = clientPlayer.getWorld();
+
+		Entity actor = world.getEntityById(payload.passengerId());
+		Entity target = world.getEntityById(payload.vehicleId());
+
+		if (target == null) {
+			NeoApoli.LOGGER.warn("Received packet for passenger for unknown entity!");
+		}
+
+		else if (actor == null) {
+			NeoApoli.LOGGER.warn("Received packet for unknown passenger for entity {}!", getNameAndUuid(target));
+		}
+
+		else if (actor.startRiding(target, payload.force())) {
+			NeoApoli.LOGGER.info("Entity {} started riding entity {}!", getNameAndUuid(actor), getNameAndUuid(target));
+		}
+
+		else {
+			NeoApoli.LOGGER.warn("Entity {} failed to start riding entity {}!", getNameAndUuid(actor), getNameAndUuid(target));
+		}
+
+	}
+
+	private static String getNameAndUuid(Entity entity) {
+		return entity.getName().getString() + (entity instanceof PlayerEntity ? "" : " (UUID: " + entity.getUuidAsString() + ")");
 	}
 
 	private static void onDataCommandStorageSynchronized(SynchronizeDataCommandStorageS2CPacket payload, ClientPlayNetworking.Context context) {

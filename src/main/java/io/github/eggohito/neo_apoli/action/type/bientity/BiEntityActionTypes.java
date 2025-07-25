@@ -4,10 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.BiEntityAction;
-import io.github.eggohito.neo_apoli.action.custom.bientity.DamageBiEntityAction;
-import io.github.eggohito.neo_apoli.action.custom.bientity.ExecuteEntityActionBiEntityAction;
-import io.github.eggohito.neo_apoli.action.custom.bientity.SwapEntityContextBiEntityAction;
-import io.github.eggohito.neo_apoli.action.custom.bientity.TameBiEntityAction;
+import io.github.eggohito.neo_apoli.action.custom.bientity.*;
 import io.github.eggohito.neo_apoli.action.meta.bientity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -38,16 +35,19 @@ public final class BiEntityActionTypes {
 	public static final BiEntityActionType<SideBiEntityAction> SIDE = registerInternal("side", SideBiEntityAction.CODEC, SideBiEntityAction.PACKET_CODEC);
 
 	public static final BiEntityActionType<DamageBiEntityAction> DAMAGE = registerInternal("damage", DamageBiEntityAction.CODEC, DamageBiEntityAction.PACKET_CODEC);
-	public static final BiEntityActionType<SwapEntityContextBiEntityAction> SWAP_ENTITY_CONTEXT = registerInternal("swap_entity_context", SwapEntityContextBiEntityAction.CODEC, SwapEntityContextBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<ExecuteEntityActionBiEntityAction> EXECUTE_ENTITY_ACTION = registerInternal("execute_entity_action", ExecuteEntityActionBiEntityAction.CODEC, ExecuteEntityActionBiEntityAction.PACKET_CODEC);
+	public static final BiEntityActionType<MountBiEntityAction> MOUNT = registerInternal("mount", MountBiEntityAction.CODEC, MountBiEntityAction.PACKET_CODEC);
+	public static final BiEntityActionType<SwapEntityContextBiEntityAction> SWAP_ENTITY_CONTEXT = registerInternal("swap_entity_context", SwapEntityContextBiEntityAction.CODEC, SwapEntityContextBiEntityAction.PACKET_CODEC);
 	public static final BiEntityActionType<TameBiEntityAction> TAME = registerInternal("tame", TameBiEntityAction.CODEC, TameBiEntityAction.PACKET_CODEC);
 
 	public static void registerAll() {
 
-		ALIASES.addPathAlias("no_op", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_ACTION_TYPE, NOTHING));
-		ALIASES.addPathAlias("chance", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_ACTION_TYPE, RANDOM_CHANCE));
-		ALIASES.addPathAlias("choice", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_ACTION_TYPE, RANDOM_CHOICE));
-		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_ACTION_TYPE, SEQUENCE));
+		ALIASES.addPathAlias("no_op", getId(NOTHING).getPath());
+		ALIASES.addPathAlias("chance", getId(RANDOM_CHANCE).getPath());
+		ALIASES.addPathAlias("choice", getId(RANDOM_CHOICE).getPath());
+		ALIASES.addPathAlias("and", getId(SEQUENCE).getPath());
+
+		ALIASES.addPathAlias("start_riding", getId(MOUNT).getPath());
 
 	}
 
@@ -57,6 +57,10 @@ public final class BiEntityActionTypes {
 
 	public static <A extends BiEntityAction> BiEntityActionType<A> register(Identifier id, MapCodec<A> mapCodec, PacketCodec<RegistryByteBuf, A> packetCodec) {
 		return Registry.register(NeoApoliRegistries.BIENTITY_ACTION_TYPE, id, new BiEntityActionType<>(mapCodec, packetCodec));
+	}
+
+	public static Identifier getId(BiEntityActionType<?> type) {
+		return RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, type);
 	}
 
 }

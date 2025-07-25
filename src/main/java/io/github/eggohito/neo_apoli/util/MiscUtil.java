@@ -7,12 +7,17 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
+import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryOps;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class MiscUtil {
@@ -69,6 +74,18 @@ public class MiscUtil {
 		catch (Exception e) {
 			catcher.accept(e);
 		}
+
+	}
+
+	public static Set<ServerPlayerEntity> getTrackingPlayers(Entity entity) {
+
+		Set<ServerPlayerEntity> players = new ObjectOpenHashSet<>(PlayerLookup.tracking(entity));
+
+		if (entity instanceof ServerPlayerEntity selfPlayer) {
+			players.add(selfPlayer);
+		}
+
+		return players;
 
 	}
 

@@ -9,6 +9,7 @@ public class NeoApoliPackets {
 
 	public static void registerAll() {
 
+		PayloadTypeRegistry.playS2C().register(MountEntityS2CPacket.ID, MountEntityS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowersS2CPacket.ID, SynchronizePowersS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowerTagsS2CPacket.ID, SynchronizePowerTagsS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizeConditionsS2CPacket.ID, SynchronizeConditionsS2CPacket.CODEC);
