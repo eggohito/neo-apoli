@@ -13,6 +13,7 @@
 		"access.StringNbtReaderAccessor",
 		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
+		"action.entity.DismountEntityActionMixin",
 		"action.meta.ExplodeMetaActionMixin",
 		"misc.DataCommandStorageMixin",
 		"misc.DataPackContentsMixin",

@@ -20,6 +20,7 @@ public class NeoApoliS2CNetworkHandler {
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((clientPlayNetworkHandler, minecraftClient) -> {
+			ClientPlayNetworking.registerReceiver(DismountEntityS2CPacket.ID, NeoApoliS2CNetworkHandler::onEntityDismounted);
 			ClientPlayNetworking.registerReceiver(MountEntityS2CPacket.ID, NeoApoliS2CNetworkHandler::onEntityMounted);
 			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowersSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerTagsS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowerTagsSynchronized);
@@ -28,6 +29,21 @@ public class NeoApoliS2CNetworkHandler {
 			ClientPlayNetworking.registerReceiver(SynchronizeActionTagsS2CPacket.ID, NeoApoliS2CNetworkHandler::onActionTagsSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeDataCommandStorageS2CPacket.ID, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
 		});
+
+	}
+
+	private static void onEntityDismounted(DismountEntityS2CPacket payload, ClientPlayNetworking.Context context) {
+
+		World world = context.player().getWorld();
+		Entity passenger = world.getEntityById(payload.passengerId());
+
+		if (passenger == null) {
+			NeoApoli.LOGGER.warn("Received packet for dismounting unknown passenger!");
+		}
+
+		else {
+			passenger.dismountVehicle();
+		}
 
 	}
 
