@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
@@ -47,7 +48,7 @@ public class EntityConditionCategory extends ConditionCategory<EntityCondition> 
 			ServerCommandSource commandSource = commandContext.getSource();
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
 
-			EntityCondition entityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			EntityCondition entityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, EntityCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(entityCondition).mapOrElse(Identifier::toString, error -> entityCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
@@ -96,12 +97,17 @@ public class EntityConditionCategory extends ConditionCategory<EntityCondition> 
 	}
 
 	@Override
-	public Codec<EntityCondition> baseCodec() {
+	public Codec<EntityCondition> codec() {
 		return EntityCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, EntityCondition> basePacketCodec() {
+	public MapCodec<EntityCondition> mapCodec() {
+		return EntityCondition.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, EntityCondition> packetCodec() {
 		return EntityCondition.PACKET_CODEC;
 	}
 

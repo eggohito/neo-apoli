@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.ItemAction;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
@@ -70,7 +71,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
+			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey, ItemAction.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
@@ -124,7 +125,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey);
+			ItemAction itemAction = ActionArgumentType.getAction(commandContext, actionKey, ItemAction.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(itemAction).mapOrElse(Identifier::toString, error -> itemAction.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandContext.getSource().getServer().getReloadableRegistries()).getRegistries());
@@ -216,12 +217,17 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 	}
 
 	@Override
-	public Codec<ItemAction> baseCodec() {
+	public Codec<ItemAction> codec() {
 		return ItemAction.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, ItemAction> basePacketCodec() {
+	public MapCodec<ItemAction> mapCodec() {
+		return ItemAction.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, ItemAction> packetCodec() {
 		return ItemAction.PACKET_CODEC;
 	}
 

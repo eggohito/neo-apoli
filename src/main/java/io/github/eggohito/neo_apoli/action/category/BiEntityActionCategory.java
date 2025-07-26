@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
@@ -47,7 +48,7 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 			Entity actor = EntityArgumentType.getEntity(commandContext, "actor");
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
 
-			BiEntityAction biEntityAction = ActionArgumentType.getAction(commandContext, actionKey);
+			BiEntityAction biEntityAction = ActionArgumentType.getAction(commandContext, actionKey, BiEntityAction.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(biEntityAction).mapOrElse(Identifier::toString, error -> biEntityAction.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
@@ -99,12 +100,17 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 	}
 
 	@Override
-	public Codec<BiEntityAction> baseCodec() {
+	public Codec<BiEntityAction> codec() {
 		return BiEntityAction.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, BiEntityAction> basePacketCodec() {
+	public MapCodec<BiEntityAction> mapCodec() {
+		return BiEntityAction.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, BiEntityAction> packetCodec() {
 		return BiEntityAction.PACKET_CODEC;
 	}
 

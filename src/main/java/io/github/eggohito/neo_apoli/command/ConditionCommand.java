@@ -70,7 +70,7 @@ public class ConditionCommand {
 			ServerCommandSource commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
-			return switch (category.baseCodec().encodeStart(jsonOps, condition)) {
+			return switch (category.codec().encodeStart(jsonOps, condition)) {
 				case DataResult.Success<JsonElement> success -> {
 					commandSource.sendFeedback(() -> JsonTextFormatter.format(success.value(), indent), false);
 					yield 1;

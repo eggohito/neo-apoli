@@ -126,7 +126,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		LOGGER.info("Parsing conditions from data packs...");
 		startLoading();
 
-		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.baseCodec().parse(ops, entry.element())
+		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.codec().parse(ops, entry.element())
 			.ifSuccess(condition -> register(id, condition))
 			.ifError(error -> LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
 

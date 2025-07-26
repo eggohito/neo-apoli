@@ -31,7 +31,7 @@ public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Ident
 			for (int j = 0; j < entriesCount; j++) {
 
 				Identifier id = buf.readIdentifier();
-				Condition condition = category.basePacketCodec().decode(buf);
+				Condition condition = category.packetCodec().decode(buf);
 
 				conditions.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>()).put(id, condition);
 
@@ -53,7 +53,7 @@ public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Ident
 			buf.writeVarInt(entries.size());
 			entries.forEach((id, condition) -> {
 				buf.writeIdentifier(id);
-				castedCategory.basePacketCodec().encode(buf, condition);
+				castedCategory.packetCodec().encode(buf, condition);
 			});
 
 		});

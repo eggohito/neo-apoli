@@ -7,7 +7,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
@@ -29,7 +31,7 @@ import net.minecraft.util.Identifier;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public record ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ConditionCategory<?> category) implements ArgumentType<Condition> {
+public record ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ConditionCategory<? extends Condition> category, Codec<? extends Condition> entryCodec) implements ArgumentType<Condition> {
 
 	@Override
 	public Condition parse(StringReader reader) throws CommandSyntaxException {
@@ -46,7 +48,7 @@ public record ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup,
 		RegistryOps<I> registryOps = wrapperLookup().getOps(snbtReader.getOps());
 		Dynamic<I> result = parseAsNbt(registryOps, reader, snbtReader);
 
-		return category().entryCodec().parse(result).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
+		return entryCodec().parse(result).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
 
 	}
 
@@ -82,12 +84,11 @@ public record ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup,
 	}
 
 	public static <C extends Condition, CT extends ConditionCategory<C>> ConditionArgumentType condition(CommandRegistryAccess registryAccess, CT category) {
-		return new ConditionArgumentType(registryAccess, category);
+		return new ConditionArgumentType(registryAccess, category, new ValueSuppliedElementCodec<>(category.codec(), true, id -> ConditionManager.getAsResult(category, id), ConditionManager::getIdAsResult));
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <C extends Condition> C getCondition(CommandContext<ServerCommandSource> context, String argumentName) {
-		return (C) context.getArgument(argumentName, Condition.class);
+	public static <C extends Condition> C getCondition(CommandContext<ServerCommandSource> context, String argumentName, Class<C> conditionClass) {
+		return context.getArgument(argumentName, conditionClass);
 	}
 
 	public record Serializer() implements ArgumentSerializer<ConditionArgumentType, Serializer.Properties> {
@@ -116,7 +117,7 @@ public record ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup,
 
 			@Override
 			public ConditionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return new ConditionArgumentType(registryAccess, category());
+				return ConditionArgumentType.condition(registryAccess, category());
 			}
 
 			@Override

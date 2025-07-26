@@ -17,7 +17,7 @@ import net.minecraft.network.codec.PacketCodec;
 public final class ConditionResultBooleanProvider extends BooleanProvider {
 
 	public static final MapCodec<ConditionResultBooleanProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Condition.MAP_CODEC.forGetter(ConditionResultBooleanProvider::condition)
+		Condition.CODEC.fieldOf("condition").forGetter(ConditionResultBooleanProvider::condition)
 	).apply(instance, ConditionResultBooleanProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, ConditionResultBooleanProvider> PACKET_CODEC = PacketCodec.tuple(

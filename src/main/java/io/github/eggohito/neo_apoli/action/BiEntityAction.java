@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.action;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.action.meta.bientity.SequenceBiEntityAction;
@@ -18,7 +19,10 @@ import java.util.Set;
 
 public abstract class BiEntityAction extends Action {
 
-	public static final Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionTypes.CODEC.dispatch("type", BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions)));
+	public static final MapCodec<BiEntityAction> MAP_CODEC = BiEntityActionTypes.CODEC.dispatchMap("type", BiEntityAction::getType, BiEntityActionType::mapCodec);
+	public static final Codec<BiEntityAction> BASE_CODEC = MAP_CODEC.codec();
+
+	public static final Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BASE_CODEC, codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions)));
 	public static final PacketCodec<RegistryByteBuf, BiEntityAction> PACKET_CODEC = BiEntityActionTypes.PACKET_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::packetCodec);
 
 	@Override

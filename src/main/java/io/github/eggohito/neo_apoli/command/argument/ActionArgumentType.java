@@ -7,10 +7,12 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
+import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -29,7 +31,7 @@ import net.minecraft.util.Identifier;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ActionCategory<?> category) implements ArgumentType<Action> {
+public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ActionCategory<? extends Action> category, Codec<? extends Action> entryCodec) implements ArgumentType<Action> {
 
 	@Override
 	public Action parse(StringReader reader) throws CommandSyntaxException {
@@ -46,7 +48,7 @@ public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, Ac
 		RegistryOps<I> registryOps = wrapperLookup().getOps(snbtReader.getOps());
 		Dynamic<I> result = parseAsNbt(registryOps, reader, snbtReader);
 
-		return category().entryCodec().parse(result).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
+		return entryCodec().parse(result).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
 
 	}
 
@@ -82,12 +84,11 @@ public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, Ac
 	}
 
 	public static <A extends Action, C extends ActionCategory<A>> ActionArgumentType action(CommandRegistryAccess registryAccess, C category) {
-		return new ActionArgumentType(registryAccess, category);
+		return new ActionArgumentType(registryAccess, category, new ValueSuppliedElementCodec<>(category.codec(), true, id -> ActionManager.getAsResult(category, id), ActionManager::getIdAsResult));
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <A extends Action> A getAction(CommandContext<ServerCommandSource> context, String argumentName) {
-		return (A) context.getArgument(argumentName, Action.class);
+	public static <A extends Action> A getAction(CommandContext<ServerCommandSource> context, String argumentName, Class<A> actionClass) {
+		return context.getArgument(argumentName, actionClass);
 	}
 
 	public record Serializer() implements ArgumentSerializer<ActionArgumentType, Serializer.Properties> {
@@ -116,7 +117,7 @@ public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, Ac
 
 			@Override
 			public ActionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return new ActionArgumentType(registryAccess, category());
+				return ActionArgumentType.action(registryAccess, category());
 			}
 
 			@Override

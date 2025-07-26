@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.action;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.action.meta.entity.SequenceEntityAction;
@@ -21,7 +22,10 @@ import java.util.Set;
 
 public abstract class EntityAction extends Action {
 
-	public static final Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(EntityActionTypes.CODEC.dispatch("type", EntityAction::getType, EntityActionType::mapCodec), codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions)));
+	public static final MapCodec<EntityAction> MAP_CODEC = EntityActionTypes.CODEC.dispatchMap("type", EntityAction::getType, EntityActionType::mapCodec);
+	public static final Codec<EntityAction> BASE_CODEC = MAP_CODEC.codec();
+
+	public static final Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BASE_CODEC, codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions)));
 	public static final PacketCodec<RegistryByteBuf, EntityAction> PACKET_CODEC = EntityActionTypes.PACKET_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
 
 	@Override

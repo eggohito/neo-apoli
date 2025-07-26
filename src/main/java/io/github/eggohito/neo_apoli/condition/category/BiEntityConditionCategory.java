@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
@@ -46,7 +47,7 @@ public class BiEntityConditionCategory extends ConditionCategory<BiEntityConditi
 		public boolean test(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 
 			ServerCommandSource commandSource = commandContext.getSource();
-			BiEntityCondition biEntityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			BiEntityCondition biEntityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, BiEntityCondition.class);
 
 			Entity actor = EntityArgumentType.getEntity(commandContext, "actor");
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
@@ -98,12 +99,17 @@ public class BiEntityConditionCategory extends ConditionCategory<BiEntityConditi
 	}
 
 	@Override
-	public Codec<BiEntityCondition> baseCodec() {
+	public Codec<BiEntityCondition> codec() {
 		return BiEntityCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, BiEntityCondition> basePacketCodec() {
+	public MapCodec<BiEntityCondition> mapCodec() {
+		return BiEntityCondition.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, BiEntityCondition> packetCodec() {
 		return BiEntityCondition.PACKET_CODEC;
 	}
 

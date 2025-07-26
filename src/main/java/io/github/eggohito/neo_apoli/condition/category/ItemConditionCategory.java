@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
@@ -70,7 +71,7 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, ItemCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
@@ -124,7 +125,7 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 			List<Context> contexts = new ObjectArrayList<>();
 			IntList invalidSlots = new IntArrayList();
 
-			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, ItemCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandContext.getSource().getServer().getReloadableRegistries()).getRegistries());
@@ -205,12 +206,17 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 	}
 
 	@Override
-	public Codec<ItemCondition> baseCodec() {
+	public Codec<ItemCondition> codec() {
 		return ItemCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, ItemCondition> basePacketCodec() {
+	public MapCodec<ItemCondition> mapCodec() {
+		return ItemCondition.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, ItemCondition> packetCodec() {
 		return ItemCondition.PACKET_CODEC;
 	}
 

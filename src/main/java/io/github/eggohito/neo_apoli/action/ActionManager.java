@@ -200,7 +200,7 @@ public final class ActionManager implements JsonResourceReloader {
 		LOGGER.info("Parsing actions from data packs...");
 		startLoading();
 
-		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.baseCodec().parse(ops, entry.element())
+		prepared.forEach((category, entries) -> entries.forEach((id, entry) -> category.codec().parse(ops, entry.element())
 			.ifSuccess(action -> register(id, action))
 			.ifError(error -> LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", StringUtils.uncapitalize(category.toString()), id, entry.source(), error.message()))));
 

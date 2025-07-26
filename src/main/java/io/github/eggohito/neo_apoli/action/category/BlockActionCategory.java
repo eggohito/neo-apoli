@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.BlockAction;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
@@ -46,7 +47,7 @@ public final class BlockActionCategory extends ActionCategory<BlockAction> {
 			ServerWorld serverWorld = commandSource.getWorld();
 
 			BlockPos blockPos = BlockPosArgumentType.getLoadedBlockPos(commandContext, "pos");
-			BlockAction blockAction = ActionArgumentType.getAction(commandContext, actionKey);
+			BlockAction blockAction = ActionArgumentType.getAction(commandContext, actionKey, BlockAction.class);
 
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(blockAction).mapOrElse(Identifier::toString, error -> blockAction.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK))
@@ -100,12 +101,17 @@ public final class BlockActionCategory extends ActionCategory<BlockAction> {
 	}
 
 	@Override
-	public Codec<BlockAction> baseCodec() {
+	public Codec<BlockAction> codec() {
 		return BlockAction.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, BlockAction> basePacketCodec() {
+	public MapCodec<BlockAction> mapCodec() {
+		return BlockAction.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, BlockAction> packetCodec() {
 		return BlockAction.PACKET_CODEC;
 	}
 

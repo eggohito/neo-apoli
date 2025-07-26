@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.condition;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
@@ -16,7 +17,8 @@ import java.util.Set;
 
 public abstract class ItemCondition extends Condition {
 
-	public static final Codec<ItemCondition> CODEC = ItemConditionTypes.CODEC.dispatch("type", ItemCondition::getType, ItemConditionType::mapCodec);
+	public static final MapCodec<ItemCondition> MAP_CODEC = ItemConditionTypes.CODEC.dispatchMap("type", ItemCondition::getType, ItemConditionType::mapCodec);
+	public static final Codec<ItemCondition> CODEC = MAP_CODEC.codec();
 	public static final PacketCodec<RegistryByteBuf, ItemCondition> PACKET_CODEC = ItemConditionTypes.PACKET_CODEC.dispatch(ItemCondition::getType, ItemConditionType::packetCodec);
 
 	@Override

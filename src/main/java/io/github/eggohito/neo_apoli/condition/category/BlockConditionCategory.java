@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
@@ -49,7 +50,7 @@ public class BlockConditionCategory extends ConditionCategory<BlockCondition> {
 			ServerWorld serverWorld = commandSource.getWorld();
 
 			BlockPos blockPos = BlockPosArgumentType.getLoadedBlockPos(commandContext, "pos");
-			BlockCondition blockCondition = ConditionArgumentType.getCondition(commandContext, conditionKey);
+			BlockCondition blockCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, BlockCondition.class);
 
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(blockCondition).mapOrElse(Identifier::toString, error -> blockCondition.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK))
@@ -99,12 +100,17 @@ public class BlockConditionCategory extends ConditionCategory<BlockCondition> {
 	}
 
 	@Override
-	public Codec<BlockCondition> baseCodec() {
+	public Codec<BlockCondition> codec() {
 		return BlockCondition.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, BlockCondition> basePacketCodec() {
+	public MapCodec<BlockCondition> mapCodec() {
+		return BlockCondition.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, BlockCondition> packetCodec() {
 		return BlockCondition.PACKET_CODEC;
 	}
 

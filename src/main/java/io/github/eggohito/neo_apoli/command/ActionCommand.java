@@ -68,7 +68,7 @@ public class ActionCommand {
 			ServerCommandSource commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
-			return switch (category.baseCodec().encodeStart(jsonOps, action)) {
+			return switch (category.codec().encodeStart(jsonOps, action)) {
 				case DataResult.Success<JsonElement> success -> {
 					commandSource.sendFeedback(() -> JsonTextFormatter.format(success.value(), indent), false);
 					yield 1;

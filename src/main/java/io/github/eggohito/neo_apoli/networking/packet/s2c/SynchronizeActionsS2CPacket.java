@@ -31,7 +31,7 @@ public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier,
 			for (int j = 0; j < entriesCount; j++) {
 
 				Identifier id = buf.readIdentifier();
-				Action action = category.basePacketCodec().decode(buf);
+				Action action = category.packetCodec().decode(buf);
 
 				actions
 					.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>())
@@ -55,7 +55,7 @@ public record SynchronizeActionsS2CPacket(Map<ActionCategory<?>, Map<Identifier,
 			buf.writeVarInt(entries.size());
 			entries.forEach((id, action) -> {
 				buf.writeIdentifier(id);
-				castedCategory.basePacketCodec().encode(buf, action);
+				castedCategory.packetCodec().encode(buf, action);
 			});
 
 		});

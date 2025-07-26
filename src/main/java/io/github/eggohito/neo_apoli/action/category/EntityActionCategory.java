@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
@@ -44,7 +45,7 @@ public class EntityActionCategory extends ActionCategory<EntityAction> {
 			ServerCommandSource commandSource = commandContext.getSource();
 			Entity target = EntityArgumentType.getEntity(commandContext, "target");
 
-			EntityAction entityAction = ActionArgumentType.getAction(commandContext, actionKey);
+			EntityAction entityAction = ActionArgumentType.getAction(commandContext, actionKey, EntityAction.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(entityAction).mapOrElse(Identifier::toString, error -> entityAction.toString()) + "}")
 				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
@@ -96,12 +97,17 @@ public class EntityActionCategory extends ActionCategory<EntityAction> {
 	}
 
 	@Override
-	public Codec<EntityAction> baseCodec() {
+	public Codec<EntityAction> codec() {
 		return EntityAction.CODEC;
 	}
 
 	@Override
-	public PacketCodec<RegistryByteBuf, EntityAction> basePacketCodec() {
+	public MapCodec<EntityAction> mapCodec() {
+		return EntityAction.MAP_CODEC;
+	}
+
+	@Override
+	public PacketCodec<RegistryByteBuf, EntityAction> packetCodec() {
 		return EntityAction.PACKET_CODEC;
 	}
 

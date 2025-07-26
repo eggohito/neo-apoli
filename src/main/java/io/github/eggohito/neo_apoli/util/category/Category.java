@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.util.category;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
@@ -10,12 +11,10 @@ public interface Category<A> {
 
 	RegistryKey<? extends Registry<A>> registryRef();
 
-	Codec<A> baseCodec();
+	PacketCodec<RegistryByteBuf, A> packetCodec();
 
-	default Codec<A> entryCodec() {
-		return this.baseCodec();
-	}
+	Codec<A> codec();
 
-	PacketCodec<RegistryByteBuf, A> basePacketCodec();
+	MapCodec<A> mapCodec();
 
 }
