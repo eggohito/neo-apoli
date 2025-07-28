@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.provider.custom.nbt.EntityNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.ItemNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.StorageNbtProvider;
 import io.github.eggohito.neo_apoli.provider.meta.nbt.ConstantNbtProvider;
+import io.github.eggohito.neo_apoli.provider.meta.nbt.IfElseListNbtProvider;
+import io.github.eggohito.neo_apoli.provider.meta.nbt.IfElseNbtProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.IdentifierAlias;
@@ -27,6 +29,8 @@ public final class NbtProviderTypes {
 	public static final PacketCodec<RegistryByteBuf, NbtProviderType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.NBT_PROVIDER_TYPE);
 
 	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<IfElseListNbtProvider> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListNbtProvider.CODEC, IfElseListNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<IfElseNbtProvider> IF_ELSE = registerInternal("if_else", IfElseNbtProvider.CODEC, IfElseNbtProvider.PACKET_CODEC);
 
 	public static final NbtProviderType<BlockEntityNbtProvider> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityNbtProvider.CODEC, BlockEntityNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.PACKET_CODEC);

@@ -6,6 +6,8 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConditionResultBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.meta.bool.IfElseBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.meta.bool.IfElseListBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.meta.bool.NbtBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -25,6 +27,8 @@ public final class BooleanProviderTypes {
 	public static final PacketCodec<RegistryByteBuf, BooleanProviderType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.BOOLEAN_PROVIDER_TYPE);
 
 	public static final BooleanProviderType<ConstantBooleanProvider> CONSTANT = registerInternal("constant", ConstantBooleanProvider.CODEC, ConstantBooleanProvider.PACKET_CODEC);
+	public static final BooleanProviderType<IfElseBooleanProvider> IF_ELSE = registerInternal("if_else", IfElseBooleanProvider.CODEC, IfElseBooleanProvider.PACKET_CODEC);
+	public static final BooleanProviderType<IfElseListBooleanProvider> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListBooleanProvider.CODEC, IfElseListBooleanProvider.PACKET_CODEC);
 	public static final BooleanProviderType<NbtBooleanProvider> NBT = registerInternal("nbt", NbtBooleanProvider.CODEC, NbtBooleanProvider.PACKET_CODEC);
 
 	public static final BooleanProviderType<ConditionResultBooleanProvider> CONDITION_RESULT = registerInternal("condition_result", ConditionResultBooleanProvider.CODEC, ConditionResultBooleanProvider.PACKET_CODEC);

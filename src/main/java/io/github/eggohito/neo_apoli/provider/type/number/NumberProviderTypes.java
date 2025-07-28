@@ -29,6 +29,8 @@ public final class NumberProviderTypes {
 	public static final NumberProviderType<ClampedNumberProvider> CLAMPED = registerInternal("clamped", ClampedNumberProvider.CODEC, ClampedNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<ConstantNumberProvider> CONSTANT = registerInternal("constant", ConstantNumberProvider.CODEC, ConstantNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<DivideNumberProvider> DIVIDE = registerInternal("divide", DivideNumberProvider.CODEC, DivideNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<IfElseListNumberProvider> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListNumberProvider.CODEC, IfElseListNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<IfElseNumberProvider> IF_ELSE = registerInternal("if_else", IfElseNumberProvider.CODEC, IfElseNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<LinearInterpolationNumberProvider> LINEAR_INTERPOLATION = registerInternal("linear_interpolation", LinearInterpolationNumberProvider.CODEC, LinearInterpolationNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MaxNumberProvider> MAX = registerInternal("max", MaxNumberProvider.CODEC, MaxNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<MinNumberProvider> MIN = registerInternal("min", MinNumberProvider.CODEC, MinNumberProvider.PACKET_CODEC);
