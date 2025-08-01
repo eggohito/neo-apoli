@@ -34,6 +34,7 @@ public final class EntityConditionTypes {
 
 	public static final EntityConditionType<EntityTypeEntityCondition> ENTITY_TYPE = registerInternal("entity_type", EntityTypeEntityCondition.CODEC, EntityTypeEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<EquippedItemEntityCondition> EQUIPPED_ITEM = registerInternal("equipped_item", EquippedItemEntityCondition.CODEC, EquippedItemEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<IsClimbingEntityCondition> IS_CLIMBING = registerInternal("is_climbing", IsClimbingEntityCondition.CODEC, IsClimbingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsInBlockEntityCondition> IS_IN_BLOCK = registerInternal("is_in_block", IsInBlockEntityCondition.CODEC, IsInBlockEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsInTagEntityCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEntityCondition.CODEC, IsInTagEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.CODEC, IsInvisibleEntityCondition.PACKET_CODEC);
@@ -46,6 +47,7 @@ public final class EntityConditionTypes {
 		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
 		ALIASES.addPathAlias("or", getId(ANY_OF).getPath());
 
+		ALIASES.addPathAlias("climbing", getId(IS_CLIMBING).getPath());
 		ALIASES.addPathAlias("in_block", getId(IS_IN_BLOCK).getPath());
 		ALIASES.addPathAlias("sneaking", getId(IS_SNEAKING).getPath());
 		ALIASES.addPathAlias("sprinting", getId(IS_SPRINTING).getPath());
