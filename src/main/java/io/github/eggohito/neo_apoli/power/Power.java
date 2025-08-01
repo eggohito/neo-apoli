@@ -208,6 +208,7 @@ public abstract class Power {
 		}
 
 		public boolean isActive(Context context) {
+			context = this.copyWithPowerContext(context);
 			return this.getPower().getActiveCondition().test(context.makeChild(".active_condition"));
 		}
 

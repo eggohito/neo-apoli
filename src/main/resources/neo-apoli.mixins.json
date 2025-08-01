@@ -28,6 +28,7 @@
 		"power.custom.BlockHarvestPowerMixin$BlockBreakingDeltaProxy",
 		"power.custom.BlockHarvestPowerMixin$HarvestabilityProxy",
 		"power.custom.BlockInteractPowerMixin",
+		"power.custom.ModifyClimbingPowerMixin",
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl"
 	],
