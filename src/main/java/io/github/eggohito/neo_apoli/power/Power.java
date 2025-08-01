@@ -72,7 +72,7 @@ public abstract class Power {
 
 	public abstract PowerType<?> getType();
 
-	public abstract Impl<?> createImpl(Entity holder);
+	public abstract Power.Impl<?> createImpl(Entity holder);
 
 	public final Text getName() {
 		return getProperties().name();
