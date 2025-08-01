@@ -49,6 +49,9 @@ public final class EntityConditionTypes {
 
 		ALIASES.addPathAlias("climbing", getId(IS_CLIMBING).getPath());
 		ALIASES.addPathAlias("in_block", getId(IS_IN_BLOCK).getPath());
+		ALIASES.addPathAlias("in_tag", getId(IS_IN_TAG).getPath());
+		ALIASES.addPathAlias("invisible", getId(IS_INVISIBLE).getPath());
+		ALIASES.addPathAlias("on_block", getId(IS_ON_BLOCK).getPath());
 		ALIASES.addPathAlias("sneaking", getId(IS_SNEAKING).getPath());
 		ALIASES.addPathAlias("sprinting", getId(IS_SPRINTING).getPath());
 
