@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.condition.meta.entity;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.OffsetMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -17,10 +17,17 @@ import net.minecraft.util.math.Vec3d;
 
 @EqualsAndHashCode
 @Data
-public final class OffsetEntityCondition extends EntityCondition implements OffsetMetaCondition<EntityCondition> {
+public final class OffsetEntityCondition extends EntityCondition {
 
-	public static final MapCodec<OffsetEntityCondition> CODEC = MapCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> OffsetMetaCondition.codec(EntityCondition.CODEC, OffsetEntityCondition::new));
-	public static final PacketCodec<RegistryByteBuf, OffsetEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> OffsetMetaCondition.packetCodec(EntityCondition.PACKET_CODEC, OffsetEntityCondition::new));
+	public static final MapCodec<OffsetEntityCondition> CODEC = MapCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		EntityCondition.CODEC.fieldOf("condition").forGetter(OffsetEntityCondition::condition),
+		Vec3d.CODEC.fieldOf("offset").forGetter(OffsetEntityCondition::offset)
+	).apply(instance, OffsetEntityCondition::new)));
+	public static final PacketCodec<RegistryByteBuf, OffsetEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
+		EntityCondition.PACKET_CODEC, OffsetEntityCondition::condition,
+		Vec3d.PACKET_CODEC, OffsetEntityCondition::offset,
+		OffsetEntityCondition::new
+	));
 
 	private final EntityCondition condition;
 	private final Vec3d offset;
@@ -43,7 +50,7 @@ public final class OffsetEntityCondition extends EntityCondition implements Offs
 	@Override
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
-		OffsetMetaCondition.super.validate(reporter);
+		condition().validate(reporter.makeChild(".condition"));
 	}
 
 }
