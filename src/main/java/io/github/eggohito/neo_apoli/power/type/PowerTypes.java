@@ -25,10 +25,10 @@ public class PowerTypes {
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<BlockBreakPower> BLOCK_BREAK = registerInternal("block_break", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), BlockBreakPower.CODEC, BlockBreakPower.PACKET_CODEC);
-	public static final PowerType<BlockHarvestPower> BLOCK_HARVEST = registerInternal("block_harvest", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), BlockHarvestPower.CODEC, BlockHarvestPower.PACKET_CODEC);
 	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY, ContextTypes.ITEM), BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
+	public static final PowerType<ModifyBlockHarvestabilityPower> MODIFY_BLOCK_HARVESTABILITY = registerInternal("modify/block_harvestability", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), ModifyBlockHarvestabilityPower.CODEC, ModifyBlockHarvestabilityPower.PACKET_CODEC);
 	public static final PowerType<ModifyClimbingPower> MODIFY_CLIMBING = registerInternal("modify/climbing", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), ModifyClimbingPower.CODEC, ModifyClimbingPower.PACKET_CODEC);
 	public static final PowerType<ModifyInvisibilityPower> MODIFY_INVISIBILITY = registerInternal("modify/invisibility", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY, ContextTypes.ENTITY), ModifyInvisibilityPower.CODEC, ModifyInvisibilityPower.PACKET_CODEC);
 	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model_color/other", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY, ContextTypes.ENTITY), ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.PACKET_CODEC);
@@ -38,6 +38,7 @@ public class PowerTypes {
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), TickingPower.CODEC, TickingPower.PACKET_CODEC);
 
 	public static void registerAll() {
+		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
 		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());
 		ALIASES.addPathAlias("shaking", getId(MODIFY_SHAKING).getPath());

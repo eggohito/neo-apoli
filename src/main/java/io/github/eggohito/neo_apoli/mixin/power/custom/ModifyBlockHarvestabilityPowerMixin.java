@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.power.custom.BlockHarvestPower;
+import io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestabilityPower;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
-public abstract class BlockHarvestPowerMixin {
+public abstract class ModifyBlockHarvestabilityPowerMixin {
 
 	@Mixin(AbstractBlock.class)
 	public abstract static class BlockBreakingDeltaProxy {
@@ -49,7 +49,7 @@ public abstract class BlockHarvestPowerMixin {
 		private boolean modifyHarvestability(PlayerEntity player, BlockState blockState, Operation<Boolean> original, BlockState mBlockState, PlayerEntity mPlayer, BlockView mBlockView, BlockPos mBlockPos) {
 
 			Context context = this.neo_apoli$getOrCreateBlockHarvestContext(player, mBlockView, mBlockPos, blockState);
-			boolean canHarvest = BlockHarvestPower.canHarvest(context, () -> original.call(player, blockState));
+			boolean canHarvest = ModifyBlockHarvestabilityPower.canHarvest(context, () -> original.call(player, blockState));
 
 			this.neo_apoli$blockHarvestContext.remove();
 			return canHarvest;
@@ -83,7 +83,7 @@ public abstract class BlockHarvestPowerMixin {
 		private boolean modifyHarvestability(ServerPlayerEntity serverPlayer, BlockState blockState, Operation<Boolean> original, BlockPos mBlockPos, @Local BlockEntity blockEntity) {
 
 			Context context = this.neo_apoli$getOrCreateBlockHarvestContext(serverPlayer, mBlockPos, blockState, blockEntity);
-			boolean canHarvest = BlockHarvestPower.canHarvest(context, () -> original.call(serverPlayer, blockState));
+			boolean canHarvest = ModifyBlockHarvestabilityPower.canHarvest(context, () -> original.call(serverPlayer, blockState));
 
 			this.neo_apoli$blockHarvestContext.clear();
 			return canHarvest;
@@ -93,7 +93,7 @@ public abstract class BlockHarvestPowerMixin {
 	}
 
 	protected static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-		return PowerTypes.BLOCK_HARVEST.contextBuilder()
+		return PowerTypes.MODIFY_BLOCK_HARVESTABILITY.contextBuilder()
 			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, blockState)
 			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
