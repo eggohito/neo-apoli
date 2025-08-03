@@ -5,9 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,6 +18,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 
 public abstract class ModifyInvisibilityPowerMixin {
 
@@ -38,23 +37,12 @@ public abstract class ModifyInvisibilityPowerMixin {
 		@Unique
 		protected Context neo_apoli$getOrCreateInvisibilityContext(@Nullable Entity viewer) {
 
-			WeakReference<Context> contextReference = neo_apoli$invisibilityContext.get();
-			if (contextReference == null || contextReference.get() == null) {
+			Context context = Optional.ofNullable(this.neo_apoli$invisibilityContext.get())
+				.flatMap(reference -> Optional.ofNullable(reference.get()))
+				.orElseGet(() -> ModifyInvisibilityPower.createContext((Entity) (Object) this, viewer));
 
-				Entity thisAsEntity = this.neo_apoli$thisAsEntity();
-				Context context = Context.builder(PowerTypes.MODIFY_INVISIBILITY.contextType())
-					.addNullable(ContextParameters.ACTOR, viewer)
-					.add(ContextParameters.TARGET, thisAsEntity)
-					.add(ContextParameters.ENTITY, thisAsEntity)
-					.add(ContextParameters.ENTITY_POS, this.getPos())
-					.build(this.getWorld());
-
-				contextReference = new WeakReference<>(context);
-				this.neo_apoli$invisibilityContext.set(contextReference);
-
-			}
-
-			return contextReference.get();
+			this.neo_apoli$invisibilityContext.set(new WeakReference<>(context));
+			return context;
 
 		}
 
@@ -69,7 +57,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (!original && PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(null);
-				boolean result = PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisible(context));
+				boolean result = PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class, impl -> impl.isActive(context));
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;

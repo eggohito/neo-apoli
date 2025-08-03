@@ -12,11 +12,13 @@ import io.github.eggohito.neo_apoli.provider.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Getter
 public class ModifyInvisibilityPower extends Power {
@@ -79,11 +81,6 @@ public class ModifyInvisibilityPower extends Power {
 			super(holder, power);
 		}
 
-		public boolean isInvisible(Context context) {
-			context = this.copyWithPowerContext(context);
-			return this.isActive(context);
-		}
-
 		public boolean isInvisibleTo(Context context) {
 			context = this.copyWithPowerContext(context);
 			return this.isActive(context)
@@ -92,14 +89,25 @@ public class ModifyInvisibilityPower extends Power {
 
 		public boolean shouldRenderArmor(Context context) {
 			context = this.copyWithPowerContext(context);
-			return power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
+			return this.isActive(context)
+				&& power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
 		}
 
 		public boolean shouldRenderOutline(Context context) {
 			context = this.copyWithPowerContext(context);
-			return power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
+			return this.isActive(context)
+				&& power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
 		}
 
+	}
+
+	public static Context createContext(@NotNull Entity target, @Nullable Entity viewer) {
+		return PowerTypes.MODIFY_INVISIBILITY.contextBuilder()
+			.addNullable(ContextParameters.ACTOR, viewer)
+			.add(ContextParameters.TARGET, target)
+			.add(ContextParameters.ENTITY, target)
+			.add(ContextParameters.ENTITY_POS, target.getPos())
+			.build(target.getWorld());
 	}
 
 }

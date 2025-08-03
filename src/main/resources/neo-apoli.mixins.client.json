@@ -8,7 +8,7 @@
 		"misc.EntityRendererMixin",
 		"misc.EntityRenderStateMixin",
 		"misc.MinecraftClientMixin",
-		"power.custom.ModifyInvisibilityPowerMixin",
+		"power.custom.ModifyInvisibilityPowerMixin$OutlineAndArmorProxy",
 		"power.custom.ModifyModelColorOtherPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$PlayerArmPartApplier",
