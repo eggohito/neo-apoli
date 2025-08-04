@@ -162,7 +162,7 @@ public abstract class Power {
 			this.power = power;
 		}
 
-		public final Context.Builder copyWithPowerContext(Context.Builder builder) {
+		public final Context.Builder addPowerContext(Context.Builder builder) {
 
 			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.getContextType(), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
@@ -173,18 +173,22 @@ public abstract class Power {
 
 		}
 
-		public final Context copyWithPowerContext(Context context) {
-			return copyWithPowerContext(Context.builder(context)).build(context.getWorld());
+		public final Context addPowerContext(Context context) {
+			return this.addPowerContext(Context.builder(context)).build(context.getWorld());
 		}
 
-		public final Context.Builder createContextBuilder() {
-			return copyWithPowerContext(Context.builder()
+		public final Context.Builder createGenericContextBuilder() {
+
+			Context.Builder builder = this.getPowerType().contextBuilder()
 				.add(ContextParameters.ENTITY, holder)
-				.add(ContextParameters.ENTITY_POS, holder.getPos()));
+				.add(ContextParameters.ENTITY_POS, holder.getPos());
+
+			return this.addPowerContext(builder);
+
 		}
 
 		public final Context createGenericContext() {
-			return createContextBuilder().build(holder.getWorld());
+			return this.createGenericContextBuilder().build(holder.getWorld());
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
@@ -208,7 +212,7 @@ public abstract class Power {
 		}
 
 		public boolean isActive(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.getPower().getActiveCondition().test(context.makeChild(".active_condition"));
 		}
 

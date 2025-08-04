@@ -72,7 +72,7 @@ public class ModifyClimbingPower extends Power {
 		}
 
 		public boolean canHold(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.isActive(context)
 				&& this.getPower().getAllowHolding().next(context.makeChild(".allow_holding"))
 				&& this.getPower().getHoldingCondition().test(context.makeChild(".holding_condition"));

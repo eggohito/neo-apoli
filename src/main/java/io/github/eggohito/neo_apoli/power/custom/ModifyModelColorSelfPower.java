@@ -70,18 +70,14 @@ public class ModifyModelColorSelfPower extends Power {
 			super(holder, power);
 		}
 
-		public Optional<Argb> getColorWithoutViewer() {
-			return getColorWithViewer(null);
-		}
+		public Optional<Argb> getColor(Context context) {
 
-		public Optional<Argb> getColorWithViewer(@Nullable Entity viewer) {
+			Entity viewer = context.nullable(ContextParameters.ACTOR);
+			Entity renderedEntity = context.required(ContextParameters.TARGET);
 
-			Context context = this.createContextBuilder()
-				.addNullable(ContextParameters.ACTOR, viewer)
-				.add(ContextParameters.TARGET, holder)
-				.build(holder.getWorld());
+			context = this.addPowerContext(context);
 
-			if (viewer == null || Objects.equals(holder, viewer) || (this.isActive(context) && this.power.getBiEntityCondition().test(context.makeChild(".bientity_condition")))) {
+			if (viewer == null || Objects.equals(viewer, renderedEntity) || this.doesApply(context)) {
 				return Optional.of(power.getColor().toArgb(context.makeChild(".color")));
 			}
 
@@ -91,6 +87,20 @@ public class ModifyModelColorSelfPower extends Power {
 
 		}
 
+		public boolean doesApply(Context context) {
+			return this.isActive(context)
+				&& power.getBiEntityCondition().test(context.makeChild(".bientity_condition"));
+		}
+
+	}
+
+	public static Context createContext(@NotNull Entity renderedEntity, @Nullable Entity viewer) {
+		return PowerTypes.MODIFY_MODEL_COLOR_SELF.contextBuilder()
+			.addNullable(ContextParameters.ACTOR, viewer)
+			.add(ContextParameters.TARGET, renderedEntity)
+			.add(ContextParameters.ENTITY, renderedEntity)
+			.add(ContextParameters.ENTITY_POS, renderedEntity.getPos())
+			.build(renderedEntity.getWorld());
 	}
 
 }

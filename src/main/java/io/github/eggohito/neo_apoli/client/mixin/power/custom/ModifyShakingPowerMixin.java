@@ -14,10 +14,19 @@ public abstract class ModifyShakingPowerMixin<S extends LivingEntityRenderState>
 
 	@ModifyReturnValue(method = "isShaking", at = @At("RETURN"))
 	private boolean shakingProxy(boolean original, S state) {
-		return original
-			|| (state instanceof EntityRenderCache renderCache
-			&& renderCache.neo_apoli$getEntity() != null
-			&& PowersComponent.hasPowerImpl(renderCache.neo_apoli$getEntity(), ModifyShakingPower.Impl.class, ModifyShakingPower.Impl::isActive));
+
+		if (original) {
+			return true;
+		}
+
+		else if (state instanceof EntityRenderCache renderCache) {
+			return PowersComponent.hasPowerImpl(renderCache.neo_apoli$getEntity(), ModifyShakingPower.Impl.class, ModifyShakingPower.Impl::isActive);
+		}
+
+		else {
+			return false;
+		}
+
 	}
 
 }

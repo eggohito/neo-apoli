@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,9 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 
 		private final Int2ObjectMap<List<I>> buckets = new Int2ObjectOpenHashMap<>();
 
+		@Getter
 		private int minPriority = Integer.MAX_VALUE;
+		@Getter
 		private int maxPriority = Integer.MIN_VALUE;
 
 		public static <I extends Power.Impl<?> & Prioritized<I>> CallInstance<I> create(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
@@ -47,14 +50,6 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 
 		public boolean hasImpls(int priority) {
 			return buckets.containsKey(priority);
-		}
-
-		public int getMinPriority() {
-			return minPriority;
-		}
-
-		public int getMaxPriority() {
-			return maxPriority;
 		}
 
 		public boolean isEmpty() {

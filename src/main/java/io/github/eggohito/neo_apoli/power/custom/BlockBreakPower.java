@@ -181,7 +181,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 			for (var impl : impls) {
 
-				Context context = impl.createContextBuilder()
+				Context context = impl.createGenericContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, blockState)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)

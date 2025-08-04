@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.client.duck.PlayerRendererHelper;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
 import io.github.eggohito.neo_apoli.util.color.Argb;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -55,12 +56,13 @@ public abstract class ModifyModelColorSelfPowerMixin {
 			if (renderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 
 				List<ModifyModelColorSelfPower.Impl> impls = PowersComponent.getPowerImpls(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Impl.class);
+				Context context = ModifyModelColorSelfPower.createContext(renderCache.neo_apoli$getEntity(), viewer);
 
 				if (!impls.isEmpty()) {
 
 					Argb unpackedArgb = impls
 						.stream()
-						.map(impl -> impl.getColorWithViewer(viewer))
+						.map(impl -> impl.getColor(context))
 						.flatMap(Optional::stream)
 						.reduce(Argb.unpack(packedArgb), Argb::mix);
 
@@ -85,26 +87,38 @@ public abstract class ModifyModelColorSelfPowerMixin {
 	public static abstract class PlayerArmPartApplier implements PlayerRendererHelper {
 
 		@Unique
-		private WeakReference<PlayerEntity> neo_apoli$player;
+		protected WeakReference<PlayerEntity> neo_apoli$player = new WeakReference<>(null);
 
 		@Override
 		public PlayerEntity neo_apoli$getPlayer() {
-			return neo_apoli$player.get();
+			return this.neo_apoli$player.get();
 		}
 
 		@Override
 		public void neo_apoli$setPlayer(@Nullable PlayerEntity player) {
-			this.neo_apoli$player = new WeakReference<>(player);
+
+			if (player == null) {
+				this.neo_apoli$player.clear();
+			}
+
+			else {
+				this.neo_apoli$player = new WeakReference<>(player);
+			}
+
 		}
 
 		@WrapOperation(method = "renderArm", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelPart;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V"))
 		private void impl(ModelPart armPart, MatrixStack matrices, VertexConsumer vertices, int light, int overlay, Operation<Void> original) {
 
-			if (this.neo_apoli$getPlayer() != null) {
+			PlayerEntity player = this.neo_apoli$getPlayer();
+			List<ModifyModelColorSelfPower.Impl> impls = PowersComponent.getPowerImpls(player, ModifyModelColorSelfPower.Impl.class);
 
-				int argb = PowersComponent.getPowerImpls(this.neo_apoli$getPlayer(), ModifyModelColorSelfPower.Impl.class, impl -> true)
+			if (player != null && !impls.isEmpty()) {
+
+				Context context = ModifyModelColorSelfPower.createContext(player, null);
+				int argb = impls
 					.stream()
-					.map(ModifyModelColorSelfPower.Impl::getColorWithoutViewer)
+					.map(impl -> impl.getColor(context))
 					.flatMap(Optional::stream)
 					.reduce(Argb.DEFAULT, Argb::mix)
 					.pack();
@@ -131,8 +145,8 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@Inject(method = "renderFirstPersonItem", at = @At("HEAD"))
 		private void onFirstPersonRender(AbstractClientPlayerEntity player, float tickProgress, float pitch, Hand hand, float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
 
-			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper controller) {
-				controller.neo_apoli$setPlayer(player);
+			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper helper) {
+				helper.neo_apoli$setPlayer(player);
 			}
 
 		}
@@ -140,8 +154,8 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@Inject(method = "renderFirstPersonItem", at = @At("TAIL"))
 		private void cleanUpAfter(AbstractClientPlayerEntity player, float tickProgress, float pitch, Hand hand, float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
 
-			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper controller) {
-				controller.neo_apoli$setPlayer(null);
+			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper rendererHelper) {
+				rendererHelper.neo_apoli$setPlayer(null);
 			}
 
 		}

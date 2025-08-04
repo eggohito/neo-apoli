@@ -226,7 +226,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 			for (var impl : impls) {
 
-				Context context = impl.createContextBuilder()
+				Context context = impl.createGenericContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
@@ -297,7 +297,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 				for (var impl : impls) {
 
-					Context context = impl.createContextBuilder()
+					Context context = impl.createGenericContextBuilder()
 						.add(ContextParameters.BLOCK_POS, blockPos)
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))

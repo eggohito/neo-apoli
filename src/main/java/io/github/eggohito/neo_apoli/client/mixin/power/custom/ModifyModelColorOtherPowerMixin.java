@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorOtherPower;
 import io.github.eggohito.neo_apoli.util.color.Argb;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
@@ -40,12 +41,13 @@ public abstract class ModifyModelColorOtherPowerMixin {
 			if (renderState instanceof EntityRenderCache renderCache && viewer != null) {
 
 				List<ModifyModelColorOtherPower.Impl> impls = PowersComponent.getPowerImpls(viewer, ModifyModelColorOtherPower.Impl.class);
+				Context context = ModifyModelColorOtherPower.createContext(viewer, renderCache.neo_apoli$getEntity());
 
 				if (!impls.isEmpty()) {
 
 					Argb unpackedArgb = impls
 						.stream()
-						.map(impl -> impl.getColorForEntity(renderCache.neo_apoli$getEntity()))
+						.map(impl -> impl.getColor(context))
 						.flatMap(Optional::stream)
 						.reduce(Argb.unpack(packedArgb), Argb::mix);
 

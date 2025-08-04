@@ -82,19 +82,19 @@ public class ModifyInvisibilityPower extends Power {
 		}
 
 		public boolean isInvisibleTo(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.isActive(context)
 				&& power.getBiEntityCondition().test(context.makeChild(".bientity_condition"));
 		}
 
 		public boolean shouldRenderArmor(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.isActive(context)
 				&& power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
 		}
 
 		public boolean shouldRenderOutline(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.isActive(context)
 				&& power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
 		}

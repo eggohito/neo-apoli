@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.client.duck;
 
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import net.minecraft.entity.Entity;
+import org.jetbrains.annotations.Nullable;
 
 public interface EntityRenderCache {
 
@@ -13,11 +14,11 @@ public interface EntityRenderCache {
 		return null;
 	}
 
-	default void neo_apoli$setColor(Argb color) {
+	default void neo_apoli$setColor(@Nullable Argb color) {
 
 	}
 
-	default void neo_apoli$setEntity(Entity entity) {
+	default void neo_apoli$setEntity(@Nullable Entity entity) {
 
 	}
 

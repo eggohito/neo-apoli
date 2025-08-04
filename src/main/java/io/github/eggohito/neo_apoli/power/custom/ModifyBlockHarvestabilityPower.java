@@ -90,12 +90,12 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 		}
 
 		public boolean isAllowed(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.getPower().getAllowedProvider().next(context.makeChild(".allow"));
 		}
 
 		public boolean doesApply(Context context) {
-			context = this.copyWithPowerContext(context);
+			context = this.addPowerContext(context);
 			return this.isActive(context)
 				&& power.getBlockCondition().test(context.makeChild(".block_condition"));
 		}

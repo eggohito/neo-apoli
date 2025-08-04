@@ -29,7 +29,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.util.TriConsumer;
-import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
@@ -159,7 +158,9 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	@Override
 	public void applySyncPacket(RegistryByteBuf buf) {
 
-		switch (buf.readVarInt()) {
+		int syncId = buf.readVarInt();
+
+		switch (syncId) {
 			case FULL_SYNC_ID ->
 				AutoSyncedComponent.super.applySyncPacket(buf);
 			case GRANT_SYNC_ID ->
@@ -167,7 +168,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			case REVOKE_SYNC_ID ->
 				Synchronizer.REVOKE.receive(buf, this);
 			default ->
-				NeoApoli.LOGGER.warn("Entity {} (UUID: {}) received powers component sync packet with unknown sync ID!", holder.getName().getString(), holder.getUuidAsString());
+				NeoApoli.LOGGER.warn("Entity {} (UUID: {}) received powers component sync packet with unknown sync ID (Expected 0-2, received {})!", holder.getName().getString(), holder.getUuidAsString(), syncId);
 		}
 
 	}
@@ -443,27 +444,37 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Impl<?>, Set<Identifier>> consumer) {
-		NeoApoliEntityComponents.POWERS.get(holder).forEach(consumer);
+		NeoApoliEntityComponents.POWERS.maybeGet(holder).ifPresent(powersComponent -> powersComponent.forEach(consumer));
 	}
 
-	public static <I extends Power.Impl<?>> boolean hasPowerImpl(@NotNull Entity entity, Class<I> implClass) {
-		return NeoApoliEntityComponents.POWERS.get(entity).hasPowerImpl(implClass);
+	public static <I extends Power.Impl<?>> boolean hasPowerImpl(Entity entity, Class<I> implClass) {
+		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.stream()
+			.anyMatch(powersComponent -> powersComponent.hasPowerImpl(implClass));
 	}
 
-	public static <I extends Power.Impl<?>> boolean hasPowerImpl(@NotNull Entity entity, Class<I> implClass, Predicate<I> implFilter) {
-		return NeoApoliEntityComponents.POWERS.get(entity).hasPowerImpl(implClass, implFilter);
+	public static <I extends Power.Impl<?>> boolean hasPowerImpl(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
+		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.stream()
+			.anyMatch(powersComponent -> powersComponent.hasPowerImpl(implClass, implFilter));
 	}
 
-	public static List<Power.Impl<?>> getPowerImpls(@NotNull Entity entity) {
-		return NeoApoliEntityComponents.POWERS.get(entity).getPowerImpls();
+	public static List<Power.Impl<?>> getPowerImpls(Entity entity) {
+		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.map(PowersComponent::getPowerImpls)
+			.orElseGet(ObjectArrayList::new);
 	}
 
-	public static <I extends Power.Impl<?>> List<I> getPowerImpls(@NotNull Entity entity, Class<I> implClass) {
-		return NeoApoliEntityComponents.POWERS.get(entity).getPowerImpls(implClass);
+	public static <I extends Power.Impl<?>> List<I> getPowerImpls(Entity entity, Class<I> implClass) {
+		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.map(powersComponent -> powersComponent.getPowerImpls(implClass))
+			.orElseGet(ObjectArrayList::new);
 	}
 
-	public static <I extends Power.Impl<?>> List<I> getPowerImpls(@NotNull Entity entity, Class<I> implClass, Predicate<I> implFilter) {
-		return NeoApoliEntityComponents.POWERS.get(entity).getPowerImpls(implClass, implFilter);
+	public static <I extends Power.Impl<?>> List<I> getPowerImpls(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
+		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.map(powersComponent -> powersComponent.getPowerImpls(implClass, implFilter))
+			.orElseGet(ObjectArrayList::new);
 	}
 
 	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {
@@ -479,17 +490,20 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	public static final class Synchronizer<T> {
 
+		private static final BiConsumer<RegistryByteBuf, Map<Identifier, Collection<PowerReference>>> MAP_ENCODER = (buf, map) -> buf.writeMap(map,
+			PacketByteBuf::writeIdentifier,
+			(valueBuf, references) -> valueBuf.writeCollection(references, PowerReference.PACKET_CODEC)
+		);
+
+		private static final Function<RegistryByteBuf, Map<Identifier, Collection<PowerReference>>> MAP_DECODER = buf -> buf.readMap(
+			PacketByteBuf::readIdentifier,
+			valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerReference.PACKET_CODEC)
+		);
+
 		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> GRANT = new Synchronizer<>(
 			GRANT_SYNC_ID,
-			(buf, map) -> buf.writeMap(
-				map,
-				PacketByteBuf::writeIdentifier,
-				(valueBuf, ids) -> valueBuf.writeCollection(ids, PowerReference.PACKET_CODEC)
-			),
-			buf -> buf.readMap(
-				PacketByteBuf::readIdentifier,
-				valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerReference.PACKET_CODEC)
-			),
+			MAP_ENCODER,
+			MAP_DECODER,
 			(powersComponent, map) -> map.forEach((source, ids) ->
 				ids.forEach(id -> powersComponent.grantPowerSideAgnostic(id, source))
 			)
@@ -497,8 +511,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> REVOKE = new Synchronizer<>(
 			REVOKE_SYNC_ID,
-			GRANT.encoder,
-			GRANT.decoder,
+			MAP_ENCODER,
+			MAP_DECODER,
 			(powersComponent, map) -> map.forEach((source, ids) ->
 				ids.forEach(id -> powersComponent.revokePowerSideAgnostic(id, source))
 			)
