@@ -11,6 +11,7 @@
 		"access.ReloadableRegistriesAccessor",
 		"access.ReloadableRegistriesAccessor$LookupAccessor",
 		"access.StringNbtReaderAccessor",
+		"access.TagEntryAccessor",
 		"access.TranslatableTextContentAccessor",
 		"access.WeightedListAccessor",
 		"action.entity.DismountEntityActionMixin",
@@ -29,6 +30,9 @@
 		"power.custom.ModifyBlockHarvestabilityPowerMixin$BlockBreakingDeltaProxy",
 		"power.custom.ModifyBlockHarvestabilityPowerMixin$HarvestabilityProxy",
 		"power.custom.ModifyClimbingPowerMixin",
+		"power.custom.ModifyEntityTypeTagPowerMixin$EntityCache",
+		"power.custom.ModifyEntityTypeTagPowerMixin$IsInTagProxy",
+		"power.custom.ModifyEntityTypeTagPowerMixin$TagCache",
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl"
 	],

@@ -18,6 +18,7 @@ import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
@@ -123,6 +124,8 @@ public class NeoApoli implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> LOGS.clear());
+
+		PowerIntegrations.registerAll();
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		NeoApoliConfig.init();

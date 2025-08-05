@@ -10,12 +10,16 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.NbtPathArgumentType;
+import net.minecraft.entity.EntityType;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 import net.minecraft.world.explosion.Explosion;
@@ -112,5 +116,9 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<PacketByteBuf, ActionResult> ACTION_RESULT = PacketCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
 
 	public static final PacketCodec<RegistryByteBuf, BlockState> BLOCK_STATE = PacketCodecs.unlimitedRegistryCodec(BlockState.CODEC);
+
+	public static final PacketCodec<ByteBuf, List<Identifier>> IDENTIFIERS = PacketCodecs.collection(ObjectArrayList::new, Identifier.PACKET_CODEC);
+
+	public static final PacketCodec<ByteBuf, TagKey<EntityType<?>>> ENTITY_TYPE_TAG = TagKey.packetCodec(RegistryKeys.ENTITY_TYPE);
 
 }

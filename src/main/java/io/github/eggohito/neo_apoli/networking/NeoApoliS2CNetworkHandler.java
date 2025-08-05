@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestActionTagsC2SPa
 import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.*;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -28,6 +29,7 @@ public class NeoApoliS2CNetworkHandler {
 			ClientPlayNetworking.registerReceiver(SynchronizeActionsS2CPacket.ID, NeoApoliS2CNetworkHandler::onActionsSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeActionTagsS2CPacket.ID, NeoApoliS2CNetworkHandler::onActionTagsSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeDataCommandStorageS2CPacket.ID, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
+			ClientPlayNetworking.registerReceiver(SynchronizeEntityTypeTagCacheS2CPacket.ID, ModifyEntityTypeTagPower::receiveCache);
 		});
 
 	}
