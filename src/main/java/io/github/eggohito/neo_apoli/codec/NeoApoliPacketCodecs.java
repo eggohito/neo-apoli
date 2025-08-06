@@ -1,10 +1,7 @@
 package io.github.eggohito.neo_apoli.codec;
 
 import com.google.gson.internal.LazilyParsedNumber;
-import io.github.eggohito.neo_apoli.util.EntityParameter;
-import io.github.eggohito.neo_apoli.util.HandProperty;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -120,5 +117,7 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, List<Identifier>> IDENTIFIERS = PacketCodecs.collection(ObjectArrayList::new, Identifier.PACKET_CODEC);
 
 	public static final PacketCodec<ByteBuf, TagKey<EntityType<?>>> ENTITY_TYPE_TAG = TagKey.packetCodec(RegistryKeys.ENTITY_TYPE);
+
+	public static final PacketCodec<RegistryByteBuf, List<AttributeModifier>> ATTRIBUTE_MODIFIERS = PacketCodecs.collection(ObjectArrayList::new, AttributeModifier.PACKET_CODEC);
 
 }
