@@ -34,6 +34,7 @@ public final class ItemConditionTypes {
 	public static final ItemConditionType<InvertedItemCondition> INVERTED = registerInternal("inverted", InvertedItemCondition.CODEC, InvertedItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<ReferenceItemCondition> REFERENCE = registerInternal("reference", ReferenceItemCondition.CODEC, ReferenceItemCondition.PACKET_CODEC);
 
+	public static final ItemConditionType<IngredientItemCondition> INGREDIENT = registerInternal("ingredient", IngredientItemCondition.CODEC, IngredientItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsDamageableItemCondition> IS_DAMAGEABLE = registerInternal("is_damageable", IsDamageableItemCondition.CODEC, IsDamageableItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsEmptyItemCondition> IS_EMPTY = registerInternal("is_empty", IsEmptyItemCondition.CODEC, IsEmptyItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsEnchantableItemCondition> IS_ENCHANTABLE = registerInternal("is_enchantable", IsEnchantableItemCondition.CODEC, IsEnchantableItemCondition.PACKET_CODEC);
