@@ -26,6 +26,7 @@ public class PowerTypes {
 
 	public static final PowerType<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal("callback/block/break", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), CallbackBlockBreakPower.CODEC, CallbackBlockBreakPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
+	public static final PowerType<CallbackTickPower> CALLBACK_TICK = registerInternal("callback/tick", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackTickPower.CODEC, CallbackTickPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyConditionedPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONED = registerInternal("modify/attribute/legacy/conditioned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyConditionedPower.CODEC, ModifyAttributeLegacyConditionedPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal("modify/attribute/legacy", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyPower.CODEC, ModifyAttributeLegacyPower.PACKET_CODEC);
@@ -39,12 +40,11 @@ public class PowerTypes {
 	public static final PowerType<ModifyShakingPower> MODIFY_SHAKING = registerInternal("modify/shaking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyShakingPower.CODEC, ModifyShakingPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.GENERIC, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 	public static final PowerType<PreventItemUsePower> PREVENT_ITEM_USE = registerInternal("prevent/item_use", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY, ContextTypes.ITEM), PreventItemUsePower.CODEC, PreventItemUsePower.PACKET_CODEC);
-	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), TickingPower.CODEC, TickingPower.PACKET_CODEC);
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
 		ALIASES.addPathAlias("action_on_callback", getId(CALLBACK).getPath());
-		ALIASES.addPathAlias("action_over_time", getId(TICKING).getPath());
+		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_TICK).getPath());
 		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
 		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());

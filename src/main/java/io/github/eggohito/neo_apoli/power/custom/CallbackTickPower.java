@@ -19,23 +19,23 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class TickingPower extends Power {
+public class CallbackTickPower extends Power {
 
-	public static final MapCodec<TickingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.optionalFieldOf("tick_action", new NothingEntityAction()).forGetter(TickingPower::getTickAction))
-		.and(EntityAction.CODEC.optionalFieldOf("first_active_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstActiveTickAction))
-		.and(EntityAction.CODEC.optionalFieldOf("first_inactive_tick_action", new NothingEntityAction()).forGetter(TickingPower::getFirstInactiveTickAction))
-		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(TickingPower::getInterval))
-		.apply(instance, TickingPower::new));
+	public static final MapCodec<CallbackTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(CallbackTickPower::getEntityAction))
+		.and(EntityAction.CODEC.optionalFieldOf("rising_action", new NothingEntityAction()).forGetter(CallbackTickPower::getRisingEntityAction))
+		.and(EntityAction.CODEC.optionalFieldOf("falling_action", new NothingEntityAction()).forGetter(CallbackTickPower::getFallingEntityAction))
+		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackTickPower::getInterval))
+		.apply(instance, CallbackTickPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, TickingPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, tickingPower) -> {
-			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getTickAction());
-			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstActiveTickAction());
-			EntityAction.PACKET_CODEC.encode(buf, tickingPower.getFirstInactiveTickAction());
-			NumberProvider.PACKET_CODEC.encode(buf, tickingPower.getInterval());
+	public static final PacketCodec<RegistryByteBuf, CallbackTickPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, callbackTickPower) -> {
+			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getEntityAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getRisingEntityAction());
+			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getFallingEntityAction());
+			NumberProvider.PACKET_CODEC.encode(buf, callbackTickPower.getInterval());
 		},
-		(buf, properties, condition) -> new TickingPower(properties, condition,
+		(buf, properties, condition) -> new CallbackTickPower(properties, condition,
 			EntityAction.PACKET_CODEC.decode(buf),
 			EntityAction.PACKET_CODEC.decode(buf),
 			EntityAction.PACKET_CODEC.decode(buf),
@@ -43,23 +43,23 @@ public class TickingPower extends Power {
 		)
 	);
 
-	private final EntityAction tickAction;
-	private final EntityAction firstActiveTickAction;
-	private final EntityAction firstInactiveTickAction;
+	private final EntityAction entityAction;
+	private final EntityAction risingEntityAction;
+	private final EntityAction fallingEntityAction;
 
 	private final NumberProvider interval;
 
-	public TickingPower(Properties properties, EntityCondition activeCondition, EntityAction tickAction, EntityAction firstActiveTickAction, EntityAction firstInactiveTickAction, NumberProvider interval) {
+	public CallbackTickPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
 		super(properties, activeCondition);
-		this.tickAction = tickAction;
-		this.firstActiveTickAction = firstActiveTickAction;
-		this.firstInactiveTickAction = firstInactiveTickAction;
+		this.entityAction = entityAction;
+		this.risingEntityAction = risingEntityAction;
+		this.fallingEntityAction = fallingEntityAction;
 		this.interval = interval;
 	}
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.TICKING;
+		return PowerTypes.CALLBACK_TICK;
 	}
 
 	@Override
@@ -72,21 +72,21 @@ public class TickingPower extends Power {
 
 		super.validate(reporter);
 
-		getTickAction().validate(reporter.makeChild(".tick_action"));
-		getFirstActiveTickAction().validate(reporter.makeChild(".first_active_tick_action"));
-		getFirstInactiveTickAction().validate(reporter.makeChild(".first_inactive_tick_action"));
+		getEntityAction().validate(reporter.makeChild(".entity_action"));
+		getRisingEntityAction().validate(reporter.makeChild(".rising_action"));
+		getFallingEntityAction().validate(reporter.makeChild(".falling_action"));
 		getInterval().validate(reporter.makeChild(".interval"));
 
 	}
 
-	public static class Impl extends Power.Impl<TickingPower> {
+	public static class Impl extends Power.Impl<CallbackTickPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Impl(@NotNull Entity holder, @NotNull TickingPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull CallbackTickPower power) {
 			super(holder, power);
 		}
 
@@ -118,12 +118,12 @@ public class TickingPower extends Power {
 					else if (ticks == startTicks) {
 
 						if (!wasActive) {
-							power.getFirstActiveTickAction().execute(context.makeChild(".first_active_tick_action"));
+							power.getRisingEntityAction().execute(context.makeChild(".rising_action"));
 							wasActive = true;
 						}
 
 						else {
-							power.getTickAction().execute(context.makeChild(".tick_action"));
+							power.getEntityAction().execute(context.makeChild(".tick_action"));
 						}
 
 					}
@@ -138,7 +138,7 @@ public class TickingPower extends Power {
 					}
 
 					else if (ticks == endTicks) {
-						power.getFirstInactiveTickAction().execute(context.makeChild(".first_inactive_tick_action"));
+						power.getFallingEntityAction().execute(context.makeChild(".falling_action"));
 						wasActive = false;
 					}
 
