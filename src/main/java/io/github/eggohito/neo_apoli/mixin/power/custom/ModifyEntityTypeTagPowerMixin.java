@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagEntry;
 import net.minecraft.registry.tag.TagGroupLoader;
@@ -25,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public abstract class ModifyEntityTypeTagPowerMixin {
@@ -32,13 +34,20 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 	@Mixin(TagGroupLoader.class)
 	public static abstract class TagCache<T> {
 
+		@Unique
+		private static final String ENTITY_TYPE_TAG_PATH = RegistryKeys.getTagPath(RegistryKeys.ENTITY_TYPE);
+
 		@Shadow
 		@Final
 		private String dataType;
 
 		@Inject(method = "buildGroup", at = @At("RETURN"))
 		private void cacheEntityTypeTags(Map<Identifier, List<TagGroupLoader.TrackedEntry>> tags, CallbackInfoReturnable<Map<Identifier, List<T>>> cir, @Local TagEntry.ValueGetter<T> getter, @Local DependencyTracker<Identifier, TagGroupLoader.TagDependencies> dependencyTracker) {
-			ModifyEntityTypeTagPower.setCache(this.dataType, getter, dependencyTracker);
+
+			if (Objects.equals(this.dataType, ENTITY_TYPE_TAG_PATH)) {
+				ModifyEntityTypeTagPower.setCache(getter, dependencyTracker);
+			}
+
 		}
 
 	}

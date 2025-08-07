@@ -13,7 +13,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -36,16 +36,13 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class ModifyEntityTypeTagPower extends Power {
-
-	private static final Map<Identifier, List<Identifier>> TAG_CACHE = new ConcurrentHashMap<>();
-	private static final String TAG_PATH = RegistryKeys.getPath(RegistryKeys.ENTITY_TYPE);
 
 	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
 		.and(NeoApoliCodecs.UNPREFIXED_ENTITY_TYPE_TAG.fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
@@ -59,6 +56,7 @@ public class ModifyEntityTypeTagPower extends Power {
 		)
 	);
 
+	private static final Map<TagKey<EntityType<?>>, Set<TagKey<EntityType<?>>>> NESTED_TAGS_CACHE = new ConcurrentHashMap<>();
 	private final TagKey<EntityType<?>> tag;
 
 	public ModifyEntityTypeTagPower(Properties properties, EntityCondition activeCondition, TagKey<EntityType<?>> tag) {
@@ -77,37 +75,34 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	@ApiStatus.Internal
-	public static <T> void setCache(String directory, TagEntry.ValueGetter<T> getter, DependencyTracker<Identifier, TagGroupLoader.TagDependencies> dependencyTracker) {
-
-		if (Objects.equals(TAG_PATH, directory)) {
-			dependencyTracker.traverse((id, dependencies) -> dependencies.entries()
-				.stream()
-				.map(TagGroupLoader.TrackedEntry::entry)
-				.filter(tagEntry -> tagEntry.resolve(getter, value -> {}))
-				.map(TagEntryAccessor.class::cast)
-				.filter(TagEntryAccessor::isTag)
-				.forEach(entry -> TAG_CACHE
-					.computeIfAbsent(id, k -> new ObjectArrayList<>())
-					.add(entry.getId())));
-		}
-
+	public static <T> void setCache(TagEntry.ValueGetter<T> getter, DependencyTracker<Identifier, TagGroupLoader.TagDependencies> dependencyTracker) {
+		dependencyTracker.traverse((id, dependencies) -> dependencies.entries()
+			.stream()
+			.map(TagGroupLoader.TrackedEntry::entry)
+			.filter(tagEntry -> tagEntry.resolve(getter, value -> {}))
+			.map(TagEntryAccessor.class::cast)
+			.filter(TagEntryAccessor::isTag)
+			.map(entry -> TagKey.of(RegistryKeys.ENTITY_TYPE, entry.getId()))
+			.forEach(nestedTag -> NESTED_TAGS_CACHE
+				.computeIfAbsent(TagKey.of(RegistryKeys.ENTITY_TYPE, id), k -> new ObjectOpenHashSet<>())
+				.add(nestedTag)));
 	}
 
 	@ApiStatus.Internal
 	public static void resetCache(MinecraftServer ignoredServer, LifecycledResourceManager ignoredManager) {
-		TAG_CACHE.clear();
+		NESTED_TAGS_CACHE.clear();
 	}
 
 	@ApiStatus.Internal
 	public static void sendCache(ServerPlayerEntity player, boolean ignoredJoined) {
-		ServerPlayNetworking.send(player, new SynchronizeEntityTypeTagCacheS2CPacket(TAG_CACHE));
+		ServerPlayNetworking.send(player, new SynchronizeEntityTypeTagCacheS2CPacket(NESTED_TAGS_CACHE));
 	}
 
 	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
 	public static void receiveCache(SynchronizeEntityTypeTagCacheS2CPacket payload, ClientPlayNetworking.Context ignoredContext) {
-		TAG_CACHE.clear();
-		TAG_CACHE.putAll(payload.tags());
+		NESTED_TAGS_CACHE.clear();
+		NESTED_TAGS_CACHE.putAll(payload.tags());
 	}
 
 	public static class Impl extends Power.Impl<ModifyEntityTypeTagPower> {
@@ -124,11 +119,9 @@ public class ModifyEntityTypeTagPower extends Power {
 
 			else {
 
-				List<Identifier> nestedTagIds = TAG_CACHE.getOrDefault(tag.id(), new ObjectArrayList<>());
+				Set<TagKey<EntityType<?>>> nestedTags = NESTED_TAGS_CACHE.getOrDefault(tag, new ObjectOpenHashSet<>());
 
-				for (var nestedTagId : nestedTagIds) {
-
-					TagKey<EntityType<?>> nestedTag = TagKey.of(RegistryKeys.ENTITY_TYPE, nestedTagId);
+				for (var nestedTag: nestedTags) {
 
 					if (this.doesApply(nestedTag)) {
 						return true;

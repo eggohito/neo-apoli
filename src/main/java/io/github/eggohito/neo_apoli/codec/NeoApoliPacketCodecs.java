@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.util.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.NbtPathArgumentType;
 import net.minecraft.entity.EntityType;
@@ -16,7 +17,6 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 import net.minecraft.world.explosion.Explosion;
@@ -24,6 +24,7 @@ import net.minecraft.world.explosion.Explosion;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class NeoApoliPacketCodecs {
 
@@ -114,9 +115,9 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<RegistryByteBuf, BlockState> BLOCK_STATE = PacketCodecs.unlimitedRegistryCodec(BlockState.CODEC);
 
-	public static final PacketCodec<ByteBuf, List<Identifier>> IDENTIFIERS = PacketCodecs.collection(ObjectArrayList::new, Identifier.PACKET_CODEC);
-
 	public static final PacketCodec<ByteBuf, TagKey<EntityType<?>>> ENTITY_TYPE_TAG = TagKey.packetCodec(RegistryKeys.ENTITY_TYPE);
+
+	public static final PacketCodec<ByteBuf, Set<TagKey<EntityType<?>>>> ENTITY_TYPE_TAG_SET = PacketCodecs.collection(ObjectOpenHashSet::new, ENTITY_TYPE_TAG);
 
 	public static final PacketCodec<RegistryByteBuf, List<AttributeModifier>> ATTRIBUTE_MODIFIERS = PacketCodecs.collection(ObjectArrayList::new, AttributeModifier.PACKET_CODEC);
 
