@@ -25,7 +25,11 @@ public class PowerTypes {
 	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal("callback/block/break", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), CallbackBlockBreakPower.CODEC, CallbackBlockBreakPower.PACKET_CODEC);
-	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
+	public static final PowerType<CallbackPowerAddedPower> CALLBACK_POWER_ADDED = registerInternal("callback/power/added", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerAddedPower.CODEC, CallbackPowerAddedPower.PACKET_CODEC);
+	public static final PowerType<CallbackPowerGrantedPower> CALLBACK_POWER_GRANTED = registerInternal("callback/power/granted", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerGrantedPower.CODEC, CallbackPowerGrantedPower.PACKET_CODEC);
+	public static final PowerType<CallbackPowerRemovedPower> CALLBACK_POWER_REMOVED = registerInternal("callback/power/removed", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerRemovedPower.CODEC, CallbackPowerRemovedPower.PACKET_CODEC);
+	public static final PowerType<CallbackPowerRevokedPower> CALLBACK_POWER_REVOKED = registerInternal("callback/power/revoked", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerRevokedPower.CODEC, CallbackPowerRevokedPower.PACKET_CODEC);
+	public static final PowerType<CallbackPlayerRespawnedPower> CALLBACK_PLAYER_RESPAWNED = registerInternal("callback/player/respawned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPlayerRespawnedPower.CODEC, CallbackPlayerRespawnedPower.PACKET_CODEC);
 	public static final PowerType<CallbackTickPower> CALLBACK_TICK = registerInternal("callback/tick", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackTickPower.CODEC, CallbackTickPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyConditionedPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONED = registerInternal("modify/attribute/legacy/conditioned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyConditionedPower.CODEC, ModifyAttributeLegacyConditionedPower.PACKET_CODEC);
@@ -43,7 +47,6 @@ public class PowerTypes {
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
-		ALIASES.addPathAlias("action_on_callback", getId(CALLBACK).getPath());
 		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_TICK).getPath());
 		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
 		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());

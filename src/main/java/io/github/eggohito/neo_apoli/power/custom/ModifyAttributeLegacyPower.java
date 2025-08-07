@@ -54,9 +54,9 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 		//	Re-apply persistent attribute modifiers because they do not persist through respawn
 		@Override
-		public void onRespawn() {
+		public void onRespawned() {
 
-			super.onRespawn();
+			super.onRespawned();
 
 			Context context = this.createGenericContext();
 			this.addModifiersPersistently(context);

@@ -232,7 +232,7 @@ public abstract class Power {
 
 		}
 
-		public void onRespawn() {
+		public void onRespawned() {
 
 		}
 
