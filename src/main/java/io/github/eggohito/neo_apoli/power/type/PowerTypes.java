@@ -42,10 +42,13 @@ public class PowerTypes {
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
+		ALIASES.addPathAlias("action_on_callback", getId(CALLBACK).getPath());
+		ALIASES.addPathAlias("action_over_time", getId(TICKING).getPath());
 		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
 		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
 		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());
+		ALIASES.addPathAlias("simple", getId(DUMMY).getPath());
 		ALIASES.addPathAlias("shaking", getId(MODIFY_SHAKING).getPath());
 	}
 
