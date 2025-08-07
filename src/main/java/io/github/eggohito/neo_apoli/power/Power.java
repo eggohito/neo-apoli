@@ -67,7 +67,7 @@ public abstract class Power {
 	}
 
 	public void validate(ContextAware.ErrorReporter reporter) {
-		activeCondition.validate(reporter.makeChild("active_condition"));
+		activeCondition.validate(reporter.makeChild(".active_condition"));
 	}
 
 	public abstract PowerType<?> getType();
