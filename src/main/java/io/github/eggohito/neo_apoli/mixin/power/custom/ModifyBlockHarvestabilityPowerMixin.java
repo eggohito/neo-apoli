@@ -4,9 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestabilityPower;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -38,7 +36,7 @@ public abstract class ModifyBlockHarvestabilityPowerMixin {
 
 			Context context = Optional.ofNullable(this.neo_apoli$blockHarvestContext.get())
 				.flatMap(reference -> Optional.ofNullable(reference.get()))
-				.orElseGet(() -> createContext(player, blockPos, blockState, blockView.getBlockEntity(blockPos)));
+				.orElseGet(() -> ModifyBlockHarvestabilityPower.createContext(player, blockPos, blockState, blockView.getBlockEntity(blockPos)));
 
 			this.neo_apoli$blockHarvestContext.set(new WeakReference<>(context));
 			return context;
@@ -69,7 +67,7 @@ public abstract class ModifyBlockHarvestabilityPowerMixin {
 
 			Context context = Optional.ofNullable(this.neo_apoli$blockHarvestContext)
 				.flatMap(reference -> Optional.ofNullable(reference.get()))
-				.orElseGet(() -> createContext(serverPlayer, blockPos, blockState, blockEntity));
+				.orElseGet(() -> ModifyBlockHarvestabilityPower.createContext(serverPlayer, blockPos, blockState, blockEntity));
 
 			this.neo_apoli$blockHarvestContext = new WeakReference<>(context);
 			return context;
@@ -90,16 +88,6 @@ public abstract class ModifyBlockHarvestabilityPowerMixin {
 
 		}
 
-	}
-
-	protected static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-		return PowerTypes.MODIFY_BLOCK_HARVESTABILITY.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, blockState)
-			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-			.add(ContextParameters.ENTITY, player)
-			.add(ContextParameters.ENTITY_POS, player.getPos())
-			.build(player.getWorld());
 	}
 
 }

@@ -16,10 +16,15 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -115,6 +120,16 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 			return impls.getLast().isAllowed(context);
 		}
 
+	}
+
+	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+		return PowerTypes.MODIFY_BLOCK_HARVESTABILITY.contextBuilder()
+			.add(ContextParameters.BLOCK_POS, blockPos)
+			.add(ContextParameters.BLOCK_STATE, blockState)
+			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
+			.add(ContextParameters.ENTITY, player)
+			.add(ContextParameters.ENTITY_POS, player.getPos())
+			.build(player.getWorld());
 	}
 
 }
