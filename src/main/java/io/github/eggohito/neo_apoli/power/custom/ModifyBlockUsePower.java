@@ -46,23 +46,23 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Getter
-public class BlockInteractPower extends Power implements Prioritized<BlockInteractPower> {
+public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBlockUsePower> {
 
-	public static final MapCodec<BlockInteractPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(Actions.CODEC.forGetter(BlockInteractPower::getActions))
-		.and(Conditions.CODEC.forGetter(BlockInteractPower::getConditions))
-		.and(BlockInteractionPhase.SET_CODEC.optionalFieldOf("interaction_phases", EnumSet.of(BlockInteractionPhase.BLOCK)).forGetter(BlockInteractPower::getInteractionPhases))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(BlockInteractPower::getPriority))
-		.apply(instance, BlockInteractPower::new));
+	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
+		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::getConditions))
+		.and(BlockInteractionPhase.SET_CODEC.optionalFieldOf("interaction_phases", EnumSet.of(BlockInteractionPhase.BLOCK)).forGetter(ModifyBlockUsePower::getInteractionPhases))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::getPriority))
+		.apply(instance, ModifyBlockUsePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, BlockInteractPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, blockInteractPower) -> {
-			Actions.PACKET_CODEC.encode(buf, blockInteractPower.getActions());
-			Conditions.PACKET_CODEC.encode(buf, blockInteractPower.getConditions());
-			BlockInteractionPhase.SET_PACKET_CODEC.encode(buf, blockInteractPower.getInteractionPhases());
-			buf.writeVarInt(blockInteractPower.getPriority());
+	public static final PacketCodec<RegistryByteBuf, ModifyBlockUsePower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, modifyBlockUsePower) -> {
+			Actions.PACKET_CODEC.encode(buf, modifyBlockUsePower.getActions());
+			Conditions.PACKET_CODEC.encode(buf, modifyBlockUsePower.getConditions());
+			BlockInteractionPhase.SET_PACKET_CODEC.encode(buf, modifyBlockUsePower.getInteractionPhases());
+			buf.writeVarInt(modifyBlockUsePower.getPriority());
 		},
-		(buf, properties, condition) -> new BlockInteractPower(properties, condition,
+		(buf, properties, condition) -> new ModifyBlockUsePower(properties, condition,
 			Actions.PACKET_CODEC.decode(buf),
 			Conditions.PACKET_CODEC.decode(buf),
 			BlockInteractionPhase.SET_PACKET_CODEC.decode(buf),
@@ -76,7 +76,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 	private final EnumSet<BlockInteractionPhase> interactionPhases;
 	private final int priority;
 
-	public BlockInteractPower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, EnumSet<BlockInteractionPhase> interactionPhases, int priority) {
+	public ModifyBlockUsePower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, EnumSet<BlockInteractionPhase> interactionPhases, int priority) {
 		super(properties, activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;
@@ -86,7 +86,7 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.BLOCK_INTERACT;
+		return PowerTypes.MODIFY_BLOCK_USE;
 	}
 
 	@Override
@@ -104,9 +104,9 @@ public class BlockInteractPower extends Power implements Prioritized<BlockIntera
 
 	}
 
-	public static class Impl extends Power.Impl<BlockInteractPower> implements Prioritized<BlockInteractPower.Impl> {
+	public static class Impl extends Power.Impl<ModifyBlockUsePower> implements Prioritized<ModifyBlockUsePower.Impl> {
 
-		protected Impl(@NotNull Entity holder, @NotNull BlockInteractPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull ModifyBlockUsePower power) {
 			super(holder, power);
 		}
 

@@ -34,23 +34,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 
-public class BlockBreakPower extends Power implements Prioritized<BlockBreakPower> {
+public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
 
-	public static final MapCodec<BlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(Actions.CODEC.forGetter(BlockBreakPower::getActions))
-		.and(Conditions.CODEC.forGetter(BlockBreakPower::getConditions))
-		.and(Codec.BOOL.optionalFieldOf("only_when_harvested", false).forGetter(BlockBreakPower::onlyWhenHarvested))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(BlockBreakPower::getPriority))
-		.apply(instance, BlockBreakPower::new));
+	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(Actions.CODEC.forGetter(CallbackBlockBreakPower::getActions))
+		.and(Conditions.CODEC.forGetter(CallbackBlockBreakPower::getConditions))
+		.and(Codec.BOOL.optionalFieldOf("only_when_harvested", false).forGetter(CallbackBlockBreakPower::onlyWhenHarvested))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
+		.apply(instance, CallbackBlockBreakPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, BlockBreakPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, blockBreakPower) -> {
-			Actions.PACKET_CODEC.encode(buf, blockBreakPower.getActions());
-			Conditions.PACKET_CODEC.encode(buf, blockBreakPower.getConditions());
-			buf.writeBoolean(blockBreakPower.onlyWhenHarvested());
-			buf.writeVarInt(blockBreakPower.getPriority());
+	public static final PacketCodec<RegistryByteBuf, CallbackBlockBreakPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, power) -> {
+			Actions.PACKET_CODEC.encode(buf, power.getActions());
+			Conditions.PACKET_CODEC.encode(buf, power.getConditions());
+			buf.writeBoolean(power.onlyWhenHarvested());
+			buf.writeVarInt(power.getPriority());
 		},
-		(buf, properties, condition) -> new BlockBreakPower(properties, condition,
+		(buf, properties, condition) -> new CallbackBlockBreakPower(properties, condition,
 			Actions.PACKET_CODEC.decode(buf),
 			Conditions.PACKET_CODEC.decode(buf),
 			buf.readBoolean(),
@@ -67,7 +67,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 	@Getter
 	private final int priority;
 
-	public BlockBreakPower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, boolean onlyWhenHarvested, int priority) {
+	public CallbackBlockBreakPower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, boolean onlyWhenHarvested, int priority) {
 		super(properties, activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;
@@ -77,7 +77,7 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.BLOCK_BREAK;
+		return PowerTypes.CALLBACK_BLOCK_BREAK;
 	}
 
 	@Override
@@ -99,9 +99,9 @@ public class BlockBreakPower extends Power implements Prioritized<BlockBreakPowe
 		return onlyWhenHarvested;
 	}
 
-	public static class Impl extends Power.Impl<BlockBreakPower> implements Prioritized<Impl> {
+	public static class Impl extends Power.Impl<CallbackBlockBreakPower> implements Prioritized<Impl> {
 
-		protected Impl(@NotNull Entity holder, @NotNull BlockBreakPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull CallbackBlockBreakPower power) {
 			super(holder, power);
 		}
 

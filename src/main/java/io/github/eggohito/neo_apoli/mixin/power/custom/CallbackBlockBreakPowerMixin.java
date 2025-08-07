@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import io.github.eggohito.neo_apoli.power.custom.BlockBreakPower;
+import io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.lang.ref.WeakReference;
 
 @Mixin(ServerPlayerInteractionManager.class)
-public abstract class BlockBreakPowerMixin {
+public abstract class CallbackBlockBreakPowerMixin {
 
 	@Shadow
 	@Final
@@ -63,7 +63,7 @@ public abstract class BlockBreakPowerMixin {
 		BlockState brokenBlockState = brokenBlockStateRef.get();
 
 		if (brokenBlockState != null) {
-			BlockBreakPower.execute(this.player, pos, brokenBlockState, brokenBlockEntityRef.get(), this.neo_apoli$blockBreakDirection.get(), this.neo_apoli$harvested);
+			CallbackBlockBreakPower.execute(this.player, pos, brokenBlockState, brokenBlockEntityRef.get(), this.neo_apoli$blockBreakDirection.get(), this.neo_apoli$harvested);
 		}
 
 	}
