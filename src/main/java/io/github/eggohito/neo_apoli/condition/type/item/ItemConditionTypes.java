@@ -4,10 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
-import io.github.eggohito.neo_apoli.condition.custom.item.IsDamageableItemCondition;
-import io.github.eggohito.neo_apoli.condition.custom.item.IsEmptyItemCondition;
-import io.github.eggohito.neo_apoli.condition.custom.item.IsEnchantableItemCondition;
-import io.github.eggohito.neo_apoli.condition.custom.item.IsOfItemCondition;
+import io.github.eggohito.neo_apoli.condition.custom.item.*;
 import io.github.eggohito.neo_apoli.condition.meta.item.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -38,16 +35,18 @@ public final class ItemConditionTypes {
 	public static final ItemConditionType<IsDamageableItemCondition> IS_DAMAGEABLE = registerInternal("is_damageable", IsDamageableItemCondition.CODEC, IsDamageableItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsEmptyItemCondition> IS_EMPTY = registerInternal("is_empty", IsEmptyItemCondition.CODEC, IsEmptyItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsEnchantableItemCondition> IS_ENCHANTABLE = registerInternal("is_enchantable", IsEnchantableItemCondition.CODEC, IsEnchantableItemCondition.PACKET_CODEC);
+	public static final ItemConditionType<IsFoodItemCondition> IS_FOOD = registerInternal("is_food", IsFoodItemCondition.CODEC, IsFoodItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsOfItemCondition> IS_OF = registerInternal("is_of", IsOfItemCondition.CODEC, IsOfItemCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
-		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.ITEM_CONDITION_TYPE, ALL_OF));
-		ALIASES.addPathAlias("or", RegistryUtil.getIdPath(NeoApoliRegistries.ITEM_CONDITION_TYPE, ANY_OF));
+		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
+		ALIASES.addPathAlias("or", getId(ANY_OF).getPath());
 
-		ALIASES.addPathAlias("damageable", RegistryUtil.getIdPath(NeoApoliRegistries.ITEM_CONDITION_TYPE, IS_DAMAGEABLE));
-		ALIASES.addPathAlias("empty", RegistryUtil.getIdPath(NeoApoliRegistries.ITEM_CONDITION_TYPE, IS_EMPTY));
-		ALIASES.addPathAlias("enchantable", RegistryUtil.getIdPath(NeoApoliRegistries.ITEM_CONDITION_TYPE, IS_ENCHANTABLE));
+		ALIASES.addPathAlias("damageable", getId(IS_DAMAGEABLE).getPath());
+		ALIASES.addPathAlias("empty", getId(IS_EMPTY).getPath());
+		ALIASES.addPathAlias("food", getId(IS_FOOD).getPath());
+		ALIASES.addPathAlias("enchantable", getId(IS_ENCHANTABLE).getPath());
 
 	}
 
@@ -57,6 +56,10 @@ public final class ItemConditionTypes {
 
 	public static <C extends ItemCondition> ItemConditionType<C> register(Identifier id, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {
 		return Registry.register(NeoApoliRegistries.ITEM_CONDITION_TYPE, id, new ItemConditionType<>(mapCodec, packetCodec));
+	}
+
+	public static Identifier getId(ItemConditionType<?> type) {
+		return RegistryUtil.getId(NeoApoliRegistries.ITEM_CONDITION_TYPE, type);
 	}
 
 }
