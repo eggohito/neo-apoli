@@ -28,6 +28,7 @@ public class PowerTypes {
 	public static final PowerType<BlockInteractPower> BLOCK_INTERACT = registerInternal("block_interact", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY, ContextTypes.ITEM), BlockInteractPower.CODEC, BlockInteractPower.PACKET_CODEC);
 	public static final PowerType<CallbackPower> CALLBACK = registerInternal("callback", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPower.CODEC, CallbackPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
+	public static final PowerType<ModifyAttributeLegacyConditionedPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONED = registerInternal("modify/attribute/legacy/conditioned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyConditionedPower.CODEC, ModifyAttributeLegacyConditionedPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal("modify/attribute/legacy", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyPower.CODEC, ModifyAttributeLegacyPower.PACKET_CODEC);
 	public static final PowerType<ModifyBlockHarvestabilityPower> MODIFY_BLOCK_HARVESTABILITY = registerInternal("modify/block_harvestability", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), ModifyBlockHarvestabilityPower.CODEC, ModifyBlockHarvestabilityPower.PACKET_CODEC);
 	public static final PowerType<ModifyClimbingPower> MODIFY_CLIMBING = registerInternal("modify/climbing", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ENTITY), ModifyClimbingPower.CODEC, ModifyClimbingPower.PACKET_CODEC);
@@ -41,6 +42,7 @@ public class PowerTypes {
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
+		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
 		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
 		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());

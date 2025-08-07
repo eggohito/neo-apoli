@@ -101,43 +101,47 @@ public class TickingPower extends Power {
 				this.startTicks = null;
 				this.endTicks = null;
 
-				return;
+				this.wasActive = false;
 
 			}
 
-			int ticks = holder.age % interval;
-			if (this.isActive(context)) {
+			else {
 
-				if (startTicks == null) {
-					this.startTicks = ticks;
-					this.endTicks = null;
-				}
+				int ticks = holder.age % interval;
+				if (this.isActive(context)) {
 
-				else if (ticks == startTicks) {
-
-					if (!wasActive) {
-						power.getFirstActiveTickAction().execute(context.makeChild(".first_active_tick_action"));
-						wasActive = true;
+					if (startTicks == null) {
+						this.startTicks = ticks;
+						this.endTicks = null;
 					}
 
-					else {
-						power.getTickAction().execute(context.makeChild(".tick_action"));
+					else if (ticks == startTicks) {
+
+						if (!wasActive) {
+							power.getFirstActiveTickAction().execute(context.makeChild(".first_active_tick_action"));
+							wasActive = true;
+						}
+
+						else {
+							power.getTickAction().execute(context.makeChild(".tick_action"));
+						}
+
 					}
 
 				}
 
-			}
+				else if (wasActive) {
 
-			else if (wasActive) {
+					if (endTicks == null) {
+						this.startTicks = null;
+						this.endTicks = ticks;
+					}
 
-				if (endTicks == null) {
-					this.startTicks = null;
-					this.endTicks = ticks;
-				}
+					else if (ticks == endTicks) {
+						power.getFirstInactiveTickAction().execute(context.makeChild(".first_inactive_tick_action"));
+						wasActive = false;
+					}
 
-				else if (ticks == endTicks) {
-					power.getFirstInactiveTickAction().execute(context.makeChild(".first_inactive_tick_action"));
-					wasActive = false;
 				}
 
 			}
