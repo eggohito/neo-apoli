@@ -36,7 +36,6 @@ public final class ItemConditionTypes {
 	public static final ItemConditionType<IsEmptyItemCondition> IS_EMPTY = registerInternal("is_empty", IsEmptyItemCondition.CODEC, IsEmptyItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsEnchantableItemCondition> IS_ENCHANTABLE = registerInternal("is_enchantable", IsEnchantableItemCondition.CODEC, IsEnchantableItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<IsFoodItemCondition> IS_FOOD = registerInternal("is_food", IsFoodItemCondition.CODEC, IsFoodItemCondition.PACKET_CODEC);
-	public static final ItemConditionType<IsOfItemCondition> IS_OF = registerInternal("is_of", IsOfItemCondition.CODEC, IsOfItemCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
