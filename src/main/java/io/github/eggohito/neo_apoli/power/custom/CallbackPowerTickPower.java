@@ -19,23 +19,23 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class CallbackTickPower extends Power {
+public class CallbackPowerTickPower extends Power {
 
-	public static final MapCodec<CallbackTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(CallbackTickPower::getEntityAction))
-		.and(EntityAction.CODEC.optionalFieldOf("rising_action", new NothingEntityAction()).forGetter(CallbackTickPower::getRisingEntityAction))
-		.and(EntityAction.CODEC.optionalFieldOf("falling_action", new NothingEntityAction()).forGetter(CallbackTickPower::getFallingEntityAction))
-		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackTickPower::getInterval))
-		.apply(instance, CallbackTickPower::new));
+	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getEntityAction))
+		.and(EntityAction.CODEC.optionalFieldOf("rising_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getRisingEntityAction))
+		.and(EntityAction.CODEC.optionalFieldOf("falling_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getFallingEntityAction))
+		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
+		.apply(instance, CallbackPowerTickPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CallbackTickPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, callbackTickPower) -> {
-			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getEntityAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getRisingEntityAction());
-			EntityAction.PACKET_CODEC.encode(buf, callbackTickPower.getFallingEntityAction());
-			NumberProvider.PACKET_CODEC.encode(buf, callbackTickPower.getInterval());
+	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+		(buf, power) -> {
+			EntityAction.PACKET_CODEC.encode(buf, power.getEntityAction());
+			EntityAction.PACKET_CODEC.encode(buf, power.getRisingEntityAction());
+			EntityAction.PACKET_CODEC.encode(buf, power.getFallingEntityAction());
+			NumberProvider.PACKET_CODEC.encode(buf, power.getInterval());
 		},
-		(buf, properties, condition) -> new CallbackTickPower(properties, condition,
+		(buf, properties, condition) -> new CallbackPowerTickPower(properties, condition,
 			EntityAction.PACKET_CODEC.decode(buf),
 			EntityAction.PACKET_CODEC.decode(buf),
 			EntityAction.PACKET_CODEC.decode(buf),
@@ -49,7 +49,7 @@ public class CallbackTickPower extends Power {
 
 	private final NumberProvider interval;
 
-	public CallbackTickPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
+	public CallbackPowerTickPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
 		super(properties, activeCondition);
 		this.entityAction = entityAction;
 		this.risingEntityAction = risingEntityAction;
@@ -59,7 +59,7 @@ public class CallbackTickPower extends Power {
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_TICK;
+		return PowerTypes.CALLBACK_POWER_TICK;
 	}
 
 	@Override
@@ -79,14 +79,14 @@ public class CallbackTickPower extends Power {
 
 	}
 
-	public static class Impl extends Power.Impl<CallbackTickPower> {
+	public static class Impl extends Power.Impl<CallbackPowerTickPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Impl(@NotNull Entity holder, @NotNull CallbackTickPower power) {
+		protected Impl(@NotNull Entity holder, @NotNull CallbackPowerTickPower power) {
 			super(holder, power);
 		}
 

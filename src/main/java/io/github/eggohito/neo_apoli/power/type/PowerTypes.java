@@ -30,7 +30,7 @@ public class PowerTypes {
 	public static final PowerType<CallbackPowerRemovedPower> CALLBACK_POWER_REMOVED = registerInternal("callback/power/removed", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerRemovedPower.CODEC, CallbackPowerRemovedPower.PACKET_CODEC);
 	public static final PowerType<CallbackPowerRevokedPower> CALLBACK_POWER_REVOKED = registerInternal("callback/power/revoked", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerRevokedPower.CODEC, CallbackPowerRevokedPower.PACKET_CODEC);
 	public static final PowerType<CallbackPlayerRespawnedPower> CALLBACK_PLAYER_RESPAWNED = registerInternal("callback/player/respawned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPlayerRespawnedPower.CODEC, CallbackPlayerRespawnedPower.PACKET_CODEC);
-	public static final PowerType<CallbackTickPower> CALLBACK_TICK = registerInternal("callback/tick", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackTickPower.CODEC, CallbackTickPower.PACKET_CODEC);
+	public static final PowerType<CallbackPowerTickPower> CALLBACK_POWER_TICK = registerInternal("callback/power/tick", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), CallbackPowerTickPower.CODEC, CallbackPowerTickPower.PACKET_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", ContextTypes.GENERIC, DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyConditionedPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONED = registerInternal("modify/attribute/legacy/conditioned", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyConditionedPower.CODEC, ModifyAttributeLegacyConditionedPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal("modify/attribute/legacy", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyAttributeLegacyPower.CODEC, ModifyAttributeLegacyPower.PACKET_CODEC);
@@ -47,7 +47,7 @@ public class PowerTypes {
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
-		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_TICK).getPath());
+		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_POWER_TICK).getPath());
 		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
 		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
