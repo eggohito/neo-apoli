@@ -38,6 +38,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model_color/self", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY, ContextTypes.ENTITY), ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC);
 	public static final PowerType<ModifyShakingPower> MODIFY_SHAKING = registerInternal("modify/shaking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyShakingPower.CODEC, ModifyShakingPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.GENERIC, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
+	public static final PowerType<PreventItemUsePower> PREVENT_ITEM_USE = registerInternal("prevent/item_use", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY, ContextTypes.ITEM), PreventItemUsePower.CODEC, PreventItemUsePower.PACKET_CODEC);
 	public static final PowerType<TickingPower> TICKING = registerInternal("ticking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), TickingPower.CODEC, TickingPower.PACKET_CODEC);
 
 	public static void registerAll() {
@@ -50,6 +51,7 @@ public class PowerTypes {
 		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());
 		ALIASES.addPathAlias("simple", getId(DUMMY).getPath());
 		ALIASES.addPathAlias("shaking", getId(MODIFY_SHAKING).getPath());
+		ALIASES.addPathAlias("prevent_item_use", getId(PREVENT_ITEM_USE).getPath());
 	}
 
 	private static <P extends Power> PowerType<P> registerInternal(String path, ContextType contextType, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
