@@ -48,19 +48,20 @@ public class MiscUtil {
 			|| isResourceConditionFulfilled(resourceId, jsonObject, directory, ops);
 	}
 
-	public static boolean shouldOverrideResult(ActionResult oldResult, ActionResult newResult) {
-		return (newResult.isAccepted() && !oldResult.isAccepted())
-			|| (newResult instanceof ActionResult.Success bSuccess && bSuccess.swingSource() != ActionResult.SwingSource.NONE && (!(oldResult instanceof ActionResult.Success aSuccess) || aSuccess.swingSource() == ActionResult.SwingSource.NONE));
+	public static boolean isResultPass(ActionResult result) {
+		return (result instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext ignored) && swingSource == ActionResult.SwingSource.NONE)
+			|| result instanceof ActionResult.PassToDefaultBlockAction
+			|| result instanceof ActionResult.Pass;
 	}
 
 	public static ActionResult overrideResult(ActionResult oldResult, ActionResult newResult) {
 
-		if (shouldOverrideResult(oldResult, newResult)) {
-			return newResult;
+		if (isResultPass(newResult)) {
+			return oldResult;
 		}
 
 		else {
-			return oldResult;
+			return newResult;
 		}
 
 	}

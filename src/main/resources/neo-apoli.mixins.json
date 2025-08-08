@@ -35,8 +35,8 @@
 		"power.custom.ModifyEntityTypeTagPowerMixin$TagCache",
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl",
-		"power.custom.PreventItemUsePowerMixin$BlockItemUse",
-		"power.custom.PreventItemUsePowerMixin$StackUse"
+		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",
+		"power.custom.ModifyItemUsePowerMixin$StackUse"
 	],
 	"injectors": {
 		"defaultRequire": 1

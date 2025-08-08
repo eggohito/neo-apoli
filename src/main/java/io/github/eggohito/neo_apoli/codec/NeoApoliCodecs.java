@@ -38,7 +38,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Hand> HAND = HandProperty.CODEC.xmap(HandProperty::get, HandProperty::fromHand);
 
-	public static final Codec<List<Hand>> HANDS = HAND.listOf();
+	public static final Codec<List<Hand>> HANDS = Codecs.nonEmptyList(HAND.listOf());
 
 	public static final Codec<EnumSet<Hand>> HAND_SET = HANDS.xmap(EnumSet::copyOf, ObjectArrayList::new);
 
