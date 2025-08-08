@@ -34,4 +34,9 @@ public final class ConstantBiEntityCondition extends BiEntityCondition implement
 		return value();
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+	}
+
 }

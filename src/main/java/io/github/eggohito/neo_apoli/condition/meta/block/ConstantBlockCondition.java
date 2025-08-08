@@ -34,4 +34,9 @@ public final class ConstantBlockCondition extends BlockCondition implements Cons
 		return value();
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+	}
+
 }

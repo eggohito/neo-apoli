@@ -34,4 +34,8 @@ public final class ConstantItemCondition extends ItemCondition implements Consta
 		return value();
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+	}
 }

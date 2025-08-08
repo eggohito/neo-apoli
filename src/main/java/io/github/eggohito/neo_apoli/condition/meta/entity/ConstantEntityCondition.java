@@ -34,4 +34,9 @@ public final class ConstantEntityCondition extends EntityCondition implements Co
 		return value();
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+	}
+
 }
