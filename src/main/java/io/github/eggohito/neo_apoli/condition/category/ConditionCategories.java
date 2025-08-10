@@ -29,6 +29,7 @@ public final class ConditionCategories {
 	public static final BiEntityConditionCategory BIENTITY_CONDITION = register(new BiEntityConditionCategory());
 	public static final BlockConditionCategory BLOCK_CONDITION = register(new BlockConditionCategory());
 	public static final EntityConditionCategory ENTITY_CONDITION = register(new EntityConditionCategory());
+	public static final DamageConditionCategory DAMAGE_CONDITION = register(new DamageConditionCategory());
 	public static final ItemConditionCategory ITEM_CONDITION = register(new ItemConditionCategory());
 
 	public static void registerAll() {

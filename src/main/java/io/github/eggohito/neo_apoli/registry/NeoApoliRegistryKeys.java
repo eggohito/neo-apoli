@@ -10,13 +10,11 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
-import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.ItemCondition;
+import io.github.eggohito.neo_apoli.condition.*;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
+import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -48,6 +46,9 @@ public class NeoApoliRegistryKeys {
 
 	public static final RegistryKey<Registry<BlockConditionType<?>>> BLOCK_CONDITION_TYPE = create("block_condition_type");
 	public static final RegistryKey<Registry<BlockCondition>> BLOCK_CONDITION = create("block_condition");
+
+	public static final RegistryKey<Registry<DamageConditionType<?>>> DAMAGE_CONDITION_TYPE = create("damage_condition_type");
+	public static final RegistryKey<Registry<DamageCondition>> DAMAGE_CONDITION = create("damage_condition");
 
 	public static final RegistryKey<Registry<BlockActionType<?>>> BLOCK_ACTION_TYPE = create("block_action_type");
 	public static final RegistryKey<Registry<BlockAction>> BLOCK_ACTION = create("block_action");

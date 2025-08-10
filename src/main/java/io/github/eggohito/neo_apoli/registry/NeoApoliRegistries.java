@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
+import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -35,6 +36,8 @@ public class NeoApoliRegistries {
 
 	public static final Registry<BlockConditionType<?>> BLOCK_CONDITION_TYPE = create(NeoApoliRegistryKeys.BLOCK_CONDITION_TYPE);
 	public static final Registry<BlockActionType<?>> BLOCK_ACTION_TYPE = create(NeoApoliRegistryKeys.BLOCK_ACTION_TYPE);
+
+	public static final Registry<DamageConditionType<?>> DAMAGE_CONDITION_TYPE = create(NeoApoliRegistryKeys.DAMAGE_CONDITION_TYPE);
 
 	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 	public static final Registry<EntityActionType<?>> ENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);

@@ -28,6 +28,11 @@ public class ContextTypes {
 		.allow(ContextParameters.DIRECTION)
 		.build();
 
+	public static final ContextType DAMAGE = new ContextType.Builder()
+		.require(ContextParameters.DAMAGE_SOURCE)
+		.allow(ContextParameters.DAMAGE_AMOUNT)
+		.build();
+
 	public static final ContextType ENTITY = new ContextType.Builder()
 		.require(ContextParameters.ENTITY)
 		.require(ContextParameters.ENTITY_POS)
