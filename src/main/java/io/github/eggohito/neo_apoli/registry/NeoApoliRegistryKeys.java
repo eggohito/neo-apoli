@@ -20,6 +20,7 @@ import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
+import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
@@ -66,6 +67,7 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<ItemAction>> ITEM_ACTION = create("item_action");
 
 	public static final RegistryKey<Registry<BooleanProviderType<?>>> BOOLEAN_PROVIDER_TYPE = create("boolean_provider_type");
+	public static final RegistryKey<Registry<BoxProviderType<?>>> BOX_PROVIDER_TYPE = create("box_provider_type");
 	public static final RegistryKey<Registry<NbtProviderType<?>>> NBT_PROVIDER_TYPE = create("nbt_provider_type");
 	public static final RegistryKey<Registry<NumberProviderType<?>>> NUMBER_PROVIDER_TYPE = create("number_provider_type");
 	public static final RegistryKey<Registry<StringProviderType<?>>> STRING_PROVIDER_TYPE = create("string_provider_type");

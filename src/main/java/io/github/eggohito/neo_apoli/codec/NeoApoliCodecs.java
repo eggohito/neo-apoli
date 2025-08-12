@@ -24,6 +24,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import net.minecraft.world.explosion.Explosion;
 
@@ -117,5 +118,7 @@ public class NeoApoliCodecs {
 	public static final Codec<TagKey<EntityType<?>>> UNPREFIXED_ENTITY_TYPE_TAG = TagKey.unprefixedCodec(RegistryKeys.ENTITY_TYPE);
 
 	public static final Codec<List<AttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = Codecs.nonEmptyList(AttributeModifier.CODEC.listOf());
+
+	public static final Codec<Vec3d> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec(), Vec3d.CODEC);
 
 }
