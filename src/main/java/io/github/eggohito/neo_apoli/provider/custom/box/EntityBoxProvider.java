@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.BoxProvider;
+import io.github.eggohito.neo_apoli.provider.meta.box.ConstantBoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
