@@ -22,6 +22,7 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 @Getter
@@ -30,7 +31,7 @@ public abstract class AbstractModifyAttributeLegacyPower extends Power {
 	private final List<AttributeModifier> modifiers;
 	private final BooleanProvider sendUpdate;
 
-	public AbstractModifyAttributeLegacyPower(Properties properties, EntityCondition activeCondition, List<AttributeModifier> modifiers, BooleanProvider sendUpdate) {
+	public AbstractModifyAttributeLegacyPower(Properties properties, Optional<EntityCondition> activeCondition, List<AttributeModifier> modifiers, BooleanProvider sendUpdate) {
 		super(properties, activeCondition);
 		this.modifiers = modifiers;
 		this.sendUpdate = sendUpdate;
@@ -113,7 +114,7 @@ public abstract class AbstractModifyAttributeLegacyPower extends Power {
 			.and(BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AbstractModifyAttributeLegacyPower::getSendUpdate));
 	}
 
-	protected static <P extends AbstractModifyAttributeLegacyPower> Products.P4<RecordCodecBuilder.Mu<P>, Properties, EntityCondition, List<AttributeModifier>, BooleanProvider> addAttributeModifyingAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
+	protected static <P extends AbstractModifyAttributeLegacyPower> Products.P4<RecordCodecBuilder.Mu<P>, Properties, Optional<EntityCondition>, List<AttributeModifier>, BooleanProvider> addAttributeModifyingAndConditionFields(RecordCodecBuilder.Instance<P> instance) {
 		return Power.addCommonConditionedFields(instance)
 			.and(NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AbstractModifyAttributeLegacyPower::getModifiers))
 			.and(BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AbstractModifyAttributeLegacyPower::getSendUpdate));
@@ -134,7 +135,7 @@ public abstract class AbstractModifyAttributeLegacyPower extends Power {
 		);
 	}
 
-	protected static <P extends AbstractModifyAttributeLegacyPower> PacketCodec<RegistryByteBuf, P> createAttributeModifyingConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, Function5<RegistryByteBuf, Properties, EntityCondition, List<AttributeModifier>, BooleanProvider, P> decoder) {
+	protected static <P extends AbstractModifyAttributeLegacyPower> PacketCodec<RegistryByteBuf, P> createAttributeModifyingConditionedPacketCodec(BiConsumer<RegistryByteBuf, P> encoder, Function5<RegistryByteBuf, Properties, Optional<EntityCondition>, List<AttributeModifier>, BooleanProvider, P> decoder) {
 		return Power.createCommonConditionedPacketCodec(
 			(buf, power) -> {
 				NeoApoliPacketCodecs.ATTRIBUTE_MODIFIERS.encode(buf, power.getModifiers());

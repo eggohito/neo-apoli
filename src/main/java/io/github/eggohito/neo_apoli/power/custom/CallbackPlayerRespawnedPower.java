@@ -15,6 +15,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 @Getter
 public class CallbackPlayerRespawnedPower extends Power {
 
@@ -32,7 +34,7 @@ public class CallbackPlayerRespawnedPower extends Power {
 
 	private final EntityAction entityAction;
 
-	public CallbackPlayerRespawnedPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction) {
+	public CallbackPlayerRespawnedPower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction) {
 		super(properties, activeCondition);
 		this.entityAction = entityAction;
 	}

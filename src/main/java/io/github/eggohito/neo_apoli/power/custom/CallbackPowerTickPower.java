@@ -18,6 +18,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 @Getter
 public class CallbackPowerTickPower extends Power {
 
@@ -49,7 +51,7 @@ public class CallbackPowerTickPower extends Power {
 
 	private final NumberProvider interval;
 
-	public CallbackPowerTickPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
+	public CallbackPowerTickPower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
 		super(properties, activeCondition);
 		this.entityAction = entityAction;
 		this.risingEntityAction = risingEntityAction;

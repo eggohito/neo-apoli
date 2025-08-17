@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -76,7 +77,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 	private final EnumSet<BlockInteractionPhase> interactionPhases;
 	private final int priority;
 
-	public ModifyBlockUsePower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, EnumSet<BlockInteractionPhase> interactionPhases, int priority) {
+	public ModifyBlockUsePower(Properties properties, Optional<EntityCondition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockInteractionPhase> interactionPhases, int priority) {
 		super(properties, activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;

@@ -17,6 +17,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 @Getter
 public class ModifyClimbingPower extends Power {
 
@@ -39,7 +41,7 @@ public class ModifyClimbingPower extends Power {
 	private final EntityCondition holdingCondition;
 	private final BooleanProvider allowHolding;
 
-	public ModifyClimbingPower(Properties properties, EntityCondition activeCondition, EntityCondition holdingCondition, BooleanProvider allowHolding) {
+	public ModifyClimbingPower(Properties properties, Optional<EntityCondition> activeCondition, EntityCondition holdingCondition, BooleanProvider allowHolding) {
 		super(properties, activeCondition);
 		this.holdingCondition = holdingCondition;
 		this.allowHolding = allowHolding;

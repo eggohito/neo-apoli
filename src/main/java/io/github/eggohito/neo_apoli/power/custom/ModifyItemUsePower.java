@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -74,7 +75,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	private final TriggerType triggerType;
 	private final int priority;
 
-	public ModifyItemUsePower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, TriggerType triggerType, int priority) {
+	public ModifyItemUsePower(Properties properties, Optional<EntityCondition> activeCondition, Actions actions, Conditions conditions, TriggerType triggerType, int priority) {
 		super(properties, activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;

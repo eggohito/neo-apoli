@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 @Getter
@@ -56,7 +57,7 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 	private final BooleanProvider allowedProvider;
 	private final int priority;
 
-	public ModifyBlockHarvestabilityPower(Properties properties, EntityCondition activeCondition, BlockCondition blockCondition, BooleanProvider allowedProvider, int priority) {
+	public ModifyBlockHarvestabilityPower(Properties properties, Optional<EntityCondition> activeCondition, BlockCondition blockCondition, BooleanProvider allowedProvider, int priority) {
 		super(properties, activeCondition);
 		this.blockCondition = blockCondition;
 		this.allowedProvider = allowedProvider;

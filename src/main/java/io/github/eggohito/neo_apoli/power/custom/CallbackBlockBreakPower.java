@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
 
@@ -67,7 +68,7 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	@Getter
 	private final int priority;
 
-	public CallbackBlockBreakPower(Properties properties, EntityCondition activeCondition, Actions actions, Conditions conditions, boolean onlyWhenHarvested, int priority) {
+	public CallbackBlockBreakPower(Properties properties, Optional<EntityCondition> activeCondition, Actions actions, Conditions conditions, boolean onlyWhenHarvested, int priority) {
 		super(properties, activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;

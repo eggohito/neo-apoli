@@ -18,6 +18,7 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class ModifyAttributeLegacyConditionedPower extends AbstractModifyAttributeLegacyPower {
@@ -36,7 +37,7 @@ public class ModifyAttributeLegacyConditionedPower extends AbstractModifyAttribu
 
 	private final NumberProvider tickRate;
 
-	public ModifyAttributeLegacyConditionedPower(Properties properties, EntityCondition activeCondition, List<AttributeModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) {
+	public ModifyAttributeLegacyConditionedPower(Properties properties, Optional<EntityCondition> activeCondition, List<AttributeModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) {
 		super(properties, activeCondition, modifiers, sendUpdate);
 		this.tickRate = tickRate;
 	}

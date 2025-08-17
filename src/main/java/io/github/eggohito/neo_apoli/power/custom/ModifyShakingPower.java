@@ -10,12 +10,14 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public class ModifyShakingPower extends Power {
 
 	public static final MapCodec<ModifyShakingPower> CODEC = createSimpleConditionedCodec(ModifyShakingPower::new);
 	public static final PacketCodec<RegistryByteBuf, ModifyShakingPower> PACKET_CODEC = createSimpleConditionedPacketCodec(ModifyShakingPower::new);
 
-	public ModifyShakingPower(Properties properties, EntityCondition activeCondition) {
+	public ModifyShakingPower(Properties properties, Optional<EntityCondition> activeCondition) {
 		super(properties, activeCondition);
 	}
 

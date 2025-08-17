@@ -15,6 +15,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 @Getter
 public class CallbackPowerRevokedPower extends Power {
 
@@ -32,7 +34,7 @@ public class CallbackPowerRevokedPower extends Power {
 
 	private final EntityAction entityAction;
 
-	public CallbackPowerRevokedPower(Properties properties, EntityCondition activeCondition, EntityAction entityAction) {
+	public CallbackPowerRevokedPower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction) {
 		super(properties, activeCondition);
 		this.entityAction = entityAction;
 	}

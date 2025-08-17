@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,7 +60,7 @@ public class ModifyEntityTypeTagPower extends Power {
 	private static final Map<TagKey<EntityType<?>>, Set<TagKey<EntityType<?>>>> NESTED_TAGS_CACHE = new ConcurrentHashMap<>();
 	private final TagKey<EntityType<?>> tag;
 
-	public ModifyEntityTypeTagPower(Properties properties, EntityCondition activeCondition, TagKey<EntityType<?>> tag) {
+	public ModifyEntityTypeTagPower(Properties properties, Optional<EntityCondition> activeCondition, TagKey<EntityType<?>> tag) {
 		super(properties, activeCondition);
 		this.tag = tag;
 	}

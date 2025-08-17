@@ -44,7 +44,7 @@ public class ModifyModelColorOtherPower extends Power {
 	private final BiEntityCondition biEntityCondition;
 	private final Color color;
 
-	public ModifyModelColorOtherPower(Properties properties, EntityCondition activeCondition, BiEntityCondition biEntityCondition, Color color) {
+	public ModifyModelColorOtherPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, Color color) {
 		super(properties, activeCondition);
 		this.biEntityCondition = biEntityCondition;
 		this.color = color;

@@ -20,6 +20,8 @@ import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 @Getter
 public class ModifyInvisibilityPower extends Power {
 
@@ -47,7 +49,7 @@ public class ModifyInvisibilityPower extends Power {
 	private final BooleanProvider renderArmorProvider;
 	private final BooleanProvider renderOutlineProvider;
 
-	public ModifyInvisibilityPower(Properties properties, EntityCondition activeCondition, BiEntityCondition biEntityCondition, BooleanProvider renderArmorProvider, BooleanProvider renderOutlineProvider) {
+	public ModifyInvisibilityPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, BooleanProvider renderArmorProvider, BooleanProvider renderOutlineProvider) {
 		super(properties, activeCondition);
 		this.biEntityCondition = biEntityCondition;
 		this.renderArmorProvider = renderArmorProvider;
