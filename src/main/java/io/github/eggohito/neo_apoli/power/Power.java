@@ -214,7 +214,7 @@ public abstract class Power {
 		public boolean isActive(Context context) {
 			return this.getPower().getActiveCondition()
 				.map(activeCondition -> activeCondition.test(this.addPowerContext(context).makeChild(".active_condition")))
-				.orElse(false);
+				.orElse(true);
 		}
 
 		public void onAdded() {
