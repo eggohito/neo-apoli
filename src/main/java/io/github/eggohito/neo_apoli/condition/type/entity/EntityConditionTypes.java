@@ -40,6 +40,7 @@ public final class EntityConditionTypes {
 	public static final EntityConditionType<IsInTagEntityCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEntityCondition.CODEC, IsInTagEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.CODEC, IsInvisibleEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsOnBlockEntityCondition> IS_ON_BLOCK = registerInternal("is_on_block", IsOnBlockEntityCondition.CODEC, IsOnBlockEntityCondition.PACKET_CODEC);
+	public static final EntityConditionType<IsPowerActiveEntityCondition> IS_POWER_ACTIVE = registerInternal("is_power_active", IsPowerActiveEntityCondition.CODEC, IsPowerActiveEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
 
@@ -53,6 +54,7 @@ public final class EntityConditionTypes {
 		ALIASES.addPathAlias("in_tag", getId(IS_IN_TAG).getPath());
 		ALIASES.addPathAlias("invisible", getId(IS_INVISIBLE).getPath());
 		ALIASES.addPathAlias("on_block", getId(IS_ON_BLOCK).getPath());
+		ALIASES.addPathAlias("power_active", getId(IS_POWER_ACTIVE).getPath());
 		ALIASES.addPathAlias("sneaking", getId(IS_SNEAKING).getPath());
 		ALIASES.addPathAlias("sprinting", getId(IS_SPRINTING).getPath());
 		ALIASES.addPathAlias("collided_horizontally", getId(COLLIDED_HORIZONTALLY).getPath());
