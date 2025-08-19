@@ -3,6 +3,7 @@
 	"package": "io.github.eggohito.neo_apoli.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"accessor.KeyBindingAccessor",
 		"misc.ClientWorldMixin",
 		"misc.EntityRenderDispatcherMixin",
 		"misc.EntityRendererMixin",

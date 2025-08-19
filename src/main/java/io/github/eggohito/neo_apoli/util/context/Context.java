@@ -164,6 +164,10 @@ public class Context {
 			return addNullable(parameter, value.orElse(null));
 		}
 
+		public ContextType getType() {
+			return contextType;
+		}
+
 		public <T> T required(ContextParameter<T> parameter) {
 			return this.parameters.getOrThrow(parameter);
 		}

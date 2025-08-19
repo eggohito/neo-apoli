@@ -3,23 +3,32 @@ package io.github.eggohito.neo_apoli.power;
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerDataS2CPacket;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Getter;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Unit;
@@ -165,7 +174,7 @@ public abstract class Power {
 		public final Context.Builder addPowerContext(Context.Builder builder) {
 
 			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(this.getContextType(), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(ContextTypes.merge(this.getContextType(), builder.getType()), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
 
 			return builder
 				.withReporter(reporter)
@@ -174,7 +183,7 @@ public abstract class Power {
 		}
 
 		public final Context addPowerContext(Context context) {
-			return this.addPowerContext(Context.builder(context)).build(context.getWorld());
+			return context.copy(this::addPowerContext);
 		}
 
 		public final Context.Builder createGenericContextBuilder() {
@@ -189,6 +198,37 @@ public abstract class Power {
 
 		public final Context createGenericContext() {
 			return this.createGenericContextBuilder().build(holder.getWorld());
+		}
+
+		public final void syncData() {
+
+			DataResult<PowerReference> referenceResult = PowerManager.getReferenceAsResult(this.getPower());
+			RegistryOps<NbtElement> nbtOps = holder.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
+
+			switch (referenceResult) {
+				case DataResult.Success<PowerReference> referenceSuccess when !holder.getWorld().isClient()	-> {
+
+					switch (this.encodeData(nbtOps)) {
+						case DataResult.Success<NbtElement> dataSuccess -> {
+
+							SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(holder.getId(), referenceSuccess.value(), new Dynamic<>(nbtOps, dataSuccess.value()));
+
+							for (ServerPlayerEntity trackingPlayer: MiscUtil.getTrackingPlayers(holder)) {
+								ServerPlayNetworking.send(trackingPlayer, packet);
+							}
+
+						}
+						case DataResult.Error<NbtElement> dataError ->
+							NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", referenceSuccess.value().asDisplayString(false), holder.getName().getString(), dataError.message());
+					}
+
+				}
+				case DataResult.Success<PowerReference> referenceSuccess ->
+					NeoApoli.LOGGER.warn("Couldn't initiate syncing data of {} from entity {} in the client!", referenceSuccess.value().asDisplayString(false), holder.getName().getString());
+				case DataResult.Error<PowerReference> ignored ->
+					NeoApoli.LOGGER.warn("Couldn't initiate syncing data of unregistered power ({}) of entity {}!", this.getPower(), holder.getName().getString());
+			}
+
 		}
 
 		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {

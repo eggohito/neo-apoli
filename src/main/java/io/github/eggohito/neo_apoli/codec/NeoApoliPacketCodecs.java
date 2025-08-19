@@ -1,6 +1,8 @@
 package io.github.eggohito.neo_apoli.codec;
 
 import com.google.gson.internal.LazilyParsedNumber;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.util.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -120,5 +122,9 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, Set<TagKey<EntityType<?>>>> ENTITY_TYPE_TAG_SET = PacketCodecs.collection(ObjectOpenHashSet::new, ENTITY_TYPE_TAG);
 
 	public static final PacketCodec<RegistryByteBuf, List<AttributeModifier>> ATTRIBUTE_MODIFIERS = PacketCodecs.collection(ObjectArrayList::new, AttributeModifier.PACKET_CODEC);
+
+	public static final PacketCodec<ByteBuf, Dynamic<?>> PASSTHROUGH = PacketCodecs.codec(Codec.PASSTHROUGH);
+
+	public static final PacketCodec<RegistryByteBuf, Dynamic<?>> REGISTRY_PASSTHROUGH = PacketCodecs.unlimitedRegistryCodec(Codec.PASSTHROUGH);
 
 }

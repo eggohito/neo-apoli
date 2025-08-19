@@ -44,6 +44,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model_color/self", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY, ContextTypes.ENTITY), ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC);
 	public static final PowerType<ModifyShakingPower> MODIFY_SHAKING = registerInternal("modify/shaking", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), ModifyShakingPower.CODEC, ModifyShakingPower.PACKET_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
+	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY), TogglePower.CODEC, TogglePower.PACKET_CODEC);
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
