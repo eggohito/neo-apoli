@@ -54,13 +54,13 @@ public class NeoApoliC2SNetworkHandler {
 
 			else {
 
-				Power.Impl<?> impl = powersComponent.getPowerImpl(powerReference);
-				Context context = impl.createGenericContext();
+				Power.Instance<?> powerInstance = powersComponent.getInstance(powerReference);
+				Context context = powerInstance.createGenericContext();
 
-				if (impl instanceof KeyBound.Impl keyBoundImpl) {
+				if (powerInstance instanceof KeyBound.Instance keyBoundInstance) {
 
-					if (keyBoundImpl.shouldTrigger(context)) {
-						keyBoundImpl.onPress(context);
+					if (keyBoundInstance.shouldTrigger(context)) {
+						keyBoundInstance.onPress(context);
 					}
 
 				}

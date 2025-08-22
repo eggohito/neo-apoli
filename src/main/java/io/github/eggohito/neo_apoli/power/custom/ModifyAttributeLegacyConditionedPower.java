@@ -48,18 +48,18 @@ public class ModifyAttributeLegacyConditionedPower extends AbstractModifyAttribu
 	}
 
 	@Override
-	public AbstractModifyAttributeLegacyPower.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public AbstractModifyAttributeLegacyPower.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
-	public static class Impl extends AbstractModifyAttributeLegacyPower.Impl<ModifyAttributeLegacyConditionedPower> {
+	public static class Instance extends AbstractModifyAttributeLegacyPower.Instance<ModifyAttributeLegacyConditionedPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyAttributeLegacyConditionedPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyAttributeLegacyConditionedPower power) {
 			super(holder, power);
 		}
 

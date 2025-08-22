@@ -45,8 +45,8 @@ public class CallbackPowerRevokedPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -55,9 +55,9 @@ public class CallbackPowerRevokedPower extends Power {
 		getEntityAction().validate(reporter.makeChild(".entity_action"));
 	}
 
-	public static class Impl extends Power.Impl<CallbackPowerRevokedPower> {
+	public static class Instance extends Power.Instance<CallbackPowerRevokedPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull CallbackPowerRevokedPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerRevokedPower power) {
 			super(holder, power);
 		}
 

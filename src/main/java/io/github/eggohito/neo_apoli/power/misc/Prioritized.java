@@ -26,7 +26,7 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 
 	int getPriority();
 
-	final class CallInstance<I extends Power.Impl<?> & Prioritized<I>> {
+	final class CallInstance<I extends Power.Instance<?> & Prioritized<I>> {
 
 		private final Int2ObjectMap<List<I>> buckets = new Int2ObjectOpenHashMap<>();
 
@@ -35,7 +35,7 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 		@Getter
 		private int maxPriority = Integer.MIN_VALUE;
 
-		public static <I extends Power.Impl<?> & Prioritized<I>> CallInstance<I> create(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
+		public static <I extends Power.Instance<?> & Prioritized<I>> CallInstance<I> create(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
 
 			CallInstance<I> instance = new CallInstance<>();
 			instance.add(entity, implClass, implFilter);
@@ -44,11 +44,11 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 
 		}
 
-		public List<I> getImpls(int priority) {
+		public List<I> getInstances(int priority) {
 			return buckets.getOrDefault(priority, new ObjectArrayList<>());
 		}
 
-		public boolean hasImpls(int priority) {
+		public boolean hasInstances(int priority) {
 			return buckets.containsKey(priority);
 		}
 
@@ -56,15 +56,15 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 			return buckets.isEmpty();
 		}
 
-		public <U extends I> void add(Entity holder, @NotNull Class<U> implClass, @NotNull Predicate<U> implFilter) {
+		public <U extends I> void add(Entity holder, @NotNull Class<U> instanceClass, @NotNull Predicate<U> instanceFilter) {
 
-			PowersComponent.forEach(holder, (reference, impl, sources) -> {
+			PowersComponent.forEach(holder, (reference, instance, sources) -> {
 
-				if (implClass.isInstance(impl)) {
+				if (instanceClass.isInstance(instance)) {
 
-					U casted = implClass.cast(impl);
+					U casted = instanceClass.cast(instance);
 
-					if (implFilter.test(casted)) {
+					if (instanceFilter.test(casted)) {
 						this.add(casted);
 					}
 
@@ -74,10 +74,10 @@ public interface Prioritized<P extends Prioritized<P>> extends Comparable<P> {
 
 		}
 
-		public void add(I impl) {
+		public void add(I instance) {
 
-			int priority = impl.getPriority();
-			buckets.computeIfAbsent(priority, i -> new ObjectArrayList<>()).add(impl);
+			int priority = instance.getPriority();
+			buckets.computeIfAbsent(priority, i -> new ObjectArrayList<>()).add(instance);
 
 			if (priority < minPriority) {
 				this.minPriority = priority;

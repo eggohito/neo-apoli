@@ -117,8 +117,8 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();
 
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onAdded));
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onRemoved));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onAdded));
+		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onRemoved));
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);

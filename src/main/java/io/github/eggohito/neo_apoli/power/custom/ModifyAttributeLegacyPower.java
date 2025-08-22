@@ -32,13 +32,13 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 	}
 
 	@Override
-	public AbstractModifyAttributeLegacyPower.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public AbstractModifyAttributeLegacyPower.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
-	public static class Impl extends AbstractModifyAttributeLegacyPower.Impl<ModifyAttributeLegacyPower> {
+	public static class Instance extends AbstractModifyAttributeLegacyPower.Instance<ModifyAttributeLegacyPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyAttributeLegacyPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyAttributeLegacyPower power) {
 			super(holder, power);
 		}
 

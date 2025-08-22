@@ -129,10 +129,10 @@ public class NeoApoliS2CNetworkHandler {
 
 			if (powersComponent.hasPower(powerReference)) {
 
-				Power.Impl<?> impl = powersComponent.getPowerImpl(powerReference);
+				Power.Instance<?> instance = powersComponent.getInstance(powerReference);
 				NbtElement nbtData = payload.data().convert(nbtOps).getValue();
 
-				if (impl.decodeData(nbtOps, nbtData) instanceof DataResult.Error<Unit> error) {
+				if (instance.decodeData(nbtOps, nbtData) instanceof DataResult.Error<Unit> error) {
 					NeoApoli.LOGGER.warn("Couldn't decode data of {} to be synced to entity {}: {}", powerReference.asDisplayString(false), entity.getName().getString(), error.message());
 				}
 

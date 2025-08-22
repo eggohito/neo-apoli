@@ -56,13 +56,13 @@ public class ModifyModelColorOtherPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
-	public static class Impl extends Power.Impl<ModifyModelColorOtherPower> {
+	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyModelColorOtherPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyModelColorOtherPower power) {
 			super(holder, power);
 		}
 

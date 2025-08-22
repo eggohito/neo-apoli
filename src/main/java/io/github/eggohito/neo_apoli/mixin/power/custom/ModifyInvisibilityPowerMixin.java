@@ -54,10 +54,10 @@ public abstract class ModifyInvisibilityPowerMixin {
 		@ModifyReturnValue(method = "isInvisible", at = @At("RETURN"))
 		private boolean invisibleProxy(boolean original) {
 
-			if (!original && PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class)) {
+			if (!original && PowersComponent.hasInstance(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(null);
-				boolean result = PowersComponent.hasPowerImpl(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Impl.class, impl -> impl.isActive(context));
+				boolean result = PowersComponent.hasInstance(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Instance.class, instance -> instance.isActive(context));
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;
@@ -73,10 +73,10 @@ public abstract class ModifyInvisibilityPowerMixin {
 		@WrapOperation(method = "isInvisibleTo", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isInvisible()Z"))
 		private boolean invisibleToProxy(Entity entity, Operation<Boolean> original, PlayerEntity viewer) {
 
-			if (viewer != null && PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
+			if (viewer != null && PowersComponent.hasInstance(entity, ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
-				boolean result = PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisibleTo(context));
+				boolean result = PowersComponent.hasInstance(entity, ModifyInvisibilityPower.Instance.class, instance -> instance.isInvisibleTo(context));
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;
@@ -97,10 +97,10 @@ public abstract class ModifyInvisibilityPowerMixin {
 		@WrapOperation(method = "getAttackDistanceScalingFactor", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isInvisible()Z"))
 		private boolean invisibleToProxy(LivingEntity entity, Operation<Boolean> original, @Nullable Entity viewer) {
 
-			if (viewer != null && PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class)) {
+			if (viewer != null && PowersComponent.hasInstance(entity, ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
-				boolean result = PowersComponent.hasPowerImpl(entity, ModifyInvisibilityPower.Impl.class, impl -> impl.isInvisibleTo(context));
+				boolean result = PowersComponent.hasInstance(entity, ModifyInvisibilityPower.Instance.class, instance -> instance.isInvisibleTo(context));
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;

@@ -45,8 +45,8 @@ public class CallbackPlayerRespawnedPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -55,9 +55,9 @@ public class CallbackPlayerRespawnedPower extends Power {
 		getEntityAction().validate(reporter.makeChild(".entity_action"));
 	}
 
-	public static class Impl extends Power.Impl<CallbackPlayerRespawnedPower> {
+	public static class Instance extends Power.Instance<CallbackPlayerRespawnedPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull CallbackPlayerRespawnedPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull CallbackPlayerRespawnedPower power) {
 			super(holder, power);
 		}
 

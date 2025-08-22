@@ -62,8 +62,8 @@ public class ModifyInvisibilityPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -77,9 +77,9 @@ public class ModifyInvisibilityPower extends Power {
 
 	}
 
-	public static class Impl extends Power.Impl<ModifyInvisibilityPower> {
+	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyInvisibilityPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyInvisibilityPower power) {
 			super(holder, power);
 		}
 

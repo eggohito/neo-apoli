@@ -40,14 +40,14 @@ public abstract class ModifyModelColorOtherPowerMixin {
 
 			if (renderState instanceof EntityRenderCache renderCache && viewer != null) {
 
-				List<ModifyModelColorOtherPower.Impl> impls = PowersComponent.getPowerImpls(viewer, ModifyModelColorOtherPower.Impl.class);
+				List<ModifyModelColorOtherPower.Instance> instances = PowersComponent.getInstances(viewer, ModifyModelColorOtherPower.Instance.class);
 				Context context = ModifyModelColorOtherPower.createContext(viewer, renderCache.neo_apoli$getEntity());
 
-				if (!impls.isEmpty()) {
+				if (!instances.isEmpty()) {
 
-					Argb unpackedArgb = impls
+					Argb unpackedArgb = instances
 						.stream()
-						.map(impl -> impl.getColor(context))
+						.map(instance -> instance.getColor(context))
 						.flatMap(Optional::stream)
 						.reduce(Argb.unpack(packedArgb), Argb::mix);
 

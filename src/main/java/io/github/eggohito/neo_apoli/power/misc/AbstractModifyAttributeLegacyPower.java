@@ -44,11 +44,11 @@ public abstract class AbstractModifyAttributeLegacyPower extends Power {
 	}
 
 	@Override
-	public abstract AbstractModifyAttributeLegacyPower.Impl<?> createImpl(Entity holder);
+	public abstract Instance<?> createInstance(Entity holder);
 
-	public static abstract class Impl<P extends AbstractModifyAttributeLegacyPower> extends Power.Impl<P> {
+	public static abstract class Instance<P extends AbstractModifyAttributeLegacyPower> extends Power.Instance<P> {
 
-		protected Impl(@NotNull Entity holder, @NotNull P power) {
+		protected Instance(@NotNull Entity holder, @NotNull P power) {
 			super(holder, power);
 		}
 

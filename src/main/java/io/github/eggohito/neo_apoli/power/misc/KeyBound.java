@@ -7,7 +7,7 @@ public interface KeyBound {
 
 	KeyBindingReference getKeyBindingReference();
 
-	interface Impl {
+	interface Instance {
 
 		default KeyBindingReference getKeyBindingReference() {
 			return this.getKeyBound().getKeyBindingReference();

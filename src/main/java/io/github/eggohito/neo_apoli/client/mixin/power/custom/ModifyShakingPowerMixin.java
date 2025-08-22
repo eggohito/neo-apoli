@@ -20,7 +20,7 @@ public abstract class ModifyShakingPowerMixin<S extends LivingEntityRenderState>
 		}
 
 		else if (state instanceof EntityRenderCache renderCache) {
-			return PowersComponent.hasPowerImpl(renderCache.neo_apoli$getEntity(), ModifyShakingPower.Impl.class, ModifyShakingPower.Impl::isActive);
+			return PowersComponent.hasInstance(renderCache.neo_apoli$getEntity(), ModifyShakingPower.Instance.class, ModifyShakingPower.Instance::isActive);
 		}
 
 		else {

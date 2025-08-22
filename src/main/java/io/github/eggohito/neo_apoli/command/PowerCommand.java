@@ -410,7 +410,7 @@ public class PowerCommand {
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 				Map<Identifier, Collection<PowerReference>> clearedPowers = new Object2ObjectOpenHashMap<>();
 
-				powersComponent.forEach((reference, impl, sources) -> {
+				powersComponent.forEach((reference, instance, sources) -> {
 
 					for (var source : sources) {
 
@@ -489,13 +489,13 @@ public class PowerCommand {
 			ServerCommandSource commandSource = commandContext.getSource();
 
 			List<Text> powerTooltips = new ObjectArrayList<>();
-			powersComponent.forEach((reference, impl, sources) -> {
+			powersComponent.forEach((reference, instance, sources) -> {
 
 				if (!includeSubPowers && reference.isSubPower()) {
 					return;
 				}
 
-				Power power = impl.getPower();
+				Power power = instance.getPower();
 				PowerType<?> type = power.getType();
 
 				List<Text> sourceTooltips = new ObjectArrayList<>();

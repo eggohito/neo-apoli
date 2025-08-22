@@ -82,8 +82,8 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -100,9 +100,9 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 		return onlyWhenHarvested;
 	}
 
-	public static class Impl extends Power.Impl<CallbackBlockBreakPower> implements Prioritized<Impl> {
+	public static class Instance extends Power.Instance<CallbackBlockBreakPower> implements Prioritized<Instance> {
 
-		protected Impl(@NotNull Entity holder, @NotNull CallbackBlockBreakPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull CallbackBlockBreakPower power) {
 			super(holder, power);
 		}
 
@@ -174,23 +174,23 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
-		CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> true);
+		CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> true);
 
-		for (int priority = implInstances.getMaxPriority(); priority >= implInstances.getMinPriority(); priority--) {
+		for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
 
-			List<Impl> impls = implInstances.getImpls(priority);
+			List<Instance> instances = callInstance.getInstances(priority);
 
-			for (var impl : impls) {
+			for (var instance : instances) {
 
-				Context context = impl.createGenericContextBuilder()
+				Context context = instance.createGenericContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, blockState)
 					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
 					.addNullable(ContextParameters.DIRECTION, direction)
 					.build(player.getWorld());
 
-				if (impl.doesApply(context, harvested)) {
-					impl.execute(context);
+				if (instance.doesApply(context, harvested)) {
+					instance.execute(context);
 				}
 
 			}

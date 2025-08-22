@@ -9,12 +9,28 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.function.ValueLists;
 
-import java.util.function.Consumer;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
+import java.util.Collection;
+import java.util.function.*;
 
 public final class PacketCodecUtil {
+
+	public static <B extends ByteBuf, E, C extends Collection<E>> PacketCodec<B, C> nonEmptyCollection(PacketCodec<B, C> codec) {
+		return validated(codec, collection -> {
+
+			if (collection.isEmpty()) {
+				throw new IllegalStateException("Collection must have contents");
+			}
+
+			else {
+				return collection;
+			}
+
+		});
+	}
+
+	public static <B extends ByteBuf, E> PacketCodec<B, E> validated(PacketCodec<B, E> codec, Function<E, E> validator) {
+		return codec.xmap(validator, validator);
+	}
 
 	public static <B extends PacketByteBuf, E> PacketCodec<B, E> mapped(Supplier<BiMap<String, E>> supplier) {
 		return new PacketCodec<>() {

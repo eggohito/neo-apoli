@@ -78,8 +78,8 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	/**
@@ -142,9 +142,9 @@ public class MultiplePower extends Power {
 
 	}
 
-	public static final class Impl extends Power.Impl<MultiplePower> {
+	public static final class Instance extends Power.Instance<MultiplePower> {
 
-		private Impl(@NotNull Entity holder, @NotNull MultiplePower power) {
+		private Instance(@NotNull Entity holder, @NotNull MultiplePower power) {
 			super(holder, power);
 		}
 

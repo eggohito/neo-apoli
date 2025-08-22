@@ -91,8 +91,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -105,9 +105,9 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	}
 
-	public static class Impl extends Power.Impl<ModifyBlockUsePower> implements Prioritized<ModifyBlockUsePower.Impl> {
+	public static class Instance extends Power.Instance<ModifyBlockUsePower> implements Prioritized<Instance> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyBlockUsePower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockUsePower power) {
 			super(holder, power);
 		}
 
@@ -213,21 +213,21 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		World world = player.getWorld();
 		BlockPos blockPos = blockHitResult.getBlockPos();
 
-		CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> impl.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
+		CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
 		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
-		for (int priority = implInstances.getMaxPriority(); priority >= implInstances.getMinPriority(); priority--) {
+		for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
 
-			if (!implInstances.hasImpls(priority)) {
+			if (!callInstance.hasInstances(priority)) {
 				continue;
 			}
 
-			List<Impl> impls = implInstances.getImpls(priority);
+			List<Instance> instances = callInstance.getInstances(priority);
 			ActionResult previousResult = ActionResult.PASS;
 
-			for (var impl : impls) {
+			for (var instance : instances) {
 
-				Context context = impl.createGenericContextBuilder()
+				Context context = instance.createGenericContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
@@ -237,8 +237,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 					.add(ContextParameters.HAND, hand)
 					.build(world);
 
-				if (impl.doesApply(context)) {
-					previousResult = MiscUtil.overrideResult(previousResult, impl.execute(context));
+				if (instance.doesApply(context)) {
+					previousResult = MiscUtil.overrideResult(previousResult, instance.execute(context));
 				}
 
 			}
@@ -284,21 +284,21 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		else if (original == ActionResult.PASS) {
 
-			CallInstance<Impl> implInstances = CallInstance.create(player, Impl.class, impl -> impl.shouldExecute(interactionPhase, PriorityPhase.AFTER));
+			CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.AFTER));
 			StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
-			for (int priority = implInstances.getMaxPriority(); priority >= implInstances.getMinPriority(); priority--) {
+			for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
 
-				if (!implInstances.hasImpls(priority)) {
+				if (!callInstance.hasInstances(priority)) {
 					continue;
 				}
 
-				List<Impl> impls = implInstances.getImpls(priority);
+				List<Instance> instances = callInstance.getInstances(priority);
 				ActionResult previousResult = ActionResult.PASS;
 
-				for (var impl : impls) {
+				for (var instance : instances) {
 
-					Context context = impl.createGenericContextBuilder()
+					Context context = instance.createGenericContextBuilder()
 						.add(ContextParameters.BLOCK_POS, blockPos)
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
@@ -308,8 +308,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 						.add(ContextParameters.HAND, hand)
 						.build(world);
 
-					if (impl.doesApply(context)) {
-						previousResult = MiscUtil.overrideResult(previousResult, impl.execute(context));
+					if (instance.doesApply(context)) {
+						previousResult = MiscUtil.overrideResult(previousResult, instance.execute(context));
 					}
 
 				}

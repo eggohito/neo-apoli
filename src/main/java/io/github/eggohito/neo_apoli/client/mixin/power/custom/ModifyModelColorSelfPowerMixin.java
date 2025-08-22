@@ -55,14 +55,14 @@ public abstract class ModifyModelColorSelfPowerMixin {
 
 			if (renderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 
-				List<ModifyModelColorSelfPower.Impl> impls = PowersComponent.getPowerImpls(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Impl.class);
+				List<ModifyModelColorSelfPower.Instance> instances = PowersComponent.getInstances(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Instance.class);
 				Context context = ModifyModelColorSelfPower.createContext(renderCache.neo_apoli$getEntity(), viewer);
 
-				if (!impls.isEmpty()) {
+				if (!instances.isEmpty()) {
 
-					Argb unpackedArgb = impls
+					Argb unpackedArgb = instances
 						.stream()
-						.map(impl -> impl.getColor(context))
+						.map(instance -> instance.getColor(context))
 						.flatMap(Optional::stream)
 						.reduce(Argb.unpack(packedArgb), Argb::mix);
 
@@ -111,14 +111,14 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		private void impl(ModelPart armPart, MatrixStack matrices, VertexConsumer vertices, int light, int overlay, Operation<Void> original) {
 
 			PlayerEntity player = this.neo_apoli$getPlayer();
-			List<ModifyModelColorSelfPower.Impl> impls = PowersComponent.getPowerImpls(player, ModifyModelColorSelfPower.Impl.class);
+			List<ModifyModelColorSelfPower.Instance> impls = PowersComponent.getInstances(player, ModifyModelColorSelfPower.Instance.class);
 
 			if (player != null && !impls.isEmpty()) {
 
 				Context context = ModifyModelColorSelfPower.createContext(player, null);
 				int argb = impls
 					.stream()
-					.map(impl -> impl.getColor(context))
+					.map(instance -> instance.getColor(context))
 					.flatMap(Optional::stream)
 					.reduce(Argb.DEFAULT, Argb::mix)
 					.pack();

@@ -72,7 +72,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 		else {
 
 			Context context = this.neo_apoli$getOrCreateClimbingContext();
-			boolean result = PowersComponent.hasPowerImpl(this, ModifyClimbingPower.Impl.class, impl -> impl.isActive(context));
+			boolean result = PowersComponent.hasInstance(this, ModifyClimbingPower.Instance.class, instance -> instance.isActive(context));
 
 			if (result) {
 				this.climbingPos = Optional.of(this.getBlockPos());
@@ -88,17 +88,17 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 	@ModifyReturnValue(method = "isHoldingOntoLadder", at = @At("RETURN"))
 	private boolean overrideClimbingHold(boolean original) {
 
-		List<ModifyClimbingPower.Impl> impls = PowersComponent.getPowerImpls(this, ModifyClimbingPower.Impl.class);
+		List<ModifyClimbingPower.Instance> instances = PowersComponent.getInstances(this, ModifyClimbingPower.Instance.class);
 		MutableBoolean modified = new MutableBoolean(false);
 
-		if (impls.isEmpty()) {
+		if (instances.isEmpty()) {
 			return original;
 		}
 
 		else {
 
 			Context context = this.neo_apoli$getOrCreateClimbingContext();
-			impls.forEach(impl -> modified.setValue(impl.canHold(context)));
+			instances.forEach(instance -> modified.setValue(instance.canHold(context)));
 
 			this.neo_apoli$climbingContext.remove();
 			return modified.getValue();

@@ -70,8 +70,8 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -84,9 +84,9 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 
 	}
 
-	public static class Impl extends Power.Impl<ModifyBlockHarvestabilityPower> implements Prioritized<Impl> {
+	public static class Instance extends Power.Instance<ModifyBlockHarvestabilityPower> implements Prioritized<Instance> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyBlockHarvestabilityPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestabilityPower power) {
 			super(holder, power);
 		}
 
@@ -110,15 +110,15 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 
 	public static boolean canHarvest(Context context, BooleanSupplier defaultValue) {
 
-		List<Impl> impls = PowersComponent.getPowerImpls(context.required(ContextParameters.ENTITY), Impl.class, impl -> impl.doesApply(context));
-		impls.sort(Impl::compareTo);
+		List<Instance> instances = PowersComponent.getInstances(context.required(ContextParameters.ENTITY), Instance.class, instance -> instance.doesApply(context));
+		instances.sort(Instance::compareTo);
 
-		if (impls.isEmpty()) {
+		if (instances.isEmpty()) {
 			return defaultValue.getAsBoolean();
 		}
 
 		else {
-			return impls.getLast().isAllowed(context);
+			return instances.getLast().isAllowed(context);
 		}
 
 	}

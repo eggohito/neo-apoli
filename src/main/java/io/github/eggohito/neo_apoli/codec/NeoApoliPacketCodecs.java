@@ -19,6 +19,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 import net.minecraft.world.explosion.Explosion;
@@ -29,6 +30,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class NeoApoliPacketCodecs {
+
+	public static final PacketCodec<ByteBuf, Set<Identifier>> MUTABLE_IDENTIFIER_SET = PacketCodecs.collection(ObjectOpenHashSet::new, Identifier.PACKET_CODEC);
+
+	public static final PacketCodec<ByteBuf, Set<Identifier>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = PacketCodecUtil.nonEmptyCollection(MUTABLE_IDENTIFIER_SET);
 
 	public static final PacketCodec<ByteBuf, Hand> HAND = HandProperty.PACKET_CODEC.xmap(HandProperty::get, HandProperty::fromHand);
 

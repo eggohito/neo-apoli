@@ -43,7 +43,7 @@ public final class IsPowerActiveEntityCondition extends EntityCondition {
 		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 		return powersComponent.hasPower(this.power())
-			&& powersComponent.getPowerImpl(this.power()).isActive(context);
+			&& powersComponent.getInstance(this.power()).isActive(context);
 
 	}
 

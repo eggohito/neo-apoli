@@ -65,8 +65,8 @@ public class CallbackPowerTickPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -81,14 +81,14 @@ public class CallbackPowerTickPower extends Power {
 
 	}
 
-	public static class Impl extends Power.Impl<CallbackPowerTickPower> {
+	public static class Instance extends Power.Instance<CallbackPowerTickPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Impl(@NotNull Entity holder, @NotNull CallbackPowerTickPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerTickPower power) {
 			super(holder, power);
 		}
 

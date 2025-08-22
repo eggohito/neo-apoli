@@ -71,8 +71,8 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@ApiStatus.Internal
@@ -106,9 +106,9 @@ public class ModifyEntityTypeTagPower extends Power {
 		NESTED_TAGS_CACHE.putAll(payload.tags());
 	}
 
-	public static class Impl extends Power.Impl<ModifyEntityTypeTagPower> {
+	public static class Instance extends Power.Instance<ModifyEntityTypeTagPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyEntityTypeTagPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyEntityTypeTagPower power) {
 			super(holder, power);
 		}
 
@@ -146,7 +146,7 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
-		return PowersComponent.hasPowerImpl(context.nullable(ContextParameters.ENTITY), Impl.class, impl -> impl.isActive(context) && impl.doesApply(tag));
+		return PowersComponent.hasInstance(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.isActive(context) && instance.doesApply(tag));
 	}
 
 	public static boolean doesApply(Context context, RegistryEntryList<EntityType<?>> tagsEntryList) {

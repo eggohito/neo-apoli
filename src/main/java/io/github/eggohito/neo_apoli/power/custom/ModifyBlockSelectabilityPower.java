@@ -70,8 +70,8 @@ public class ModifyBlockSelectabilityPower extends Power implements Prioritized<
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -84,9 +84,9 @@ public class ModifyBlockSelectabilityPower extends Power implements Prioritized<
 
 	}
 
-	public static class Impl extends Power.Impl<ModifyBlockSelectabilityPower> implements Prioritized<Impl> {
+	public static class Instance extends Power.Instance<ModifyBlockSelectabilityPower> implements Prioritized<Instance> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyBlockSelectabilityPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockSelectabilityPower power) {
 			super(holder, power);
 		}
 
@@ -109,19 +109,15 @@ public class ModifyBlockSelectabilityPower extends Power implements Prioritized<
 
 	public static VoxelShape modifySelectingOutlineShape(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
-		List<Impl> impls = PowersComponent.getPowerImpls(context.nullable(ContextParameters.ENTITY), Impl.class, impl -> impl.doesApply(context));
-		impls.sort(Impl::compareTo);
+		List<Instance> instances = PowersComponent.getInstances(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.doesApply(context));
+		instances.sort(Instance::compareTo);
 
-		if (impls.isEmpty()) {
+		if (instances.isEmpty() || instances.getLast().isAllowed(context)) {
 			return defaultValue.get();
-		}
-
-		else if (!impls.getLast().isAllowed(context)) {
-			return VoxelShapes.empty();
 		}
 
 		else {
-			return defaultValue.get();
+			return VoxelShapes.empty();
 		}
 
 	}

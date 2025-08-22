@@ -27,13 +27,13 @@ public class ModifyShakingPower extends Power {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
-	public static class Impl extends Power.Impl<ModifyShakingPower> {
+	public static class Instance extends Power.Instance<ModifyShakingPower> {
 
-		protected Impl(@NotNull Entity holder, @NotNull ModifyShakingPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyShakingPower power) {
 			super(holder, power);
 		}
 

@@ -43,7 +43,7 @@ import java.util.function.Function;
 
 /**
  * 	<p>A power gives a certain "ability" to an entity upon being granted. As for what kind of "ability" it provides will
- * 	depend on the implementation (see: {@link Impl}) of the power itself.</p>
+ * 	depend on the implementation (see: {@link Instance}) of the power itself.</p>
  *
  * 	<p>It has a set of properties which may determine its functionality, and cosmetics for displaying purposes:</p>
  * 	<ul>
@@ -80,7 +80,7 @@ public abstract class Power {
 
 	public abstract PowerType<?> getType();
 
-	public abstract Power.Impl<?> createImpl(Entity holder);
+	public abstract Instance<?> createInstance(Entity holder);
 
 	public final Text getName() {
 		return getProperties().name();
@@ -159,14 +159,14 @@ public abstract class Power {
 	 * 	<p>The class responsible for providing the functionality of a power. An instance of this class is created
 	 * 	every time a power is granted to an entity to ensure that each instance is unique to each entity.</p>
 	 *
-	 * 	<p>The uniqueness of each impl. instance is especially relevant for storing data.</p>
+	 * 	<p>The uniqueness of each instance is especially relevant for storing data.</p>
 	 */
-	public abstract static class Impl<P extends Power> {
+	public abstract static class Instance<P extends Power> {
 
 		protected final Entity holder;
 		protected final P power;
 
-		protected Impl(@NotNull Entity holder, @NotNull P power) {
+		protected Instance(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
 			this.power = power;
 		}

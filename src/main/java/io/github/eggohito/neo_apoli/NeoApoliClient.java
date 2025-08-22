@@ -36,8 +36,8 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		NeoApoliS2CNetworkHandler.init();
 
-		ClientEntityEvents.ENTITY_LOAD.register((entity, clientWorld) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onAdded));
-		ClientEntityEvents.ENTITY_UNLOAD.register((entity, clientWorld) -> PowersComponent.getPowerImpls(entity).forEach(Power.Impl::onRemoved));
+		ClientEntityEvents.ENTITY_LOAD.register((entity, clientWorld) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onAdded));
+		ClientEntityEvents.ENTITY_UNLOAD.register((entity, clientWorld) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onRemoved));
 
 		ClientTickEvents.END_CLIENT_TICK.register(NeoApoliClient::triggerKeyBoundPowerImpls);
 
@@ -57,16 +57,16 @@ public class NeoApoliClient implements ClientModInitializer {
 		ClientPlayerEntity player = client.player;
 		Object2BooleanMap<String> currentKeyBindingStates = new Object2BooleanOpenHashMap<>();
 
-		List<Power.Impl<?>> impls = PowersComponent.getPowerImpls(player);
+		List<Power.Instance<?>> instances = PowersComponent.getAllInstances(player);
 		Set<PowerReference> triggeredImpls = new ObjectOpenHashSet<>();
 
-		for (var impl: impls) {
+		for (var instance: instances) {
 
-			if (!PowerManager.containsReference(impl.getPower()) || !(impl instanceof KeyBound.Impl keyBoundImpl)) {
+			if (!PowerManager.containsReference(instance.getPower()) || !(instance instanceof KeyBound.Instance keyBoundInstance)) {
 				continue;
 			}
 
-			KeyBindingReference keyBindingReference = keyBoundImpl.getKeyBindingReference();
+			KeyBindingReference keyBindingReference = keyBoundInstance.getKeyBindingReference();
 			TriState keyPressState = KeyBindingUtil.getKeyBinding(keyBindingReference.id())
 				.map(KeyBinding::isPressed)
 				.map(TriState::of)
@@ -78,11 +78,11 @@ public class NeoApoliClient implements ClientModInitializer {
 
 				if (isPressed(keyBindingReference, keyPressState)) {
 
-					PowerReference reference = PowerManager.getReference(impl.getPower());
-					Context context = impl.createGenericContext();
+					PowerReference reference = PowerManager.getReference(instance.getPower());
+					Context context = instance.createGenericContext();
 
-					if (keyBoundImpl.shouldTrigger(context)) {
-						keyBoundImpl.onPress(context);
+					if (keyBoundInstance.shouldTrigger(context)) {
+						keyBoundInstance.onPress(context);
 					}
 
 					triggeredImpls.add(reference);

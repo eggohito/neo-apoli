@@ -71,8 +71,8 @@ public class TogglePower extends Power implements KeyBound {
 	}
 
 	@Override
-	public Power.Impl<?> createImpl(Entity holder) {
-		return new Impl(holder, this);
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -80,11 +80,11 @@ public class TogglePower extends Power implements KeyBound {
 		return key;
 	}
 
-	public static class Impl extends Power.Impl<TogglePower> implements KeyBound.Impl {
+	public static class Instance extends Power.Instance<TogglePower> implements KeyBound.Instance {
 
 		private boolean toggled;
 
-		protected Impl(@NotNull Entity holder, @NotNull TogglePower power) {
+		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
 			this.toggled = power.getActiveByDefault().next(this.createGenericContext().makeChild(".active_by_default"));
 		}
