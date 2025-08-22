@@ -28,6 +28,7 @@
 		"power.custom.CallbackBlockBreakPowerMixin",
 		"power.custom.ModifyBlockHarvestabilityPowerMixin$BlockBreakingDeltaProxy",
 		"power.custom.ModifyBlockHarvestabilityPowerMixin$HarvestabilityProxy",
+		"power.custom.ModifyBlockSelectabilityPowerMixin",
 		"power.custom.ModifyBlockUsePowerMixin",
 		"power.custom.ModifyClimbingPowerMixin",
 		"power.custom.ModifyEntityTypeTagPowerMixin$EntityCache",
