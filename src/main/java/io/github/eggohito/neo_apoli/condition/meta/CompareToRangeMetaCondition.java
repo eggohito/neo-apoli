@@ -1,9 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.meta;
 
 import com.mojang.datafixers.util.Function3;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
@@ -13,6 +11,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface CompareToRangeMetaCondition {
 
@@ -64,25 +63,46 @@ public interface CompareToRangeMetaCondition {
 	}
 
 	static <M extends CompareToRangeMetaCondition> MapCodec<M> codec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
+		return new MapCodec<>() {
 
-		MapCodec<M> unvalidatedCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			NumberProvider.CODEC.fieldOf("value").forGetter(CompareToRangeMetaCondition::value),
-			NumberProvider.CODEC.optionalFieldOf("min").forGetter(CompareToRangeMetaCondition::min),
-			NumberProvider.CODEC.optionalFieldOf("max").forGetter(CompareToRangeMetaCondition::max)
-		).apply(instance, constructor));
+			private static final MapCodec<NumberProvider> VALUE_FIELD = NumberProvider.CODEC.fieldOf("value");
+			private static final MapCodec<Optional<NumberProvider>> MIN_FIELD = NumberProvider.CODEC.optionalFieldOf("min");
+			private static final MapCodec<Optional<NumberProvider>> MAX_FIELD = NumberProvider.CODEC.optionalFieldOf("max");
 
-		return unvalidatedCodec.validate(m -> {
-
-			if (m.min().isEmpty() && m.max().isEmpty()) {
-				return DataResult.error(() -> "Any of 'min' and 'max' fields should be defined!");
+			@Override
+			public <I> Stream<I> keys(DynamicOps<I> ops) {
+				return Stream.of("value", "min", "max").map(ops::createString);
 			}
 
-			else {
-				return DataResult.success(m);
+			@Override
+			public <I> DataResult<M> decode(DynamicOps<I> ops, MapLike<I> input) {
+				return MAX_FIELD.decode(ops, input)
+					.flatMap(max -> MIN_FIELD.decode(ops, input)
+						.flatMap(min -> VALUE_FIELD.decode(ops, input)
+							.flatMap(value -> this.validate(value, min, max, input))));
 			}
 
-		});
+			@Override
+			public <I> RecordBuilder<I> encode(M input, DynamicOps<I> ops, RecordBuilder<I> prefix) {
+				return MAX_FIELD
+					.encode(input.max(), ops, MIN_FIELD
+						.encode(input.min(), ops, VALUE_FIELD
+							.encode(input.value(), ops, prefix)));
+			}
 
+			private <I> DataResult<M> validate(NumberProvider valueProvider, Optional<NumberProvider> minProvider, Optional<NumberProvider> maxProvider, MapLike<I> input) {
+
+				if (minProvider.isEmpty() && maxProvider.isEmpty()) {
+					return DataResult.error(() -> "Any of 'min' and 'max' keys must be present in input: " + input);
+				}
+
+				else {
+					return DataResult.success(constructor.apply(valueProvider, minProvider, maxProvider));
+				}
+
+			}
+
+		};
 	}
 
 	static <M extends CompareToRangeMetaCondition> PacketCodec<RegistryByteBuf, M> packetCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
