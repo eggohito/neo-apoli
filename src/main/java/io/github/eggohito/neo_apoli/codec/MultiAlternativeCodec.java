@@ -4,37 +4,49 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
-public record MultiAlternativeCodec<T>(Codec<T> primary, Codec<? extends T>... alternatives) implements Codec<T> {
+public record MultiAlternativeCodec<T>(Codec<T> primary, List<Codec<? extends T>> alternatives) implements Codec<T> {
 
 	@SafeVarargs
-	public MultiAlternativeCodec {
-
+	public MultiAlternativeCodec(Codec<T> primary, Codec<? extends T>... alternatives) {
+		this(primary, ObjectArrayList.of(alternatives));
 	}
 
 	@Override
 	public <I> DataResult<Pair<T, I>> decode(DynamicOps<I> ops, I input) {
 
+		Set<String> errors = new ObjectOpenHashSet<>();
 		StringBuilder errorBuilder = new StringBuilder();
-		DataResult<Pair<T, I>> primaryResult = primary().decode(ops, input).ifError(error -> errorBuilder.append("\n\t - ").append(error.message()));
+
+		DataResult<Pair<T, I>> primaryResult = primary().decode(ops, input)
+			.ifError(error -> errors.add(error.message()));
 
 		if (primaryResult.isSuccess()) {
 			return primaryResult;
 		}
 
-		for (var alternative : alternatives()) {
+		for (var alternative: alternatives()) {
 
-			DataResult<Pair<T, I>> altResult = alternative.decode(ops, input)
-				.ifError(error -> errorBuilder.append("\n\t - ").append(error.message()))
+			DataResult<Pair<T, I>> alternativeResult = alternative.decode(ops, input)
+				.ifError(error -> errors.add(error.message()))
 				.map(pair -> pair.mapFirst(Function.identity()));
 
-			if (altResult.isSuccess()) {
-				return altResult;
+			if (alternativeResult.isSuccess()) {
+				return alternativeResult;
 			}
 
 		}
+
+		boolean moreThanOneErrors = errors.size() > 1;
+		errors.forEach(error -> errorBuilder
+			.append(moreThanOneErrors && !error.startsWith("\n\t - ") ? "\n\t - " : "")
+			.append(error));
 
 		return DataResult.error(errorBuilder::toString);
 
