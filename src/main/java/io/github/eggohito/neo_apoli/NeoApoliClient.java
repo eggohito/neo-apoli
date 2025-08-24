@@ -38,7 +38,10 @@ public class NeoApoliClient implements ClientModInitializer {
 		PowerIntegrationsClient.registerAll();
 
 		ClientTickEvents.END_CLIENT_TICK.register(NeoApoliClient::triggerKeyBoundPowerImpls);
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ((DataCommandStorageHolder) client).neo_apoli$clear());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			((DataCommandStorageHolder) client).neo_apoli$clear();
+			NeoApoli.LOGS.clear();
+		});
 
 	}
 
