@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
@@ -21,8 +20,8 @@ import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
+import io.github.eggohito.neo_apoli.networking.packet.s2c.ClearLogsS2CPacket;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
@@ -32,9 +31,9 @@ import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
@@ -61,10 +60,10 @@ public class NeoApoli implements ModInitializer {
 	public static final String MOD_NAMESPACE = "neo-apoli";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	public static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
-
 	@ApiStatus.Internal
 	public static final Set<String> LOGS = new ObjectOpenHashSet<>();
+	public static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5");
+
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
@@ -117,18 +116,17 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();
 
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onAdded));
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> PowersComponent.getAllInstances(entity).forEach(Power.Instance::onRemoved));
+		PowerIntegrations.registerAll();
+		NeoApoliConfig.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
-		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> LOGS.clear());
-
-		PowerIntegrations.registerAll();
-
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
-		NeoApoliConfig.init();
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
+			LOGS.clear();
+			server.getPlayerManager().getPlayerList().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, ClearLogsS2CPacket.INSTANCE));
+		});
 
 	}
 
