@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -62,7 +63,7 @@ public final class CollidedBlocksNumberProvider extends NumberProvider {
 
 			BlockPos blockPos = spliterator.next();
 			Context blockContext = context.copy(builder -> builder
-				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
+				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));

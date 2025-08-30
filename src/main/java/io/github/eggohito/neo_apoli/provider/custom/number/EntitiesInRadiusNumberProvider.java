@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -90,7 +91,7 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 		super.validate(reporter);
 
 		entityCondition().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ENTITY))
 			.makeChild(".entity_condition"));
 		radius().validate(reporter.makeChild(".radius"));
 

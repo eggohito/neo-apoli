@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -76,7 +77,7 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 			}
 
 			Context blockContext = context.copy(builder -> builder
-				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
+				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, pos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
 				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
@@ -102,7 +103,7 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 		super.validate(reporter);
 
 		blockCondition().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 		radius().validate(reporter.makeChild(".radius"));
 

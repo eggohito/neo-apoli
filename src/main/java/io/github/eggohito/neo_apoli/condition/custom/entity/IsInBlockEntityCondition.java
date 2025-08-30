@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -46,7 +47,7 @@ public final class IsInBlockEntityCondition extends EntityCondition {
 
 		World world = context.getWorld();
 		Context blockContext = context.copy(builder -> builder
-			.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
@@ -59,7 +60,7 @@ public final class IsInBlockEntityCondition extends EntityCondition {
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 	}
 

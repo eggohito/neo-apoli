@@ -162,10 +162,6 @@ public interface ContextAware {
 				return this;
 			}
 
-			else if (this.parent.parent == null) {
-				return this.parent;
-			}
-
 			else {
 				return this.parent.getRoot();
 			}
@@ -173,8 +169,7 @@ public interface ContextAware {
 		}
 
 		public boolean isRoot() {
-			return this.parent == null
-				|| this.parent.parent == null;
+			return this.parent == null;
 		}
 
 		public boolean isInStack(ContextKey key) {

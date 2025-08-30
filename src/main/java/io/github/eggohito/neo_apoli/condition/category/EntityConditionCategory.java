@@ -12,10 +12,7 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
@@ -50,7 +47,7 @@ public class EntityConditionCategory extends ConditionCategory<EntityCondition> 
 
 			EntityCondition entityCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, EntityCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(entityCondition).mapOrElse(Identifier::toString, error -> entityCondition.toString()) + "}")
-				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
+				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
 			Context context = Context.builder(reporter)

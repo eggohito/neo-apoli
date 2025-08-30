@@ -69,11 +69,9 @@ public class ModifyModelColorOtherPower extends Power {
 		public Optional<Argb> getColor(Context context) {
 
 			context = this.addPowerContext(context);
-
-			Entity viewer = context.required(ContextParameters.ACTOR);
 			Entity renderedEntity = context.nullable(ContextParameters.TARGET);
 
-			if (!Objects.equals(viewer, renderedEntity) && this.doesApply(context)) {
+			if (!Objects.equals(holder, renderedEntity) && this.doesApply(context)) {
 				return Optional.of(power.getColor().toArgb(context.makeChild(".color")));
 			}
 

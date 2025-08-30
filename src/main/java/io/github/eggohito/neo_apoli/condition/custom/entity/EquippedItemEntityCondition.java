@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,7 +55,7 @@ public final class EquippedItemEntityCondition extends EntityCondition {
 			if (slot().matches(equipmentSlot)) {
 
 				Context itemContext = context.copy(builder -> builder
-					.withContextType(ContextTypes.merge(context.getType(), ContextTypes.ITEM))
+					.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
 					.add(ContextParameters.ITEM_STACK, livingEntity.getEquippedStack(equipmentSlot)));
 
 				if (itemCondition().test(itemContext.makeChild(".item_condition"))) {
@@ -73,7 +74,7 @@ public final class EquippedItemEntityCondition extends EntityCondition {
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
 		itemCondition().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.ITEM))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ITEM))
 			.makeChild(".item_condition"));
 	}
 

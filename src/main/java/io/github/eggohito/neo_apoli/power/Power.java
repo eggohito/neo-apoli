@@ -18,7 +18,7 @@ import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
@@ -174,7 +174,7 @@ public abstract class Power {
 		public final Context.Builder addPowerContext(Context.Builder builder) {
 
 			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(ContextTypes.merge(this.getContextType(), builder.getType()), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(ContextTypeUtil.merge(this.getContextType(), builder.getType()), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
 
 			return builder
 				.withReporter(reporter)

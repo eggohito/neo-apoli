@@ -12,10 +12,7 @@ import io.github.eggohito.neo_apoli.condition.ItemCondition;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -73,7 +70,7 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 
 			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, ItemCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
-				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM))
+				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.BLOCK, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
 			if (serverWorld.getBlockEntity(blockPos) instanceof Inventory inventory) {
@@ -127,7 +124,7 @@ public class ItemConditionCategory extends ConditionCategory<ItemCondition> {
 
 			ItemCondition itemCondition = ConditionArgumentType.getCondition(commandContext, conditionKey, ItemCondition.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ConditionManager.getIdAsResult(itemCondition).mapOrElse(Identifier::toString, error -> itemCondition.toString()) + "}")
-				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
+				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.ITEM))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandContext.getSource().getServer().getReloadableRegistries()).getRegistries());
 
 			for (int slotId : slotRange.getSlotIds()) {

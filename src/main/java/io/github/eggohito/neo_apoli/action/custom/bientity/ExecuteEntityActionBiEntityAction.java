@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -52,7 +53,7 @@ public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 
 		Entity entity = context.required(entity().getParameter());
 		Context entityContext = context.copy(builder -> builder
-			.withContextType(ContextTypes.merge(context.getType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ENTITY))
 			.add(ContextParameters.ENTITY, entity)
 			.add(ContextParameters.ENTITY_POS, entity.getPos()));
 
@@ -69,7 +70,7 @@ public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
 		entityAction().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ENTITY))
 			.makeChild(".entity_action"));
 	}
 

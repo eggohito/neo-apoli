@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -67,7 +68,7 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 		for (Entity target : shape().getEntities(world, originPos, radius)) {
 
 			Context biEntityContext = context.copy(builder -> builder
-				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
+				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
 				.add(ContextParameters.ACTOR, context.required(ContextParameters.ENTITY))
 				.add(ContextParameters.TARGET, target));
 
@@ -83,7 +84,7 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 	public void validate(ErrorReporter reporter) {
 
 		super.validate(reporter);
-		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BIENTITY));
+		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BIENTITY));
 
 		biEntityAction().validate(biEntityReporter.makeChild(".bientity_action"));
 		biEntityCondition().validate(biEntityReporter.makeChild(".bientity_condition"));

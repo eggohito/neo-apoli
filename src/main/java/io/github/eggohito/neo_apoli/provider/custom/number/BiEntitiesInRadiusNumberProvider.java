@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -72,7 +73,7 @@ public final class BiEntitiesInRadiusNumberProvider extends NumberProvider {
 		for (Entity target : this.shape().getEntities(world, pos, radius)) {
 
 			Context biEntityContext = context.copy(builder -> builder
-				.withContextType(ContextTypes.merge(context.getType(), ContextTypes.BIENTITY))
+				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
 				.add(ContextParameters.ACTOR, actor)
 				.add(ContextParameters.TARGET, target));
 
@@ -97,7 +98,7 @@ public final class BiEntitiesInRadiusNumberProvider extends NumberProvider {
 		super.validate(reporter);
 
 		biEntityCondition().validate(reporter
-			.withContextType(ContextTypes.merge(reporter.getContextType(), ContextTypes.BIENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BIENTITY))
 			.makeChild(".bientity_condition"));
 		radius().validate(reporter.makeChild(".radius"));
 

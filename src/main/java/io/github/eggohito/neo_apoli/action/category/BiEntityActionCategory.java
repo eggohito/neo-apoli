@@ -10,10 +10,7 @@ import io.github.eggohito.neo_apoli.action.BiEntityAction;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
@@ -50,7 +47,7 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 
 			BiEntityAction biEntityAction = ActionArgumentType.getAction(commandContext, actionKey, BiEntityAction.class);
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{" + ActionManager.getIdAsResult(biEntityAction).mapOrElse(Identifier::toString, error -> biEntityAction.toString()) + "}")
-				.withContextType(ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY))
+				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
 			Context context = Context.builder(reporter)

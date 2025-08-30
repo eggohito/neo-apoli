@@ -12,12 +12,10 @@ import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +24,6 @@ import java.util.Optional;
 
 @Getter
 public class ModifyModelColorSelfPower extends Power {
-
-	public static final ContextType CONTEXT_TYPE = ContextTypes.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
 
 	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
 		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyModelColorSelfPower::getBiEntityCondition))
@@ -73,11 +69,9 @@ public class ModifyModelColorSelfPower extends Power {
 		public Optional<Argb> getColor(Context context) {
 
 			Entity viewer = context.nullable(ContextParameters.ACTOR);
-			Entity renderedEntity = context.required(ContextParameters.TARGET);
-
 			context = this.addPowerContext(context);
 
-			if (viewer == null || Objects.equals(viewer, renderedEntity) || this.doesApply(context)) {
+			if (viewer == null || Objects.equals(viewer, holder) || this.doesApply(context)) {
 				return Optional.of(power.getColor().toArgb(context.makeChild(".color")));
 			}
 
