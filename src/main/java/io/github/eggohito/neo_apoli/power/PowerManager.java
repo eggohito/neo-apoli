@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.event.PowerPreparationCallback;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
+import io.github.eggohito.neo_apoli.integration.DataPackContentsEvents;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
@@ -105,8 +106,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	@ApiStatus.Internal
-	public static void applyPendingTags(DataPackContents dataPackContents) {
+	private static void applyPendingTags(DataPackContents dataPackContents) {
 
 		if (PREPARED_TAGS.isEmpty()) {
 			return;
@@ -202,12 +202,20 @@ public final class PowerManager implements JsonResourceReloader {
 	@ApiStatus.Internal
 	public static void init() {
 
+	}
+
+	static {
+
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparationCallback.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+		DataPackContentsEvents.PendingTagLoadEvents.AFTER.register(ID, dataPackContents -> {
+			validate(dataPackContents);
+			applyPendingTags(dataPackContents);
+		});
 
 	}
 
