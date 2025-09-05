@@ -10,6 +10,7 @@ public class NeoApoliPackets {
 
 	public static void registerAll() {
 
+		PayloadTypeRegistry.playS2C().register(ClearLogsS2CPacket.ID, ClearLogsS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(DismountEntityS2CPacket.ID, DismountEntityS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(MountEntityS2CPacket.ID, MountEntityS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizeActionsS2CPacket.ID, SynchronizeActionsS2CPacket.CODEC);
@@ -21,7 +22,6 @@ public class NeoApoliPackets {
 		PayloadTypeRegistry.playS2C().register(SynchronizePowersS2CPacket.ID, SynchronizePowersS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowerTagsS2CPacket.ID, SynchronizePowerTagsS2CPacket.CODEC);
 
-		PayloadTypeRegistry.playC2S().register(ClearLogsS2CPacket.ID, ClearLogsS2CPacket.CODEC);
 		PayloadTypeRegistry.playC2S().register(RequestPowerTagsC2SPacket.ID, RequestPowerTagsC2SPacket.CODEC);
 		PayloadTypeRegistry.playC2S().register(RequestActionTagsC2SPacket.ID, RequestActionTagsC2SPacket.CODEC);
 		PayloadTypeRegistry.playC2S().register(TriggerPowerImplsC2SPacket.ID, TriggerPowerImplsC2SPacket.CODEC);
