@@ -109,22 +109,20 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	}
 
 	public static ActionResult execute(World world, LivingEntity user, Hand hand, StackReference stackReference, TriggerType triggerType, PriorityPhase priorityPhase, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<@Nullable ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultResultGetter) {
-		CallInstance<Instance> callInstance = CallInstance.create(user, Instance.class, instance -> instance.shouldExecute(priorityPhase, triggerType));
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(user, Instance.class, instance -> instance.shouldExecute(priorityPhase, triggerType));
 		return switch (priorityPhase) {
 			case BEFORE ->
-				executeBeforeUse(callInstance, world, user, hand, stackReference, zeroPriorityResultSetter, defaultResultGetter);
+				executeBeforeUse(instanceCollection, world, user, hand, stackReference, zeroPriorityResultSetter, defaultResultGetter);
 			case AFTER ->
-				executeAfterUse(callInstance, world, user, hand, stackReference, zeroPriorityResultGetter, defaultResultGetter);
-			default ->
-				zeroPriorityResultGetter.get();
+				executeAfterUse(instanceCollection, world, user, hand, stackReference, zeroPriorityResultGetter, defaultResultGetter);
 		};
 	}
 
-	private static ActionResult executeBeforeUse(CallInstance<Instance> callInstance, World world, LivingEntity user, Hand hand, StackReference stackReference, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> defaultResultGetter) {
+	private static ActionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, World world, LivingEntity user, Hand hand, StackReference stackReference, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> defaultResultGetter) {
 
-		for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority() && callInstance.hasInstances(priority); priority--) {
+		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
-			List<Instance> instances = callInstance.getInstances(priority);
+			List<Instance> instances = instanceCollection.getInstances(priority);
 			ActionResult previousResult = ActionResult.PASS;
 
 			for (var instance: instances) {
@@ -168,7 +166,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	}
 
-	private static ActionResult executeAfterUse(CallInstance<Instance> callInstance, World world, LivingEntity user, Hand hand, StackReference stackReference, Supplier<@Nullable ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultResultGetter) {
+	private static ActionResult executeAfterUse(InstanceCollection<Instance> instanceCollection, World world, LivingEntity user, Hand hand, StackReference stackReference, Supplier<@Nullable ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultResultGetter) {
 
 		ActionResult original = defaultResultGetter.get();
 		ActionResult modified = ActionResult.PASS;
@@ -181,9 +179,9 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 		else if (MiscUtil.isResultPass(original)) {
 
-			for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority() && callInstance.hasInstances(priority); priority--) {
+			for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
-				List<Instance> instances = callInstance.getInstances(priority);
+				List<Instance> instances = instanceCollection.getInstances(priority);
 				ActionResult previousResult = ActionResult.PASS;
 
 				for (var instance: instances) {
@@ -229,15 +227,10 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 			.build(world);
 	}
 
-	public static class Instance extends Power.Instance<ModifyItemUsePower> implements Prioritized<Instance> {
+	public static class Instance extends Power.Instance<ModifyItemUsePower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyItemUsePower power) {
 			super(holder, power);
-		}
-
-		@Override
-		public int getPriority() {
-			return power.getPriority();
 		}
 
 		public ActionResult execute(Context context) {

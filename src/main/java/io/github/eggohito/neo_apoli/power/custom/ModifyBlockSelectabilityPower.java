@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
@@ -27,7 +26,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -84,15 +83,10 @@ public class ModifyBlockSelectabilityPower extends Power implements Prioritized<
 
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockSelectabilityPower> implements Prioritized<Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockSelectabilityPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockSelectabilityPower power) {
 			super(holder, power);
-		}
-
-		@Override
-		public int getPriority() {
-			return power.getPriority();
 		}
 
 		public boolean doesApply(Context context) {
@@ -109,10 +103,10 @@ public class ModifyBlockSelectabilityPower extends Power implements Prioritized<
 
 	public static VoxelShape modifySelectingOutlineShape(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
-		List<Instance> instances = PowersComponent.getInstances(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.doesApply(context));
-		instances.sort(Instance::compareTo);
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.doesApply(context));
+		Iterator<Instance> iterator = instanceCollection.iterator();
 
-		if (instances.isEmpty() || instances.getLast().isAllowed(context)) {
+		if (!iterator.hasNext() || iterator.next().isAllowed(context)) {
 			return defaultValue.get();
 		}
 

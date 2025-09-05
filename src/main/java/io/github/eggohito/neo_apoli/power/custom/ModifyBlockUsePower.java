@@ -105,20 +105,15 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockUsePower> implements Prioritized<Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockUsePower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockUsePower power) {
 			super(holder, power);
 		}
 
-		@Override
-		public int getPriority() {
-			return this.getPower().getPriority();
-		}
-
 		public boolean shouldExecute(BlockInteractionPhase interactionPhase, PriorityPhase priorityPhase) {
 			return this.getPower().getInteractionPhases().contains(interactionPhase)
-				&& this.inPriorityPhase(priorityPhase);
+				&& this.getPower().inPriorityPhase(priorityPhase);
 		}
 
 		public boolean doesApply(Context context) {
@@ -203,8 +198,6 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 				executeOnBeforeBlockUse(player, hand, blockHitResult, interactionPhase, zeroPriorityResultSetter, defaultValueSupplier);
 			case AFTER ->
 				executeOnAfterBlockUse(player, hand, blockHitResult, interactionPhase, zeroPriorityResultGetter, defaultValueSupplier);
-			default ->
-				defaultValueSupplier.get();
 		};
 	}
 
@@ -213,16 +206,16 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		World world = player.getWorld();
 		BlockPos blockPos = blockHitResult.getBlockPos();
 
-		CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
 		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
-		for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
+		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
-			if (!callInstance.hasInstances(priority)) {
+			if (!instanceCollection.hasInstances(priority)) {
 				continue;
 			}
 
-			List<Instance> instances = callInstance.getInstances(priority);
+			List<Instance> instances = instanceCollection.getInstances(priority);
 			ActionResult previousResult = ActionResult.PASS;
 
 			for (var instance : instances) {
@@ -284,16 +277,16 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		else if (original == ActionResult.PASS) {
 
-			CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.AFTER));
+			InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.AFTER));
 			StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
-			for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
+			for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
-				if (!callInstance.hasInstances(priority)) {
+				if (!instanceCollection.hasInstances(priority)) {
 					continue;
 				}
 
-				List<Instance> instances = callInstance.getInstances(priority);
+				List<Instance> instances = instanceCollection.getInstances(priority);
 				ActionResult previousResult = ActionResult.PASS;
 
 				for (var instance : instances) {

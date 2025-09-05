@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Optional;
 
 public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
@@ -100,15 +99,10 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 		return onlyWhenHarvested;
 	}
 
-	public static class Instance extends Power.Instance<CallbackBlockBreakPower> implements Prioritized<Instance> {
+	public static class Instance extends Power.Instance<CallbackBlockBreakPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull CallbackBlockBreakPower power) {
 			super(holder, power);
-		}
-
-		@Override
-		public int getPriority() {
-			return power.getPriority();
 		}
 
 		public void execute(Context context) {
@@ -174,25 +168,19 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	public static void execute(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction, boolean harvested) {
 
-		CallInstance<Instance> callInstance = CallInstance.create(player, Instance.class, instance -> true);
+		for (var instance : new InstanceCollection<>(player, Instance.class, instance -> true)) {
 
-		for (int priority = callInstance.getMaxPriority(); priority >= callInstance.getMinPriority(); priority--) {
+			Context context = PowerTypes.CALLBACK_BLOCK_BREAK.contextBuilder()
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, blockState)
+				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
+				.addNullable(ContextParameters.DIRECTION, direction)
+				.add(ContextParameters.ENTITY, player)
+				.add(ContextParameters.ENTITY_POS, player.getPos())
+				.build(player.getWorld());
 
-			List<Instance> instances = callInstance.getInstances(priority);
-
-			for (var instance : instances) {
-
-				Context context = instance.createGenericContextBuilder()
-					.add(ContextParameters.BLOCK_POS, blockPos)
-					.add(ContextParameters.BLOCK_STATE, blockState)
-					.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-					.addNullable(ContextParameters.DIRECTION, direction)
-					.build(player.getWorld());
-
-				if (instance.doesApply(context, harvested)) {
-					instance.execute(context);
-				}
-
+			if (instance.doesApply(context, harvested)) {
+				instance.execute(context);
 			}
 
 		}
