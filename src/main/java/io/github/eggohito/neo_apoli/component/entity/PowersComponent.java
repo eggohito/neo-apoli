@@ -318,12 +318,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			PowerReference reference = entry.getKey();
 			Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
 
-			if (!continueCondition.getAsBoolean()) {
-				break;
-			}
+			if (!sources.isEmpty()) {
 
-			else if (!sources.isEmpty()) {
 				consumer.accept(reference, entry.getValue(), sources);
+
+				if (!continueCondition.getAsBoolean()) {
+					break;
+				}
+
 			}
 
 		}
@@ -425,7 +427,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		};
 
-		this.forEach(consumer, result::isTrue);
+		this.forEach(consumer, result::isFalse);
 		return result.isTrue();
 
 	}
