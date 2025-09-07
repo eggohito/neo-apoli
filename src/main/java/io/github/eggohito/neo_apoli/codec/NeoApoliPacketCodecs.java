@@ -15,6 +15,9 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.recipe.CraftingRecipe;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.ActionResult;
@@ -28,6 +31,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class NeoApoliPacketCodecs {
 
@@ -131,5 +135,15 @@ public class NeoApoliPacketCodecs {
 	public static final PacketCodec<ByteBuf, Dynamic<?>> PASSTHROUGH = PacketCodecs.codec(Codec.PASSTHROUGH);
 
 	public static final PacketCodec<RegistryByteBuf, Dynamic<?>> REGISTRY_PASSTHROUGH = PacketCodecs.unlimitedRegistryCodec(Codec.PASSTHROUGH);
+
+	public static final PacketCodec<RegistryByteBuf, CraftingRecipe> CRAFTING_RECIPE = Recipe.PACKET_CODEC.xmap(
+		recipe -> RecipeUtil.validateCraftingRecipe(recipe).getOrThrow(),
+		Function.identity()
+	);
+
+	public static final PacketCodec<RegistryByteBuf, RecipeEntry<CraftingRecipe>> CRAFTING_RECIPE_ENTRY = RecipeEntry.PACKET_CODEC.xmap(
+		recipeEntry -> new RecipeEntry<>(recipeEntry.id(), RecipeUtil.validateCraftingRecipe(recipeEntry.value()).getOrThrow()),
+		Function.identity()
+	);
 
 }

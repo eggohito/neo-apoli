@@ -366,6 +366,14 @@ public final class PowerManager implements JsonResourceReloader {
 		return BY_REFERENCE.keySet().stream();
 	}
 
+	public static Collection<PowerEntry<?>> entries() {
+		return Util.make(new ObjectOpenHashSet<>(), set -> set.addAll(BY_REFERENCE.values()));
+	}
+
+	public static Collection<Power> powers() {
+		return Util.make(new ObjectOpenHashSet<>(), set -> BY_REFERENCE.values().forEach(entry -> set.add(entry.value())));
+	}
+
 	public static boolean contains(PowerReference reference) {
 		return BY_REFERENCE.containsKey(reference);
 	}

@@ -58,7 +58,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (original) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderedEntity);
-				boolean result = !PowersComponent.hasInstance(renderedEntity, ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderOutline(context)));
+				boolean result = !PowersComponent.hasInstances(renderedEntity, ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderOutline(context)));
 
 				this.neo_apoli$invisibilityContext.clear();
 				return result;
@@ -77,7 +77,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (featureRenderer instanceof ArmorFeatureRenderer<?, ?, ?> && state instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderCache.neo_apoli$getEntity());
-				boolean result = !PowersComponent.hasInstance(renderCache.neo_apoli$getEntity(), ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderArmor(context)));
+				boolean result = !PowersComponent.hasInstances(renderCache.neo_apoli$getEntity(), ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderArmor(context)));
 
 				this.neo_apoli$invisibilityContext.clear();
 				return result;

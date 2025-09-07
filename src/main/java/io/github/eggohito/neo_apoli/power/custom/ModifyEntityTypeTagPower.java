@@ -146,7 +146,7 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
-		return PowersComponent.hasInstance(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.isActive(context) && instance.doesApply(tag));
+		return PowersComponent.hasInstances(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.isActive(context) && instance.doesApply(tag));
 	}
 
 	public static boolean doesApply(Context context, RegistryEntryList<EntityType<?>> tagsEntryList) {

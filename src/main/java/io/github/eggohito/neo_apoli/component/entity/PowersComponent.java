@@ -406,11 +406,15 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		return Objects.requireNonNull(instances.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
 	}
 
-	public <I extends Power.Instance<?>> boolean hasInstance(Class<I> instanceClass) {
-		return this.hasInstance(instanceClass, instance -> true);
+	public boolean hasInstance(PowerReference reference) {
+		return instances.containsKey(reference);
 	}
 
-	public <I extends Power.Instance<?>> boolean hasInstance(Class<I> instanceClass, Predicate<I> instanceFilter) {
+	public <I extends Power.Instance<?>> boolean hasInstances(Class<I> instanceClass) {
+		return this.hasInstances(instanceClass, instance -> true);
+	}
+
+	public <I extends Power.Instance<?>> boolean hasInstances(Class<I> instanceClass, Predicate<I> instanceFilter) {
 
 		MutableBoolean result = new MutableBoolean(false);
 		TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer = (powerReference, instance, sources) -> {
@@ -465,16 +469,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		NeoApoliEntityComponents.POWERS.maybeGet(holder).ifPresent(powersComponent -> powersComponent.forEach(consumer));
 	}
 
-	public static <I extends Power.Instance<?>> boolean hasInstance(Entity entity, Class<I> implClass) {
+	public static <I extends Power.Instance<?>> boolean hasInstances(Entity entity, Class<I> implClass) {
 		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
 			.stream()
-			.anyMatch(powersComponent -> powersComponent.hasInstance(implClass));
+			.anyMatch(powersComponent -> powersComponent.hasInstances(implClass));
 	}
 
-	public static <I extends Power.Instance<?>> boolean hasInstance(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
+	public static <I extends Power.Instance<?>> boolean hasInstances(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
 		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
 			.stream()
-			.anyMatch(powersComponent -> powersComponent.hasInstance(implClass, implFilter));
+			.anyMatch(powersComponent -> powersComponent.hasInstances(implClass, implFilter));
 	}
 
 	public static List<Power.Instance<?>> getAllInstances(Entity entity) {

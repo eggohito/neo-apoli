@@ -72,7 +72,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 		else {
 
 			Context context = this.neo_apoli$getOrCreateClimbingContext();
-			boolean result = PowersComponent.hasInstance(this, ModifyClimbingPower.Instance.class, instance -> instance.isActive(context));
+			boolean result = PowersComponent.hasInstances(this, ModifyClimbingPower.Instance.class, instance -> instance.isActive(context));
 
 			if (result) {
 				this.climbingPos = Optional.of(this.getBlockPos());
