@@ -4,6 +4,7 @@ import io.github.eggohito.neo_apoli.client.PowerIntegrationsClient;
 import io.github.eggohito.neo_apoli.client.util.KeyBindingUtil;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.keybinding.KeyBindingReference;
 import io.github.eggohito.neo_apoli.networking.NeoApoliS2CNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.TriggerPowerImplsC2SPacket;
@@ -14,6 +15,7 @@ import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -39,8 +41,12 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(NeoApoliClient::triggerKeyBoundPowerImpls);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+
 			((DataCommandStorageHolder) client).neo_apoli$clear();
+			((PowerRecipeDisplayHolder) client).neo_apoli$setReferencesByDisplayEntry(new Object2ObjectOpenHashMap<>());
+
 			NeoApoli.LOGS.clear();
+
 		});
 
 	}

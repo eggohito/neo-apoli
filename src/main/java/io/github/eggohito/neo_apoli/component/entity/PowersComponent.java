@@ -409,7 +409,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	public boolean hasInstance(PowerReference reference) {
-		return instances.containsKey(reference);
+		return instances.containsKey(reference)
+			&& sources.containsKey(reference);
+	}
+
+	public boolean hasInstance(PowerReference reference, Identifier source) {
+		return hasInstance(reference)
+			&& sources.get(reference).contains(source);
 	}
 
 	public <I extends Power.Instance<?>> boolean hasInstances(Class<I> instanceClass) {
@@ -430,16 +436,6 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		this.forEach(consumer, result::isFalse);
 		return result.isTrue();
 
-	}
-
-	public boolean hasPower(PowerReference reference) {
-		return instances.containsKey(reference)
-			&& sources.containsKey(reference);
-	}
-
-	public boolean hasPower(PowerReference reference, Identifier source) {
-		return hasPower(reference)
-			&& sources.get(reference).contains(source);
 	}
 
 	public Set<Identifier> getSources(PowerReference reference) {

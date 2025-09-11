@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
+import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
@@ -16,10 +17,13 @@ import net.minecraft.recipe.IngredientPlacement;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.book.CraftingRecipeCategory;
+import net.minecraft.recipe.book.RecipeBookCategory;
+import net.minecraft.recipe.display.RecipeDisplay;
 import net.minecraft.recipe.input.CraftingRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.Objects;
 
 public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe delegate) implements CraftingRecipe {
@@ -66,6 +70,11 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	}
 
 	@Override
+	public RecipeBookCategory getRecipeBookCategory() {
+		return NeoApoliRecipeBookCategories.POWER_CRAFTING_RECIPE;
+	}
+
+	@Override
 	public boolean isIgnoredInRecipeBook() {
 		return delegate().isIgnoredInRecipeBook();
 	}
@@ -76,8 +85,8 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	}
 
 	@Override
-	public String getGroup() {
-		return delegate().getGroup();
+	public List<RecipeDisplay> getDisplays() {
+		return delegate().getDisplays();
 	}
 
 	public static class Serializer implements RecipeSerializer<PowerCraftingRecipe> {

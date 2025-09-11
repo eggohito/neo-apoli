@@ -42,7 +42,7 @@ public final class IsPowerActiveEntityCondition extends EntityCondition {
 		Entity entity = context.required(ContextParameters.ENTITY);
 		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
-		return powersComponent.hasPower(this.power())
+		return powersComponent.hasInstance(this.power())
 			&& powersComponent.getInstance(this.power()).isActive(context);
 
 	}

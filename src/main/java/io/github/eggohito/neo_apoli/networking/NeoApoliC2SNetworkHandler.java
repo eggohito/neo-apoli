@@ -48,7 +48,7 @@ public class NeoApoliC2SNetworkHandler {
 				NeoApoli.LOGGER.warn("Couldn't trigger unregistered {} from entity {}!", powerReference.asDisplayString(false), player.getName().getString());
 			}
 
-			else if (!powersComponent.hasPower(powerReference)) {
+			else if (!powersComponent.hasInstance(powerReference)) {
 				NeoApoli.LOGGER.warn("Couldn't trigger {} as entity {} doesn't have it!", powerReference.asDisplayString(false), player.getName().getString());
 			}
 

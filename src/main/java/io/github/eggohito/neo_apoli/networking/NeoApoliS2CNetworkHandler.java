@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestActionTagsC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.*;
@@ -39,6 +40,7 @@ public class NeoApoliS2CNetworkHandler {
 			ClientPlayNetworking.registerReceiver(SynchronizeDataCommandStorageS2CPacket.ID, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizeEntityTypeTagCacheS2CPacket.ID, ModifyEntityTypeTagPower::receiveCache);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerDataS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowerDataSynchronized);
+			ClientPlayNetworking.registerReceiver(SynchronizePowerRecipeDisplaysS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowerRecipeDisplaysSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowersSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerTagsS2CPacket.ID, NeoApoliS2CNetworkHandler::onPowerTagsSynchronized);
 		});
@@ -128,7 +130,7 @@ public class NeoApoliS2CNetworkHandler {
 			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 			RegistryOps<NbtElement> nbtOps = entity.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
 
-			if (powersComponent.hasPower(powerReference)) {
+			if (powersComponent.hasInstance(powerReference)) {
 
 				Power.Instance<?> instance = powersComponent.getInstance(powerReference);
 				NbtElement nbtData = payload.data().convert(nbtOps).getValue();
@@ -145,6 +147,10 @@ public class NeoApoliS2CNetworkHandler {
 
 		}
 
+	}
+
+	private static void onPowerRecipeDisplaysSynchronized(SynchronizePowerRecipeDisplaysS2CPacket payload, ClientPlayNetworking.Context context) {
+		((PowerRecipeDisplayHolder) context.client()).neo_apoli$setReferencesByDisplayEntry(payload.displays());
 	}
 
 	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {

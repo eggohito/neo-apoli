@@ -9,3 +9,5 @@ accessible class net/minecraft/server/MinecraftServer$ResourceManagerHolder
 accessible class net/minecraft/server/command/ExecuteCommand$Condition
 accessible method net/minecraft/util/math/ColorHelper floatFromChannel (I)F
 accessible class net/minecraft/registry/tag/TagGroupLoader$TagDependencies
+mutable field net/minecraft/recipe/RecipeFinder recipeMatcher Lnet/minecraft/recipe/RecipeMatcher;
+accessible field net/minecraft/recipe/RecipeFinder recipeMatcher Lnet/minecraft/recipe/RecipeMatcher;

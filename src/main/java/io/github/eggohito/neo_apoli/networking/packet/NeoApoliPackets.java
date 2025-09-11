@@ -19,6 +19,7 @@ public class NeoApoliPackets {
 		PayloadTypeRegistry.playS2C().register(SynchronizeDataCommandStorageS2CPacket.ID, SynchronizeDataCommandStorageS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizeEntityTypeTagCacheS2CPacket.ID, SynchronizeEntityTypeTagCacheS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowerDataS2CPacket.ID, SynchronizePowerDataS2CPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(SynchronizePowerRecipeDisplaysS2CPacket.ID, SynchronizePowerRecipeDisplaysS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowersS2CPacket.ID, SynchronizePowersS2CPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(SynchronizePowerTagsS2CPacket.ID, SynchronizePowerTagsS2CPacket.CODEC);
 

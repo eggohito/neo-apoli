@@ -26,6 +26,7 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
+import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
@@ -107,7 +108,9 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliContainerTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();
+
 		NeoApoliRecipeSerializers.registerAll();
+		NeoApoliRecipeBookCategories.registerAll();
 
 		ComparisonTypes.registerAll();
 		ModifierTypes.registerAll();
