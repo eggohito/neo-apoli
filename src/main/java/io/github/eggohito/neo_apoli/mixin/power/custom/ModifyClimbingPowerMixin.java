@@ -98,7 +98,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 		else {
 
 			Context context = this.neo_apoli$getOrCreateClimbingContext();
-			instances.forEach(instance -> modified.setValue(instance.canHold(context)));
+			instances.forEach(instance -> modified.setValue(modified.getValue() || instance.canHold(context)));
 
 			this.neo_apoli$climbingContext.remove();
 			return modified.getValue();
