@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.provider.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.box.EntityBoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -15,11 +14,13 @@ import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import net.minecraft.entity.Entity;
+import net.minecraft.block.EntityShapeContext;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockCollisionSpliterator;
 import net.minecraft.world.World;
 
@@ -50,15 +51,30 @@ public final class CollidedBlocksNumberProvider extends NumberProvider {
 	protected Number impl(Context context) {
 
 		World world = context.getWorld();
-		Entity entity = box() instanceof EntityBoxProvider entityBox
-			? context.nullable(entityBox.entity().getParameter())
-			: null;
+		Context boxContext = context.makeChild(".box");
 
-		Box box = box().next(context.makeChild(".box"));
-		BlockCollisionSpliterator<BlockPos> spliterator = new BlockCollisionSpliterator<>(world, entity, box, entity != null, (pos, shape) -> pos);
+		ShapeContext shapeContext = box().getShapeContext(boxContext);
+		Box box = box().next(boxContext);
 
+		boolean hasEntity = shapeContext instanceof EntityShapeContext entityShapeContext
+			&& entityShapeContext.getEntity() != null;
 		int matches = 0;
 
+		if (!hasEntity && context.hasParameter(ContextParameters.POSITION)) {
+
+			Vec3d position = context.required(ContextParameters.POSITION);
+
+			Vec3d minPos = box.getMinPos();
+			Vec3d maxPos = box.getMaxPos();
+
+			box = new Box(
+				position.subtract(minPos),
+				position.add(maxPos)
+			);
+
+		}
+
+		BlockCollisionSpliterator<BlockPos> spliterator = new BlockCollisionSpliterator<>(context.getWorld(), shapeContext, box, hasEntity, (pos, shape) -> pos);
 		while (spliterator.hasNext()) {
 
 			BlockPos blockPos = spliterator.next();

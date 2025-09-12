@@ -7,16 +7,12 @@ import io.github.eggohito.neo_apoli.provider.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.Set;
 
 @EqualsAndHashCode
 @Data
@@ -56,15 +52,8 @@ public final class ConstantBoxProvider extends BoxProvider {
 		Vec3d min = min();
 		Vec3d max = max();
 
-		Vec3d pos = context.required(ContextParameters.POSITION);
+		return new Box(min, max);
 
-		return new Box(pos.add(min), pos.add(max));
-
-	}
-
-	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
-		return Set.of(ContextParameters.POSITION);
 	}
 
 }

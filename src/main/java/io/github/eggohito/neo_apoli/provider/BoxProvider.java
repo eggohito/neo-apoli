@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.Box;
@@ -21,7 +22,7 @@ public abstract class BoxProvider extends ValueProvider<Box> {
 
 	@Override
 	public Box next(Context context) {
-		return this.provideValue("box", context, this::next, () -> Box.from(Vec3d.ZERO));
+		return this.provideValue("box", context, this::impl, () -> Box.from(Vec3d.ZERO));
 	}
 
 	@Override
@@ -30,5 +31,9 @@ public abstract class BoxProvider extends ValueProvider<Box> {
 	}
 
 	protected abstract Box impl(Context context);
+
+	public ShapeContext getShapeContext(Context context) {
+		return ShapeContext.absent();
+	}
 
 }

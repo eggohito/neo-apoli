@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -49,14 +50,19 @@ public final class EntityBoxProvider extends BoxProvider {
 		Box offsetBox = offset().next(context.makeChild(".offset"));
 
 		return new Box(
-			boundingBox.minX + offsetBox.minX,
-			boundingBox.minY + offsetBox.minY,
-			boundingBox.minZ + offsetBox.minZ,
+			boundingBox.minX - offsetBox.minX,
+			boundingBox.minY - offsetBox.minY,
+			boundingBox.minZ - offsetBox.minZ,
 			boundingBox.maxX + offsetBox.maxX,
 			boundingBox.maxY + offsetBox.maxY,
 			boundingBox.maxZ + offsetBox.maxZ
 		);
 
+	}
+
+	@Override
+	public ShapeContext getShapeContext(Context context) {
+		return ShapeContext.of(context.required(entity().getParameter()));
 	}
 
 	@Override
