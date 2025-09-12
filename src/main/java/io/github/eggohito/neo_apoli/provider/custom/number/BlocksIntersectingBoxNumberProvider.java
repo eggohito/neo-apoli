@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.provider.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -14,27 +13,25 @@ import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import net.minecraft.block.ShapeContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.world.BlockCollisionSpliterator;
 import net.minecraft.world.World;
 
 @EqualsAndHashCode
 @Data
-public final class CollidedBlocksNumberProvider extends NumberProvider {
+public final class BlocksIntersectingBoxNumberProvider extends NumberProvider {
 
-	public static final MapCodec<CollidedBlocksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(CollidedBlocksNumberProvider::blockCondition),
-		BoxProvider.CODEC.fieldOf("box").forGetter(CollidedBlocksNumberProvider::box)
-	).apply(instance, CollidedBlocksNumberProvider::new));
+	public static final MapCodec<BlocksIntersectingBoxNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksIntersectingBoxNumberProvider::blockCondition),
+		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksIntersectingBoxNumberProvider::box)
+	).apply(instance, BlocksIntersectingBoxNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, CollidedBlocksNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, CollidedBlocksNumberProvider::blockCondition,
-		BoxProvider.PACKET_CODEC, CollidedBlocksNumberProvider::box,
-		CollidedBlocksNumberProvider::new
+	public static final PacketCodec<RegistryByteBuf, BlocksIntersectingBoxNumberProvider> PACKET_CODEC = PacketCodec.tuple(
+		BlockCondition.PACKET_CODEC, BlocksIntersectingBoxNumberProvider::blockCondition,
+		BoxProvider.PACKET_CODEC, BlocksIntersectingBoxNumberProvider::box,
+		BlocksIntersectingBoxNumberProvider::new
 	);
 
 	private final BlockCondition blockCondition;
@@ -42,24 +39,23 @@ public final class CollidedBlocksNumberProvider extends NumberProvider {
 
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.COLLIDED_BLOCKS;
+		return NumberProviderTypes.BLOCKS_INTERSECTING_BOX;
 	}
 
 	@Override
 	protected Number impl(Context context) {
 
 		World world = context.getWorld();
-		Context boxContext = context.makeChild(".box");
+		Box box = box().nextAndTranslate(context.makeChild(".box"));
 
-		ShapeContext shapeContext = box().getShapeContext(boxContext);
-		Box box = box().nextAndTranslate(boxContext);
-
-		BlockCollisionSpliterator<BlockPos> spliterator = new BlockCollisionSpliterator<>(context.getWorld(), shapeContext, box, box().hasEntity(context), (pos, shape) -> pos);
 		int matches = 0;
 
-		while (spliterator.hasNext()) {
+		for (BlockPos blockPos: BlockPos.iterate(box)) {
 
-			BlockPos blockPos = spliterator.next();
+			if (!world.isChunkLoaded(blockPos)) {
+				continue;
+			}
+
 			Context blockContext = context.copy(builder -> builder
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, blockPos)

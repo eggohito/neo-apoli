@@ -41,6 +41,7 @@ public final class NumberProviderTypes {
 
 	public static final NumberProviderType<AdjacentBlocksNumberProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksNumberProvider.CODEC, AdjacentBlocksNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<BlocksInRadiusNumberProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusNumberProvider.CODEC, BlocksInRadiusNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<BlocksIntersectingBoxNumberProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxNumberProvider.CODEC, BlocksIntersectingBoxNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<CollidedBlocksNumberProvider> COLLIDED_BLOCKS = registerInternal("collided_blocks", CollidedBlocksNumberProvider.CODEC, CollidedBlocksNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<AttributeNumberProvider> ATTRIBUTE = registerInternal("attribute", AttributeNumberProvider.CODEC, AttributeNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<BiEntitiesInRadiusNumberProvider> BIENTITIES_IN_RADIUS = registerInternal("bientities_in_radius", BiEntitiesInRadiusNumberProvider.CODEC, BiEntitiesInRadiusNumberProvider.PACKET_CODEC);
