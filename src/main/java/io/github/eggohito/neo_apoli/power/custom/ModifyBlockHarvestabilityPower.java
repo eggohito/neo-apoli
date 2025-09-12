@@ -113,11 +113,11 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 		Iterator<Instance> iterator = instanceCollection.iterator();
 
 		if (iterator.hasNext()) {
-			return defaultValue.getAsBoolean();
+			return iterator.next().isAllowed(context);
 		}
 
 		else {
-			return iterator.next().isAllowed(context);
+			return defaultValue.getAsBoolean();
 		}
 
 	}
