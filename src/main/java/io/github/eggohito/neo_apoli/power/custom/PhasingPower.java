@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
@@ -74,6 +75,16 @@ public class PhasingPower extends Power {
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
 		return new Instance(holder, this);
+	}
+
+	@Override
+	public void validate(ContextAware.ErrorReporter reporter) {
+
+		super.validate(reporter);
+
+		getBlockCondition().validate(reporter.makeChild(".block_condition"));
+		getPhaseDownCondition().validate(reporter.makeChild(".phase_down_condition"));
+
 	}
 
 	public static class Instance extends Power.Instance<PhasingPower> {
