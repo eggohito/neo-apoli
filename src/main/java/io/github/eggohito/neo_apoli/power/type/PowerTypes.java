@@ -48,6 +48,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyShakingPower> MODIFY_SHAKING = registerInternal("modify/shaking", ModifyShakingPower.CODEC, ModifyShakingPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 	public static final PowerType<CraftingRecipePower> CRAFTING_RECIPE = registerInternal("crafting_recipe", CraftingRecipePower.CODEC, CraftingRecipePower.PACKET_CODEC);
+	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.PACKET_CODEC, ContextTypes.ENTITY);
 
 	public static void registerAll() {

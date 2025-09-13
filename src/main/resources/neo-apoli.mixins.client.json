@@ -19,9 +19,13 @@
 		"power.custom.ModifyModelColorSelfPowerMixin$EntityModelApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$PlayerArmPartApplier",
 		"power.custom.ModifyModelColorSelfPowerMixin$PlayerCache",
-		"power.custom.ModifyShakingPowerMixin"
+		"power.custom.ModifyShakingPowerMixin",
+		"power.custom.PhasingPowerMixin$ModifyFogDistanceAndColor"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	}
+	},
+	"mixins": [
+		"power.custom.PhasingPowerMixin$PreventBlockOverlay"
+	]
 }

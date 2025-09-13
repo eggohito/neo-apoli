@@ -43,7 +43,9 @@
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl",
 		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",
-		"power.custom.ModifyItemUsePowerMixin$StackUse"
+		"power.custom.ModifyItemUsePowerMixin$StackUse",
+		"power.custom.PhasingPowerMixin$EntityLogicHandler",
+		"power.custom.PhasingPowerMixin$PhasingImpl"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -11,11 +11,17 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -87,6 +93,31 @@ public class MiscUtil {
 		}
 
 		return players;
+
+	}
+
+	@Nullable
+	public static SavedBlockPosition getInWallBlock(LivingEntity entity) {
+
+		World world = entity.getWorld();
+		BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+		for (int i = 0; i < 8; i++) {
+
+			double d = entity.getX() + (i % 2 - 0.5F) * entity.getWidth() * 0.8F;
+			double e = entity.getEyeY() + ((i >> 1) % 2 - 0.5F) * 0.1F * entity.getScale();
+			double f = entity.getZ() + ((i >> 2) % 2 - 0.5F) * entity.getWidth() * 0.8F;
+
+			mutable.set(d, e, f);
+			BlockState blockState = entity.getWorld().getBlockState(mutable);
+
+			if (blockState.getRenderType() != BlockRenderType.INVISIBLE && blockState.shouldBlockVision(world, mutable)) {
+				return new SavedBlockPosition(world, mutable, blockState, world.getBlockEntity(mutable));
+			}
+
+		}
+
+		return null;
 
 	}
 
