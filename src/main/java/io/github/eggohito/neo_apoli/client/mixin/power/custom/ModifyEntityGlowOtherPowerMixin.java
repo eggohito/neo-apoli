@@ -1,0 +1,104 @@
+package io.github.eggohito.neo_apoli.client.mixin.power.custom;
+
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.power.custom.ModifyEntityGlowOtherPower;
+import io.github.eggohito.neo_apoli.util.color.Argb;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.scoreboard.AbstractTeam;
+import net.minecraft.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+
+import java.lang.ref.WeakReference;
+import java.util.Optional;
+
+public abstract class ModifyEntityGlowOtherPowerMixin {
+
+	@Mixin(MinecraftClient.class)
+	public static abstract class GlowingLogic {
+
+		@Shadow
+		public abstract @Nullable Entity getCameraEntity();
+
+		@Unique
+		private WeakReference<Context> neo_apoli$glowingContext;
+
+		@Unique
+		private Context neo_apoli$getOrCreateGlowingContext(Entity entity) {
+
+			Context context = Optional.ofNullable(this.neo_apoli$glowingContext)
+				.flatMap(reference -> Optional.ofNullable(reference.get()))
+				.orElseGet(() -> ModifyEntityGlowOtherPower.createContext(this.getCameraEntity(), entity));
+
+			this.neo_apoli$glowingContext = new WeakReference<>(context);
+			return context;
+
+		}
+
+		@ModifyExpressionValue(method = "hasOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isGlowing()Z"))
+		private boolean applyProxy(boolean original, Entity entity) {
+
+			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
+			boolean result = original
+				|| PowersComponent.hasInstances(context.required(ContextParameters.ACTOR), ModifyEntityGlowOtherPower.Instance.class, instance -> instance.doesApply(context));
+
+			this.neo_apoli$glowingContext.clear();
+			return result;
+
+		}
+
+	}
+
+	@Mixin(Entity.class)
+	public static abstract class CustomGlowingColor {
+
+		@Unique
+		private WeakReference<Context> neo_apoli$glowingContext;
+
+		@Unique
+		private Context neo_apoli$getOrCreateGlowingContext(Entity entity) {
+
+			Context context = Optional.ofNullable(this.neo_apoli$glowingContext)
+				.flatMap(reference -> Optional.ofNullable(reference.get()))
+				.orElseGet(() -> ModifyEntityGlowOtherPower.createContext(MinecraftClient.getInstance().getCameraEntity(), entity));
+
+			this.neo_apoli$glowingContext = new WeakReference<>(context);
+			return context;
+
+		}
+
+		@Shadow
+		@Nullable
+		public abstract Team getScoreboardTeam();
+
+		@ModifyReturnValue(method = "getTeamColorValue", at = @At("RETURN"))
+		private int modifyColor(int original) {
+
+			Entity renderedEntity = (Entity) (Object) this;
+			AbstractTeam team = this.getScoreboardTeam();
+
+			boolean hasTeamColor = team != null
+				&& team.getColor().getColorValue() != null;
+
+			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
+			Argb color = Argb.unpack(original);
+
+			for (var instance: PowersComponent.getInstances(MinecraftClient.getInstance().getCameraEntity(), ModifyEntityGlowOtherPower.Instance.class, instance -> instance.doesApply(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
+				color = color.mix(instance.getColor(context));
+			}
+
+			return color.pack();
+
+		}
+
+	}
+
+}
