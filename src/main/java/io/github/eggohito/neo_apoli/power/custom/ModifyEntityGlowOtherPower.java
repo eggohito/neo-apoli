@@ -73,6 +73,7 @@ public class ModifyEntityGlowOtherPower extends Power {
 
 		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
 		getUseTeamColors().validate(reporter.makeChild(".use_team_color"));
+		getColor().validate(reporter.makeChild(".color"));
 
 	}
 
@@ -82,8 +83,8 @@ public class ModifyEntityGlowOtherPower extends Power {
 			super(holder, power);
 		}
 
-		public Argb getColor(Context context) {
-			return this.getPower().getColor().toArgb(context.makeChild(".color"));
+		public int getColor(Context context) {
+			return this.getPower().getColor().getValue(context.makeChild(".color"));
 		}
 
 		public boolean doesApply(Context context) {

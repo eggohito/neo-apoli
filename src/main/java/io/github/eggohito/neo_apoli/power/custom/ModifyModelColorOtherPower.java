@@ -8,9 +8,9 @@ import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCond
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 @Getter
 public class ModifyModelColorOtherPower extends Power {
@@ -60,23 +61,33 @@ public class ModifyModelColorOtherPower extends Power {
 		return new Instance(holder, this);
 	}
 
+	@Override
+	public void validate(ContextAware.ErrorReporter reporter) {
+
+		super.validate(reporter);
+
+		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
+		getColor().validate(reporter.makeChild(".color"));
+
+	}
+
 	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyModelColorOtherPower power) {
 			super(holder, power);
 		}
 
-		public Optional<Argb> getColor(Context context) {
+		public OptionalInt getColor(Context context) {
 
 			context = this.addPowerContext(context);
 			Entity renderedEntity = context.nullable(ContextParameters.TARGET);
 
 			if (!Objects.equals(holder, renderedEntity) && this.doesApply(context)) {
-				return Optional.of(power.getColor().toArgb(context.makeChild(".color")));
+				return OptionalInt.of(power.getColor().getValue(context.makeChild(".color")));
 			}
 
 			else {
-				return Optional.empty();
+				return OptionalInt.empty();
 			}
 
 		}

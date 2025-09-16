@@ -31,9 +31,9 @@ public final class ColorTypes {
 	public static final ColorType<Hsv> HSV = registerInternal("hsv", Hsv.CODEC, Hsv.PACKET_CODEC);
 	public static final ColorType<Rgba> RGBA = registerInternal("rgba", Rgba.CODEC, Rgba.PACKET_CODEC);
 
-	public static final ColorType<DynamicArgb> ARGB_DYNAMIC = registerInternal("argb/dynamic", DynamicArgb.CODEC, DynamicArgb.PACKET_CODEC);
-	public static final ColorType<DynamicHsv> HSV_DYNAMIC = registerInternal("hsv/dynamic", DynamicHsv.CODEC, DynamicHsv.PACKET_CODEC);
-	public static final ColorType<DynamicRgba> RGBA_DYNAMIC = registerInternal("rgba/dynamic", DynamicRgba.CODEC, DynamicRgba.PACKET_CODEC);
+	public static final ColorType<DynamicArgb> ARGB_DYNAMIC = registerInternal("dynamic/argb", DynamicArgb.CODEC, DynamicArgb.PACKET_CODEC);
+	public static final ColorType<DynamicHsv> HSV_DYNAMIC = registerInternal("dynamic/hsv", DynamicHsv.CODEC, DynamicHsv.PACKET_CODEC);
+	public static final ColorType<DynamicRgba> RGBA_DYNAMIC = registerInternal("dynamic/rgba", DynamicRgba.CODEC, DynamicRgba.PACKET_CODEC);
 
 	public static void registerAll() {
 

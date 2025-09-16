@@ -3,10 +3,6 @@ package io.github.eggohito.neo_apoli.util.color.dynamic;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.util.FloatFunction;
-import io.github.eggohito.neo_apoli.util.FloatSupplier;
-import io.github.eggohito.neo_apoli.util.color.Argb;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.color.Hsv;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
@@ -14,57 +10,55 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record DynamicHsv(NumberProvider hueProvider, NumberProvider saturationProvider, NumberProvider valueProvider, NumberProvider alphaProvider) implements Color {
+public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberProvider value, NumberProvider alpha) implements DynamicColor {
 
 	public static final MapCodec<DynamicHsv> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.clamped(0.0F, 360.0F).fieldOf("hue").forGetter(DynamicHsv::hueProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("saturation").forGetter(DynamicHsv::saturationProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("value").forGetter(DynamicHsv::valueProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicHsv::alphaProvider)
+		NumberProvider.clamped(0.0F, 360.0F).fieldOf("hue").forGetter(DynamicHsv::hue),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("saturation").forGetter(DynamicHsv::saturation),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("value").forGetter(DynamicHsv::value),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicHsv::alpha)
 	).apply(instance, DynamicHsv::new));
 
 	public static final PacketCodec<RegistryByteBuf, DynamicHsv> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicHsv::hueProvider,
-		NumberProvider.PACKET_CODEC, DynamicHsv::saturationProvider,
-		NumberProvider.PACKET_CODEC, DynamicHsv::valueProvider,
-		NumberProvider.PACKET_CODEC, DynamicHsv::alphaProvider,
+		NumberProvider.PACKET_CODEC, DynamicHsv::hue,
+		NumberProvider.PACKET_CODEC, DynamicHsv::saturation,
+		NumberProvider.PACKET_CODEC, DynamicHsv::value,
+		NumberProvider.PACKET_CODEC, DynamicHsv::alpha,
 		DynamicHsv::new
 	);
 
 	@Override
-	public ColorType<?> type() {
+	public ColorType<?> getType() {
 		return ColorTypes.HSV_DYNAMIC;
 	}
 
 	@Override
-	public Argb toArgb(Context context) {
-		return new Hsv(hue(context), saturation(context), value(context), alpha(context)).toArgb();
+	public int getValue(Context context) {
+		return new Hsv(hue(context), saturation(context), value(context), alpha(context)).getValue(context);
 	}
 
 	@Override
-	public Argb toArgb() {
-		throw new IllegalArgumentException("Missing required context for converting dynamic HSV to Argb!");
+	public void validate(ErrorReporter reporter) {
+		hue().validate(reporter.makeChild(".hue"));
+		saturation().validate(reporter.makeChild(".saturation"));
+		value().validate(reporter.makeChild(".value"));
+		alpha().validate(reporter.makeChild(".alpha"));
 	}
 
 	public float hue(Context context) {
-		return getValue(context.makeChild(".hue"), hueProvider()::nextFloat, () -> 360.0F);
+		return DynamicColor.getValue(context.makeChild(".hue"), hue()::nextFloat, () -> 360.0F);
 	}
 
 	public float saturation(Context context) {
-		return getValue(context.makeChild(".saturation"), saturationProvider()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.makeChild(".saturation"), saturation()::nextFloat, () -> 1.0F);
 	}
 
 	public float value(Context context) {
-		return getValue(context.makeChild(".value"), valueProvider()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.makeChild(".value"), value()::nextFloat, () -> 1.0F);
 	}
 
 	public float alpha(Context context) {
-		return getValue(context.makeChild(".alpha"), alphaProvider()::nextFloat, () -> 1.0F);
-	}
-
-	private float getValue(Context context, FloatFunction<Context> getter, FloatSupplier defaultValue) {
-		float value = getter.apply(context);
-		return context.hasErrors() ? defaultValue.getAsFloat() : value;
+		return DynamicColor.getValue(context.makeChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
 	}
 
 }

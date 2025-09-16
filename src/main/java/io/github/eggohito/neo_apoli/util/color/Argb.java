@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -37,27 +38,22 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 		blue = MathHelper.clamp(blue, 0.0F, 1.0F);
 	}
 
+	public Argb(int argb) {
+		this(
+			getAlphaFloat(argb),
+			getRedFloat(argb),
+			getGreenFloat(argb),
+			getBlueFloat(argb)
+		);
+	}
+
 	@Override
-	public ColorType<?> type() {
+	public ColorType<?> getType() {
 		return ColorTypes.ARGB;
 	}
 
 	@Override
-	public Argb toArgb() {
-		return this;
-	}
-
-	//	TODO: Maybe add an argument that determines how the colors are mixed?
-	public Argb mix(Argb other) {
-		return new Argb(
-			alpha() * other.alpha(),
-			red() * other.red(),
-			green() * other.green(),
-			blue() * other.blue()
-		);
-	}
-
-	public int pack() {
+	public int getValue(Context context) {
 		return ColorHelper.fromFloats(alpha(), red(), green(), blue());
 	}
 
@@ -65,25 +61,32 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 		return argb >>> 24;
 	}
 
+	public static float getAlphaFloat(int argb) {
+		return ColorHelper.floatFromChannel(getAlpha(argb));
+	}
+
 	public static int getRed(int argb) {
 		return argb >> 16 & 0xFF;
+	}
+
+	public static float getRedFloat(int argb) {
+		return ColorHelper.floatFromChannel(getRed(argb));
 	}
 
 	public static int getGreen(int argb) {
 		return argb >> 8 & 0xFF;
 	}
 
+	public static float getGreenFloat(int argb) {
+		return ColorHelper.floatFromChannel(getGreen(argb));
+	}
+
 	public static int getBlue(int argb) {
 		return argb & 0xFF;
 	}
 
-	public static Argb unpack(int argb) {
-		return new Argb(
-			ColorHelper.floatFromChannel(getAlpha(argb)),
-			ColorHelper.floatFromChannel(getRed(argb)),
-			ColorHelper.floatFromChannel(getGreen(argb)),
-			ColorHelper.floatFromChannel(getBlue(argb))
-		);
+	public static float getBlueFloat(int argb) {
+		return ColorHelper.floatFromChannel(getBlue(argb));
 	}
 
 }

@@ -3,67 +3,62 @@ package io.github.eggohito.neo_apoli.util.color.dynamic;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.util.FloatFunction;
-import io.github.eggohito.neo_apoli.util.FloatSupplier;
 import io.github.eggohito.neo_apoli.util.color.Argb;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record DynamicRgba(NumberProvider redProvider, NumberProvider greenProvider, NumberProvider blueProvider, NumberProvider alphaProvider) implements Color {
+public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvider blue, NumberProvider alpha) implements DynamicColor {
 
 	public static final MapCodec<DynamicRgba> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::redProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::greenProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::blueProvider),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::alphaProvider)
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::red),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("green").forGetter(DynamicRgba::green),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("blue").forGetter(DynamicRgba::blue),
+		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicRgba::alpha)
 	).apply(instance, DynamicRgba::new));
 
 	public static final PacketCodec<RegistryByteBuf, DynamicRgba> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicRgba::redProvider,
-		NumberProvider.PACKET_CODEC, DynamicRgba::greenProvider,
-		NumberProvider.PACKET_CODEC, DynamicRgba::blueProvider,
-		NumberProvider.PACKET_CODEC, DynamicRgba::alphaProvider,
+		NumberProvider.PACKET_CODEC, DynamicRgba::red,
+		NumberProvider.PACKET_CODEC, DynamicRgba::green,
+		NumberProvider.PACKET_CODEC, DynamicRgba::blue,
+		NumberProvider.PACKET_CODEC, DynamicRgba::alpha,
 		DynamicRgba::new
 	);
 
 	@Override
-	public ColorType<?> type() {
+	public ColorType<?> getType() {
 		return ColorTypes.RGBA_DYNAMIC;
 	}
 
 	@Override
-	public Argb toArgb(Context context) {
-		return new Argb(alpha(context), red(context), green(context), blue(context));
+	public void validate(ErrorReporter reporter) {
+		red().validate(reporter.makeChild(".red"));
+		green().validate(reporter.makeChild(".green"));
+		blue().validate(reporter.makeChild(".blue"));
+		alpha().validate(reporter.makeChild(".alpha"));
 	}
 
 	@Override
-	public Argb toArgb() {
-		throw new IllegalArgumentException("Missing required context for converting dynamic RGBA to Argb!");
+	public int getValue(Context context) {
+		return new Argb(alpha(context), red(context), green(context), blue(context)).getValue(context);
 	}
 
 	public float red(Context context) {
-		return this.getValue(context.makeChild(".red"), redProvider()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.makeChild(".red"), red()::nextFloat, () -> 1.0F);
 	}
 
 	public float green(Context context) {
-		return this.getValue(context.makeChild(".green"), greenProvider()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.makeChild(".green"), green()::nextFloat, () -> 1.0F);
 	}
 
 	public float blue(Context context) {
-		return this.getValue(context.makeChild(".blue"), blueProvider()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.makeChild(".blue"), blue()::nextFloat, () -> 1.0F);
 	}
 
 	public float alpha(Context context) {
-		return this.getValue(context.makeChild(".alpha"), alphaProvider()::nextFloat, () -> 1.0F);
-	}
-
-	private float getValue(Context context, FloatFunction<Context> getter, FloatSupplier defaultValue) {
-		float value = getter.apply(context);
-		return context.hasErrors() ? defaultValue.getAsFloat() : value;
+		return DynamicColor.getValue(context.makeChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
 	}
 
 }

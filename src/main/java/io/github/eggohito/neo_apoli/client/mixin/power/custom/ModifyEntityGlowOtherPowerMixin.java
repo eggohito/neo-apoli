@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityGlowOtherPower;
-import io.github.eggohito.neo_apoli.util.color.Argb;
+import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.client.MinecraftClient;
@@ -89,13 +89,13 @@ public abstract class ModifyEntityGlowOtherPowerMixin {
 				&& team.getColor().getColorValue() != null;
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
-			Argb color = Argb.unpack(original);
+			int color = original;
 
 			for (var instance: PowersComponent.getInstances(MinecraftClient.getInstance().getCameraEntity(), ModifyEntityGlowOtherPower.Instance.class, instance -> instance.doesApply(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
-				color = color.mix(instance.getColor(context));
+				color = Color.mix(color, instance.getColor(context));
 			}
 
-			return color.pack();
+			return color;
 
 		}
 

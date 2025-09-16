@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.misc;
 
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
-import io.github.eggohito.neo_apoli.util.color.Argb;
 import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.entity.Entity;
 import org.jetbrains.annotations.Nullable;
@@ -9,25 +8,26 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 
 @Mixin(EntityRenderState.class)
 public abstract class EntityRenderStateMixin implements EntityRenderCache {
 
 	@Unique
-	protected WeakReference<Argb> neo_apoli$color = new WeakReference<>(null);
+	protected WeakReference<Integer> neo_apoli$color = new WeakReference<>(null);
 
 	@Unique
 	protected WeakReference<Entity> neo_apoli$entity = new WeakReference<>(null);
 
 	@Override
-	public Argb neo_apoli$getColor() {
-		return neo_apoli$color.get();
+	public int neo_apoli$getColor() {
+		return Optional.ofNullable(neo_apoli$color.get()).orElse(-1);
 	}
 
 	@Override
-	public void neo_apoli$setColor(@Nullable Argb color) {
+	public void neo_apoli$setColor(int color) {
 
-		if (color == null) {
+		if (color == -1) {
 			this.neo_apoli$color.clear();
 		}
 

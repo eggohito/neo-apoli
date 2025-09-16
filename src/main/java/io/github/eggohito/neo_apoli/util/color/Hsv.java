@@ -5,9 +5,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 
 public record Hsv(float hue, float saturation, float value, float alpha) implements Color {
@@ -35,57 +37,59 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 	}
 
 	@Override
-	public ColorType<?> type() {
+	public ColorType<?> getType() {
 		return ColorTypes.HSV;
 	}
 
 	@Override
-	public Argb toArgb() {
+	public int getValue(Context context) {
 
-		int i = (int) (hue * 6.0F) % 6;
-		float j = hue * 6.0F - i;
+		int i = (int) (hue() * 6.0F) % 6;
+		float j = hue() * 6.0F - i;
 
-		float k = value * (1.0F - saturation);
-		float l = value * (1.0F - j * saturation);
-		float m = value * (1.0F - (1.0F - j) * saturation);
+		float k = value() * (1.0F - saturation());
+		float l = value() * (1.0F - j * saturation());
+		float m = value() * (1.0F - (1.0F - j) * saturation());
 
 		float red, green, blue;
 		switch (i) {
 			case 0 -> {
-				red = value;
+				red = value();
 				green = m;
 				blue = k;
 			}
 			case 1 -> {
 				red = l;
-				green = value;
+				green = value();
 				blue = k;
 			}
 			case 2 -> {
 				red = k;
-				green = value;
+				green = value();
 				blue = m;
 			}
 			case 3 -> {
 				red = k;
 				green = l;
-				blue = value;
+				blue = value();
 			}
 			case 4 -> {
 				red = m;
 				green = k;
-				blue = value;
+				blue = value();
 			}
 			case 5 -> {
-				red = value;
+				red = value();
 				green = k;
 				blue = l;
 			}
-			default ->
-				throw new IllegalStateException("Something went wrong when converting HSV to RGB. Input was " + hue + ", " + saturation + ", " + value);
+			default -> {
+				context.getReporter().report("Something went wrong when converting HSV to RGB. Input was " + hue() + ", " + saturation() + ", " + value());
+				return -1;
+			}
 		}
 
-		return new Argb(alpha, red, green, blue);
+		return ColorHelper.fromFloats(alpha(), red, green, blue);
 
 	}
 
