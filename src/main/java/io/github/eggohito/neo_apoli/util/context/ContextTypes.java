@@ -25,6 +25,8 @@ public class ContextTypes {
 	public static final ContextType DAMAGE = new ContextType.Builder()
 		.require(ContextParameters.DAMAGE_SOURCE)
 		.allow(ContextParameters.DAMAGE_AMOUNT)
+		.allow(ContextParameters.DAMAGING_ENTITY)
+		.allow(ContextParameters.DIRECT_DAMAGING_ENTITY)
 		.build();
 
 	public static final ContextType ENTITY = new ContextType.Builder()

@@ -13,7 +13,9 @@ public enum EntityParameter implements StringIdentifiable {
 
 	THIS("this", ContextParameters.ENTITY),
 	ACTOR("actor", ContextParameters.ACTOR),
-	TARGET("target", ContextParameters.TARGET);
+	TARGET("target", ContextParameters.TARGET),
+	DAMAGING_ENTITY("damaging_entity", ContextParameters.DAMAGING_ENTITY),
+	DIRECT_DAMAGE_ENTITY_SOURCE("direct_damaging_entity", ContextParameters.DIRECT_DAMAGING_ENTITY);
 
 	public static final Codec<EntityParameter> CODEC = CodecUtil.enumType(EntityParameter.class);
 	public static final PacketCodec<ByteBuf, EntityParameter> PACKET_CODEC = PacketCodecUtil.enumType(EntityParameter.class);

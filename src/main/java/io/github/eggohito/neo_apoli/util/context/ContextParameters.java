@@ -29,6 +29,8 @@ public final class ContextParameters {
 	//	Usually used in damage contexts
 	public static final ContextParameter<DamageSource> DAMAGE_SOURCE = new ContextParameter<>(NeoApoli.id("damage_source"));
 	public static final ContextParameter<Float> DAMAGE_AMOUNT = new ContextParameter<>(NeoApoli.id("damage_amount"));
+	public static final ContextParameter<Entity> DAMAGING_ENTITY = new ContextParameter<>(NeoApoli.id("damaging_entity"));
+	public static final ContextParameter<Entity> DIRECT_DAMAGING_ENTITY = new ContextParameter<>(NeoApoli.id("direct_damaging_entity"));
 
 	//	Usually used in entity contexts
 	public static final ContextParameter<Entity> ENTITY = new ContextParameter<>(NeoApoli.id("entity"));
