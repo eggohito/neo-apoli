@@ -43,7 +43,7 @@ public abstract class BlockCondition extends Condition {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.BLOCK.getAllowed();
 	}
 

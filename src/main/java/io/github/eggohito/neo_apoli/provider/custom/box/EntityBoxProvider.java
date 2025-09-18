@@ -66,7 +66,7 @@ public final class EntityBoxProvider extends BoxProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 

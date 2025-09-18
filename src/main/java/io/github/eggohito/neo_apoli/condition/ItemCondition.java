@@ -30,7 +30,7 @@ public abstract class ItemCondition extends Condition {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(ContextParameters.ITEM_STACK);
 	}
 

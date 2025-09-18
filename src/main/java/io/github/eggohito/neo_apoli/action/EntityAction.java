@@ -47,7 +47,7 @@ public abstract class EntityAction extends Action {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.ENTITY.getAllowed();
 	}
 

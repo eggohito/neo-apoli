@@ -60,7 +60,7 @@ public final class VelocityNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 

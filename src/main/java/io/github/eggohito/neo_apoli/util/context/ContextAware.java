@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public interface ContextAware {
 
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	default Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of();
 	}
 
@@ -186,7 +186,7 @@ public interface ContextAware {
 
 		public void validate(ContextAware contextAware) {
 
-			Set<ContextParameter<?>> missingParameters = Sets.difference(contextAware.getAllowedParameters(), contextType.getAllowed());
+			Set<ContextParameter<?>> missingParameters = Sets.difference(contextAware.getRequiredParameters(), contextType.getAllowed());
 
 			if (!missingParameters.isEmpty()) {
 				this.report("Parameters [" + missingParameters.stream().map(ContextParameter::getId).map(Identifier::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + (contextAware instanceof StringDisplayable stringDisplayable ? stringDisplayable.asDisplayString(false) : contextAware) + "!");

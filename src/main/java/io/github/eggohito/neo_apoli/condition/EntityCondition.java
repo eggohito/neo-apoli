@@ -43,7 +43,7 @@ public abstract class EntityCondition extends Condition {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.ENTITY.getAllowed();
 	}
 

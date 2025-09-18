@@ -45,7 +45,7 @@ public final class UuidStringProvider extends StringProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(source().getParameter());
 	}
 

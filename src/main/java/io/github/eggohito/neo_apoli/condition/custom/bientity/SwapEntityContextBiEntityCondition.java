@@ -61,7 +61,7 @@ public final class SwapEntityContextBiEntityCondition extends BiEntityCondition 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 
 		ImmutableSet.Builder<ContextParameter<?>> builder = ImmutableSet.builder();
 		parameters().values().forEach(source -> builder.add(source.getParameter()));

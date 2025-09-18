@@ -65,7 +65,7 @@ public final class TestEntityConditionBiEntityCondition extends BiEntityConditio
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(this.entity().getParameter());
 	}
 

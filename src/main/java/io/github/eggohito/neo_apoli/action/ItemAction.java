@@ -47,7 +47,7 @@ public abstract class ItemAction extends Action {
 	protected abstract void impl(ServerContext context);
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(ContextParameters.STACK_REFERENCE);
 	}
 

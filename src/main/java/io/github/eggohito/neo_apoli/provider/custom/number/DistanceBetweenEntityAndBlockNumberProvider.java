@@ -38,7 +38,7 @@ public final class DistanceBetweenEntityAndBlockNumberProvider extends NumberPro
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(ContextParameters.ENTITY_POS, ContextParameters.BLOCK_POS);
 	}
 

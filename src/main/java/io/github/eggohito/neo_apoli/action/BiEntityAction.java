@@ -34,7 +34,7 @@ public abstract class BiEntityAction extends Action {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.BIENTITY.getAllowed();
 	}
 

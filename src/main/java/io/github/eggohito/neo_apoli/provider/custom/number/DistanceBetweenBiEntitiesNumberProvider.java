@@ -33,7 +33,7 @@ public final class DistanceBetweenBiEntitiesNumberProvider extends NumberProvide
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.BIENTITY.getAllowed();
 	}
 

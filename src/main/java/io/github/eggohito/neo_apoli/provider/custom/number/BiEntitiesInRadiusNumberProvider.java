@@ -88,7 +88,7 @@ public final class BiEntitiesInRadiusNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(actor().getParameter());
 	}
 

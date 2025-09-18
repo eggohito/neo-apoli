@@ -32,7 +32,7 @@ public final class DamageAmountNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(ContextParameters.DAMAGE_AMOUNT);
 	}
 

@@ -30,7 +30,7 @@ public abstract class DamageCondition extends Condition {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.DAMAGE.getAllowed();
 	}
 

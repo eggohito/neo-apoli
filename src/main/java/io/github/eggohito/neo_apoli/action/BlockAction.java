@@ -54,7 +54,7 @@ public abstract class BlockAction extends Action {
 	protected abstract void impl(ServerContext context);
 
 	@Override
-	public Set<ContextParameter<?>> getAllowedParameters() {
+	public Set<ContextParameter<?>> getRequiredParameters() {
 		return ContextTypes.BLOCK.getAllowed();
 	}
 
