@@ -77,7 +77,9 @@ public final class BlocksIntersectingBoxNumberProvider extends NumberProvider {
 
 		super.validate(reporter);
 
-		blockCondition().validate(reporter.makeChild(".block_condition"));
+		blockCondition().validate(reporter
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.makeChild(".block_condition"));
 		box().validate(reporter.makeChild(".box"));
 
 	}
