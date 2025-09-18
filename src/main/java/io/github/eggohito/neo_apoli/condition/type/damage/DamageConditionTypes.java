@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.DamageCondition;
+import io.github.eggohito.neo_apoli.condition.custom.damage.IsInTagDamageCondition;
 import io.github.eggohito.neo_apoli.condition.custom.damage.IsOfDamageCondition;
 import io.github.eggohito.neo_apoli.condition.meta.damage.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -32,6 +33,7 @@ public final class DamageConditionTypes {
 	public static final DamageConditionType<ReferenceDamageCondition> REFERENCE = registerInternal("reference", ReferenceDamageCondition.CODEC, ReferenceDamageCondition.PACKET_CODEC);
 
 	public static final DamageConditionType<IsOfDamageCondition> IS_OF = registerInternal("is_of", IsOfDamageCondition.CODEC, IsOfDamageCondition.PACKET_CODEC);
+	public static final DamageConditionType<IsInTagDamageCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagDamageCondition.CODEC, IsInTagDamageCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
