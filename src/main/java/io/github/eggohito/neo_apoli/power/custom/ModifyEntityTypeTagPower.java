@@ -11,7 +11,9 @@ import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeEntityTypeT
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -73,6 +75,12 @@ public class ModifyEntityTypeTagPower extends Power {
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
 		return new Instance(holder, this);
+	}
+
+	@Override
+	public void validate(ContextAware.ErrorReporter reporter) {
+		super.validate(reporter);
+		RegistryUtil.validateTag(reporter.makeChild(".tag"), this.getTag());
 	}
 
 	@ApiStatus.Internal

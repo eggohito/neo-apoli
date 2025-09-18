@@ -3,13 +3,19 @@ package io.github.eggohito.neo_apoli.util;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Lifecycle;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryInfo;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 public final class RegistryUtil {
 
@@ -48,6 +54,32 @@ public final class RegistryUtil {
 
 	public static <T> String getIdPath(Registry<T> registry, T obj) {
 		return getId(registry, obj).getPath();
+	}
+
+	public static <T> void validateTag(ContextAware.ErrorReporter reporter, TagKey<T> tag) {
+
+		RegistryKey<? extends Registry<T>> registryRef = tag.registryRef();
+
+		if (!reporter.hasWrapperLookup()) {
+			reporter.report("Can't access registry " + registryRef + "!");
+		}
+
+		else {
+
+			Optional<RegistryWrapper.Impl<T>> registry = reporter.getWrapperLookup().orElseThrow()
+				.getOptional(tag.registryRef())
+				.map(Function.identity());
+
+			if (registry.isEmpty()) {
+				reporter.report("Can't find registry " + registryRef + "!");
+			}
+
+			else if (registry.get().getOptional(tag).isEmpty()) {
+				reporter.report(tag + " doesn't exist!");
+			}
+
+		}
+
 	}
 
 }

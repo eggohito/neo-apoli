@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.DamageCondition;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
@@ -12,11 +13,8 @@ import lombok.EqualsAndHashCode;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryEntryLookup;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
-
-import java.util.Optional;
 
 @EqualsAndHashCode
 @Data
@@ -45,12 +43,8 @@ public final class IsInTagDamageCondition extends DamageCondition {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-
 		super.validate(reporter);
-		Optional<RegistryEntryLookup<DamageType>> damageTypeRegistry = reporter.getWrapperLookup().flatMap(wrapperLookup -> wrapperLookup.getOptional(this.tag().registryRef()));
-
-		damageTypeRegistry.ifPresent(lookup -> lookup.getOptional(this.tag()).ifPresentOrElse(entries -> {}, () -> reporter.makeChild(".tag").report("Damage type tag \"" + this.tag().id() + "\" does not exist!")));
-
+		RegistryUtil.validateTag(reporter.makeChild(".tag"), this.tag());
 	}
 
 }
