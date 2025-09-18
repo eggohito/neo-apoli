@@ -12,13 +12,10 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.BlockArgumentParser;
-import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.visitor.StringNbtWriter;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -114,8 +111,6 @@ public class NeoApoliCodecs {
 	);
 
 	public static final Codec<BlockState> REGULAR_OR_STRINGIFIED_BLOCK_STATE = Codec.withAlternative(BlockState.CODEC, STRINGIFIED_BLOCK_STATE);
-
-	public static final Codec<TagKey<EntityType<?>>> UNPREFIXED_ENTITY_TYPE_TAG = TagKey.unprefixedCodec(RegistryKeys.ENTITY_TYPE);
 
 	public static final Codec<List<AttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = Codecs.nonEmptyList(AttributeModifier.CODEC.listOf());
 

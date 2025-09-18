@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
@@ -48,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ModifyEntityTypeTagPower extends Power {
 
 	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(NeoApoliCodecs.UNPREFIXED_ENTITY_TYPE_TAG.fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
+		.and(TagKey.codec(RegistryKeys.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
 		.apply(instance, ModifyEntityTypeTagPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyEntityTypeTagPower> PACKET_CODEC = createCommonConditionedPacketCodec(

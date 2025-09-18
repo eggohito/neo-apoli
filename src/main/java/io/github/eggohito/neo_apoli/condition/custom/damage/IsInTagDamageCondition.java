@@ -21,7 +21,7 @@ import net.minecraft.registry.tag.TagKey;
 public final class IsInTagDamageCondition extends DamageCondition {
 
 	public static final MapCodec<IsInTagDamageCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TagKey.unprefixedCodec(RegistryKeys.DAMAGE_TYPE).fieldOf("tag").forGetter(IsInTagDamageCondition::tag)
+		TagKey.codec(RegistryKeys.DAMAGE_TYPE).fieldOf("tag").forGetter(IsInTagDamageCondition::tag)
 	).apply(instance, IsInTagDamageCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsInTagDamageCondition> PACKET_CODEC = PacketCodec.tuple(

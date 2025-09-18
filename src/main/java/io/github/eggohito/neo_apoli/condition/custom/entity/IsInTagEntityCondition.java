@@ -21,7 +21,7 @@ import net.minecraft.registry.tag.TagKey;
 public final class IsInTagEntityCondition extends EntityCondition {
 
 	public static final MapCodec<IsInTagEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TagKey.unprefixedCodec(RegistryKeys.ENTITY_TYPE).fieldOf("tag").forGetter(IsInTagEntityCondition::tag)
+		TagKey.codec(RegistryKeys.ENTITY_TYPE).fieldOf("tag").forGetter(IsInTagEntityCondition::tag)
 	).apply(instance, IsInTagEntityCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsInTagEntityCondition> PACKET_CODEC = PacketCodec.tuple(
