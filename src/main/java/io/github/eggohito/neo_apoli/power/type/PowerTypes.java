@@ -36,18 +36,18 @@ public class PowerTypes {
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.PACKET_CODEC);
 	public static final PowerType<ModifyAttributeLegacyConditionedPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONED = registerInternal("modify/attribute/legacy/conditioned", ModifyAttributeLegacyConditionedPower.CODEC, ModifyAttributeLegacyConditionedPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal("modify/attribute/legacy", ModifyAttributeLegacyPower.CODEC, ModifyAttributeLegacyPower.PACKET_CODEC, ContextTypes.ENTITY);
-	public static final PowerType<ModifyBlockHarvestabilityPower> MODIFY_BLOCK_HARVESTABILITY = registerInternal("modify/block/harvestability", ModifyBlockHarvestabilityPower.CODEC, ModifyBlockHarvestabilityPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
-	public static final PowerType<ModifyBlockSelectabilityPower> MODIFY_BLOCK_SELECTABILITY = registerInternal("modify/block/selectability", ModifyBlockSelectabilityPower.CODEC, ModifyBlockSelectabilityPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
+	public static final PowerType<ModifyBlockHarvestablePower> MODIFY_BLOCK_HARVESTABLE = registerInternal("modify/block/harvestable", ModifyBlockHarvestablePower.CODEC, ModifyBlockHarvestablePower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
+	public static final PowerType<ModifyBlockSelectablePower> MODIFY_BLOCK_SELECTABLE = registerInternal("modify/block/selectable", ModifyBlockSelectablePower.CODEC, ModifyBlockSelectablePower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
 	public static final PowerType<ModifyBlockUsePower> MODIFY_BLOCK_USE = registerInternal("modify/block/use", ModifyBlockUsePower.CODEC, ModifyBlockUsePower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY, ContextTypes.ITEM);
 	public static final PowerType<ModifyClimbingPower> MODIFY_CLIMBING = registerInternal("modify/climbing", ModifyClimbingPower.CODEC, ModifyClimbingPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
-	public static final PowerType<ModifyEntityGlowOtherPower> MODIFY_ENTITY_GLOW_OTHER = registerInternal("modify/entity_glow/other", ModifyEntityGlowOtherPower.CODEC, ModifyEntityGlowOtherPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
-	public static final PowerType<ModifyEntityGlowSelfPower> MODIFY_ENTITY_GLOW_SELF = registerInternal("modify/entity_glow/self", ModifyEntityGlowSelfPower.CODEC, ModifyEntityGlowSelfPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
-	public static final PowerType<ModifyEntityTypeTagPower> MODIFY_ENTITY_TYPE_TAG = registerInternal("modify/entity_type_tag", ModifyEntityTypeTagPower.CODEC, ModifyEntityTypeTagPower.PACKET_CODEC, ContextTypes.ENTITY);
+	public static final PowerType<ModifyGlowingOtherPower> MODIFY_GLOWING_OTHER_POWER = registerInternal("modify/glowing/other", ModifyGlowingOtherPower.CODEC, ModifyGlowingOtherPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
+	public static final PowerType<ModifyGlowingSelfPower> MODIFY_GLOWING_SELF_POWER = registerInternal("modify/glowing/self", ModifyGlowingSelfPower.CODEC, ModifyGlowingSelfPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
+	public static final PowerType<ModifyEntityTypeTagPower> MODIFY_ENTITY_TYPE_TAG = registerInternal("modify/entity/type_tag", ModifyEntityTypeTagPower.CODEC, ModifyEntityTypeTagPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<ModifyItemUsePower> MODIFY_ITEM_USE = registerInternal("modify/item/use", ModifyItemUsePower.CODEC, ModifyItemUsePower.PACKET_CODEC, ContextTypes.ENTITY, ContextTypes.ITEM);
 	public static final PowerType<ModifyInvisibilityPower> MODIFY_INVISIBILITY = registerInternal("modify/invisibility", ModifyInvisibilityPower.CODEC, ModifyInvisibilityPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
-	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model_color/other", ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
-	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model_color/self", ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
-	public static final PowerType<ModifyShakingPower> MODIFY_SHAKING = registerInternal("modify/shaking", ModifyShakingPower.CODEC, ModifyShakingPower.PACKET_CODEC, ContextTypes.ENTITY);
+	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model/color/other", ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
+	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model/color/self", ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.ENTITY);
+	public static final PowerType<ModifyModelShakingPower> MODIFY_MODEL_SHAKING = registerInternal("modify/model/shaking", ModifyModelShakingPower.CODEC, ModifyModelShakingPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.PACKET_CODEC);
 	public static final PowerType<CraftingRecipePower> CRAFTING_RECIPE = registerInternal("crafting_recipe", CraftingRecipePower.CODEC, CraftingRecipePower.PACKET_CODEC);
 	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
@@ -57,11 +57,11 @@ public class PowerTypes {
 		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
 		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_POWER_TICK).getPath());
 		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
-		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABILITY).getPath());
+		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABLE).getPath());
 		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
 		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());
 		ALIASES.addPathAlias("simple", getId(DUMMY).getPath());
-		ALIASES.addPathAlias("shaking", getId(MODIFY_SHAKING).getPath());
+		ALIASES.addPathAlias("shaking", getId(MODIFY_MODEL_SHAKING).getPath());
 	}
 
 	private static <P extends Power> PowerType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec, ContextType... contextTypes) {

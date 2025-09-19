@@ -24,21 +24,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 @Getter
-public class ModifyEntityGlowOtherPower extends Power {
+public class ModifyGlowingOtherPower extends Power {
 
-	public static final MapCodec<ModifyEntityGlowOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyEntityGlowOtherPower::getBiEntityCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyEntityGlowOtherPower::getUseTeamColors))
-		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyEntityGlowOtherPower::getColor))
-		.apply(instance, ModifyEntityGlowOtherPower::new));
+	public static final MapCodec<ModifyGlowingOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyGlowingOtherPower::getBiEntityCondition))
+		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingOtherPower::getUseTeamColors))
+		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingOtherPower::getColor))
+		.apply(instance, ModifyGlowingOtherPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyEntityGlowOtherPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+	public static final PacketCodec<RegistryByteBuf, ModifyGlowingOtherPower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, power) -> {
 			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
 			BooleanProvider.PACKET_CODEC.encode(buf, power.getUseTeamColors());
 			Color.PACKET_CODEC.encode(buf, power.getColor());
 		},
-		(buf, properties, activeCondition) -> new ModifyEntityGlowOtherPower(properties, activeCondition,
+		(buf, properties, activeCondition) -> new ModifyGlowingOtherPower(properties, activeCondition,
 			BiEntityCondition.PACKET_CODEC.decode(buf),
 			BooleanProvider.PACKET_CODEC.decode(buf),
 			Color.PACKET_CODEC.decode(buf)
@@ -49,7 +49,7 @@ public class ModifyEntityGlowOtherPower extends Power {
 	private final BooleanProvider useTeamColors;
 	private final Color color;
 
-	public ModifyEntityGlowOtherPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, BooleanProvider useTeamColors, Color color) {
+	public ModifyGlowingOtherPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, BooleanProvider useTeamColors, Color color) {
 		super(properties, activeCondition);
 		this.biEntityCondition = biEntityCondition;
 		this.useTeamColors = useTeamColors;
@@ -58,7 +58,7 @@ public class ModifyEntityGlowOtherPower extends Power {
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ENTITY_GLOW_OTHER;
+		return PowerTypes.MODIFY_GLOWING_OTHER_POWER;
 	}
 
 	@Override
@@ -77,9 +77,9 @@ public class ModifyEntityGlowOtherPower extends Power {
 
 	}
 
-	public static class Instance extends Power.Instance<ModifyEntityGlowOtherPower> {
+	public static class Instance extends Power.Instance<ModifyGlowingOtherPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyEntityGlowOtherPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyGlowingOtherPower power) {
 			super(holder, power);
 		}
 
@@ -100,7 +100,7 @@ public class ModifyEntityGlowOtherPower extends Power {
 	}
 
 	public static Context createContext(Entity actor, Entity target) {
-		return PowerTypes.MODIFY_ENTITY_GLOW_SELF.contextBuilder()
+		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
 			.add(ContextParameters.ACTOR, actor)
 			.add(ContextParameters.TARGET, target)
 			.add(ContextParameters.ENTITY, actor)

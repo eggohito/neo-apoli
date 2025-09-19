@@ -30,21 +30,21 @@ import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 @Getter
-public class ModifyBlockHarvestabilityPower extends Power implements Prioritized<ModifyBlockHarvestabilityPower> {
+public class ModifyBlockHarvestablePower extends Power implements Prioritized<ModifyBlockHarvestablePower> {
 
-	public static final MapCodec<ModifyBlockHarvestabilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(ModifyBlockHarvestabilityPower::getBlockCondition))
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestabilityPower::getAllowedProvider))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestabilityPower::getPriority))
-		.apply(instance, ModifyBlockHarvestabilityPower::new));
+	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+		.and(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(ModifyBlockHarvestablePower::getBlockCondition))
+		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::getAllowedProvider))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::getPriority))
+		.apply(instance, ModifyBlockHarvestablePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyBlockHarvestabilityPower> PACKET_CODEC = createCommonConditionedPacketCodec(
+	public static final PacketCodec<RegistryByteBuf, ModifyBlockHarvestablePower> PACKET_CODEC = createCommonConditionedPacketCodec(
 		(buf, power) -> {
 			BlockCondition.PACKET_CODEC.encode(buf, power.getBlockCondition());
 			BooleanProvider.PACKET_CODEC.encode(buf, power.getAllowedProvider());
 			buf.writeVarInt(power.getPriority());
 		},
-		(buf, properties, condition) -> new ModifyBlockHarvestabilityPower(properties, condition,
+		(buf, properties, condition) -> new ModifyBlockHarvestablePower(properties, condition,
 			BlockCondition.PACKET_CODEC.decode(buf),
 			BooleanProvider.PACKET_CODEC.decode(buf),
 			buf.readVarInt()
@@ -56,7 +56,7 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 	private final BooleanProvider allowedProvider;
 	private final int priority;
 
-	public ModifyBlockHarvestabilityPower(Properties properties, Optional<EntityCondition> activeCondition, BlockCondition blockCondition, BooleanProvider allowedProvider, int priority) {
+	public ModifyBlockHarvestablePower(Properties properties, Optional<EntityCondition> activeCondition, BlockCondition blockCondition, BooleanProvider allowedProvider, int priority) {
 		super(properties, activeCondition);
 		this.blockCondition = blockCondition;
 		this.allowedProvider = allowedProvider;
@@ -65,7 +65,7 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_BLOCK_HARVESTABILITY;
+		return PowerTypes.MODIFY_BLOCK_HARVESTABLE;
 	}
 
 	@Override
@@ -83,14 +83,14 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockHarvestabilityPower> implements Comparable<Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<Instance> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestabilityPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestablePower power) {
 			super(holder, power);
 		}
 
 		@Override
-		public int compareTo(@NotNull ModifyBlockHarvestabilityPower.Instance that) {
+		public int compareTo(@NotNull ModifyBlockHarvestablePower.Instance that) {
 			return this.getPower().compareTo(that.getPower());
 		}
 
@@ -123,7 +123,7 @@ public class ModifyBlockHarvestabilityPower extends Power implements Prioritized
 	}
 
 	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-		return PowerTypes.MODIFY_BLOCK_HARVESTABILITY.contextBuilder()
+		return PowerTypes.MODIFY_BLOCK_HARVESTABLE.contextBuilder()
 			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, blockState)
 			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)

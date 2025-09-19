@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.power.custom.ModifyShakingPower;
+import io.github.eggohito.neo_apoli.power.custom.ModifyModelShakingPower;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +20,7 @@ public abstract class ModifyShakingPowerMixin<S extends LivingEntityRenderState>
 		}
 
 		else if (state instanceof EntityRenderCache renderCache) {
-			return PowersComponent.hasInstances(renderCache.neo_apoli$getEntity(), ModifyShakingPower.Instance.class, ModifyShakingPower.Instance::isActive);
+			return PowersComponent.hasInstances(renderCache.neo_apoli$getEntity(), ModifyModelShakingPower.Instance.class, ModifyModelShakingPower.Instance::isActive);
 		}
 
 		else {

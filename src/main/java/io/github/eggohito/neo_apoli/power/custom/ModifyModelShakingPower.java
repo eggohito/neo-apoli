@@ -12,18 +12,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public class ModifyShakingPower extends Power {
+public class ModifyModelShakingPower extends Power {
 
-	public static final MapCodec<ModifyShakingPower> CODEC = createSimpleConditionedCodec(ModifyShakingPower::new);
-	public static final PacketCodec<RegistryByteBuf, ModifyShakingPower> PACKET_CODEC = createSimpleConditionedPacketCodec(ModifyShakingPower::new);
+	public static final MapCodec<ModifyModelShakingPower> CODEC = createSimpleConditionedCodec(ModifyModelShakingPower::new);
+	public static final PacketCodec<RegistryByteBuf, ModifyModelShakingPower> PACKET_CODEC = createSimpleConditionedPacketCodec(ModifyModelShakingPower::new);
 
-	public ModifyShakingPower(Properties properties, Optional<EntityCondition> activeCondition) {
+	public ModifyModelShakingPower(Properties properties, Optional<EntityCondition> activeCondition) {
 		super(properties, activeCondition);
 	}
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_SHAKING;
+		return PowerTypes.MODIFY_MODEL_SHAKING;
 	}
 
 	@Override
@@ -31,9 +31,9 @@ public class ModifyShakingPower extends Power {
 		return new Instance(holder, this);
 	}
 
-	public static class Instance extends Power.Instance<ModifyShakingPower> {
+	public static class Instance extends Power.Instance<ModifyModelShakingPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyShakingPower power) {
+		protected Instance(@NotNull Entity holder, @NotNull ModifyModelShakingPower power) {
 			super(holder, power);
 		}
 
