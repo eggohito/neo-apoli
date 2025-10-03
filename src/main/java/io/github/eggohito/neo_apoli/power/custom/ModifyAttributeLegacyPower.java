@@ -47,7 +47,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onGranted();
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 			this.addModifiersPersistently(context);
 
 		}
@@ -58,7 +58,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onRespawned();
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 			this.addModifiersPersistently(context);
 
 		}
@@ -68,7 +68,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onRevoked();
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 			this.removeModifiers(context);
 
 		}

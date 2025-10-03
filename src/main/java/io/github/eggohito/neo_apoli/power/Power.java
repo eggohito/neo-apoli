@@ -17,8 +17,8 @@ import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.TextUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
@@ -171,33 +171,31 @@ public abstract class Power {
 			this.power = power;
 		}
 
-		public final Context.Builder addPowerContext(Context.Builder builder) {
+		public final <B extends Context.Builder<B>> B addPowerContext(B builder) {
 
 			Optional<PowerReference> powerReference = PowerManager.getReferenceAsResult(this.getPower()).result();
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(ContextTypeUtil.merge(this.getContextType(), builder.getType()), "{" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "}");
+			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter("{\"" + powerReference.map(PowerReference::toString).orElseGet(this.getPower()::toString) + "\"}")
+				.withWrapperLookup(holder.getRegistryManager())
+				.withContextType(this.getContextType());
 
 			return builder
 				.withReporter(reporter)
-				.addOptional(ContextParameters.POWER_REFERENCE, powerReference);
+				.addOptional(ContextParameters.POWER_REFERENCE, powerReference)
+				.add(ContextParameters.ENTITY, holder)
+				.add(ContextParameters.ENTITY_POS, holder.getPos());
 
 		}
 
 		public final Context addPowerContext(Context context) {
-			return context.copy(this::addPowerContext);
+			return this.addPowerContext(new ContextImpl.Builder(context)).build(context.getWorld());
 		}
 
-		public final Context.Builder createGenericContextBuilder() {
-
-			Context.Builder builder = this.getPowerType().contextBuilder()
-				.add(ContextParameters.ENTITY, holder)
-				.add(ContextParameters.ENTITY_POS, holder.getPos());
-
-			return this.addPowerContext(builder);
-
+		public final ContextImpl.Builder createContextBuilder() {
+			return this.addPowerContext(new ContextImpl.Builder());
 		}
 
-		public final Context createGenericContext() {
-			return this.createGenericContextBuilder().build(holder.getWorld());
+		public final Context createContext() {
+			return this.createContextBuilder().build(holder.getWorld());
 		}
 
 		public final void syncData() {
@@ -253,7 +251,7 @@ public abstract class Power {
 
 		public boolean isActive(Context context) {
 			return this.getPower().getActiveCondition()
-				.map(activeCondition -> activeCondition.test(this.addPowerContext(context).makeChild(".active_condition")))
+				.map(activeCondition -> activeCondition.test(context.makeChild(".active_condition")))
 				.orElse(true);
 		}
 

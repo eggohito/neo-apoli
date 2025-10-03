@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -41,7 +42,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 		if (contextReference == null || contextReference.get() == null) {
 
 			BlockPos blockPos = this.getBlockPos();
-			Context context = Context.builder(PowerTypes.MODIFY_CLIMBING.contextType())
+			Context context = new ContextImpl.Builder(PowerTypes.MODIFY_CLIMBING.contextType())
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, this.getBlockStateAtPos())
 				.addNullable(ContextParameters.BLOCK_ENTITY, this.getWorld().getBlockEntity(blockPos))

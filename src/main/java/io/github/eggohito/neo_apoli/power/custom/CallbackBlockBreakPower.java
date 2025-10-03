@@ -170,13 +170,11 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 		for (var instance : new InstanceCollection<>(player, Instance.class, instance -> true)) {
 
-			Context context = PowerTypes.CALLBACK_BLOCK_BREAK.contextBuilder()
+			Context context = instance.createContextBuilder()
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, blockState)
 				.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
 				.addNullable(ContextParameters.DIRECTION, direction)
-				.add(ContextParameters.ENTITY, player)
-				.add(ContextParameters.ENTITY_POS, player.getPos())
 				.build(player.getWorld());
 
 			if (instance.doesApply(context, harvested)) {

@@ -39,10 +39,12 @@ public final class OffsetBlockAction extends BlockAction implements OffsetMetaAc
 	@Override
 	public void impl(ServerContext context) {
 
-		Vec3d offsetPos = context.required(ContextParameters.BLOCK_POS).toCenterPos().add(offset());
-		ServerContext actionContext = context.copy(builder -> builder.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos)));
+		Vec3d offsetPos = context.required(ContextParameters.BLOCK_POS).toCenterPos().add(this.offset());
+		context = new ServerContext.Builder(context)
+			.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos))
+			.build(context.getWorld());
 
-		action().execute(actionContext.makeChild(".action"));
+		this.action().execute(context.makeChild(".action"));
 
 	}
 

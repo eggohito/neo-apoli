@@ -18,7 +18,6 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.Set;
 
@@ -38,12 +37,14 @@ public abstract class BlockAction extends Action {
 		return ActionCategories.BLOCK_ACTION;
 	}
 
+	@Override
 	protected final void impl(Context context) {
 
 		if (context.getWorld() instanceof ServerWorld serverWorld) {
 
-			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
-			ServerContext serverContext = new ServerContext(context, serverWorld).copy(builder -> builder.add(ContextParameters.POSITION, blockPos.toCenterPos()));
+			ServerContext serverContext = new ServerContext.Builder(context)
+				.add(ContextParameters.POSITION, context.required(ContextParameters.BLOCK_POS).toCenterPos())
+				.build(serverWorld);
 
 			this.impl(serverContext);
 

@@ -8,10 +8,7 @@ import io.github.eggohito.neo_apoli.condition.custom.item.IsEmptyItemCondition;
 import io.github.eggohito.neo_apoli.condition.meta.item.InvertedItemCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.component.type.AttributeModifierSlot;
@@ -54,9 +51,10 @@ public final class EquippedItemEntityCondition extends EntityCondition {
 
 			if (slot().matches(equipmentSlot)) {
 
-				Context itemContext = context.copy(builder -> builder
+				Context itemContext = new ContextImpl.Builder(context)
 					.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
-					.add(ContextParameters.ITEM_STACK, livingEntity.getEquippedStack(equipmentSlot)));
+					.add(ContextParameters.ITEM_STACK, livingEntity.getEquippedStack(equipmentSlot))
+					.build(context.getWorld());
 
 				if (itemCondition().test(itemContext.makeChild(".item_condition"))) {
 					return true;

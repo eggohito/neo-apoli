@@ -38,7 +38,7 @@ public class ModifyModelShakingPower extends Power {
 		}
 
 		public boolean isActive() {
-			return this.isActive(this.createGenericContext());
+			return this.isActive(this.createContext());
 		}
 
 	}

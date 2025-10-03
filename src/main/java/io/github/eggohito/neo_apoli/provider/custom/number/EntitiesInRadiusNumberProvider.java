@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -66,9 +63,10 @@ public final class EntitiesInRadiusNumberProvider extends NumberProvider {
 
 		for (Entity target : this.shape().getEntities(world, pos, radius)) {
 
-			Context entityContext = context.copy(builder -> builder
+			Context entityContext = new ContextImpl.Builder(context)
 				.add(ContextParameters.ENTITY, target)
-				.add(ContextParameters.ENTITY_POS, target.getPos()));
+				.add(ContextParameters.ENTITY_POS, target.getPos())
+				.build(world);
 
 			if (this.entityCondition().test(entityContext.makeChild(".entity_condition"))) {
 				matches++;

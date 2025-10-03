@@ -220,7 +220,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 			for (var instance : instances) {
 
-				Context context = instance.createGenericContextBuilder()
+				Context context = instance.createContextBuilder()
 					.add(ContextParameters.BLOCK_POS, blockPos)
 					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
@@ -291,7 +291,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 				for (var instance : instances) {
 
-					Context context = instance.createGenericContextBuilder()
+					Context context = instance.createContextBuilder()
 						.add(ContextParameters.BLOCK_POS, blockPos)
 						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))

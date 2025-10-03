@@ -11,12 +11,12 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.Set;
 
@@ -34,10 +34,11 @@ public abstract class EntityAction extends Action {
 	@Override
 	public void execute(Context context) {
 
-		Vec3d entityPos = context.required(ContextParameters.ENTITY_POS);
-		Context adjustedContext = context.copy(builder -> builder.add(ContextParameters.POSITION, entityPos));
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.POSITION, context.required(ContextParameters.ENTITY_POS))
+			.build(context.getWorld());
 
-		super.execute(adjustedContext);
+		super.execute(context);
 
 	}
 

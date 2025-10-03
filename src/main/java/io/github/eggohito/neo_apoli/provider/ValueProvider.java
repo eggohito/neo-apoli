@@ -41,7 +41,7 @@ public abstract class ValueProvider<V> implements ContextAware, StringDisplayabl
 		}
 
 		finally {
-			context.markInactive(this);
+			context.markInActive(this);
 		}
 
 		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {

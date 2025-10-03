@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -55,10 +52,11 @@ public final class TestEntityConditionBiEntityCondition extends BiEntityConditio
 		Entity entity = context.required(this.entity().getParameter());
 		Vec3d pos = entity.getPos();
 
-		Context entityContext = context.copy(builder -> builder
+		Context entityContext = new ContextImpl.Builder(context)
 			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ENTITY))
 			.add(ContextParameters.ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, pos));
+			.add(ContextParameters.ENTITY_POS, pos)
+			.build(context.getWorld());
 
 		return entityCondition().test(entityContext.makeChild(".entity_condition"));
 

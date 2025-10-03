@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityParameter;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -52,12 +49,13 @@ public final class ExecuteEntityActionBiEntityAction extends BiEntityAction {
 	protected void impl(Context context) {
 
 		Entity entity = context.required(entity().getParameter());
-		Context entityContext = context.copy(builder -> builder
+		context = new ContextImpl.Builder(context)
 			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ENTITY))
 			.add(ContextParameters.ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos()));
+			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.build(context.getWorld());
 
-		entityAction().execute(entityContext);
+		entityAction().execute(context);
 
 	}
 

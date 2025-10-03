@@ -50,7 +50,7 @@ public final class BiEntityActionCategory extends ActionCategory<BiEntityAction>
 				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.BIENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = Context.builder(reporter)
+			Context context = new ContextImpl.Builder(reporter)
 				.add(ContextParameters.ACTOR, actor)
 				.add(ContextParameters.TARGET, target)
 				.build(commandSource.getWorld());

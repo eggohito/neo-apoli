@@ -66,7 +66,7 @@ public class CallbackPowerAddedPower extends Power {
 		public void onAdded() {
 
 			super.onAdded();
-			Context context = this.addPowerContext(this.createGenericContext());
+			Context context = this.createContext();
 
 			if (this.isActive(context)) {
 				power.getEntityAction().execute(context.makeChild(".entity_action"));

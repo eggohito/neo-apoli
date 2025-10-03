@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -53,10 +54,12 @@ public final class SwapEntityContextBiEntityAction extends BiEntityAction {
 	@Override
 	protected void impl(Context context) {
 
-		Context.Builder builder = new Context.Builder(context);
-		parameters().forEach((targetParam, sourceParam) -> builder.add(targetParam.getParameter(), context.required(sourceParam.getParameter())));
+		ContextImpl.Builder builder = new ContextImpl.Builder(context);
+		parameters().forEach((target, source) -> builder.add(target.getParameter(), context.required(source.getParameter())));
 
-		biEntityAction().execute(builder.build(context.getWorld()).makeChild(".bientity_action"));
+		biEntityAction().execute(builder
+			.build(context.getWorld())
+			.makeChild(".bientity_action"));
 
 	}
 

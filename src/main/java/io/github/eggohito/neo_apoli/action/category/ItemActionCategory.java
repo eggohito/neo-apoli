@@ -80,7 +80,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 					if (slotId >= 0 && slotId < inventory.size()) {
 
 						StackReference stackReference = StackReference.of(inventory, slotId);
-						Context context = Context.builder(reporter)
+						Context context = new ContextImpl.Builder(reporter)
 							.add(ContextParameters.BLOCK_POS, blockPos)
 							.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
 							.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))
@@ -133,7 +133,7 @@ public class ItemActionCategory extends ActionCategory<ItemAction> {
 
 				if (stackReference != StackReference.EMPTY) {
 
-					Context context = new Context.Builder(reporter.getContextType())
+					Context context = new ContextImpl.Builder(reporter.getContextType())
 						.withReporter(reporter)
 						.add(ContextParameters.ENTITY, target)
 						.add(ContextParameters.ENTITY_POS, target.getPos())

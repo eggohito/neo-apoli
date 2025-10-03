@@ -35,7 +35,7 @@ public interface ReferenceMetaAction<A extends Action> {
 					}
 
 					finally {
-						context.markInactive(action);
+						context.markInActive(action);
 					}
 
 				}

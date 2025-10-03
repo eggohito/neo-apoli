@@ -65,7 +65,7 @@ public class CallbackPlayerRespawnedPower extends Power {
 		public void onRespawned() {
 
 			super.onRespawned();
-			Context context = this.addPowerContext(this.createGenericContext());
+			Context context = this.createContext();
 
 			if (this.isActive(context)) {
 				power.getEntityAction().execute(context.makeChild(".entity_action"));

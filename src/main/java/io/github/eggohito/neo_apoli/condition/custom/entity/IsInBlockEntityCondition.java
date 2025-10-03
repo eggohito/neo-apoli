@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -46,11 +43,12 @@ public final class IsInBlockEntityCondition extends EntityCondition {
 		BlockPos blockPos = entity.getBlockPos();
 
 		World world = context.getWorld();
-		Context blockContext = context.copy(builder -> builder
+		Context blockContext = new ContextImpl.Builder(context)
 			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+			.build(context.getWorld());
 
 		return blockCondition().test(blockContext.makeChild(".block_condition"));
 

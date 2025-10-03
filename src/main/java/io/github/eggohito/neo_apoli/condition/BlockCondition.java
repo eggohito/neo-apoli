@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
@@ -30,10 +31,11 @@ public abstract class BlockCondition extends Condition {
 	@Override
 	public boolean test(Context context) {
 
-		BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
-		Context adjustedContext = context.copy(builder -> builder.add(ContextParameters.POSITION, blockPos.toCenterPos()));
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.POSITION, context.required(ContextParameters.BLOCK_POS).toCenterPos())
+			.build(context.getWorld());
 
-		return super.test(adjustedContext);
+		return super.test(context);
 
 	}
 

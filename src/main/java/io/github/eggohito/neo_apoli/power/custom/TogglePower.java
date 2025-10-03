@@ -86,7 +86,7 @@ public class TogglePower extends Power implements KeyBound {
 
 		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
-			this.toggled = power.getActiveByDefault().next(this.createGenericContext().makeChild(".active_by_default"));
+			this.toggled = power.getActiveByDefault().next(this.createContext().makeChild(".active_by_default"));
 		}
 
 		@Override
@@ -119,7 +119,7 @@ public class TogglePower extends Power implements KeyBound {
 		@Override
 		public void onTick() {
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 
 			if (toggled && !super.isActive(context)) {
 				this.toggle(context);
@@ -130,7 +130,7 @@ public class TogglePower extends Power implements KeyBound {
 		@Override
 		public boolean shouldTick() {
 			return power.getActiveCondition().isPresent()
-				&& !power.getRetainState().next(this.createGenericContext().makeChild(".retain_state"));
+				&& !power.getRetainState().next(this.createContext().makeChild(".retain_state"));
 		}
 
 		@Override

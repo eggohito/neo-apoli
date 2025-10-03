@@ -1,7 +1,9 @@
 package io.github.eggohito.neo_apoli.util.context;
 
+import com.google.common.collect.ImmutableSet;
 import io.github.eggohito.neo_apoli.mixin.access.ContextParameterMapAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.AccessLevel;
 import lombok.Getter;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.util.context.ContextParameter;
@@ -13,177 +15,149 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.UnaryOperator;
+import java.util.function.Supplier;
 
-public class Context {
+public interface Context extends ContextParameterHolder {
 
-	protected final ContextParameterMap parameters;
-	@Getter
-	protected final ContextAware.ErrorReporter reporter;
-
-	@Getter
-	protected final ContextType type;
-	@Getter
-	protected final World world;
-
-	protected final Set<ContextAware> activeEntries;
-
-	Context(ContextParameterMap parameters, ContextAware.ErrorReporter reporter, ContextType type, World world, Set<ContextAware> activeEntries) {
-		this.parameters = parameters;
-		this.reporter = reporter;
-		this.type = type;
-		this.world = world;
-		this.activeEntries = activeEntries;
+	@Override
+	default <T> T required(ContextParameter<T> parameter) {
+		return this.getParameters().getOrThrow(parameter);
 	}
 
-	public Context copy(UnaryOperator<Builder> operator) {
-		return operator.apply(builder(this)).build(this.getWorld());
+	@Override
+	default <T> @Nullable T nullable(ContextParameter<T> parameter) {
+		return this.getParameters().getNullable(parameter);
 	}
 
-	public Context makeChild(String path) {
-		return new Context(this.parameters, this.reporter.makeChild(path), this.type, this.world, this.activeEntries);
+	ContextAware.ErrorReporter getReporter();
+
+	default ContextType getType() {
+		return this.getReporter().getContextType();
 	}
 
-	public Context makeChild(String path, ContextKey key) {
-		return new Context(this.parameters, this.reporter.makeChild(path, key), this.type, this.world, this.activeEntries);
+	World getWorld();
+
+	ContextParameterMap getParameters();
+
+	ImmutableSet<ContextAware> getActiveEntries();
+
+	Context makeChild(String path);
+
+	Context makeChild(String path, ContextKey key);
+
+	default boolean isActive(ContextAware entry) {
+		return this.getActiveEntries().contains(entry);
 	}
 
-	public boolean isActive(ContextAware contextAware) {
-		return activeEntries.contains(contextAware);
+	boolean markActive(ContextAware entry);
+
+	boolean markInActive(ContextAware entry);
+
+	default boolean hasErrors() {
+		return this.getReporter().hasErrors();
 	}
 
-	public boolean markActive(ContextAware contextAware) {
-		return activeEntries.add(contextAware);
+	default boolean hasAnyErrors() {
+		return this.getReporter().hasAnyErrors();
 	}
 
-	public void markInactive(ContextAware contextAware) {
-		activeEntries.remove(contextAware);
-	}
+	abstract class Builder<B extends Builder<B>> implements ContextParameterHolder {
 
-	public <T> T required(ContextParameter<T> parameter) {
-		return this.parameters.getOrThrow(parameter);
-	}
-
-	@Nullable
-	public <T> T nullable(ContextParameter<T> parameter) {
-		return this.parameters.getNullable(parameter);
-	}
-
-	public <T> Optional<T> optional(ContextParameter<T> parameter) {
-		return Optional.ofNullable(this.nullable(parameter));
-	}
-
-	public boolean hasParameter(ContextParameter<?> parameter) {
-		return this.parameters.contains(parameter);
-	}
-
-	public boolean hasErrors() {
-		return reporter.hasErrors();
-	}
-
-	public boolean hasAnyErrors() {
-		return reporter.hasAnyErrors();
-	}
-
-	public static Builder builder(ContextAware.ErrorReporter reporter) {
-		return new Builder(reporter);
-	}
-
-	public static Builder builder(ContextType contextType) {
-		return new Builder(contextType);
-	}
-
-	public static Builder builder(Context context) {
-		return new Builder(context);
-	}
-
-	public static Builder builder() {
-		return builder(LootContextTypes.EMPTY);
-	}
-
-	public static class Builder {
-
-		private ContextType contextType;
-		private ContextAware.ErrorReporter reporter;
-
+		@Getter(AccessLevel.PROTECTED)
 		private final ContextParameterMap.Builder parameters;
+		@Getter(AccessLevel.PROTECTED)
 		private final Set<ContextAware> activeEntries;
 
-		Builder(ContextType contextType, ContextParameterMap.Builder parameters, ContextAware.ErrorReporter reporter, Set<ContextAware> activeEntries) {
-			this.contextType = contextType;
-			this.reporter = reporter;
+		@Getter
+		private ContextAware.ErrorReporter reporter;
+
+		Builder(ContextParameterMap.Builder parameters, Set<ContextAware> activeEntries, ContextAware.ErrorReporter reporter) {
 			this.parameters = parameters;
 			this.activeEntries = activeEntries;
-		}
-
-		public Builder(ContextType contextType) {
-			this(contextType, new ContextParameterMap.Builder(), new ContextAware.ErrorReporter(contextType), new ObjectOpenHashSet<>());
+			this.reporter = reporter;
 		}
 
 		public Builder(ContextAware.ErrorReporter reporter) {
-			this(reporter.getContextType(), new ContextParameterMap.Builder(), reporter, new ObjectOpenHashSet<>());
+			this(new ContextParameterMap.Builder(), new ObjectOpenHashSet<>(), reporter);
+		}
+
+		public Builder(ContextType type) {
+			this(new ContextAware.ErrorReporter(type));
 		}
 
 		public Builder(Context context) {
 
 			ContextParameterMap.Builder newParameters = new ContextParameterMap.Builder();
-			((ContextParameterMapAccessor) context.parameters).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
+			((ContextParameterMapAccessor) context.getParameters()).getMap().forEach((parameter, obj) -> ((ContextParameterMapAccessor.BuilderAccessor) newParameters).getMap().put(parameter, obj));
 
-			this.contextType = context.getType();
-			this.reporter = context.getReporter();
 			this.parameters = newParameters;
-			this.activeEntries = context.activeEntries;
+			this.activeEntries = context.getActiveEntries();
+			this.reporter = context.getReporter();
 
 		}
 
-		public Builder withContextType(@NotNull ContextType contextType) {
-			this.contextType = contextType;
-			return this;
+		public Builder() {
+			this(LootContextTypes.EMPTY);
 		}
 
-		public Builder withReporter(@NotNull ContextAware.ErrorReporter reporter) {
-
-			this.contextType = reporter.getContextType();
-			this.reporter = reporter;
-
-			return this;
-
+		@Override
+		public <T> T required(ContextParameter<T> parameter) {
+			return this.getParameters().getOrThrow(parameter);
 		}
 
-		public <T> Builder add(ContextParameter<T> parameter, @NotNull T value) {
-			this.parameters.add(parameter, value);
-			return this;
+		@Override
+		public <T> @Nullable T nullable(ContextParameter<T> parameter) {
+			return this.getParameters().getNullable(parameter);
 		}
 
-		public <T> Builder addNullable(ContextParameter<T> parameter, @Nullable T value) {
-			this.parameters.addNullable(parameter, value);
-			return this;
+		public <T> B add(ContextParameter<T> parameter, @NotNull T value) {
+			this.getParameters().add(parameter, value);
+			return getThis();
 		}
 
-		public <T> Builder addOptional(ContextParameter<T> parameter, Optional<T> value) {
-			return addNullable(parameter, value.orElse(null));
+		public <T> B addIfAbsent(ContextParameter<T> parameter, Supplier<@NotNull T> value) {
+			return hasParameter(parameter)
+				? getThis()
+				: add(parameter, value.get());
+		}
+
+		public <T> B addNullable(ContextParameter<T> parameter, @Nullable T value) {
+			this.getParameters().addNullable(parameter, value);
+			return getThis();
+		}
+
+		public <T> B addNullableIfAbsent(ContextParameter<T> parameter, Supplier<@Nullable T> value) {
+			return hasParameter(parameter)
+				? getThis()
+				: addNullable(parameter, value.get());
+		}
+
+		public <T> B addOptional(ContextParameter<T> parameter, Optional<T> value) {
+			this.addNullable(parameter, value.orElse(null));
+			return getThis();
+		}
+
+		public <T> B addOptionalIfAbsent(ContextParameter<T> parameter, Supplier<Optional<T>> value) {
+			return hasParameter(parameter)
+				? getThis()
+				: addOptional(parameter, value.get());
 		}
 
 		public ContextType getType() {
-			return contextType;
+			return this.getReporter().getContextType();
 		}
 
-		public <T> T required(ContextParameter<T> parameter) {
-			return this.parameters.getOrThrow(parameter);
+		public B withContextType(ContextType type) {
+			this.reporter = reporter.withContextType(type);
+			return getThis();
 		}
 
-		@Nullable
-		public <T> T nullable(ContextParameter<T> parameter) {
-			return this.parameters.getNullable(parameter);
+		public B withReporter(ContextAware.ErrorReporter reporter) {
+			this.reporter = reporter;
+			return getThis();
 		}
 
-		public <T> Optional<T> optional(ContextParameter<T> parameter) {
-			return Optional.ofNullable(this.nullable(parameter));
-		}
-
-		public Context build(World world) {
-			return new Context(this.parameters.build(this.contextType), this.reporter.withWrapperLookup(world.getRegistryManager()), this.contextType, world, this.activeEntries);
-		}
+		protected abstract B getThis();
 
 	}
 

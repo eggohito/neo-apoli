@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.EntityParameter;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -53,7 +54,7 @@ public final class SwapEntityContextBiEntityCondition extends BiEntityCondition 
 	@Override
 	protected boolean impl(Context context) {
 
-		Context.Builder builder = new Context.Builder(context);
+		ContextImpl.Builder builder = new ContextImpl.Builder(context);
 		parameters().forEach((target, source) -> builder.add(target.getParameter(), context.required(source.getParameter())));
 
 		return biEntityCondition().test(builder.build(context.getWorld()).makeChild(".bientity_condition"));

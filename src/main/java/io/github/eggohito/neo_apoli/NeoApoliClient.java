@@ -82,7 +82,7 @@ public class NeoApoliClient implements ClientModInitializer {
 				if (isPressed(keyBindingReference, keyPressState)) {
 
 					PowerReference reference = PowerManager.getReference(instance.getPower());
-					Context context = instance.createGenericContext();
+					Context context = instance.createContext();
 
 					if (keyBoundInstance.shouldTrigger(context)) {
 						keyBoundInstance.onPress(context);

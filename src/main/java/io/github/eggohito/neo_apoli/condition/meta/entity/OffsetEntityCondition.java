@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,9 +42,11 @@ public final class OffsetEntityCondition extends EntityCondition {
 	protected boolean impl(Context context) {
 
 		Vec3d offsetPos = context.required(ContextParameters.ENTITY_POS).add(offset());
-		Context conditionContext = context.copy(builder -> builder.add(ContextParameters.ENTITY_POS, offsetPos));
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.ENTITY_POS, offsetPos)
+			.build(context.getWorld());
 
-		return condition().test(conditionContext.makeChild(".condition"));
+		return condition().test(context.makeChild(".condition"));
 
 	}
 

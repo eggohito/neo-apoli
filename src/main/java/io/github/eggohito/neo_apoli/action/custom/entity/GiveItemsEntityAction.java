@@ -9,10 +9,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Data;
@@ -65,10 +62,11 @@ public final class GiveItemsEntityAction extends EntityAction {
 		for (IndexedStack slottedStack : stacks()) {
 
 			StackReference givenStackReference = InventoryUtil.createStackReference(slottedStack.stack());
-			Context itemContext = context.copy(builder -> builder
+			Context itemContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
 				.add(ContextParameters.STACK_REFERENCE, givenStackReference)
-				.add(ContextParameters.ITEM_STACK, givenStackReference.get()));
+				.add(ContextParameters.ITEM_STACK, givenStackReference.get())
+				.build(context.getWorld());
 
 			itemAction().execute(itemContext.makeChild(".item_action"));
 

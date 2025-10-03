@@ -65,7 +65,7 @@ public class CallbackPowerRemovedPower extends Power {
 		public void onRemoved() {
 
 			super.onRemoved();
-			Context context = this.addPowerContext(this.createGenericContext());
+			Context context = this.createContext();
 
 			if (this.isActive(context)) {
 				power.getEntityAction().execute(context.makeChild(".entity_action"));

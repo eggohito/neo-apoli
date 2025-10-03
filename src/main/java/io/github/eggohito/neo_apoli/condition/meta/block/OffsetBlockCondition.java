@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,9 +43,11 @@ public final class OffsetBlockCondition extends BlockCondition {
 	protected boolean impl(Context context) {
 
 		Vec3d offsetPos = context.required(ContextParameters.BLOCK_POS).toCenterPos().add(offset());
-		Context conditionContext = context.copy(builder -> builder.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos)));
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.BLOCK_POS, BlockPos.ofFloored(offsetPos))
+			.build(context.getWorld());
 
-		return condition().test(conditionContext.makeChild(".condition"));
+		return condition().test(context.makeChild(".condition"));
 
 	}
 

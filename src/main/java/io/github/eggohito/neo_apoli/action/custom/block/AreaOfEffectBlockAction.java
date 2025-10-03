@@ -63,10 +63,11 @@ public final class AreaOfEffectBlockAction extends BlockAction {
 
 		for (BlockPos blockPos : shape().getBlockPositions(originPos, radius)) {
 
-			ServerContext blockContext = context.copy(builder -> builder
+			ServerContext blockContext = new ServerContext.Builder(context)
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+				.build(world);
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				blockAction().execute(blockContext.makeChild(".block_action"));

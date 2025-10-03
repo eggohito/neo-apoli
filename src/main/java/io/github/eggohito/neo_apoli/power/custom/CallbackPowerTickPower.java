@@ -95,7 +95,7 @@ public class CallbackPowerTickPower extends Power {
 		@Override
 		public void onTick() {
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 			int interval = power.getInterval().nextInt(context.makeChild(".interval"));
 
 			if (context.hasAnyErrors()) {

@@ -65,7 +65,7 @@ public class CallbackPowerGrantedPower extends Power {
 		public void onGranted() {
 
 			super.onGranted();
-			Context context = this.addPowerContext(this.createGenericContext());
+			Context context = this.createContext();
 
 			if (this.isActive(context)) {
 				power.getEntityAction().execute(context.makeChild(".entity_action"));

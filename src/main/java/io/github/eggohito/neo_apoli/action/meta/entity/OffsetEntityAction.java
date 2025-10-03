@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,10 +39,12 @@ public final class OffsetEntityAction extends EntityAction implements OffsetMeta
 	@Override
 	public void impl(Context context) {
 
-		Vec3d offsetPos = context.required(ContextParameters.ENTITY_POS).add(offset());
-		Context actionContext = context.copy(builder -> builder.add(ContextParameters.ENTITY_POS, offsetPos));
+		Vec3d offsetPos = context.required(ContextParameters.ENTITY_POS).add(this.offset());
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.ENTITY_POS, offsetPos)
+			.build(context.getWorld());
 
-		action().execute(actionContext.makeChild(".action"));
+		this.action().execute(context.makeChild(".action"));
 
 	}
 

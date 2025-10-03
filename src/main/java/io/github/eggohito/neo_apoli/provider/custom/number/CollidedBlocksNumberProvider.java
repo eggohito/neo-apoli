@@ -8,10 +8,7 @@ import io.github.eggohito.neo_apoli.provider.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.block.ShapeContext;
@@ -60,11 +57,12 @@ public final class CollidedBlocksNumberProvider extends NumberProvider {
 		while (spliterator.hasNext()) {
 
 			BlockPos blockPos = spliterator.next();
-			Context blockContext = context.copy(builder -> builder
+			Context blockContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+				.build(world);
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;

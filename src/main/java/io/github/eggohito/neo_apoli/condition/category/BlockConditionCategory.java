@@ -53,7 +53,7 @@ public class BlockConditionCategory extends ConditionCategory<BlockCondition> {
 				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.BLOCK))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = Context.builder(reporter)
+			Context context = new ContextImpl.Builder(reporter)
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, serverWorld.getBlockState(blockPos))
 				.addNullable(ContextParameters.BLOCK_ENTITY, serverWorld.getBlockEntity(blockPos))

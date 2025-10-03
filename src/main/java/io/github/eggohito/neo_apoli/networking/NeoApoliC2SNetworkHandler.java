@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.misc.KeyBound;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -55,7 +57,10 @@ public class NeoApoliC2SNetworkHandler {
 			else {
 
 				Power.Instance<?> powerInstance = powersComponent.getInstance(powerReference);
-				Context context = powerInstance.createGenericContext();
+				Context context = new ContextImpl.Builder(powerInstance.getContextType())
+					.add(ContextParameters.ENTITY, player)
+					.add(ContextParameters.ENTITY_POS, player.getPos())
+					.build(player.getWorld());
 
 				if (powerInstance instanceof KeyBound.Instance keyBoundInstance) {
 

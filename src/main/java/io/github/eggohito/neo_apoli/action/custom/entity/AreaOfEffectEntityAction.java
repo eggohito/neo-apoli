@@ -10,10 +10,7 @@ import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
@@ -67,10 +64,11 @@ public final class AreaOfEffectEntityAction extends EntityAction {
 
 		for (Entity target : shape().getEntities(world, originPos, radius)) {
 
-			Context biEntityContext = context.copy(builder -> builder
+			Context biEntityContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
 				.add(ContextParameters.ACTOR, context.required(ContextParameters.ENTITY))
-				.add(ContextParameters.TARGET, target));
+				.add(ContextParameters.TARGET, target)
+				.build(world);
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				biEntityAction().execute(biEntityContext.makeChild(".bientity_action"));

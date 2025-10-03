@@ -66,7 +66,7 @@ public class ModifyAttributeLegacyConditionedPower extends AbstractModifyAttribu
 		@Override
 		public void onTick() {
 
-			Context context = this.createGenericContext();
+			Context context = this.createContext();
 			int tickRate = power.getTickRate().nextInt(context.makeChild(".tick_rate"));
 
 			if (context.hasAnyErrors()) {

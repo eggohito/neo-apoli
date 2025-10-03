@@ -34,7 +34,7 @@ public interface ReferenceMetaCondition<C extends Condition> {
 					}
 
 					finally {
-						context.markInactive(condition);
+						context.markInActive(condition);
 					}
 
 				}

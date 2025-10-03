@@ -9,12 +9,12 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.Set;
 
@@ -30,10 +30,11 @@ public abstract class EntityCondition extends Condition {
 	@Override
 	public boolean test(Context context) {
 
-		Vec3d thisPos = context.required(ContextParameters.ENTITY_POS);
-		Context adjustedContext = context.copy(builder -> builder.add(ContextParameters.POSITION, thisPos));
+		context = new ContextImpl.Builder(context)
+			.add(ContextParameters.POSITION, context.required(ContextParameters.ENTITY_POS))
+			.build(context.getWorld());
 
-		return super.test(adjustedContext);
+		return super.test(context);
 
 	}
 

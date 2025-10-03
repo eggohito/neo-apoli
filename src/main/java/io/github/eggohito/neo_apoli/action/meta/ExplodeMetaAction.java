@@ -95,7 +95,7 @@ public interface ExplodeMetaAction {
 
 	}
 
-	default Set<ContextParameter<?>> getAllowedParameters() {
+	default Set<ContextParameter<?>> getRequiredParameters() {
 		return Set.of(ContextParameters.POSITION);
 	}
 
@@ -149,11 +149,12 @@ public interface ExplodeMetaAction {
 		@Override
 		public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos blockPos, BlockState blockState, float power) {
 
-			Context blockContext = context.copy(builder -> builder
+			Context blockContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, blockPos)
 				.add(ContextParameters.BLOCK_STATE, blockState)
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+				.build(context.getWorld());
 
 			return destructibleBlockCondition.test(blockContext.makeChild(".destructible_block_condition"));
 
@@ -162,10 +163,11 @@ public interface ExplodeMetaAction {
 		@Override
 		public boolean shouldDamage(Explosion explosion, Entity target) {
 
-			Context biEntityContext = context.copy(builder -> builder
+			Context biEntityContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
 				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ENTITY))
-				.addNullable(ContextParameters.TARGET, target));
+				.addNullable(ContextParameters.TARGET, target)
+				.build(context.getWorld());
 
 			return damageableBiEntityCondition.test(biEntityContext.makeChild(".damageable_bientity_condition"));
 
@@ -174,10 +176,11 @@ public interface ExplodeMetaAction {
 		@Override
 		public float getKnockbackModifier(Entity target) {
 
-			Context biEntityContext = context.copy(builder -> builder
+			Context biEntityContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
 				.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.ENTITY))
-				.addNullable(ContextParameters.TARGET, target));
+				.addNullable(ContextParameters.TARGET, target)
+				.build(context.getWorld());
 
 			return this.property.knockbackMultiplier().nextFloat(biEntityContext.makeChild(".knockback_multiplayer"));
 

@@ -109,8 +109,8 @@ public class PhasingPower extends Power {
 
 		public boolean shouldPhaseDown(Context context, VoxelShape shape) {
 
-			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
 			context = this.addPowerContext(context);
+			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
 
 			return holder.getY() < (double) blockPos.getY() + shape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));

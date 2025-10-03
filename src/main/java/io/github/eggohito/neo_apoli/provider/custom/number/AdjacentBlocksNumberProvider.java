@@ -7,10 +7,7 @@ import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
@@ -60,11 +57,12 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 				continue;
 			}
 
-			Context blockContext = context.copy(builder -> builder
+			Context blockContext = new ContextImpl.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, offsetPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos))
+				.build(world);
 
 			if (adjacentBlockCondition().test(blockContext.makeChild(".adjacent_block_condition"))) {
 				matches++;

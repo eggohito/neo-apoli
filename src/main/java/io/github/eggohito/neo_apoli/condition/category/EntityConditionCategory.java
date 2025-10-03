@@ -50,7 +50,7 @@ public class EntityConditionCategory extends ConditionCategory<EntityCondition> 
 				.withContextType(ContextTypeUtil.merge(ContextTypes.GENERIC, ContextTypes.ENTITY))
 				.withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) commandSource.getServer().getReloadableRegistries()).getRegistries());
 
-			Context context = Context.builder(reporter)
+			Context context = new ContextImpl.Builder(reporter)
 				.add(ContextParameters.ENTITY, target)
 				.add(ContextParameters.ENTITY_POS, target.getPos())
 				.build(commandSource.getWorld());

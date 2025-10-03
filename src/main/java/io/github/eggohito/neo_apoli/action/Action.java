@@ -49,7 +49,7 @@ public abstract class Action implements ContextAware, StringDisplayable {
 		}
 
 		finally {
-			context.markInactive(this);
+			context.markInActive(this);
 		}
 
 		if (exception != null || (reporter.isRoot() && reporter.hasAnyErrors())) {
