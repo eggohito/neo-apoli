@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.meta.number.ClampedNumberProvider;
 import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -18,9 +17,9 @@ import java.util.function.Function;
 public abstract class NumberProvider extends ValueProvider<Number> {
 
 	public static final String TYPE_KEY = "type";
-	public static final PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderTypes.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, NumberProvider> PACKET_CODEC = NumberProviderType.PACKET_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
 
-	public static final MapCodec<NumberProvider> MAP_CODEC = NumberProviderTypes.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, NumberProviderType::mapCodec);
+	public static final MapCodec<NumberProvider> MAP_CODEC = NumberProviderType.CODEC.dispatchMap(TYPE_KEY, NumberProvider::getType, NumberProviderType::mapCodec);
 	public static final Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantNumberProvider.INLINE_CODEC));
 
 	@Override

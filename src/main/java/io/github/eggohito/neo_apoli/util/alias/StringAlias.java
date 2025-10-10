@@ -1,12 +1,11 @@
-package io.github.eggohito.neo_apoli.util;
+package io.github.eggohito.neo_apoli.util.alias;
 
+import io.github.eggohito.neo_apoli.exception.AliasAlreadyTakenException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.Map;
 
 public class StringAlias {
-
-	public static final StringAlias GLOBAL = new StringAlias();
 
 	private final Map<String, String> aliases;
 
@@ -20,23 +19,22 @@ public class StringAlias {
 			return aliases.get(value);
 		}
 
-		else if (this != GLOBAL) {
-			return GLOBAL.resolveAlias(value);
-		}
-
 		else {
 			return value;
 		}
 
 	}
 
-	public boolean addAlias(String from, String to) {
-		return aliases.putIfAbsent(from ,to) != null;
+	public void addAlias(String from, String to) {
+
+		if (aliases.putIfAbsent(from, to) != null) {
+			throw new AliasAlreadyTakenException(from, to, () -> aliases.get(from));
+		}
+
 	}
 
 	public boolean hasAlias(String value) {
-		return aliases.containsKey(value)
-			|| (this != GLOBAL && GLOBAL.hasAlias(value));
+		return aliases.containsKey(value);
 	}
 
 }

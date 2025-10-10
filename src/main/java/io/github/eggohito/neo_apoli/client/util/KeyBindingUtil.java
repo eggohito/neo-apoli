@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.util;
 
 import io.github.eggohito.neo_apoli.client.mixin.accessor.KeyBindingAccessor;
-import io.github.eggohito.neo_apoli.util.StringAlias;
+import io.github.eggohito.neo_apoli.util.alias.StringAlias;
 import net.minecraft.client.option.KeyBinding;
 
 import java.util.Optional;

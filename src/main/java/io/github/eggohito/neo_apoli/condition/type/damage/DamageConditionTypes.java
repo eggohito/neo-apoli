@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.condition.type.damage;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.DamageCondition;
@@ -8,21 +7,13 @@ import io.github.eggohito.neo_apoli.condition.custom.damage.IsInTagDamageConditi
 import io.github.eggohito.neo_apoli.condition.custom.damage.IsOfDamageCondition;
 import io.github.eggohito.neo_apoli.condition.meta.damage.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class DamageConditionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<DamageConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.DAMAGE_CONDITION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, DamageConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.DAMAGE_CONDITION_TYPE);
 
 	public static final DamageConditionType<AllOfDamageCondition> ALL_OF = registerInternal("all_of", AllOfDamageCondition.CODEC, AllOfDamageCondition.PACKET_CODEC);
 	public static final DamageConditionType<AnyOfDamageCondition> ANY_OF = registerInternal("any_of", AnyOfDamageCondition.CODEC, AnyOfDamageCondition.PACKET_CODEC);
@@ -36,8 +27,7 @@ public final class DamageConditionTypes {
 	public static final DamageConditionType<IsInTagDamageCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagDamageCondition.CODEC, IsInTagDamageCondition.PACKET_CODEC);
 
 	public static void registerAll() {
-		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
-		ALIASES.addPathAlias("or", getId(ANY_OF).getPath());
+
 	}
 
 	private static <C extends DamageCondition> DamageConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {

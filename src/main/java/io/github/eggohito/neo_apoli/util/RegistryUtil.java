@@ -3,6 +3,9 @@ package io.github.eggohito.neo_apoli.util;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Lifecycle;
+import io.github.eggohito.neo_apoli.mixin.access.RegistryAccessor;
+import io.github.eggohito.neo_apoli.util.alias.IdentifierAlias;
+import io.github.eggohito.neo_apoli.util.alias.RegistryAlias;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -14,11 +17,46 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 
 public final class RegistryUtil {
 
+	public static <T> Codec<RegistryEntry.Reference<T>> createAliasedReferenceCodec(RegistryAlias<T> aliases) {
+
+		Registry<T> registry = aliases.getRegistry();
+		Codec<RegistryEntry.Reference<T>> codec = Identifier.CODEC.comapFlatMap(
+			id -> registry.getEntry(aliases.resolve(id, registry::containsId))
+				.map(DataResult::success)
+				.orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + registry.getKey() + ": " + id)),
+			reference -> reference.registryKey().getValue()
+		);
+
+		return Codecs.withLifecycle(
+			codec,
+			entry -> registry.getEntryInfo(entry.registryKey())
+				.map(RegistryEntryInfo::lifecycle)
+				.orElseGet(Lifecycle::experimental)
+		);
+
+	}
+
+	@SuppressWarnings("ReferenceToMixin")
+	public static <T> Codec<RegistryEntry<T>> createAliasedEntryCodec(RegistryAlias<T> aliases) {
+		return createAliasedReferenceCodec(aliases).flatComapMap(
+			Function.identity(),
+			entry -> ((RegistryAccessor) aliases.getRegistry()).callValidateReference(entry)
+		);
+	}
+
+	@SuppressWarnings("ReferenceToMixin")
+	public static <T> Codec<T> createAliasedCodec(RegistryAlias<T> aliases) {
+		return createAliasedReferenceCodec(aliases).flatComapMap(
+			RegistryEntry.Reference::value,
+			value -> ((RegistryAccessor) aliases.getRegistry()).callValidateReference(aliases.getRegistry().getEntry(value))
+		);
+	}
+
+	@Deprecated
 	public static <T> Codec<T> createAliasedCodec(Registry<T> registry, IdentifierAlias aliases) {
 
 		Codec<RegistryEntry.Reference<T>> entryCodec = Identifier.CODEC.comapFlatMap(
@@ -59,23 +97,24 @@ public final class RegistryUtil {
 	public static <T> void validateTag(ContextAware.ErrorReporter reporter, TagKey<T> tag) {
 
 		RegistryKey<? extends Registry<T>> registryRef = tag.registryRef();
+		RegistryWrapper.WrapperLookup wrapperLookup = reporter.getWrapperLookup().orElse(null);
 
-		if (!reporter.hasWrapperLookup()) {
-			reporter.report("Can't access registry " + registryRef + "!");
+		if (wrapperLookup == null) {
+			reporter.report("Can't access registry %s!".formatted(registryRef));
 		}
 
 		else {
 
-			Optional<RegistryWrapper.Impl<T>> registry = reporter.getWrapperLookup().orElseThrow()
+			RegistryWrapper.Impl<T> registryWrapper = wrapperLookup
 				.getOptional(tag.registryRef())
-				.map(Function.identity());
+				.orElse(null);
 
-			if (registry.isEmpty()) {
-				reporter.report("Can't find registry " + registryRef + "!");
+			if (registryWrapper == null) {
+				reporter.report("Can't find registry %s!".formatted(registryRef));
 			}
 
-			else if (registry.get().getOptional(tag).isEmpty()) {
-				reporter.report(tag + " doesn't exist!");
+			else if (registryWrapper.getOptional(tag).isEmpty()) {
+				reporter.report("%s doesn't exist!".formatted(tag));
 			}
 
 		}

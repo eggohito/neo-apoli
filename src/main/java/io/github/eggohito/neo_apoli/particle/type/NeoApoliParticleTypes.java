@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.particle.type;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.alias.RegistryAlias;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -21,10 +21,13 @@ import java.util.function.Function;
 
 public final class NeoApoliParticleTypes {
 
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
+	public static final RegistryAlias<ParticleType<?>> ALIASES = new RegistryAlias<>(Registries.PARTICLE_TYPE);
 
-	public static final Codec<ParticleEffect> EFFECT_CODEC = RegistryUtil.createAliasedCodec(Registries.PARTICLE_TYPE, ALIASES).dispatch("type", ParticleEffect::getType, ParticleType::getCodec);
-	public static final PacketCodec<RegistryByteBuf, ParticleEffect> EFFECT_PACKET_CODEC = PacketCodecs.registryValue(RegistryKeys.PARTICLE_TYPE).dispatch(ParticleEffect::getType, ParticleType::getPacketCodec);
+	public static final Codec<ParticleType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final PacketCodec<RegistryByteBuf, ParticleType<?>> PACKET_CODEC = PacketCodecs.registryValue(RegistryKeys.PARTICLE_TYPE);
+
+	public static final Codec<ParticleEffect> EFFECT_CODEC = CODEC.dispatch(ParticleEffect::getType, ParticleType::getCodec);
+	public static final PacketCodec<RegistryByteBuf, ParticleEffect> EFFECT_PACKET_CODEC = PACKET_CODEC.dispatch(ParticleEffect::getType, ParticleType::getPacketCodec);
 
 	public static final SimpleParticleType NOTHING = registerInternal("nothing", false);
 

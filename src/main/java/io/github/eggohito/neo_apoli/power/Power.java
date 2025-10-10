@@ -57,10 +57,10 @@ import java.util.function.Function;
 public abstract class Power {
 
 	public static final String TYPE_KEY = "type";
-	public static final MapCodec<Power> BASE_MAP_CODEC = PowerTypes.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final MapCodec<Power> BASE_MAP_CODEC = PowerType.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
 	public static final Codec<Power> BASE_CODEC = BASE_MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerTypes.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerType.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Properties properties;
 	private final Optional<EntityCondition> activeCondition;

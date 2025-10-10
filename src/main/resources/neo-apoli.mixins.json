@@ -8,6 +8,7 @@
 		"access.DataCommandStorageAccessor",
 		"access.DataCommandStorageAccessor$PersistentStateAccessor",
 		"access.ExecuteCommandAccessor",
+		"access.RegistryAccessor",
 		"access.ReloadableRegistriesAccessor",
 		"access.ReloadableRegistriesAccessor$LookupAccessor",
 		"access.StringNbtReaderAccessor",

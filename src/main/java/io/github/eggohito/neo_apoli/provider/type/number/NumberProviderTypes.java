@@ -1,27 +1,17 @@
 package io.github.eggohito.neo_apoli.provider.type.number;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.*;
 import io.github.eggohito.neo_apoli.provider.meta.number.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class NumberProviderTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<NumberProviderType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, NumberProviderType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 
 	public static final NumberProviderType<AbsoluteNumberProvider> ABSOLUTE = registerInternal("absolute", AbsoluteNumberProvider.CODEC, AbsoluteNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<AddNumberProvider> ADD = registerInternal("add", AddNumberProvider.CODEC, AddNumberProvider.PACKET_CODEC);
@@ -61,19 +51,10 @@ public final class NumberProviderTypes {
 
 	public static void registerAll() {
 
-		ALIASES.addPathAlias("abs", getId(ABSOLUTE).getPath());
-		ALIASES.addPathAlias("lerp", getId(LINEAR_INTERPOLATION).getPath());
-
-		ALIASES.addPathAlias("entity_block_distance", getId(DISTANCE_BETWEEN_ENTITY_AND_BLOCK).getPath());
-
 	}
 
 	private static <P extends NumberProvider> NumberProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {
 		return register(NeoApoli.id(path), mapCodec, packetCodec);
-	}
-
-	public static Identifier getId(NumberProviderType<?> type) {
-		return RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, type);
 	}
 
 	public static <P extends NumberProvider> NumberProviderType<P> register(Identifier id, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec) {

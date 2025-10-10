@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -21,9 +20,9 @@ import java.util.Set;
 
 public abstract class BlockCondition extends Condition {
 
-	public static final MapCodec<BlockCondition> MAP_CODEC = BlockConditionTypes.CODEC.dispatchMap("type", BlockCondition::getType, BlockConditionType::mapCodec);
+	public static final MapCodec<BlockCondition> MAP_CODEC = BlockConditionType.CODEC.dispatchMap("type", BlockCondition::getType, BlockConditionType::mapCodec);
 	public static final Codec<BlockCondition> CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, BlockCondition> PACKET_CODEC = BlockConditionTypes.PACKET_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, BlockCondition> PACKET_CODEC = BlockConditionType.PACKET_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
 
 	@Override
 	public abstract BlockConditionType<?> getType();

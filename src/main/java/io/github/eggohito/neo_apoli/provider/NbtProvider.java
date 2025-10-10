@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.meta.nbt.ConstantNbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -17,9 +16,9 @@ import net.minecraft.network.codec.PacketCodec;
 public abstract class NbtProvider extends ValueProvider<NbtElement> {
 
 	public static final String TYPE_KEY = "type";
-	public static final PacketCodec<RegistryByteBuf, NbtProvider> PACKET_CODEC = NbtProviderTypes.PACKET_CODEC.dispatch(NbtProvider::getType, NbtProviderType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, NbtProvider> PACKET_CODEC = NbtProviderType.PACKET_CODEC.dispatch(NbtProvider::getType, NbtProviderType::packetCodec);
 
-	public static final MapCodec<NbtProvider> MAP_CODEC = NbtProviderTypes.CODEC.dispatchMap(TYPE_KEY, NbtProvider::getType, NbtProviderType::mapCodec);
+	public static final MapCodec<NbtProvider> MAP_CODEC = NbtProviderType.CODEC.dispatchMap(TYPE_KEY, NbtProvider::getType, NbtProviderType::mapCodec);
 	public static final Codec<NbtProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), ConstantNbtProvider.INLINE_CODEC));
 
 	@Override

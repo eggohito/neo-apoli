@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.condition.type.block;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.BlockCondition;
@@ -10,21 +9,12 @@ import io.github.eggohito.neo_apoli.condition.custom.block.IsInTagBlockCondition
 import io.github.eggohito.neo_apoli.condition.custom.block.IsOfBlockCondition;
 import io.github.eggohito.neo_apoli.condition.meta.block.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class BlockConditionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<BlockConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.BLOCK_CONDITION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, BlockConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.BLOCK_CONDITION_TYPE);
 
 	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.PACKET_CODEC);
@@ -41,12 +31,6 @@ public final class BlockConditionTypes {
 	public static final BlockConditionType<IsOfBlockCondition> IS_OF = registerInternal("is_of", IsOfBlockCondition.CODEC, IsOfBlockCondition.PACKET_CODEC);
 
 	public static void registerAll() {
-
-		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.BLOCK_CONDITION_TYPE, ALL_OF));
-		ALIASES.addPathAlias("or", RegistryUtil.getIdPath(NeoApoliRegistries.BLOCK_CONDITION_TYPE, ANY_OF));
-
-		ALIASES.addPathAlias("block_entity", RegistryUtil.getIdPath(NeoApoliRegistries.BLOCK_CONDITION_TYPE, HAS_BLOCK_ENTITY));
-		ALIASES.addPathAlias("block", RegistryUtil.getIdPath(NeoApoliRegistries.BLOCK_CONDITION_TYPE, IS_OF));
 
 	}
 

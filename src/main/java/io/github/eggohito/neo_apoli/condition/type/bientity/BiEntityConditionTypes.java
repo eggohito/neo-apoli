@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.condition.type.bientity;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
@@ -10,21 +9,12 @@ import io.github.eggohito.neo_apoli.condition.custom.bientity.SwapEntityContextB
 import io.github.eggohito.neo_apoli.condition.custom.bientity.TestEntityConditionBiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.meta.bientity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class BiEntityConditionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<BiEntityConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, BiEntityConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.BIENTITY_CONDITION_TYPE);
 
 	public static final BiEntityConditionType<AllOfBiEntityCondition> ALL_OF = registerInternal("all_of", AllOfBiEntityCondition.CODEC, AllOfBiEntityCondition.PACKET_CODEC);
 	public static final BiEntityConditionType<AnyOfBiEntityCondition> ANY_OF = registerInternal("any_of", AnyOfBiEntityCondition.CODEC, AnyOfBiEntityCondition.PACKET_CODEC);
@@ -40,9 +30,6 @@ public final class BiEntityConditionTypes {
 	public static final BiEntityConditionType<TestEntityConditionBiEntityCondition> TEST_ENTITY_CONDITION = registerInternal("test_entity_condition", TestEntityConditionBiEntityCondition.CODEC, TestEntityConditionBiEntityCondition.PACKET_CODEC);
 
 	public static void registerAll() {
-
-		ALIASES.addPathAlias("and", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, ALL_OF));
-		ALIASES.addPathAlias("or", RegistryUtil.getIdPath(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, ANY_OF));
 
 	}
 

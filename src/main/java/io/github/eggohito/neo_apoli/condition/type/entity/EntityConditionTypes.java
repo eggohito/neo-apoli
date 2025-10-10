@@ -1,27 +1,18 @@
 package io.github.eggohito.neo_apoli.condition.type.entity;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.*;
 import io.github.eggohito.neo_apoli.condition.meta.entity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class EntityConditionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<EntityConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.ENTITY_CONDITION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, EntityConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 
 	public static final EntityConditionType<AllOfEntityCondition> ALL_OF = registerInternal("all_of", AllOfEntityCondition.CODEC, AllOfEntityCondition.PACKET_CODEC);
 	public static final EntityConditionType<AnyOfEntityCondition> ANY_OF = registerInternal("any_of", AnyOfEntityCondition.CODEC, AnyOfEntityCondition.PACKET_CODEC);
@@ -45,19 +36,6 @@ public final class EntityConditionTypes {
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.PACKET_CODEC);
 
 	public static void registerAll() {
-
-		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
-		ALIASES.addPathAlias("or", getId(ANY_OF).getPath());
-
-		ALIASES.addPathAlias("climbing", getId(IS_CLIMBING).getPath());
-		ALIASES.addPathAlias("in_block", getId(IS_IN_BLOCK).getPath());
-		ALIASES.addPathAlias("in_tag", getId(IS_IN_TAG).getPath());
-		ALIASES.addPathAlias("invisible", getId(IS_INVISIBLE).getPath());
-		ALIASES.addPathAlias("on_block", getId(IS_ON_BLOCK).getPath());
-		ALIASES.addPathAlias("power_active", getId(IS_POWER_ACTIVE).getPath());
-		ALIASES.addPathAlias("sneaking", getId(IS_SNEAKING).getPath());
-		ALIASES.addPathAlias("sprinting", getId(IS_SPRINTING).getPath());
-		ALIASES.addPathAlias("collided_horizontally", getId(COLLIDED_HORIZONTALLY).getPath());
 
 	}
 

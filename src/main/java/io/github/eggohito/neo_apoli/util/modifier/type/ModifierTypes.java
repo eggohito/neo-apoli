@@ -5,8 +5,8 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.alias.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import io.github.eggohito.neo_apoli.util.modifier.custom.*;
 import net.minecraft.network.RegistryByteBuf;
@@ -33,9 +33,9 @@ public final class ModifierTypes {
 
 	public static void registerAll() {
 
-		ALIASES.addPathAlias("multiplication", getPath(MULTIPLY));
-		ALIASES.addPathAlias("division", getPath(DIVIDE));
-		ALIASES.addPathAlias("addition", getPath(ADD));
+		ALIASES.getPaths().addAlias("multiplication", getPath(MULTIPLY));
+		ALIASES.getPaths().addAlias("division", getPath(DIVIDE));
+		ALIASES.getPaths().addAlias("addition", getPath(ADD));
 
 	}
 

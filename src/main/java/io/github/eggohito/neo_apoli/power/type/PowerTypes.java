@@ -1,30 +1,20 @@
 package io.github.eggohito.neo_apoli.power.type;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypeUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextType;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class PowerTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.POWER_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, PowerType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.POWER_TYPE);
 
 	public static final PowerType<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal("callback/block/break", CallbackBlockBreakPower.CODEC, CallbackBlockBreakPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
 	public static final PowerType<CallbackPowerAddedPower> CALLBACK_POWER_ADDED = registerInternal("callback/power/added", CallbackPowerAddedPower.CODEC, CallbackPowerAddedPower.PACKET_CODEC, ContextTypes.ENTITY);
@@ -54,14 +44,7 @@ public class PowerTypes {
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.PACKET_CODEC, ContextTypes.ENTITY);
 
 	public static void registerAll() {
-		ALIASES.addPathAlias("attribute", getId(MODIFY_ATTRIBUTE_LEGACY).getPath());
-		ALIASES.addPathAlias("action_over_time", getId(CALLBACK_POWER_TICK).getPath());
-		ALIASES.addPathAlias("conditioned_attribute", getId(MODIFY_ATTRIBUTE_LEGACY_CONDITIONED).getPath());
-		ALIASES.addPathAlias("modify_harvest", getId(MODIFY_BLOCK_HARVESTABLE).getPath());
-		ALIASES.addPathAlias("climbing", getId(MODIFY_CLIMBING).getPath());
-		ALIASES.addPathAlias("invisibility", getId(MODIFY_INVISIBILITY).getPath());
-		ALIASES.addPathAlias("simple", getId(DUMMY).getPath());
-		ALIASES.addPathAlias("shaking", getId(MODIFY_MODEL_SHAKING).getPath());
+
 	}
 
 	private static <P extends Power> PowerType<P> registerInternal(String path, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec, ContextType... contextTypes) {
@@ -71,10 +54,6 @@ public class PowerTypes {
 	public static <P extends Power> PowerType<P> register(Identifier id, MapCodec<P> mapCodec, PacketCodec<RegistryByteBuf, P> packetCodec, ContextType... contextTypes) {
 		ContextType[] appended = ArrayUtils.add(contextTypes, ContextTypes.GENERIC);
 		return Registry.register(NeoApoliRegistries.POWER_TYPE, id, new PowerType<>(ContextTypeUtil.merge(appended), mapCodec, packetCodec));
-	}
-
-	public static Identifier getId(PowerType<?> powerType) {
-		return RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, powerType);
 	}
 
 }

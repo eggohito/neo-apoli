@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -16,8 +15,8 @@ import net.minecraft.util.math.Vec3d;
 
 public abstract class BoxProvider extends ValueProvider<Box> {
 
-	public static final MapCodec<BoxProvider> CODEC = BoxProviderTypes.CODEC.dispatchMap("type", BoxProvider::getType, BoxProviderType::mapCodec);
-	public static final PacketCodec<RegistryByteBuf, BoxProvider> PACKET_CODEC = BoxProviderTypes.PACKET_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
+	public static final MapCodec<BoxProvider> CODEC = BoxProviderType.CODEC.dispatchMap("type", BoxProvider::getType, BoxProviderType::mapCodec);
+	public static final PacketCodec<RegistryByteBuf, BoxProvider> PACKET_CODEC = BoxProviderType.PACKET_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
 
 	@Override
 	public abstract BoxProviderType<?> getType();

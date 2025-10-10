@@ -89,7 +89,7 @@ public class MultiplePower extends Power {
 	public static void preProcessSubPowers(Identifier id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
 
 		JsonObject powerJson = entry.element();
-		DataResult<PowerType<?>> powerTypeResult = PowerTypes.CODEC.parse(ops, powerJson.get(TYPE_KEY));
+		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
 
 		if (powerTypeResult.isSuccess() && Objects.equals(powerTypeResult.getOrThrow(), PowerTypes.MULTIPLE)) {
 
@@ -190,7 +190,7 @@ public class MultiplePower extends Power {
 					if (subReferenceResult.isSuccess()) {
 
 						PowerReference.SubPower subReference = subReferenceResult.getOrThrow();
-						DataResult<PowerType<?>> typeResult = PowerTypes.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, subMap)
+						DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, subMap)
 							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
 								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which isn't allowed!")
 								: DataResult.success(type));

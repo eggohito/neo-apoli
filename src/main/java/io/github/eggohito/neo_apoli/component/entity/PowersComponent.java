@@ -14,7 +14,6 @@ import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -501,14 +500,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
-			PowerTypes.CODEC.fieldOf("type").forGetter(Entry::type),
+			PowerType.CODEC.fieldOf("type").forGetter(Entry::type),
 			NeoApoliCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));
 
 		public static final PacketCodec<RegistryByteBuf, Entry<?>> PACKET_CODEC = PacketCodec.tuple(
 			PowerReference.PACKET_CODEC, Entry::powerReference,
-			PowerTypes.PACKET_CODEC, Entry::type,
+			PowerType.PACKET_CODEC, Entry::type,
 			NeoApoliPacketCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET, Entry::sources,
 			NeoApoliPacketCodecs.REGISTRY_PASSTHROUGH, Entry::data,
 			Entry::new

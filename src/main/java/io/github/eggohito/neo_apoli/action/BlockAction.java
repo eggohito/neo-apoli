@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.action.meta.block.SequenceBlockAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -23,11 +22,11 @@ import java.util.Set;
 
 public abstract class BlockAction extends Action {
 
-	public static final MapCodec<BlockAction> MAP_CODEC = BlockActionTypes.CODEC.dispatchMap("type", BlockAction::getType, BlockActionType::mapCodec);
+	public static final MapCodec<BlockAction> MAP_CODEC = BlockActionType.CODEC.dispatchMap("type", BlockAction::getType, BlockActionType::mapCodec);
 	public static final Codec<BlockAction> BASE_CODEC = MAP_CODEC.codec();
 
 	public static final Codec<BlockAction> CODEC = Codec.recursive(BlockAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BASE_CODEC, codec.listOf().xmap(SequenceBlockAction::new, SequenceBlockAction::actions)));
-	public static final PacketCodec<RegistryByteBuf, BlockAction> PACKET_CODEC = BlockActionTypes.PACKET_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, BlockAction> PACKET_CODEC = BlockActionType.PACKET_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
 
 	@Override
 	public abstract BlockActionType<?> getType();

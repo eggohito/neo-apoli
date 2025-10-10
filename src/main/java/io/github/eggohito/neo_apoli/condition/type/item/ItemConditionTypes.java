@@ -1,27 +1,18 @@
 package io.github.eggohito.neo_apoli.condition.type.item;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.*;
 import io.github.eggohito.neo_apoli.condition.meta.item.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class ItemConditionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<ItemConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.ITEM_CONDITION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, ItemConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ITEM_CONDITION_TYPE);
 
 	public static final ItemConditionType<AllOfItemCondition> ALL_OF = registerInternal("all_of", AllOfItemCondition.CODEC, AllOfItemCondition.PACKET_CODEC);
 	public static final ItemConditionType<AnyOfItemCondition> ANY_OF = registerInternal("any_of", AnyOfItemCondition.CODEC, AnyOfItemCondition.PACKET_CODEC);
@@ -38,14 +29,6 @@ public final class ItemConditionTypes {
 	public static final ItemConditionType<IsFoodItemCondition> IS_FOOD = registerInternal("is_food", IsFoodItemCondition.CODEC, IsFoodItemCondition.PACKET_CODEC);
 
 	public static void registerAll() {
-
-		ALIASES.addPathAlias("and", getId(ALL_OF).getPath());
-		ALIASES.addPathAlias("or", getId(ANY_OF).getPath());
-
-		ALIASES.addPathAlias("damageable", getId(IS_DAMAGEABLE).getPath());
-		ALIASES.addPathAlias("empty", getId(IS_EMPTY).getPath());
-		ALIASES.addPathAlias("food", getId(IS_FOOD).getPath());
-		ALIASES.addPathAlias("enchantable", getId(IS_ENCHANTABLE).getPath());
 
 	}
 

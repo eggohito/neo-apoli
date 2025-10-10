@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -20,9 +19,9 @@ import java.util.Set;
 
 public abstract class EntityCondition extends Condition {
 
-	public static final MapCodec<EntityCondition> MAP_CODEC = EntityConditionTypes.CODEC.dispatchMap("type", EntityCondition::getType, EntityConditionType::mapCodec);
+	public static final MapCodec<EntityCondition> MAP_CODEC = EntityConditionType.CODEC.dispatchMap("type", EntityCondition::getType, EntityConditionType::mapCodec);
 	public static final Codec<EntityCondition> CODEC = MAP_CODEC.codec();
-	public static final PacketCodec<RegistryByteBuf, EntityCondition> PACKET_CODEC = EntityConditionTypes.PACKET_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
+	public static final PacketCodec<RegistryByteBuf, EntityCondition> PACKET_CODEC = EntityConditionType.PACKET_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
 
 	@Override
 	public abstract EntityConditionType<?> getType();

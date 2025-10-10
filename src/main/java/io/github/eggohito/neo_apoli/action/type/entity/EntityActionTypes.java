@@ -1,27 +1,18 @@
 package io.github.eggohito.neo_apoli.action.type.entity;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.custom.entity.*;
 import io.github.eggohito.neo_apoli.action.meta.entity.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class EntityActionTypes {
-
-	public static final IdentifierAlias ALIASES = new IdentifierAlias();
-
-	public static final Codec<EntityActionType<?>> CODEC = RegistryUtil.createAliasedCodec(NeoApoliRegistries.ENTITY_ACTION_TYPE, ALIASES);
-	public static final PacketCodec<RegistryByteBuf, EntityActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
 
 	public static final EntityActionType<ExecuteCommandEntityAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandEntityAction.CODEC, ExecuteCommandEntityAction.PACKET_CODEC);
 	public static final EntityActionType<ExplodeEntityAction> EXPLODE = registerInternal("explode", ExplodeEntityAction.CODEC, ExplodeEntityAction.PACKET_CODEC);
@@ -47,14 +38,6 @@ public final class EntityActionTypes {
 	public static final EntityActionType<SwingHandEntityAction> SWING_HAND = registerInternal("swing_hand", SwingHandEntityAction.CODEC, SwingHandEntityAction.PACKET_CODEC);
 
 	public static void registerAll() {
-
-		ALIASES.addPathAlias("no_op", getId(NOTHING).getPath());
-		ALIASES.addPathAlias("chance", getId(RANDOM_CHANCE).getPath());
-		ALIASES.addPathAlias("choice", getId(RANDOM_CHOICE).getPath());
-		ALIASES.addPathAlias("and", getId(SEQUENCE).getPath());
-
-		ALIASES.addPathAlias("add_xp", getId(ADD_EXPERIENCE).getPath());
-		ALIASES.addPathAlias("stop_riding", getId(DISMOUNT).getPath());
 
 	}
 
