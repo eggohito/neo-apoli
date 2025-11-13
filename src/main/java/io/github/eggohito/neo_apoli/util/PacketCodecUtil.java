@@ -3,13 +3,16 @@ package io.github.eggohito.neo_apoli.util;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import io.github.eggohito.neo_apoli.mixin.access.WeightedListAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.util.collection.WeightedList;
 import net.minecraft.util.function.ValueLists;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.*;
 
 public final class PacketCodecUtil {
@@ -111,7 +114,7 @@ public final class PacketCodecUtil {
 
 			@Override
 			public String toString() {
-				return "RecursivePacketCodec[" + name + "]";
+				return "LazyPacketCodec[" + name + "]";
 			}
 
 		};
@@ -119,6 +122,44 @@ public final class PacketCodecUtil {
 
 	public static <B extends ByteBuf, T> PacketCodec<B, T> unit(Supplier<T> supplier) {
 		return PacketCodec.ofStatic((buf, value) -> supplier.get(), buf -> supplier.get());
+	}
+
+	public static <B extends ByteBuf, T> PacketCodec<B, WeightedList<T>> weightedList(PacketCodec<B, T> entryCodec) {
+		return new PacketCodec<>() {
+
+			@Override
+			public WeightedList<T> decode(B buf) {
+
+				WeightedList<T> entries = new WeightedList<>();
+				int size = buf.readInt();
+
+				for (int i = 0; i < size; i++) {
+
+					T entry = entryCodec.decode(buf);
+					int weight = buf.readInt();
+
+					entries.add(entry, weight);
+
+				}
+
+				return entries;
+
+			}
+
+			@Override
+			public void encode(B buf, WeightedList<T> value) {
+
+				List<WeightedList.Entry<T>> entries = ((WeightedListAccessor) value).getEntries();
+				buf.writeInt(entries.size());
+
+				for (var entry : entries) {
+					entryCodec.encode(buf, entry.getElement());
+					buf.writeInt(entry.getWeight());
+				}
+
+			}
+
+		};
 	}
 
 }

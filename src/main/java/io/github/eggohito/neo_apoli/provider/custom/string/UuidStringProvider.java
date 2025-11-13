@@ -2,37 +2,29 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityParameter;
+import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 
-@EqualsAndHashCode
-@Data
-public final class UuidStringProvider extends StringProvider {
+public record UuidStringProvider(EntityTarget entity) implements StringProvider {
 
 	public static final MapCodec<UuidStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityParameter.CODEC.fieldOf("source").forGetter(UuidStringProvider::source)
+		EntityTarget.CODEC.fieldOf("entity").forGetter(UuidStringProvider::entity)
 	).apply(instance, UuidStringProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, UuidStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityParameter.PACKET_CODEC, UuidStringProvider::source,
+		EntityTarget.PACKET_CODEC, UuidStringProvider::entity,
 		UuidStringProvider::new
 	);
-
-	private final EntityParameter source;
-
-	public UuidStringProvider(EntityParameter source) {
-		this.source = source;
-	}
 
 	@Override
 	public StringProviderType<?> getType() {
@@ -40,13 +32,24 @@ public final class UuidStringProvider extends StringProvider {
 	}
 
 	@Override
-	protected String impl(Context context) {
-		return context.required(source().getParameter()).getUuidAsString();
+	public @NotNull String next(Context context) {
+
+		ContextParameter<Entity> parameter = entity().getParameter();
+		Optional<Entity> optEntity = context.optional(parameter);
+
+		if (optEntity.isEmpty()) {
+			context.getReporter().report("Couldn't get UUID of entity from parameter \"" + parameter.getId() + "\", as it doesn't exist!");
+		}
+
+		return optEntity
+			.map(Entity::getUuidAsString)
+			.orElse("");
+
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(source().getParameter());
+		return Set.of(entity().getParameter());
 	}
 
 }

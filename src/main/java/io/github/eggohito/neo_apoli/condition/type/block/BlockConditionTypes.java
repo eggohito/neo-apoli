@@ -2,19 +2,16 @@ package io.github.eggohito.neo_apoli.condition.type.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.custom.block.BlockStatePropertyBlockCondition;
-import io.github.eggohito.neo_apoli.condition.custom.block.HasBlockEntityBlockCondition;
-import io.github.eggohito.neo_apoli.condition.custom.block.IsInTagBlockCondition;
-import io.github.eggohito.neo_apoli.condition.custom.block.IsOfBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.*;
+import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.condition.custom.block.*;
+import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
-public final class BlockConditionTypes {
+public class BlockConditionTypes extends ConditionTypes {
 
 	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.PACKET_CODEC);
@@ -39,7 +36,7 @@ public final class BlockConditionTypes {
 	}
 
 	public static <C extends BlockCondition> BlockConditionType<C> register(Identifier id, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {
-		return Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, id, new BlockConditionType<>(mapCodec, packetCodec));
+		return ConditionTypes.register(id.withPrefixedPath(BlockConditionType.PREFIX), Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, id, new BlockConditionType<>(mapCodec, packetCodec)));
 	}
 
 }

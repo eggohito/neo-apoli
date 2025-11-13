@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
+//	TODO: Use registries for storing types of context parameters
 public final class ContextParameters {
 
 	//	Usually used in bi-entity contexts
@@ -33,7 +34,7 @@ public final class ContextParameters {
 	public static final ContextParameter<Entity> DIRECT_DAMAGING_ENTITY = new ContextParameter<>(NeoApoli.id("direct_damaging_entity"));
 
 	//	Usually used in entity contexts
-	public static final ContextParameter<Entity> ENTITY = new ContextParameter<>(NeoApoli.id("entity"));
+	public static final ContextParameter<Entity> THIS_ENTITY = new ContextParameter<>(NeoApoli.id("this_entity"));
 	public static final ContextParameter<Vec3d> ENTITY_POS = new ContextParameter<>(NeoApoli.id("entity_pos"));
 
 	//	Usually used in item contexts
@@ -42,7 +43,6 @@ public final class ContextParameters {
 
 	//	Can be used generally
 	public static final ContextParameter<PowerReference> POWER_REFERENCE = new ContextParameter<>(NeoApoli.id("power_reference"));
-	public static final ContextParameter<Vec3d> POSITION = new ContextParameter<>(NeoApoli.id("position"));
 	public static final ContextParameter<Hand> HAND = new ContextParameter<>(NeoApoli.id("hand"));
 
 }

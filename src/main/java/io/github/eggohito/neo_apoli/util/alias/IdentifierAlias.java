@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util.alias;
 
 import io.github.eggohito.neo_apoli.exception.AliasAlreadyTakenException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.AccessLevel;
 import lombok.Getter;
 import net.minecraft.util.Identifier;
 
@@ -11,35 +12,37 @@ import java.util.function.Predicate;
 
 public class IdentifierAlias {
 
+	@Getter(AccessLevel.PROTECTED)
 	private final Map<Identifier, Identifier> identifiers;
+	@Getter
+	private final StringAlias namespaces, paths;
 
-	@Getter
-	private final StringAlias namespaces;
-	@Getter
-	private final StringAlias paths;
+	protected IdentifierAlias(Map<Identifier, Identifier> identifiers, StringAlias namespaces, StringAlias paths) {
+		this.identifiers = identifiers;
+		this.namespaces = namespaces;
+		this.paths = paths;
+	}
 
 	public IdentifierAlias() {
-		this.identifiers = new Object2ObjectOpenHashMap<>();
-		this.namespaces = new StringAlias();
-		this.paths = new StringAlias();
+		this(new Object2ObjectOpenHashMap<>(), new StringAlias(), new StringAlias());
 	}
 
 	public void addAlias(Identifier from, Identifier to) {
 
-		if (identifiers.putIfAbsent(from, to) != null) {
-			throw new AliasAlreadyTakenException(from, to, () -> identifiers.get(from));
+		if (getIdentifiers().putIfAbsent(from, to) != null) {
+			throw new AliasAlreadyTakenException(from, to, getIdentifiers()::get);
 		}
 
 	}
 
 	public boolean hasAlias(Identifier id) {
-		return identifiers.containsKey(id);
+		return getIdentifiers().containsKey(id);
 	}
 
 	public Identifier resolveAlias(Identifier id) {
 
 		if (hasAlias(id)) {
-			return identifiers.get(id);
+			return getIdentifiers().get(id);
 		}
 
 		else {

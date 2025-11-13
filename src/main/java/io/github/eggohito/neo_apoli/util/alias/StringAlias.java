@@ -28,7 +28,7 @@ public class StringAlias {
 	public void addAlias(String from, String to) {
 
 		if (aliases.putIfAbsent(from, to) != null) {
-			throw new AliasAlreadyTakenException(from, to, () -> aliases.get(from));
+			throw new AliasAlreadyTakenException(from, to, aliases::get);
 		}
 
 	}

@@ -6,14 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.category.ActionCategories;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
@@ -99,13 +97,11 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliArgumentTypes.registerAll();
 		ValueProviderTypes.registerAll();
 
-		ConditionTypes.registerAll();
-		ConditionCategories.registerAll();
 		ConditionManager.init();
+		ConditionTypes.registerAll();
 
-		ActionTypes.registerAll();
-		ActionCategories.registerAll();
 		ActionManager.init();
+		ActionTypes.registerAll();
 
 		NeoApoliContainerTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();

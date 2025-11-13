@@ -2,13 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityParameter;
+import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -18,31 +15,22 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.context.ContextParameter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-@EqualsAndHashCode
-@Data
-public final class AttributeNumberProvider extends NumberProvider {
+public record AttributeNumberProvider(RegistryEntry<EntityAttribute> attribute, EntityTarget entity) implements NumberProvider {
 
 	public static final MapCodec<AttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityParameter.CODEC.fieldOf("source").forGetter(AttributeNumberProvider::source),
-		Registries.ATTRIBUTE.getEntryCodec().fieldOf("attribute").forGetter(AttributeNumberProvider::attribute)
+		EntityAttribute.CODEC.fieldOf("attribute").forGetter(AttributeNumberProvider::attribute),
+		EntityTarget.CODEC.fieldOf("entity").forGetter(AttributeNumberProvider::entity)
 	).apply(instance, AttributeNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, AttributeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityParameter.PACKET_CODEC, AttributeNumberProvider::source,
 		EntityAttribute.PACKET_CODEC, AttributeNumberProvider::attribute,
+		EntityTarget.PACKET_CODEC, AttributeNumberProvider::entity,
 		AttributeNumberProvider::new
 	);
-
-	private final EntityParameter source;
-	private final RegistryEntry<EntityAttribute> attribute;
-
-	public AttributeNumberProvider(EntityParameter source, RegistryEntry<EntityAttribute> attribute) {
-		this.source = source;
-		this.attribute = attribute;
-	}
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -50,39 +38,48 @@ public final class AttributeNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected Number impl(Context context) {
+	public @NotNull Number next(Context context) {
 
-		ContextParameter<Entity> source = source().getParameter();
-		Context sourceContext = context.makeChild(".source");
+		ContextParameter<Entity> parameter = entity().getParameter();
+		Context entityContext = context.makeChild(".entity");
 
-		return switch (context.nullable(source)) {
-			case LivingEntity livingEntity -> {
+		try {
 
-				if (livingEntity.getAttributes().hasAttribute(this.attribute())) {
-					yield livingEntity.getAttributeValue(this.attribute());
+			switch (context.nullable(parameter)) {
+				case LivingEntity livingEntity -> {
+
+					if (context.markActive(this)) {
+
+						if (livingEntity.getAttributes().hasAttribute(this.attribute())) {
+							return livingEntity.getAttributeValue(this.attribute());
+						}
+
+						else {
+							entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't have the attribute \"" + this.attribute().getKeyOrValue().map(RegistryKey::getValue, Registries.ATTRIBUTE::getId) + "\"!");
+						}
+
+					}
+
 				}
+				case null ->
+					entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't exist!");
+				default ->
+					entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not an entity that can have attributes!");
+			}
 
-				else {
-					sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" doesn't have attribute \"" + this.attribute().getKeyOrValue().map(RegistryKey::getValue, Registries.ATTRIBUTE::getId) + "\"!");
-					yield 0.0D;
-				}
+			return 0.0d;
 
-			}
-			case null -> {
-				sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" doesn't exist!");
-				yield 0.0;
-			}
-			default -> {
-				sourceContext.getReporter().report("Entity from parameter \"" + source.getId() + "\" is not a living entity!");
-				yield 0.0D;
-			}
-		};
+		}
+
+		finally {
+			context.markInActive(this);
+		}
 
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(source().getParameter());
+		return Set.of(entity().getParameter());
 	}
 
 }

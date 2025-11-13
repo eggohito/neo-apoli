@@ -5,7 +5,7 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.datafixers.util.Function4;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;

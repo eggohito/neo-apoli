@@ -56,7 +56,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<LightType> LIGHT_TYPE = CodecUtil.enumType(LightType.class);
 
-	public static final Codec<Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = Codec.unboundedMap(EntityParameter.CODEC, EntityParameter.CODEC);
+	public static final Codec<Map<EntityTarget, EntityTarget>> ENTITY_PARAMETER_MAP = Codec.unboundedMap(EntityTarget.CODEC, EntityTarget.CODEC);
 
 	public static final Codec<Explosion.DestructionType> DESTRUCTION_TYPE = CodecUtil.enumType(Explosion.DestructionType.class);
 
@@ -114,6 +114,6 @@ public class NeoApoliCodecs {
 
 	public static final Codec<List<AttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = Codecs.nonEmptyList(AttributeModifier.CODEC.listOf());
 
-	public static final Codec<Vec3d> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec(), Vec3d.CODEC);
+	public static final Codec<Vec3d> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3d.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
 
 }

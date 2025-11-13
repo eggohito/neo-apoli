@@ -2,50 +2,37 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dProvider position, Shape shape, NumberProvider radius) implements NumberProvider {
 
-@EqualsAndHashCode
-@Data
-public final class BlocksInRadiusNumberProvider extends NumberProvider {
-
-	public static final MapCodec<BlocksInRadiusNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(BlocksInRadiusNumberProvider::blockCondition),
+	public static final MapCodec<BlocksInRadiusNumberProvider> CODEC = MapCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksInRadiusNumberProvider::blockCondition),
+		Vec3dProvider.CODEC.fieldOf("position").forGetter(BlocksInRadiusNumberProvider::position),
 		Shape.CODEC.fieldOf("shape").forGetter(BlocksInRadiusNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(BlocksInRadiusNumberProvider::radius)
-	).apply(instance, BlocksInRadiusNumberProvider::new));
+	).apply(instance, BlocksInRadiusNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, BlocksInRadiusNumberProvider> PACKET_CODEC = PacketCodec.tuple(
+	public static final PacketCodec<RegistryByteBuf, BlocksInRadiusNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
 		BlockCondition.PACKET_CODEC, BlocksInRadiusNumberProvider::blockCondition,
+		Vec3dProvider.PACKET_CODEC, BlocksInRadiusNumberProvider::position,
 		Shape.PACKET_CODEC, BlocksInRadiusNumberProvider::shape,
 		NumberProvider.PACKET_CODEC, BlocksInRadiusNumberProvider::radius,
 		BlocksInRadiusNumberProvider::new
-	);
-
-	private final BlockCondition blockCondition;
-
-	private final Shape shape;
-	private final NumberProvider radius;
-
-	public BlocksInRadiusNumberProvider(BlockCondition blockCondition, Shape shape, NumberProvider radius) {
-		this.blockCondition = blockCondition;
-		this.shape = shape;
-		this.radius = radius;
-	}
+	));
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -53,34 +40,38 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected Number impl(Context context) {
-
-		Context radiusContext = context.makeChild(".radius");
-		int radius = this.radius().nextInt(radiusContext);
-
-		if (radiusContext.hasErrors()) {
-			return 0.0;
-		}
+	public @NotNull Number next(Context context) {
 
 		World world = context.getWorld();
-		BlockPos centerPos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
-
 		int matches = 0;
 
-		for (BlockPos pos : this.shape().getBlockPositions(centerPos, radius)) {
+		Context positionContext = context.makeChild(".position");
+		Vec3d position = position().next(positionContext);
 
-			if (!world.isChunkLoaded(pos)) {
+		if (positionContext.hasErrors()) {
+			return matches;
+		}
+
+		Context radiusContext = context.makeChild(".radius");
+		int radius = radius().nextInt(radiusContext);
+
+		if (radiusContext.hasErrors()) {
+			return matches;
+		}
+
+		for (var blockPos : shape().getBlockPositions(BlockPos.ofFloored(position), radius)) {
+
+			if (!world.isChunkLoaded(blockPos)) {
 				continue;
 			}
 
-			Context blockContext = new ContextImpl.Builder(context)
+			Context blockContext = ContextImpl.of(context, builder -> builder
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.BLOCK_POS, pos)
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(pos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos))
-				.build(world);
+				.add(ContextParameters.BLOCK_POS, blockPos)
+				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
-			if (this.blockCondition().test(blockContext.makeChild(".block_condition"))) {
+			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
 			}
 
@@ -89,20 +80,15 @@ public final class BlocksInRadiusNumberProvider extends NumberProvider {
 		return matches;
 
 	}
-
-	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.POSITION);
-	}
-
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		super.validate(reporter);
-
+		NumberProvider.super.validate(reporter);
 		blockCondition().validate(reporter
 			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
 			.makeChild(".block_condition"));
+
+		position().validate(reporter.makeChild(".position"));
 		radius().validate(reporter.makeChild(".radius"));
 
 	}

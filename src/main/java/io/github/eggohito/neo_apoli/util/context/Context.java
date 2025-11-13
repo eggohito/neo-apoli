@@ -61,7 +61,7 @@ public interface Context extends ContextParameterHolder {
 		return this.getReporter().hasAnyErrors();
 	}
 
-	abstract class Builder<B extends Builder<B>> implements ContextParameterHolder {
+	abstract class Builder<C extends Context, W extends World, B extends Builder<C, W, B>> implements ContextParameterHolder {
 
 		@Getter(AccessLevel.PROTECTED)
 		private final ContextParameterMap.Builder parameters;
@@ -157,7 +157,13 @@ public interface Context extends ContextParameterHolder {
 			return getThis();
 		}
 
+		public boolean isActive(ContextAware entry) {
+			return this.getActiveEntries().contains(entry);
+		}
+
 		protected abstract B getThis();
+
+		public abstract C build(W world);
 
 	}
 

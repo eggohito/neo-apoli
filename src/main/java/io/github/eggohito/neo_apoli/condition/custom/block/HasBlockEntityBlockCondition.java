@@ -1,26 +1,19 @@
 package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-@EqualsAndHashCode
-@Data
-public final class HasBlockEntityBlockCondition extends BlockCondition {
+public record HasBlockEntityBlockCondition() implements BlockCondition {
 
 	public static final MapCodec<HasBlockEntityBlockCondition> CODEC = MapCodec.unit(HasBlockEntityBlockCondition::new);
-	public static final PacketCodec<RegistryByteBuf, HasBlockEntityBlockCondition> PACKET_CODEC = PacketCodec.unit(new HasBlockEntityBlockCondition());
-
-	public HasBlockEntityBlockCondition() {
-
-	}
+	public static final PacketCodec<RegistryByteBuf, HasBlockEntityBlockCondition> PACKET_CODEC = PacketCodecUtil.unit(HasBlockEntityBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {
@@ -28,8 +21,9 @@ public final class HasBlockEntityBlockCondition extends BlockCondition {
 	}
 
 	@Override
-	protected boolean impl(Context context) {
-		return context.required(ContextParameters.BLOCK_STATE).hasBlockEntity();
+	public boolean test(Context context) {
+		return context.hasParameter(ContextParameters.BLOCK_ENTITY)
+			|| context.optional(ContextParameters.BLOCK_STATE).map(BlockState::hasBlockEntity).orElse(false);
 	}
 
 }

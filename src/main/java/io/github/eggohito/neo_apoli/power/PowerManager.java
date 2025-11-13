@@ -6,7 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.event.PowerPreparationCallback;
+import io.github.eggohito.neo_apoli.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.integration.DataPackContentsEvents;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
@@ -57,19 +57,22 @@ import java.util.stream.Stream;
 
 public final class PowerManager implements JsonResourceReloader {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
+	private static final String TAG_DIRECTORY = RegistryKeys.getTagPath(NeoApoliRegistryKeys.POWER);
+	private static final String DIRECTORY = RegistryKeys.getPath(NeoApoliRegistryKeys.POWER);
+
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
-	
-	public static final Identifier ID = NeoApoli.id("powers");
-	public static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.ID));
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
+	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
+
+	private static final Identifier ID = NeoApoli.id("powers");
+	private static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.getId()));
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Power, PowerReference> BY_POWER = new Object2ObjectOpenHashMap<>();
-
-	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), RegistryKeys.getTagPath(NeoApoliRegistryKeys.POWER));
 
 	private static final Object2ObjectOpenHashMap<Identifier, List<TagGroupLoader.TrackedEntry>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
@@ -106,7 +109,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private static void applyPendingTags(DataPackContents dataPackContents) {
+	private static void applyPendingTags(DataPackContents ignored) {
 
 		if (PREPARED_TAGS.isEmpty()) {
 			return;
@@ -127,12 +130,10 @@ public final class PowerManager implements JsonResourceReloader {
 	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, Profiler profiler) {
 
 		Map<PowerReference.Power, Entry> prepared = new Object2ObjectOpenHashMap<>();
-		String directory = RegistryKeys.getPath(NeoApoliRegistryKeys.POWER);
-
-		manager.findResources(directory, this::supportsJsonFormat).forEach((fileId, resource) -> {
+		manager.findResources(DIRECTORY, this::supportsJsonFormat).forEach((fileId, resource) -> {
 
 			String packName = resource.getPackId();
-			Identifier resourceId = this.trimExtension(fileId, directory);
+			Identifier resourceId = this.trimExtension(fileId, DIRECTORY);
 
 			try (BufferedReader resourceReader = resource.getReader()) {
 
@@ -145,10 +146,10 @@ public final class PowerManager implements JsonResourceReloader {
 
 				else if (jsonElement instanceof JsonObject jsonObject) {
 
-					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, directory, ops)) {
+					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops)) {
 
 						Entry entry = new Entry(packName, jsonObject);
-						PowerPreparationCallback.EVENT.invoker().prepare(resourceId, entry, directory, ops);
+						PowerPreparation.EVENT.invoker().prepare(resourceId, entry, DIRECTORY, ops);
 
 						prepared.put(PowerReference.ofPower(resourceId), entry);
 
@@ -181,12 +182,10 @@ public final class PowerManager implements JsonResourceReloader {
 
 		prepared.forEach((powerReference, jsonEntry) -> {
 
-			JsonObject powerEntryJson = new JsonObject();
+			JsonObject element = jsonEntry.element();
+			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 
-			powerEntryJson.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
-			powerEntryJson.add(PowerEntry.VALUE_KEY, jsonEntry.element());
-
-			PowerEntry.CODEC.parse(ops, powerEntryJson)
+			PowerEntry.CODEC.compressedDecode(ops, element)
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference, jsonEntry.source(), error.message()));
 
@@ -208,10 +207,10 @@ public final class PowerManager implements JsonResourceReloader {
 
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.getId(), ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
-		PowerPreparationCallback.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 		DataPackContentsEvents.PendingTagLoadEvents.AFTER.register(ID, dataPackContents -> {
 			validate(dataPackContents);
 			applyPendingTags(dataPackContents);
@@ -234,7 +233,7 @@ public final class PowerManager implements JsonResourceReloader {
 		while (entryIterator.hasNext()) {
 
 			PowerEntry<?> entry = entryIterator.next();
-			Power power = entry.value();
+			Power power = entry.power();
 
 			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(power.getType().contextType(), "{" + entry.reference() + "}").withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
 			power.validate(reporter);
@@ -274,11 +273,11 @@ public final class PowerManager implements JsonResourceReloader {
 			return;
 		}
 
-		Map<PowerReference.Power, Power> filteredEntries = new Object2ObjectOpenHashMap<>();
-		BY_REFERENCE.forEach((reference, powerEntry) -> {
+		Set<PowerEntry<?>> filteredEntries = new ObjectOpenHashSet<>();
+		BY_REFERENCE.forEach((reference, entry) -> {
 
-			if (reference instanceof PowerReference.Power powerReference) {
-				filteredEntries.put(powerReference, powerEntry.value());
+			if (!reference.subPower()) {
+				filteredEntries.add(entry);
 			}
 
 		});
@@ -326,6 +325,14 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
+	public static Identifier getId() {
+		return ID;
+	}
+
+	public static void addDependency(Identifier id) {
+		DEPENDENCIES.add(id);
+	}
+
 	public static List<PowerEntry<?>> getEntriesFromTagOrEmpty(TagKey<Power> tag) {
 		return TAGS.getOrDefault(tag.id(), new ObjectArrayList<>());
 	}
@@ -337,7 +344,7 @@ public final class PowerManager implements JsonResourceReloader {
 	public static DataResult<PowerEntry<?>> getEntryAsResult(PowerReference reference) {
 		return contains(reference)
 			? DataResult.success(BY_REFERENCE.get(reference))
-			: DataResult.error(() -> "Referenced \"" + reference.asDisplayString(false) + "\" doesn't exist!");
+			: DataResult.error(() -> "Referenced " + reference.asDisplayString(false) + " doesn't exist!");
 	}
 
 	public static PowerEntry<?> getEntry(PowerReference reference) {
@@ -345,7 +352,7 @@ public final class PowerManager implements JsonResourceReloader {
 	}
 
 	public static DataResult<Power> getAsResult(PowerReference reference) {
-		return getEntryAsResult(reference).map(PowerEntry::value);
+		return getEntryAsResult(reference).map(PowerEntry::power);
 	}
 
 	public static Power get(PowerReference reference) {
@@ -371,7 +378,7 @@ public final class PowerManager implements JsonResourceReloader {
 	}
 
 	public static Collection<Power> powers() {
-		return Util.make(new ObjectOpenHashSet<>(), set -> BY_REFERENCE.values().forEach(entry -> set.add(entry.value())));
+		return Util.make(new ObjectOpenHashSet<>(), set -> BY_REFERENCE.values().forEach(entry -> set.add(entry.power())));
 	}
 
 	public static boolean contains(PowerReference reference) {
@@ -382,14 +389,10 @@ public final class PowerManager implements JsonResourceReloader {
 		return BY_POWER.containsKey(power);
 	}
 
-	private static <P extends Power> void register(PowerReference reference, P power) {
-		register(new PowerEntry<>(reference, power));
-	}
-
 	private static <P extends Power> void register(PowerEntry<P> entry) {
 
 		PowerReference reference = entry.reference();
-		Power power = entry.value();
+		Power power = entry.power();
 
 		BY_REFERENCE.put(reference, entry);
 		BY_POWER.put(power, reference);
@@ -398,7 +401,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 			switch (reference) {
 				case PowerReference.Power ignored ->
-					multiplePower.getSubPowers().forEach((subReference, subPower) -> register(new PowerEntry<>(subReference, subPower)));
+					multiplePower.getSubPowers().forEach(PowerManager::register);
 				case PowerReference.SubPower subPowerReference ->
 					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getType()) + "\" power type, which isn't allowed!");
 			}

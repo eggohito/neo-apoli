@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import net.minecraft.util.context.ContextParameterMap;
-import net.minecraft.util.context.ContextType;
 import net.minecraft.world.World;
 
 import java.util.Set;
@@ -60,31 +59,5 @@ public abstract class AbstractContext<C extends Context> implements Context {
 	}
 
 	protected abstract C getThis();
-
-	public static abstract class Builder<C extends Context, W extends World, B extends Builder<C, W, B>> extends Context.Builder<B> {
-
-		Builder(ContextParameterMap.Builder parameters, Set<ContextAware> activeEntries, ContextAware.ErrorReporter reporter) {
-			super(parameters, activeEntries, reporter);
-		}
-
-		public Builder(ContextAware.ErrorReporter reporter) {
-			super(reporter);
-		}
-
-		public Builder(ContextType type) {
-			super(type);
-		}
-
-		public Builder(Context context) {
-			super(context);
-		}
-
-		public Builder() {
-			super();
-		}
-
-		public abstract C build(W world);
-
-	}
 
 }

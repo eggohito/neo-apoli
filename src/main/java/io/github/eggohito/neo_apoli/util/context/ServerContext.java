@@ -27,7 +27,7 @@ public final class ServerContext extends AbstractContext<ServerContext> {
 		return this.getWorld().getServer();
 	}
 
-	public static final class Builder extends AbstractContext.Builder<ServerContext, ServerWorld, Builder> {
+	public static final class Builder extends Context.Builder<ServerContext, ServerWorld, Builder> {
 
 		public Builder(ContextAware.ErrorReporter reporter) {
 			super(reporter);

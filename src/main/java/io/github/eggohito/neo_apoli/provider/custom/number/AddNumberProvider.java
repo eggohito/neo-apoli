@@ -1,0 +1,28 @@
+package io.github.eggohito.neo_apoli.provider.custom.number;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public record AddNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
+
+	public static final MapCodec<AddNumberProvider> CODEC = MultiNumberProvider.codec(AddNumberProvider::new);
+	public static final PacketCodec<RegistryByteBuf, AddNumberProvider> PACKET_CODEC = MultiNumberProvider.packetCodec(AddNumberProvider::new);
+
+	@Override
+	public NumberProviderType<?> getType() {
+		return NumberProviderTypes.ADD;
+	}
+
+	@Override
+	public @NotNull Number next(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, Double::sum, 0.0d);
+	}
+
+}

@@ -5,6 +5,7 @@ import net.minecraft.util.context.ContextType;
 import net.minecraft.world.World;
 
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 public final class ContextImpl extends AbstractContext<ContextImpl> {
 
@@ -17,7 +18,11 @@ public final class ContextImpl extends AbstractContext<ContextImpl> {
 		return this;
 	}
 
-	public static final class Builder extends AbstractContext.Builder<ContextImpl, World, Builder> {
+	public static ContextImpl of(Context context, UnaryOperator<Builder> builder) {
+		return builder.apply(new Builder(context)).build(context.getWorld());
+	}
+
+	public static final class Builder extends Context.Builder<ContextImpl, World, Builder> {
 
 		public Builder(ContextAware.ErrorReporter reporter) {
 			super(reporter);

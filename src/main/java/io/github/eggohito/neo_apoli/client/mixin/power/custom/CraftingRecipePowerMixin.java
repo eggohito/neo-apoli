@@ -6,9 +6,8 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.PowerRecipeFinder;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -18,7 +17,6 @@ import net.minecraft.client.gui.screen.recipebook.AbstractCraftingRecipeBookWidg
 import net.minecraft.client.gui.screen.recipebook.AnimatedResultButton;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
 import net.minecraft.client.gui.screen.recipebook.RecipeResultCollection;
-import net.minecraft.entity.Entity;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.NetworkRecipeId;
 import net.minecraft.recipe.RecipeDisplayEntry;
@@ -76,8 +74,7 @@ public abstract class CraftingRecipePowerMixin {
 					PowerReference powerReference = mapEntry.getValue();
 
 					if (Objects.equals(displayEntry.id(), currentDisplayEntry.id()) && PowerManager.contains(powerReference)) {
-						return shouldShowWhenUngranted(powerReference)
-							|| hasPower(powerReference, client.player);
+						return true;
 					}
 
 				}
@@ -90,25 +87,6 @@ public abstract class CraftingRecipePowerMixin {
 				return false;
 			}
 
-		}
-
-		@Unique
-		private static boolean shouldShowWhenUngranted(PowerReference reference) {
-			return PowerManager.getAsResult(reference)
-				.result()
-				.filter(CraftingRecipePower.class::isInstance)
-				.map(CraftingRecipePower.class::cast)
-				.map(CraftingRecipePower::shouldShowWhenUngranted)
-				.orElse(false);
-		}
-
-		@Unique
-		private static boolean hasPower(PowerReference reference, Entity entity) {
-			return NeoApoliEntityComponents.POWERS.maybeGet(entity)
-				.stream()
-				.filter(powersComponent -> powersComponent.hasInstance(reference))
-				.map(powersComponent -> powersComponent.getInstance(reference))
-				.anyMatch(CraftingRecipePower.Instance.class::isInstance);
 		}
 
 	}
@@ -150,35 +128,33 @@ public abstract class CraftingRecipePowerMixin {
 		private List<Text> appendPowerRecipeTooltip(List<Text> original) {
 
 			Map<RecipeDisplayEntry, PowerReference> referencesByDisplayEntry = ((PowerRecipeDisplayHolder) MinecraftClient.getInstance()).neo_apoli$getReferencesByDisplayEntry();
-
-			PowerReference powerReference = null;
-			Power power = null;
+			PowerEntry<?> entry = null;
 
 			for (Map.Entry<RecipeDisplayEntry, PowerReference> mapEntry : referencesByDisplayEntry.entrySet()) {
 
 				RecipeDisplayEntry displayEntry = mapEntry.getKey();
-				powerReference = mapEntry.getValue();
+				PowerReference powerReference = mapEntry.getValue();
 
 				if (Objects.equals(displayEntry.id(), this.getCurrentId()) && PowerManager.contains(powerReference)) {
-					power = PowerManager.get(powerReference);
+					entry = PowerManager.getEntry(powerReference);
 					break;
 				}
 
 			}
 
-			if (powerReference != null && power != null) {
+			if (entry != null) {
 
-				PowerReference finalPowerReference = powerReference;
+				PowerEntry<?> finalEntry = entry;
 				boolean hasPower = NeoApoliEntityComponents.POWERS.maybeGet(MinecraftClient.getInstance().player)
 					.stream()
-					.anyMatch(powersComponent -> powersComponent.hasInstance(finalPowerReference));
+					.anyMatch(powersComponent -> powersComponent.hasInstance(finalEntry.reference()));
 
 				Formatting formatting = hasPower
 					? Formatting.GREEN
 					: Formatting.RED;
 
 				original.add(Text.empty());
-				original.add(Text.literal("").append(Text.literal("Requires power: ").formatted(formatting)).append(power.getName()));
+				original.add(Text.literal("").append(Text.literal("Requires power: ").formatted(formatting)).append(finalEntry.name()));
 
 			}
 

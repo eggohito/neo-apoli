@@ -5,9 +5,10 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
+import lombok.Getter;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -16,6 +17,7 @@ import java.util.function.BiFunction;
 
 public abstract class SimpleModifier implements Modifier {
 
+	@Getter
 	private final NumberProvider valueProvider;
 	private final int order;
 
@@ -52,10 +54,6 @@ public abstract class SimpleModifier implements Modifier {
 	public void validate(ErrorReporter reporter) {
 		Modifier.super.validate(reporter);
 		this.getValueProvider().validate(reporter.makeChild(".value"));
-	}
-
-	public NumberProvider getValueProvider() {
-		return valueProvider;
 	}
 
 	protected abstract double calculate(double value, double base, double total);

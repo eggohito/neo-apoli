@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeEntityTypeTagCacheS2CPacket;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -24,6 +23,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagEntry;
@@ -37,32 +37,27 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class ModifyEntityTypeTagPower extends Power {
 
-	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(TagKey.codec(RegistryKeys.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
 		.apply(instance, ModifyEntityTypeTagPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyEntityTypeTagPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) ->
-			NeoApoliPacketCodecs.ENTITY_TYPE_TAG.encode(buf, power.getTag()),
-		(buf, properties, condition) -> new ModifyEntityTypeTagPower(properties, condition,
-			NeoApoliPacketCodecs.ENTITY_TYPE_TAG.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, ModifyEntityTypeTagPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		TagKey.packetCodec(RegistryKeys.ENTITY_TYPE), ModifyEntityTypeTagPower::getTag,
+		ModifyEntityTypeTagPower::new
 	);
 
 	private static final Map<TagKey<EntityType<?>>, Set<TagKey<EntityType<?>>>> NESTED_TAGS_CACHE = new ConcurrentHashMap<>();
 	private final TagKey<EntityType<?>> tag;
 
-	public ModifyEntityTypeTagPower(Properties properties, Optional<EntityCondition> activeCondition, TagKey<EntityType<?>> tag) {
-		super(properties, activeCondition);
+	public ModifyEntityTypeTagPower(Optional<Condition> activeCondition, TagKey<EntityType<?>> tag) {
+		super(activeCondition);
 		this.tag = tag;
 	}
 
@@ -147,13 +142,34 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	public static Context createContext(@NotNull Entity entity) {
 		return PowerTypes.MODIFY_ENTITY_TYPE_TAG.contextBuilder()
-			.add(ContextParameters.ENTITY, entity)
+			.add(ContextParameters.THIS_ENTITY, entity)
 			.add(ContextParameters.ENTITY_POS, entity.getPos())
 			.build(entity.getWorld());
 	}
 
 	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
-		return PowersComponent.hasInstances(context.nullable(ContextParameters.ENTITY), Instance.class, instance -> instance.isActive(context) && instance.doesApply(tag));
+
+		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
+
+		for (var instance : instances) {
+
+			try {
+
+				if (context.markActive(instance) && instance.isActive(context) && instance.doesApply(tag)) {
+					return true;
+				}
+
+			}
+
+			finally {
+				context.markInActive(instance);
+			}
+
+		}
+
+		return false;
+
 	}
 
 	public static boolean doesApply(Context context, RegistryEntryList<EntityType<?>> tagsEntryList) {

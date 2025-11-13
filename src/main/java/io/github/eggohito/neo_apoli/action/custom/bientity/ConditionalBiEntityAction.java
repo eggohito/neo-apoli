@@ -1,0 +1,30 @@
+package io.github.eggohito.neo_apoli.action.custom.bientity;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.action.custom.meta.ConditionalMetaAction;
+import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
+import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+
+import java.util.Optional;
+
+public record ConditionalBiEntityAction(BiEntityCondition condition, BiEntityAction ifAction, Optional<BiEntityAction> elseAction) implements BiEntityAction, ConditionalMetaAction<BiEntityCondition, BiEntityAction> {
+
+	public static final MapCodec<ConditionalBiEntityAction> CODEC = MapCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.codec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ConditionalBiEntityAction::new));
+	public static final PacketCodec<RegistryByteBuf, ConditionalBiEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.packetCodec(BiEntityCondition.PACKET_CODEC, BiEntityAction.PACKET_CODEC, ConditionalBiEntityAction::new));
+
+	@Override
+	public BiEntityActionType<?> getType() {
+		return BiEntityActionTypes.CONDITIONAL;
+	}
+
+	@Override
+	public String asDisplayString() {
+		return BiEntityAction.super.asDisplayString();
+	}
+
+}

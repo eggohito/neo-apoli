@@ -3,34 +3,28 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.duck.MovingEntity;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityParameter;
+import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-@EqualsAndHashCode
-@Data
-public class VelocityMagnitudeNumberProvider extends NumberProvider {
+public record VelocityMagnitudeNumberProvider(EntityTarget entity) implements NumberProvider {
 
 	public static final MapCodec<VelocityMagnitudeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityParameter.CODEC.fieldOf("entity").forGetter(VelocityMagnitudeNumberProvider::entity)
+		EntityTarget.CODEC.fieldOf("entity").forGetter(VelocityMagnitudeNumberProvider::entity)
 	).apply(instance, VelocityMagnitudeNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, VelocityMagnitudeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityParameter.PACKET_CODEC, VelocityMagnitudeNumberProvider::entity,
+		EntityTarget.PACKET_CODEC, VelocityMagnitudeNumberProvider::entity,
 		VelocityMagnitudeNumberProvider::new
 	);
-
-	private final EntityParameter entity;
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -38,19 +32,22 @@ public class VelocityMagnitudeNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected Number impl(Context context) {
+	public @NotNull Number next(Context context) {
 
 		ContextParameter<Entity> parameter = entity().getParameter();
-		Entity entity = context.required(parameter);
+		Entity entity = context.nullable(parameter);
 
-		if (entity instanceof MovingEntity movingEntity) {
-			return Math.sqrt(movingEntity.neo_apoli$getSquaredVelocityMagnitude());
+		switch (entity) {
+			case MovingEntity movingEntity -> {
+				return Math.sqrt(movingEntity.neo_apoli$getSquaredVelocityMagnitude());
+			}
+			case null ->
+				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't exist!");
+			default ->
+				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not a moving entity!");
 		}
 
-		else {
-			context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not a moving entity!");
-			return 0.0d;
-		}
+		return 0.0d;
 
 	}
 

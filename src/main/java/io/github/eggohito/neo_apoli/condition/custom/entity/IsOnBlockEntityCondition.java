@@ -2,38 +2,27 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
+import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-@EqualsAndHashCode
-@Data
-public final class IsOnBlockEntityCondition extends EntityCondition {
+public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements EntityCondition {
 
-	public static final MapCodec<IsOnBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsOnBlockEntityCondition::blockCondition)
-	).apply(instance, IsOnBlockEntityCondition::new));
+	public static final MapCodec<IsOnBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsOnBlockEntityCondition::blockCondition))
+		.apply(instance, IsOnBlockEntityCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsOnBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
 		BlockCondition.PACKET_CODEC, IsOnBlockEntityCondition::blockCondition,
 		IsOnBlockEntityCondition::new
 	);
-
-	private final BlockCondition blockCondition;
-
-	public IsOnBlockEntityCondition(BlockCondition blockCondition) {
-		this.blockCondition = blockCondition;
-	}
 
 	@Override
 	public EntityConditionType<?> getType() {
@@ -41,26 +30,49 @@ public final class IsOnBlockEntityCondition extends EntityCondition {
 	}
 
 	@Override
-	protected boolean impl(Context context) {
+	public boolean test(Context context) {
 
-		Entity entity = context.required(ContextParameters.ENTITY);
-		BlockPos steppingPos = entity.getSteppingPos();
+		if (!context.hasAllParameters(this.getRequiredParameters())) {
+			return false;
+		}
 
 		World world = context.getWorld();
-		Context blockContext = new ContextImpl.Builder(context)
-			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-			.add(ContextParameters.BLOCK_POS, steppingPos)
-			.add(ContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos))
-			.build(context.getWorld());
+		Entity entity = context.required(ContextParameters.THIS_ENTITY);
 
-		return blockCondition().test(blockContext.makeChild(".block_condition"));
+		try {
+
+			if (context.markActive(this)) {
+
+				if (!entity.isOnGround()) {
+					return false;
+				}
+
+				BlockPos steppingPos = entity.getSteppingPos();
+				Context blockContext = ContextImpl.of(context, builder -> builder
+					.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
+					.add(ContextParameters.BLOCK_POS, steppingPos)
+					.add(ContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
+					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
+
+				return blockCondition().test(blockContext.makeChild(".block_condition"));
+
+			}
+
+			else {
+				return false;
+			}
+
+		}
+
+		finally {
+			context.markInActive(this);
+		}
 
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
+		EntityCondition.super.validate(reporter);
 		blockCondition().validate(reporter
 			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
 			.makeChild(".block_condition"));

@@ -73,13 +73,9 @@ public abstract class PhasingPowerMixin {
 				if (inWallBlock != null) {
 
 					Context context = this.neo_apoli$getOrCreatePhasingContext(entity, inWallBlock);
+					float viewDistanceCopy = viewDistance;
 
-					viewDistance = PowersComponent.getInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderType() == PhasingPower.RenderType.BLINDNESS)
-						.stream()
-						.filter(instance -> instance.doesApply(context))
-						.map(PhasingPower.Instance::getViewDistance)
-						.min(Float::compareTo)
-						.orElse(viewDistance);
+					viewDistance = PhasingPower.getViewDistanceOrElse(context, () -> viewDistanceCopy);
 
 				}
 
@@ -142,7 +138,7 @@ public abstract class PhasingPowerMixin {
 			if (inWallBlock != null) {
 
 				Context context = neo_apoli$getOrCreatePhasingContext(player, inWallBlock);
-				boolean result = !PowersComponent.hasInstances(player, PhasingPower.Instance.class, instance -> instance.doesApply(context));
+				boolean result = !PowersComponent.hasInstances(player, PhasingPower.Instance.class, instance -> instance.isActive(context));
 
 				neo_apoli$phasingContext.clear();
 				return result;

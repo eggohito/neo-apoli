@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.command.argument.PowerReferenceArgumentType;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -48,32 +49,38 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class PowerCommand {
 
 	public static final Identifier DEFAULT_SOURCE = NeoApoli.id("command");
-	public static final CommandNode<ServerCommandSource> NODE = literal("power")
-		.requires(commandSource -> commandSource.hasPermissionLevel(2))
-		.build();
 
-	public static void register(CommandNode<ServerCommandSource> baseNode) {
+	public static void register(CommandNode<ServerCommandSource> rootNode) {
 
-		NODE.addChild(GrantSubCommand.NODE);
-		NODE.addChild(RevokeSubCommand.NODE);
-		NODE.addChild(RemoveSubCommand.NODE);
-		NODE.addChild(ClearSubCommand.NODE);
-		NODE.addChild(ListSubCommand.NODE);
-		NODE.addChild(DumpSubCommand.NODE);
+		CommandNode<ServerCommandSource> baseNode = literal("power")
+			.requires(source -> source.hasPermissionLevel(2))
+			.build();
 
-		baseNode.addChild(NODE);
+		baseNode.addChild(GrantSubCommand.node());
+		baseNode.addChild(RevokeSubCommand.node());
+		baseNode.addChild(RemoveSubCommand.node());
+		baseNode.addChild(ClearSubCommand.node());
+		baseNode.addChild(ListSubCommand.node());
+		baseNode.addChild(DumpSubCommand.node());
+
+		rootNode.addChild(baseNode);
 
 	}
 
 	static final class GrantSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("grant")
-			.then(argument("targets", EntityArgumentType.entities())
-				.then(argument("power", PowerReferenceArgumentType.powerReference())
-					.executes(GrantSubCommand::withDefaultSource)
-					.then(argument("source", IdentifierArgumentType.identifier())
-						.executes(GrantSubCommand::withSpecificSource))))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("grant")
+				.then(argument("targets", EntityArgumentType.entities())
+					.then(argument("power", PowerReferenceArgumentType.powerReference())
+						.executes(GrantSubCommand::withDefaultSource)
+						.then(argument("source", IdentifierArgumentType.identifier())
+							.executes(GrantSubCommand::withSpecificSource))));
+
+			return node.build();
+
+		}
 
 		static int withDefaultSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, DEFAULT_SOURCE);
@@ -90,8 +97,8 @@ public class PowerCommand {
 
 			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power");
 
-			Power power = PowerManager.get(reference);
-			Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.of(reference.toString()))));
+			PowerEntry<?> entry = PowerManager.getEntry(reference);
+			Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.of(reference.toString()))));
 
 			Map<Identifier, Collection<PowerReference>> grantedPowers = Map.of(source, List.of(reference));
 			ServerCommandSource commandSource = commandContext.getSource();
@@ -140,17 +147,22 @@ public class PowerCommand {
 
 	static final class RevokeSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("revoke")
-			.then(argument("targets", EntityArgumentType.entities())
-				.then(literal("all")
-					.executes(RevokeSubCommand::allFromDefaultSource)
-					.then(argument("source", IdentifierArgumentType.identifier())
-						.executes(RevokeSubCommand::allFromSpecificSource)))
-				.then(argument("power", PowerReferenceArgumentType.powerReference())
-					.executes(RevokeSubCommand::oneFromDefaultSource)
-					.then(argument("source", IdentifierArgumentType.identifier())
-						.executes(RevokeSubCommand::oneFromSpecificSource))))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("revoke")
+				.then(argument("targets", EntityArgumentType.entities())
+					.then(literal("all")
+						.executes(RevokeSubCommand::allFromDefaultSource)
+						.then(argument("source", IdentifierArgumentType.identifier())
+							.executes(RevokeSubCommand::allFromSpecificSource)))
+					.then(argument("power", PowerReferenceArgumentType.powerReference())
+						.executes(RevokeSubCommand::oneFromDefaultSource)
+						.then(argument("source", IdentifierArgumentType.identifier())
+							.executes(RevokeSubCommand::oneFromSpecificSource))));
+
+			return node.build();
+
+		}
 
 		static int allFromDefaultSource(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 			return execute(
@@ -238,8 +250,8 @@ public class PowerCommand {
 
 					if (powerReference != null) {
 
-						Power power = PowerManager.get(powerReference);
-						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
 
 						commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), powerName, source));
 
@@ -255,8 +267,8 @@ public class PowerCommand {
 
 					if (powerReference != null) {
 
-						Power power = PowerManager.get(powerReference);
-						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
 
 						commandSource.sendError(Text.stringifiedTranslatable("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), powerName, source.toString()));
 
@@ -276,8 +288,8 @@ public class PowerCommand {
 
 					if (powerReference != null) {
 
-						Power power = PowerManager.get(powerReference);
-						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
 
 						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
 
@@ -293,8 +305,8 @@ public class PowerCommand {
 
 					if (powerReference != null) {
 
-						Power power = PowerManager.get(powerReference);
-						Text powerName = power.getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
 
 						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), powerName, source.toString()), true);
 
@@ -316,11 +328,16 @@ public class PowerCommand {
 
 	static final class RemoveSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("remove")
-			.then(argument("targets", EntityArgumentType.entities())
-				.then(argument("power", PowerReferenceArgumentType.powerReference())
-					.executes(RemoveSubCommand::execute)))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("remove")
+				.then(argument("targets", EntityArgumentType.entities())
+					.then(argument("power", PowerReferenceArgumentType.powerReference())
+						.executes(RemoveSubCommand::execute)));
+
+			return node.build();
+
+		}
 
 		static int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 
@@ -331,7 +348,7 @@ public class PowerCommand {
 			List<PowerReference> references = List.of(reference);
 
 			ServerCommandSource commandSource = commandContext.getSource();
-			Text powerName = PowerManager.get(reference).getName().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
+			Text powerName = PowerManager.getEntry(reference).name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
 
 			for (Entity target : targets) {
 
@@ -385,11 +402,16 @@ public class PowerCommand {
 
 	static final class ClearSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("clear")
-			.executes(ClearSubCommand::fromSelf)
-			.then(argument("targets", EntityArgumentType.entities())
-				.executes(ClearSubCommand::fromSpecified))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("clear")
+				.executes(ClearSubCommand::fromSelf)
+				.then(argument("targets", EntityArgumentType.entities())
+					.executes(ClearSubCommand::fromSpecified));
+
+			return node.build();
+
+		}
 
 		static int fromSelf(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, ObjectArrayList.of(commandContext.getSource().getEntityOrThrow()));
@@ -463,13 +485,18 @@ public class PowerCommand {
 
 	static final class ListSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("list")
-			.executes(ListSubCommand::fromSelf)
-			.then(argument("target", EntityArgumentType.entity())
-				.executes(ListSubCommand::fromSpecified)
-				.then(argument("includeSubPowers", BoolArgumentType.bool())
-					.executes(ListSubCommand::fromSpecifiedWithSubPowerOption)))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("list")
+				.executes(ListSubCommand::fromSelf)
+				.then(argument("target", EntityArgumentType.entity())
+					.executes(ListSubCommand::fromSpecified)
+					.then(argument("includeSubPowers", BoolArgumentType.bool())
+						.executes(ListSubCommand::fromSpecifiedWithSubPowerOption)));
+
+			return node.build();
+
+		}
 
 		static int fromSelf(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, commandContext.getSource().getEntityOrThrow(), false);
@@ -491,10 +518,11 @@ public class PowerCommand {
 			List<Text> powerTooltips = new ObjectArrayList<>();
 			powersComponent.forEach((reference, instance, sources) -> {
 
-				if (!includeSubPowers && reference.isSubPower()) {
+				if (!includeSubPowers && reference.subPower()) {
 					return;
 				}
 
+				PowerEntry<?> entry = PowerManager.getEntry(reference);
 				Power power = instance.getPower();
 				PowerType<?> type = power.getType();
 
@@ -508,7 +536,7 @@ public class PowerCommand {
 				Text hoverTooltip = Text.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, joinedSourcesTooltip);
 				HoverEvent hoverEvent = new HoverEvent.ShowText(hoverTooltip);
 
-				powerTooltips.add(power.getName().copy().styled(style -> style.withHoverEvent(hoverEvent)));
+				powerTooltips.add(entry.name().copy().styled(style -> style.withHoverEvent(hoverEvent)));
 
 			});
 
@@ -528,12 +556,17 @@ public class PowerCommand {
 
 	static final class DumpSubCommand {
 
-		static final CommandNode<ServerCommandSource> NODE = literal("dump")
-			.then(argument("power", PowerReferenceArgumentType.powerReference())
-				.executes(DumpSubCommand::withDefaultIndent)
-				.then(argument("indent", IntegerArgumentType.integer(0))
-					.executes(DumpSubCommand::withSpecificIndent)))
-			.build();
+		static CommandNode<ServerCommandSource> node() {
+
+			var node = literal("dump")
+				.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.executes(DumpSubCommand::withDefaultIndent)
+					.then(argument("indent", IntegerArgumentType.integer(0))
+						.executes(DumpSubCommand::withSpecificIndent)));
+
+			return node.build();
+
+		}
 
 		static int withDefaultIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, 4);

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.util.comparison;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.StringProvider;
+import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;

@@ -69,7 +69,7 @@ public class NeoApoliClient implements ClientModInitializer {
 				continue;
 			}
 
-			KeyBindingReference keyBindingReference = keyBoundInstance.getKeyBindingReference();
+			KeyBindingReference keyBindingReference = keyBoundInstance.getKey();
 			TriState keyPressState = KeyBindingUtil.getKeyBinding(keyBindingReference.id())
 				.map(KeyBinding::isPressed)
 				.map(TriState::of)
@@ -82,7 +82,7 @@ public class NeoApoliClient implements ClientModInitializer {
 				if (isPressed(keyBindingReference, keyPressState)) {
 
 					PowerReference reference = PowerManager.getReference(instance.getPower());
-					Context context = instance.createContext();
+					Context context = instance.createHolderContext();
 
 					if (keyBoundInstance.shouldTrigger(context)) {
 						keyBoundInstance.onPress(context);

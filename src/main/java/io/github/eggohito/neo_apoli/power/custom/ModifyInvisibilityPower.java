@@ -2,14 +2,14 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.condition.custom.ConstantCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
@@ -17,43 +17,40 @@ import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 @Getter
 public class ModifyInvisibilityPower extends Power {
 
-	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyInvisibilityPower::getBiEntityCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmorProvider))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutlineProvider))
+	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.BASE_CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
 		.apply(instance, ModifyInvisibilityPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyInvisibilityPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
-			BooleanProvider.PACKET_CODEC.encode(buf, power.getRenderArmorProvider());
-			BooleanProvider.PACKET_CODEC.encode(buf, power.getRenderOutlineProvider());
-		},
-		(buf, properties, condition) -> new ModifyInvisibilityPower(properties, condition,
-			BiEntityCondition.PACKET_CODEC.decode(buf),
-			BooleanProvider.PACKET_CODEC.decode(buf),
-			BooleanProvider.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, ModifyInvisibilityPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Condition.BASE_PACKET_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
+		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderArmor,
+		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderOutline,
+		ModifyInvisibilityPower::new
 	);
 
-	private final BiEntityCondition biEntityCondition;
+	private final Condition invisibleToCondition;
+	private final BooleanProvider renderArmor;
+	private final BooleanProvider renderOutline;
 
-	private final BooleanProvider renderArmorProvider;
-	private final BooleanProvider renderOutlineProvider;
-
-	public ModifyInvisibilityPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, BooleanProvider renderArmorProvider, BooleanProvider renderOutlineProvider) {
-		super(properties, activeCondition);
-		this.biEntityCondition = biEntityCondition;
-		this.renderArmorProvider = renderArmorProvider;
-		this.renderOutlineProvider = renderOutlineProvider;
+	public ModifyInvisibilityPower(Optional<Condition> activeCondition, Condition invisibleToCondition, BooleanProvider renderArmor, BooleanProvider renderOutline) {
+		super(activeCondition);
+		this.invisibleToCondition = invisibleToCondition;
+		this.renderArmor = renderArmor;
+		this.renderOutline = renderOutline;
 	}
 
 	@Override
@@ -68,13 +65,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	@Override
 	public void validate(ContextAware.ErrorReporter reporter) {
-
 		super.validate(reporter);
-
-		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
-		getRenderArmorProvider().validate(reporter.makeChild(".render_armor"));
-		getRenderOutlineProvider().validate(reporter.makeChild(".render_outline"));
-
+		getInvisibleToCondition().validate(reporter.makeChild(".invisible_to_condition"));
+		getRenderArmor().validate(reporter.makeChild(".render_armor"));
+		getRenderOutline().validate(reporter.makeChild(".render_outline"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
@@ -84,22 +78,44 @@ public class ModifyInvisibilityPower extends Power {
 		}
 
 		public boolean isInvisibleTo(Context context) {
-			context = this.addPowerContext(context);
 			return this.isActive(context)
-				&& power.getBiEntityCondition().test(context.makeChild(".bientity_condition"));
+				&& power.getInvisibleToCondition().test(context.makeChild(".invisible_to_condition"));
 		}
 
 		public boolean shouldRenderArmor(Context context) {
-			context = this.addPowerContext(context);
 			return this.isActive(context)
-				&& power.getRenderArmorProvider().next(context.makeChild(".render_armor"));
+				&& power.getRenderArmor().next(context.makeChild(".render_armor"));
 		}
 
 		public boolean shouldRenderOutline(Context context) {
-			context = this.addPowerContext(context);
 			return this.isActive(context)
-				&& power.getRenderOutlineProvider().next(context.makeChild(".render_outline"));
+				&& power.getRenderOutline().next(context.makeChild(".render_outline"));
 		}
+
+	}
+
+	public static boolean doesApply(Context context, BiPredicate<Instance, Context> tester) {
+
+		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
+
+		for (var instance : instances) {
+
+			try {
+
+				if (context.markActive(instance) && tester.test(instance, context)) {
+					return true;
+				}
+
+			}
+
+			finally {
+				context.markInActive(instance);
+			}
+
+		}
+
+		return false;
 
 	}
 
@@ -107,7 +123,7 @@ public class ModifyInvisibilityPower extends Power {
 		return PowerTypes.MODIFY_INVISIBILITY.contextBuilder()
 			.addNullable(ContextParameters.ACTOR, viewer)
 			.add(ContextParameters.TARGET, target)
-			.add(ContextParameters.ENTITY, target)
+			.add(ContextParameters.THIS_ENTITY, target)
 			.add(ContextParameters.ENTITY_POS, target.getPos())
 			.build(target.getWorld());
 	}

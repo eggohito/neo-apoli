@@ -50,7 +50,7 @@ public abstract class ModifyGlowingOtherPowerMixin {
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
 			boolean result = original
-				|| PowersComponent.hasInstances(context.required(ContextParameters.ACTOR), ModifyGlowingOtherPower.Instance.class, instance -> instance.doesApply(context));
+				|| PowersComponent.hasInstances(context.required(ContextParameters.ACTOR), ModifyGlowingOtherPower.Instance.class, instance -> instance.isActive(context));
 
 			this.neo_apoli$glowingContext.clear();
 			return result;
@@ -94,10 +94,11 @@ public abstract class ModifyGlowingOtherPowerMixin {
 			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
 			int color = original;
 
-			for (var instance: PowersComponent.getInstances(MinecraftClient.getInstance().getCameraEntity(), ModifyGlowingOtherPower.Instance.class, instance -> instance.doesApply(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
+			for (var instance: PowersComponent.getInstances(MinecraftClient.getInstance().getCameraEntity(), ModifyGlowingOtherPower.Instance.class, instance -> instance.isActive(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
 				color = Color.mix(color, instance.getColor(context));
 			}
 
+			this.neo_apoli$glowingContext.clear();
 			return color;
 
 		}

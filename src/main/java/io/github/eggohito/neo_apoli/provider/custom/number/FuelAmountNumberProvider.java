@@ -1,31 +1,23 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.FuelRegistry;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
-import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-@EqualsAndHashCode
-@Data
-public final class FuelAmountNumberProvider extends NumberProvider {
+public record FuelAmountNumberProvider() implements NumberProvider {
 
 	public static final MapCodec<FuelAmountNumberProvider> CODEC = MapCodec.unit(FuelAmountNumberProvider::new);
-	public static final PacketCodec<RegistryByteBuf, FuelAmountNumberProvider> PACKET_CODEC = PacketCodec.unit(new FuelAmountNumberProvider());
-
-	public FuelAmountNumberProvider() {
-
-	}
+	public static final PacketCodec<RegistryByteBuf, FuelAmountNumberProvider> PACKET_CODEC = PacketCodecUtil.unit(FuelAmountNumberProvider::new);
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -33,13 +25,11 @@ public final class FuelAmountNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected Number impl(Context context) {
-
-		World world = context.getWorld();
-		ItemStack stack = context.required(ContextParameters.ITEM_STACK);
-
-		return world.getFuelRegistry().getFuelTicks(stack);
-
+	public @NotNull Number next(Context context) {
+		FuelRegistry fuelRegistry = context.getWorld().getFuelRegistry();
+		return context.optional(ContextParameters.ITEM_STACK)
+			.map(fuelRegistry::getFuelTicks)
+			.orElse(0);
 	}
 
 	@Override

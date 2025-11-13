@@ -2,69 +2,64 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
-
-@EqualsAndHashCode
-@Data
-public final class AdjacentBlocksNumberProvider extends NumberProvider {
+public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3dProvider position) implements NumberProvider {
 
 	public static final MapCodec<AdjacentBlocksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("adjacent_block_condition", new ConstantBlockCondition(true)).forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition)
+		BlockCondition.CODEC.fieldOf("block_condition").forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition),
+		Vec3dProvider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
 	).apply(instance, AdjacentBlocksNumberProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, AdjacentBlocksNumberProvider> PACKET_CODEC = PacketCodec.tuple(
 		BlockCondition.PACKET_CODEC, AdjacentBlocksNumberProvider::adjacentBlockCondition,
+		Vec3dProvider.PACKET_CODEC, AdjacentBlocksNumberProvider::position,
 		AdjacentBlocksNumberProvider::new
 	);
 
-	private final BlockCondition adjacentBlockCondition;
-
-	public AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition) {
-		this.adjacentBlockCondition = adjacentBlockCondition;
-	}
-
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.ADJACENT_BLOCKS;
+		return NumberProviderTypes.ADJACENT_BLOCKS_NUMBER_PROVIDER;
 	}
 
 	@Override
-	protected Number impl(Context context) {
+	public @NotNull Number next(Context context) {
 
 		World world = context.getWorld();
-		BlockPos pos = BlockPos.ofFloored(context.required(ContextParameters.POSITION));
-
 		long matches = 0;
+
+		Context positionContext = context.makeChild(".position");
+		BlockPos blockPos = BlockPos.ofFloored(position().next(positionContext));
+
+		if (positionContext.hasErrors()) {
+			return matches;
+		}
+
 		for (Direction direction : Direction.values()) {
 
-			BlockPos offsetPos = pos.offset(direction);
+			BlockPos offsetPos = blockPos.offset(direction);
+
 			if (!world.isChunkLoaded(offsetPos)) {
 				continue;
 			}
 
-			Context blockContext = new ContextImpl.Builder(context)
+			Context blockContext = ContextImpl.of(context, builder -> builder
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 				.add(ContextParameters.BLOCK_POS, offsetPos)
 				.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos))
-				.build(world);
+				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
 
-			if (adjacentBlockCondition().test(blockContext.makeChild(".adjacent_block_condition"))) {
+			if (adjacentBlockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
 			}
 
@@ -75,16 +70,15 @@ public final class AdjacentBlocksNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.POSITION);
-	}
-
-	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
+
+		NumberProvider.super.validate(reporter);
 		adjacentBlockCondition().validate(reporter
 			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
-			.makeChild(".adjacent_block_condition"));
+			.makeChild(".block_condition"));
+
+		position().validate(reporter.makeChild(".position"));
+
 	}
 
 }

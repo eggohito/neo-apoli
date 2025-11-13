@@ -118,7 +118,7 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = PacketCodecUtil.enumType(Direction.Axis.class);
 
-	public static final PacketCodec<ByteBuf, Map<EntityParameter, EntityParameter>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityParameter.PACKET_CODEC, EntityParameter.PACKET_CODEC);
+	public static final PacketCodec<ByteBuf, Map<EntityTarget, EntityTarget>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityTarget.PACKET_CODEC, EntityTarget.PACKET_CODEC);
 
 	public static final PacketCodec<ByteBuf, Explosion.DestructionType> DESTRUCTION_TYPE = PacketCodecUtil.enumType(Explosion.DestructionType.class);
 

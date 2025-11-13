@@ -1,10 +1,9 @@
 package io.github.eggohito.neo_apoli.event;
 
-import com.mojang.datafixers.util.Unit;
-import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.util.PowerReference;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
@@ -15,20 +14,11 @@ public final class PowerParsingEvents {
 		callbacks -> new Decoding() {
 
 			@Override
-			public <I> DataResult<Unit> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput) {
+			public <I> void decode(PowerEntry<?> entry, DynamicOps<I> ops, MapLike<I> mapInput) {
 
-				DataResult<Unit> result = DataResult.success(Unit.INSTANCE, Lifecycle.stable());
 				for (var callback : callbacks) {
-
-					result = result.apply2stable((u, o) -> u, callback.decode(reference, type, ops, mapInput));
-
-					if (result.isError()) {
-						return result;
-					}
-
+					callback.decode(entry, ops, mapInput);
 				}
-
-				return result;
 
 			}
 
@@ -40,10 +30,10 @@ public final class PowerParsingEvents {
 		callbacks -> new Encoding() {
 
 			@Override
-			public <I> void encode(PowerReference reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix) {
+			public <I> void encode(PowerEntry<?> entry, DynamicOps<I> ops, RecordBuilder<I> prefix) {
 
 				for (var callback : callbacks) {
-					callback.encode(reference, power, ops, prefix);
+					callback.encode(entry, ops, prefix);
 				}
 
 			}
@@ -52,11 +42,11 @@ public final class PowerParsingEvents {
 	);
 
 	public interface Decoding {
-		<I> DataResult<Unit> decode(PowerReference reference, PowerType<?> type, DynamicOps<I> ops, MapLike<I> mapInput);
+		<I> void decode(PowerEntry<?> entry, DynamicOps<I> ops, MapLike<I> mapInput);
 	}
 
 	public interface Encoding {
-		<I> void encode(PowerReference reference, Power power, DynamicOps<I> ops, RecordBuilder<I> prefix);
+		<I> void encode(PowerEntry<?> entry, DynamicOps<I> ops, RecordBuilder<I> prefix);
 	}
 
 }

@@ -48,21 +48,10 @@ public abstract class CraftingRecipePowerMixin {
 	public static abstract class ManagerRegistrant implements PowerRecipeDisplayHolder {
 
 		@Shadow
-		@Final
-		private static Logger LOGGER;
-
-		@Shadow
 		private PreparedRecipes preparedRecipes;
 
 		@Shadow
 		private Map<RegistryKey<Recipe<?>>, List<ServerRecipeManager.ServerRecipe>> recipesByKey;
-
-		@WrapWithCondition(method = "method_64689", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
-		private static <E> boolean validateRecipeEntries(List<E> list, E e, List<E> ignored, Identifier id, Recipe<?> recipe) {
-			return RecipeUtil.validateRecipe(recipe)
-				.ifError(error -> LOGGER.error("Couldn't register recipe \"{}\": {}", id, error.message()))
-				.isSuccess();
-		}
 
 		@Inject(method = "initialize", at = @At("HEAD"))
 		private void onInit(FeatureSet features, CallbackInfo ci) {
@@ -72,7 +61,7 @@ public abstract class CraftingRecipePowerMixin {
 
 			for (PowerEntry<?> powerEntry: PowerManager.entries()) {
 
-				if (!(powerEntry.value() instanceof CraftingRecipePower craftingRecipePower)) {
+				if (!(powerEntry.power() instanceof CraftingRecipePower craftingRecipePower)) {
 					continue;
 				}
 

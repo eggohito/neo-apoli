@@ -2,10 +2,12 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.power.misc.AbstractModifyAttributeLegacyPower;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.power.misc.AttributeModifying;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.AttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
@@ -13,17 +15,24 @@ import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.event.Level;
 
 import java.util.List;
 
 @Getter
-public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPower {
+public class ModifyAttributeLegacyPower extends AttributeModifying {
 
-	public static final MapCodec<ModifyAttributeLegacyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addAttributeModifyingFields(instance).apply(instance, ModifyAttributeLegacyPower::new));
-	public static final PacketCodec<RegistryByteBuf, ModifyAttributeLegacyPower> PACKET_CODEC = createAttributeModifyingPacketCodec((buf, power) -> {}, (buf, properties, modifiers, sendUpdate) -> new ModifyAttributeLegacyPower(properties, modifiers, sendUpdate));
+	public static final MapCodec<ModifyAttributeLegacyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addAttributeModifyingFields(instance)
+		.apply(instance, ModifyAttributeLegacyPower::new));
 
-	public ModifyAttributeLegacyPower(Properties properties, List<AttributeModifier> modifiers, BooleanProvider sendUpdate) {
-		super(properties, modifiers, sendUpdate);
+	public static final PacketCodec<RegistryByteBuf, ModifyAttributeLegacyPower> PACKET_CODEC = PacketCodec.tuple(
+		NeoApoliPacketCodecs.ATTRIBUTE_MODIFIERS, AttributeModifying::getModifiers,
+		BooleanProvider.PACKET_CODEC, AttributeModifying::getSendUpdate,
+		ModifyAttributeLegacyPower::new
+	);
+
+	public ModifyAttributeLegacyPower(List<AttributeModifier> modifiers, BooleanProvider sendUpdate) {
+		super(modifiers, sendUpdate);
 	}
 
 	@Override
@@ -32,11 +41,11 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 	}
 
 	@Override
-	public AbstractModifyAttributeLegacyPower.Instance<?> createInstance(Entity holder) {
+	public AttributeModifying.Instance<?> createInstance(Entity holder) {
 		return new Instance(holder, this);
 	}
 
-	public static class Instance extends AbstractModifyAttributeLegacyPower.Instance<ModifyAttributeLegacyPower> {
+	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyAttributeLegacyPower power) {
 			super(holder, power);
@@ -47,7 +56,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onGranted();
 
-			Context context = this.createContext();
+			Context context = this.createHolderContext();
 			this.addModifiersPersistently(context);
 
 		}
@@ -58,7 +67,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onRespawned();
 
-			Context context = this.createContext();
+			Context context = this.createHolderContext();
 			this.addModifiersPersistently(context);
 
 		}
@@ -68,7 +77,7 @@ public class ModifyAttributeLegacyPower extends AbstractModifyAttributeLegacyPow
 
 			super.onRevoked();
 
-			Context context = this.createContext();
+			Context context = this.createHolderContext();
 			this.removeModifiers(context);
 
 		}

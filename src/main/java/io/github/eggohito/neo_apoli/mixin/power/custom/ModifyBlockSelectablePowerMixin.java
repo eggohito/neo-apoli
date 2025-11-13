@@ -38,7 +38,7 @@ public abstract class ModifyBlockSelectablePowerMixin extends State<Block, Block
 			Entity entity = entityShapeContext.getEntity();
 			Context context = ModifyBlockSelectablePower.createContext(entity, blockPos, this.asBlockState(), blockView.getBlockEntity(blockPos));
 
-			return ModifyBlockSelectablePower.modifyOrElseGet(context, () -> original);
+			return ModifyBlockSelectablePower.modify(context, () -> original);
 
 		}
 

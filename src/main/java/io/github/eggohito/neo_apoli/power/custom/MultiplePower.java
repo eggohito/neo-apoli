@@ -1,14 +1,13 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -16,10 +15,9 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -27,7 +25,6 @@ import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Set;
@@ -37,38 +34,162 @@ import java.util.stream.Stream;
 @Getter
 public class MultiplePower extends Power {
 
-	public static final Identifier ID = NeoApoli.id("multiple");
-
 	//	TODO: This set of filters should be controllable via config
-	public static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
+	private static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
 
-		Properties.CODEC.keys(JavaOps.INSTANCE)
+		PowerEntry.CODEC.keys(JavaOps.INSTANCE)
 			.map(Object::toString)
 			.distinct()
 			.map(Pattern::compile)
 			.forEach(filters::add);
 
-		filters.add(Pattern.compile(Power.TYPE_KEY));
 		filters.add(Pattern.compile("^\\$"));
+		filters.add(Pattern.compile(ResourceConditions.CONDITIONS_KEY));
 
 	});
 
-	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
-		.and(SubPowersCodec.INSTANCE.forGetter(MultiplePower::getSubPowers))
-		.apply(instance, MultiplePower::new));
+	public static final Identifier ID = NeoApoli.id("multiple");
 
-	public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = createCommonPacketCodec(
-		(buf, multiplePower) ->
-			SubPowersPacketCodec.INSTANCE.encode(buf, multiplePower.getSubPowers()),
-		(buf, properties) -> new MultiplePower(properties,
-			SubPowersPacketCodec.INSTANCE.decode(buf)
-		)
+	public static final MapCodec<ImmutableSet<PowerEntry<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
+
+		@Override
+		public <T> Stream<T> keys(DynamicOps<T> dynamicOps) {
+			return Stream.empty();
+		}
+
+		@Override
+		public <I> DataResult<ImmutableSet<PowerEntry<?>>> decode(DynamicOps<I> ops, MapLike<I> mapInput) {
+
+			Set<PowerEntry<?>> succeeded = new ObjectOpenHashSet<>();
+			DataResult<Unit> result = mapInput.entries().reduce(
+				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
+				(r, pair) -> {
+
+					DataResult<String> keyResult = Codec.STRING.parse(ops, pair.getFirst());
+					if (keyResult.mapOrElse(MultiplePower::isKeyIgnored, error -> false)) {
+						return r;
+					}
+
+					DataResult<MapLike<I>> childMapResult = ops.getMap(pair.getSecond());
+					if (childMapResult.isError()) {
+						return r.apply2stable((unit, obj) -> unit, childMapResult);
+					}
+
+					MapLike<I> childMapInput = childMapResult.getOrThrow();
+					DataResult<PowerReference.SubPower> subReferenceResult = keyResult
+						.flatMap(PowerReference::ofValidated)
+						.flatMap(reference -> reference instanceof PowerReference.SubPower subReference
+							? DataResult.success(subReference)
+							: DataResult.error(() -> "A sub-power must have a sub-power reference!"));
+
+					if (subReferenceResult.isSuccess()) {
+
+						PowerReference.SubPower subReference = subReferenceResult.getOrThrow();
+						DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY)
+							.decode(ops, childMapInput)
+							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
+								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which is not allowed!")
+								: DataResult.success(type));
+
+						if (typeResult.isSuccess()) {
+
+							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.CODEC.decode(ops, childMapInput);
+
+							if (subPowerResult.isSuccess()) {
+
+								PowerEntry<?> subPower = subPowerResult.getOrThrow();
+
+								if (!succeeded.add(subPower)) {
+									return r.apply2stable((u, o) -> u, DataResult.error(() -> "Duplicate entry for key: \"" + subReference.name() + "\""));
+								}
+
+							}
+
+							return r.apply2stable((u, o) -> u, subPowerResult);
+
+						}
+
+						return r.apply2stable((u, o) -> u, typeResult);
+
+					}
+
+					return r.apply2stable((u, o) -> u, subReferenceResult);
+
+				},
+				(r1, r2) ->
+					r1.apply2stable((u1, u2) -> u1, r2)
+			);
+
+			ImmutableSet<PowerEntry<?>> elements = ImmutableSet.copyOf(succeeded);
+			return result.map(u -> elements).setPartial(elements);
+
+		}
+
+		@Override
+		public <O> RecordBuilder<O> encode(ImmutableSet<PowerEntry<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
+
+			for (var entry : entries) {
+				prefix.add(entry.reference().toString(), PowerEntry.CODEC.encode(entry, ops, ops.mapBuilder()).build(ops.empty()));
+			}
+
+			return prefix;
+
+		}
+
+	};
+
+	public static final PacketCodec<RegistryByteBuf, ImmutableSet<PowerEntry<?>>> SUB_POWERS_PACKET_CODEC = new PacketCodec<>() {
+
+		@Override
+		public ImmutableSet<PowerEntry<?>> decode(RegistryByteBuf buf) {
+
+			ImmutableSet.Builder<PowerEntry<?>> entries = ImmutableSet.builder();
+			int size = buf.readVarInt();
+
+			for (int i = 0; i < size; i++) {
+
+				PowerEntry<?> entry = PowerEntry.PACKET_CODEC.decode(buf);
+
+				if (entry.subPower()) {
+					entries.add(entry);
+				}
+
+				else {
+					throw new IllegalArgumentException("Expected a sub-power, but got " + entry.reference().asDisplayString(false) + "!");
+				}
+
+			}
+
+			return entries.build();
+
+		}
+
+		@Override
+		public void encode(RegistryByteBuf buf, ImmutableSet<PowerEntry<?>> entries) {
+
+			buf.writeVarInt(entries.size());
+
+			for (var entry : entries) {
+				PowerEntry.PACKET_CODEC.encode(buf, entry);
+			}
+
+		}
+
+	};
+
+	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
+		MultiplePower::new,
+		MultiplePower::getSubPowers
 	);
 
-	private final ImmutableMap<PowerReference.SubPower, Power> subPowers;
+	public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = SUB_POWERS_PACKET_CODEC.xmap(
+		MultiplePower::new,
+		MultiplePower::getSubPowers
+	);
 
-	public MultiplePower(Properties properties, ImmutableMap<PowerReference.SubPower, Power> subPowers) {
-		super(properties);
+	private final ImmutableSet<PowerEntry<?>> subPowers;
+
+	public MultiplePower(ImmutableSet<PowerEntry<?>> subPowers) {
 		this.subPowers = subPowers;
 	}
 
@@ -79,11 +200,18 @@ public class MultiplePower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new Instance<>(holder, this) {};
 	}
 
 	/**
-	 * 	<p>Prepend the ID of the super-power to the sub-powers to prepare for decoding since the map codec for sub-powers can only parse a sub-power reference and a power key-value pair.</p>
+	 * 	<p>Pre-process the sub-powers of a multiple power to prepare the sub-powers for proper parsing. This takes care
+	 * 	of two things:</p>
+	 * 	<ul>
+	 * 	    <li>Creates a sub-power reference (by prepending the super-power's ID to the keys of the JSON object) to
+	 * 	    ensure the sub-power will be recognized.</li>
+	 * 	    <li>Adds the sub-power reference to the JSON objects of certain keys so the sub-powers will be parsed
+	 * 	    as sub-power entries.</li>
+	 * 	</ul>
 	 */
 	@ApiStatus.Internal
 	public static void preProcessSubPowers(Identifier id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
@@ -91,23 +219,30 @@ public class MultiplePower extends Power {
 		JsonObject powerJson = entry.element();
 		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
 
-		if (powerTypeResult.isSuccess() && Objects.equals(powerTypeResult.getOrThrow(), PowerTypes.MULTIPLE)) {
-
-			powerJson.entrySet().removeIf(e -> !isKeyIgnored(e.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, e.getValue(), directoryPath, ops));
-			JsonObject copy = powerJson.deepCopy();
-
-			powerJson.asMap().clear();
-			copy.asMap().forEach((key, value) -> {
-
-				String modifiedKey = isKeyIgnored(key)
-					? key
-					: id + Character.toString(PowerReference.SubPower.SEPARATOR) + key;
-
-				powerJson.add(modifiedKey, value);
-
-			});
-
+		if (!powerTypeResult.mapOrElse(type -> Objects.equals(type, PowerTypes.MULTIPLE), error -> false)) {
+			return;
 		}
+
+		powerJson.entrySet().removeIf(e -> !isKeyIgnored(e.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, e.getValue(), directoryPath, ops));
+		JsonObject copy = powerJson.deepCopy();
+
+		powerJson.asMap().clear();
+		copy.asMap().forEach((key, value) -> {
+
+			if (!isKeyIgnored(key)) {
+
+				key = id + Character.toString(PowerReference.SubPower.SEPARATOR) + key;
+
+				//	Append the sub-power's reference into its value object for proper parsing
+				if (value instanceof JsonObject jsonObject) {
+					jsonObject.addProperty(PowerEntry.REFERENCE_KEY, key);
+				}
+
+			}
+
+			powerJson.add(key, value);
+
+		});
 
 	}
 
@@ -139,161 +274,6 @@ public class MultiplePower extends Power {
 		}
 
 		return false;
-
-	}
-
-	public static final class Instance extends Power.Instance<MultiplePower> {
-
-		private Instance(@NotNull Entity holder, @NotNull MultiplePower power) {
-			super(holder, power);
-		}
-
-	}
-
-	public static final class SubPowersCodec extends MapCodec<ImmutableMap<PowerReference.SubPower, Power>> {
-
-		public static final SubPowersCodec INSTANCE = new SubPowersCodec();
-
-		private SubPowersCodec() {
-
-		}
-
-		@Override
-		public <I> Stream<I> keys(DynamicOps<I> ops) {
-			return Stream.empty();
-		}
-
-		@Override
-		public <I> DataResult<ImmutableMap<PowerReference.SubPower, Power>> decode(DynamicOps<I> ops, MapLike<I> mapInput) {
-
-			Object2ObjectMap<PowerReference.SubPower, Power> succeeded = new Object2ObjectOpenHashMap<>();
-			DataResult<Unit> result = mapInput.entries().reduce(
-				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
-				(r, pair) -> {
-
-					DataResult<String> keyResult = Codec.STRING.parse(ops, pair.getFirst());
-					if (keyResult.mapOrElse(MultiplePower::isKeyIgnored, error -> false)) {
-						return r;
-					}
-
-					DataResult<MapLike<I>> subMapResult = ops.getMap(pair.getSecond());
-					if (subMapResult.isError()) {
-						return r.apply2stable((unit, obj) -> unit, subMapResult);
-					}
-
-					MapLike<I> subMap = subMapResult.getOrThrow();
-					DataResult<PowerReference.SubPower> subReferenceResult = keyResult.flatMap(PowerReference::ofValidated)
-						.flatMap(reference -> reference instanceof PowerReference.SubPower subReference
-							? DataResult.success(subReference)
-							: DataResult.error(() -> "A sub-power must have a sub-power reference!"));
-
-					if (subReferenceResult.isSuccess()) {
-
-						PowerReference.SubPower subReference = subReferenceResult.getOrThrow();
-						DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, subMap)
-							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
-								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which isn't allowed!")
-								: DataResult.success(type));
-
-						if (typeResult.isSuccess()) {
-
-							PowerType<?> type = typeResult.getOrThrow();
-							DataResult<Power> subPowerResult = Power.BASE_MAP_CODEC.decode(ops, subMap)
-								.flatMap(subPower -> PowerParsingEvents.DECODING.invoker().decode(subReference, type, ops, subMap)
-									.map(unit -> subPower));
-
-							if (subPowerResult.isSuccess()) {
-
-								if (succeeded.putIfAbsent(subReference, subPowerResult.getOrThrow()) != null) {
-									return r.apply2stable((u, o) -> u, DataResult.error(() -> "Duplicate entry for key: \"" + subReference.name() + "\""));
-								}
-
-							}
-
-							return r.apply2stable((u, o) -> u, subPowerResult);
-
-						}
-
-						else {
-							return r.apply2stable((u, o) -> u, typeResult);
-						}
-
-					}
-
-					return r.apply2stable((u, o) -> u, subReferenceResult);
-
-				},
-				(r1, r2) ->
-					r1.apply2stable((u1, u2) -> u1, r2)
-			);
-
-			ImmutableMap<PowerReference.SubPower, Power> elements = ImmutableMap.copyOf(succeeded);
-			return result.map(u -> elements).setPartial(elements);
-
-		}
-
-		@Override
-		public <I> RecordBuilder<I> encode(ImmutableMap<PowerReference.SubPower, Power> mapInput, DynamicOps<I> ops, RecordBuilder<I> prefix) {
-
-			mapInput.forEach((subReference, subPower) -> {
-
-				RecordBuilder<I> powerBuilder = Power.BASE_MAP_CODEC.encode(subPower, ops, ops.mapBuilder());
-				PowerParsingEvents.ENCODING.invoker().encode(subReference, subPower, ops, powerBuilder);
-
-				prefix.add(subReference.toString(), powerBuilder.build(ops.empty()));
-
-			});
-
-			return prefix;
-
-		}
-
-	}
-
-	public static final class SubPowersPacketCodec implements PacketCodec<RegistryByteBuf, ImmutableMap<PowerReference.SubPower, Power>> {
-
-		public static final SubPowersPacketCodec INSTANCE = new SubPowersPacketCodec();
-
-		private SubPowersPacketCodec() {
-
-		}
-
-		@Override
-		public ImmutableMap<PowerReference.SubPower, Power> decode(RegistryByteBuf buf) {
-
-			ImmutableMap.Builder<PowerReference.SubPower, Power> subPowersBuilder = ImmutableMap.builder();
-			int size = buf.readVarInt();
-
-			for (int i = 0; i < size; i++) {
-
-				PowerReference reference = PowerReference.PACKET_CODEC.decode(buf);
-				Power subPower = Power.BASE_PACKET_CODEC.decode(buf);
-
-				if (reference instanceof PowerReference.SubPower subReference) {
-					subPowersBuilder.put(subReference, subPower);
-				}
-
-				else {
-					throw new IllegalArgumentException("Expected a sub-power reference, but got " + reference + "!");
-				}
-
-			}
-
-			return subPowersBuilder.build();
-
-		}
-
-		@Override
-		public void encode(RegistryByteBuf buf, ImmutableMap<PowerReference.SubPower, Power> map) {
-
-			buf.writeVarInt(map.size());
-
-			map.forEach((subReference, subPower) -> {
-				PowerReference.PACKET_CODEC.encode(buf, subReference);
-				Power.BASE_PACKET_CODEC.encode(buf, subPower);
-			});
-
-		}
 
 	}
 

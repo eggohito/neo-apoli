@@ -1,12 +1,13 @@
 package io.github.eggohito.neo_apoli.util.context;
 
+import io.github.eggohito.neo_apoli.util.EntityTarget;
+import net.minecraft.util.Util;
 import net.minecraft.util.context.ContextType;
 
 public class ContextTypes {
 
 	public static final ContextType GENERIC = new ContextType.Builder()
 		.allow(ContextParameters.POWER_REFERENCE)
-		.allow(ContextParameters.POSITION)
 		.allow(ContextParameters.HAND)
 		.build();
 
@@ -29,10 +30,15 @@ public class ContextTypes {
 		.allow(ContextParameters.DIRECT_DAMAGING_ENTITY)
 		.build();
 
-	public static final ContextType ENTITY = new ContextType.Builder()
-		.require(ContextParameters.ENTITY)
-		.require(ContextParameters.ENTITY_POS)
-		.build();
+	public static final ContextType ENTITY = Util.make(new ContextType.Builder(), builder -> {
+
+		for (var entity : EntityTarget.values()) {
+			builder.allow(entity.getParameter());
+		}
+
+		builder.require(ContextParameters.ENTITY_POS);
+
+	}).build();
 
 	public static final ContextType ITEM = new ContextType.Builder()
 		.allow(ContextParameters.STACK_REFERENCE)

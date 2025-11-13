@@ -3,24 +3,16 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.BlockAction;
-import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.ItemAction;
-import io.github.eggohito.neo_apoli.action.meta.block.NothingBlockAction;
-import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
-import io.github.eggohito.neo_apoli.action.meta.item.NothingItemAction;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.custom.item.NothingItemAction;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.ItemCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
-import io.github.eggohito.neo_apoli.condition.meta.item.ConstantItemCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.BlockInteractionPhase;
+import io.github.eggohito.neo_apoli.util.BlockUsePhase;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -32,6 +24,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -49,39 +42,33 @@ import java.util.function.Supplier;
 @Getter
 public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBlockUsePower> {
 
-	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
+	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
 		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::getConditions))
-		.and(BlockInteractionPhase.SET_CODEC.optionalFieldOf("interaction_phases", EnumSet.of(BlockInteractionPhase.BLOCK)).forGetter(ModifyBlockUsePower::getInteractionPhases))
+		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::getUsePhases))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::getPriority))
 		.apply(instance, ModifyBlockUsePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyBlockUsePower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, modifyBlockUsePower) -> {
-			Actions.PACKET_CODEC.encode(buf, modifyBlockUsePower.getActions());
-			Conditions.PACKET_CODEC.encode(buf, modifyBlockUsePower.getConditions());
-			BlockInteractionPhase.SET_PACKET_CODEC.encode(buf, modifyBlockUsePower.getInteractionPhases());
-			buf.writeVarInt(modifyBlockUsePower.getPriority());
-		},
-		(buf, properties, condition) -> new ModifyBlockUsePower(properties, condition,
-			Actions.PACKET_CODEC.decode(buf),
-			Conditions.PACKET_CODEC.decode(buf),
-			BlockInteractionPhase.SET_PACKET_CODEC.decode(buf),
-			buf.readVarInt()
-		)
+	public static final PacketCodec<RegistryByteBuf, ModifyBlockUsePower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Actions.PACKET_CODEC, ModifyBlockUsePower::getActions,
+		Conditions.PACKET_CODEC, ModifyBlockUsePower::getConditions,
+		BlockUsePhase.SET_PACKET_CODEC, ModifyBlockUsePower::getUsePhases,
+		PacketCodecs.INTEGER, ModifyBlockUsePower::getPriority,
+		ModifyBlockUsePower::new
 	);
 
 	private final Actions actions;
 	private final Conditions conditions;
 
-	private final EnumSet<BlockInteractionPhase> interactionPhases;
+	private final EnumSet<BlockUsePhase> usePhases;
 	private final int priority;
 
-	public ModifyBlockUsePower(Properties properties, Optional<EntityCondition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockInteractionPhase> interactionPhases, int priority) {
-		super(properties, activeCondition);
+	public ModifyBlockUsePower(Optional<Condition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockUsePhase> usePhases, int priority) {
+		super(activeCondition);
 		this.actions = actions;
 		this.conditions = conditions;
-		this.interactionPhases = interactionPhases;
+		this.usePhases = usePhases;
 		this.priority = priority;
 	}
 
@@ -97,12 +84,9 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	@Override
 	public void validate(ContextAware.ErrorReporter reporter) {
-
 		super.validate(reporter);
-
 		getActions().validate(reporter);
 		getConditions().validate(reporter);
-
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockUsePower> {
@@ -111,68 +95,51 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 			super(holder, power);
 		}
 
-		public boolean shouldExecute(BlockInteractionPhase interactionPhase, PriorityPhase priorityPhase) {
-			return this.getPower().getInteractionPhases().contains(interactionPhase)
+		public boolean doesApply(BlockUsePhase interactionPhase, PriorityPhase priorityPhase) {
+			return this.getPower().getUsePhases().contains(interactionPhase)
 				&& this.getPower().inPriorityPhase(priorityPhase);
 		}
 
-		public boolean doesApply(Context context) {
-			return this.getPower().getConditions().test(context);
-		}
-
-		public ActionResult execute(Context context) {
-			return this.getPower().getActions().execute(context);
+		public ActionResult apply(Context context) {
+			return power.getActions().execute(context);
 		}
 
 	}
 
-	public record Actions(BlockAction blockAction, EntityAction entityAction, ItemAction itemAction, ActionResult result) {
+	public record Actions(Action action, ActionResult result) implements ContextAware {
 
 		public static final MapCodec<Actions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			BlockAction.CODEC.optionalFieldOf("block_action", new NothingBlockAction()).forGetter(Actions::blockAction),
-			EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(Actions::entityAction),
-			ItemAction.CODEC.optionalFieldOf("item_action", new NothingItemAction()).forGetter(Actions::itemAction),
+			Action.BASE_CODEC.optionalFieldOf("action", new NothingItemAction()).forGetter(Actions::action),
 			NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", ActionResult.SUCCESS).forGetter(Actions::result)
 		).apply(instance, Actions::new));
 
 		public static final PacketCodec<RegistryByteBuf, Actions> PACKET_CODEC = PacketCodec.tuple(
-			BlockAction.PACKET_CODEC, Actions::blockAction,
-			EntityAction.PACKET_CODEC, Actions::entityAction,
-			ItemAction.PACKET_CODEC, Actions::itemAction,
+			Action.BASE_PACKET_CODEC, Actions::action,
 			NeoApoliPacketCodecs.ACTION_RESULT, Actions::result,
 			Actions::new
 		);
 
-		public ActionResult execute(Context context) {
-
-			blockAction().execute(context.makeChild(".block_action"));
-			entityAction().execute(context.makeChild(".item_action"));
-			itemAction().execute(context.makeChild(".item_action"));
-
-			return result();
-
+		@Override
+		public void validate(ErrorReporter reporter) {
+			ContextAware.super.validate(reporter);
+			action().validate(reporter.makeChild(".action"));
 		}
 
-		public void validate(ContextAware.ErrorReporter reporter) {
-			blockAction().validate(reporter.makeChild(".block_action"));
-			entityAction().validate(reporter.makeChild(".entity_action"));
-			itemAction().validate(reporter.makeChild(".item_action"));
+		public ActionResult execute(Context context) {
+			action().execute(context.makeChild(".action"));
+			return result();
 		}
 
 	}
 
-	public record Conditions(BlockCondition blockCondition, ItemCondition itemCondition, EnumSet<Direction> directions, EnumSet<Hand> hands) {
+	public record Conditions(EnumSet<Direction> directions, EnumSet<Hand> hands) implements ContextAware {
 
 		public static final MapCodec<Conditions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(Conditions::blockCondition),
-			ItemCondition.CODEC.optionalFieldOf("item_condition", new ConstantItemCondition(true)).forGetter(Conditions::itemCondition),
 			NeoApoliCodecs.DIRECTION_SET.optionalFieldOf("directions", EnumSet.allOf(Direction.class)).forGetter(Conditions::directions),
 			NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(Hand.class)).forGetter(Conditions::hands)
 		).apply(instance, Conditions::new));
 
 		public static final PacketCodec<RegistryByteBuf, Conditions> PACKET_CODEC = PacketCodec.tuple(
-			BlockCondition.PACKET_CODEC, Conditions::blockCondition,
-			ItemCondition.PACKET_CODEC, Conditions::itemCondition,
 			NeoApoliPacketCodecs.DIRECTION_SET, Conditions::directions,
 			NeoApoliPacketCodecs.HAND_SET, Conditions::hands,
 			Conditions::new
@@ -180,19 +147,12 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		public boolean test(Context context) {
 			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
-				&& context.optional(ContextParameters.HAND).map(hands()::contains).orElse(false)
-				&& blockCondition().test(context.makeChild(".block_condition"))
-				&& itemCondition().test(context.makeChild(".item_condition"));
-		}
-
-		public void validate(ContextAware.ErrorReporter reporter) {
-			blockCondition().validate(reporter.makeChild(".block_condition"));
-			itemCondition().validate(reporter.makeChild(".item_condition"));
+				&& context.optional(ContextParameters.HAND).map(hands()::contains).orElse(false);
 		}
 
 	}
 
-	public static ActionResult execute(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockInteractionPhase interactionPhase, PriorityPhase priorityPhase, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultValueSupplier) {
+	public static ActionResult execute(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockUsePhase interactionPhase, PriorityPhase priorityPhase, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultValueSupplier) {
 		return switch (priorityPhase) {
 			case BEFORE ->
 				executeOnBeforeBlockUse(player, hand, blockHitResult, interactionPhase, zeroPriorityResultSetter, defaultValueSupplier);
@@ -201,13 +161,9 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		};
 	}
 
-	private static ActionResult executeOnBeforeBlockUse(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockInteractionPhase interactionPhase, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> defaultResultSupplier) {
+	private static ActionResult executeOnBeforeBlockUse(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockUsePhase interactionPhase, Consumer<ActionResult> zeroPriorityResultSetter, Supplier<ActionResult> defaultResultSupplier) {
 
-		World world = player.getWorld();
-		BlockPos blockPos = blockHitResult.getBlockPos();
-
-		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.BEFORE));
-		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.BEFORE));
 
 		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
@@ -220,18 +176,10 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 			for (var instance : instances) {
 
-				Context context = instance.createContextBuilder()
-					.add(ContextParameters.BLOCK_POS, blockPos)
-					.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-					.add(ContextParameters.DIRECTION, blockHitResult.getSide())
-					.add(ContextParameters.STACK_REFERENCE, stackReference)
-					.add(ContextParameters.ITEM_STACK, stackReference.get())
-					.add(ContextParameters.HAND, hand)
-					.build(world);
+				Context context = createContext(instance, player, hand, blockHitResult);
 
-				if (instance.doesApply(context)) {
-					previousResult = MiscUtil.overrideResult(previousResult, instance.execute(context));
+				if (instance.isActive(context)) {
+					previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));
 				}
 
 			}
@@ -261,15 +209,12 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	}
 
-	private static ActionResult executeOnAfterBlockUse(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockInteractionPhase interactionPhase, Supplier<ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultResultSupplier) {
+	private static ActionResult executeOnAfterBlockUse(PlayerEntity player, Hand hand, BlockHitResult blockHitResult, BlockUsePhase interactionPhase, Supplier<ActionResult> zeroPriorityResultGetter, Supplier<ActionResult> defaultResultSupplier) {
 
 		ActionResult original = defaultResultSupplier.get();
 		ActionResult modified = ActionResult.PASS;
 
 		ActionResult zeroPriorityResult = zeroPriorityResultGetter.get();
-
-		World world = player.getWorld();
-		BlockPos blockPos = blockHitResult.getBlockPos();
 
 		if (zeroPriorityResult != null && zeroPriorityResult != ActionResult.PASS) {
 			modified = zeroPriorityResult;
@@ -277,8 +222,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		else if (original == ActionResult.PASS) {
 
-			InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.shouldExecute(interactionPhase, PriorityPhase.AFTER));
-			StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
+			InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.AFTER));
 
 			for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
@@ -291,18 +235,10 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 				for (var instance : instances) {
 
-					Context context = instance.createContextBuilder()
-						.add(ContextParameters.BLOCK_POS, blockPos)
-						.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-						.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-						.add(ContextParameters.DIRECTION, blockHitResult.getSide())
-						.add(ContextParameters.STACK_REFERENCE, stackReference)
-						.add(ContextParameters.ITEM_STACK, stackReference.get())
-						.add(ContextParameters.HAND, hand)
-						.build(world);
+					Context context = createContext(instance, player, hand, blockHitResult);
 
-					if (instance.doesApply(context)) {
-						previousResult = MiscUtil.overrideResult(previousResult, instance.execute(context));
+					if (instance.isActive(context)) {
+						previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));
 					}
 
 				}
@@ -321,6 +257,24 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		}
 
 		return MiscUtil.overrideResult(original, modified);
+
+	}
+
+	public static Context createContext(Instance instance, PlayerEntity player, Hand hand, BlockHitResult blockHitResult) {
+
+		World world = player.getWorld();
+		BlockPos blockPos = blockHitResult.getBlockPos();
+		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
+
+		return instance.createHolderContextBuilder()
+			.add(ContextParameters.BLOCK_POS, blockPos)
+			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+			.add(ContextParameters.DIRECTION, blockHitResult.getSide())
+			.add(ContextParameters.STACK_REFERENCE, stackReference)
+			.add(ContextParameters.ITEM_STACK, stackReference.get())
+			.add(ContextParameters.HAND, hand)
+			.build(world);
 
 	}
 

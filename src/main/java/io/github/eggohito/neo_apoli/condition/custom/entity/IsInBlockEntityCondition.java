@@ -2,34 +2,28 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.block.ConstantBlockCondition;
+import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.context.ContextParameter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-@EqualsAndHashCode
-@Data
-public final class IsInBlockEntityCondition extends EntityCondition {
+import java.util.Set;
 
-	public static final MapCodec<IsInBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsInBlockEntityCondition::blockCondition)
-	).apply(instance, IsInBlockEntityCondition::new));
+public record IsInBlockEntityCondition(BlockCondition condition) implements EntityCondition {
+
+	public static final MapCodec<IsInBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(BlockCondition.CODEC.fieldOf("block_condition").forGetter(IsInBlockEntityCondition::condition))
+		.apply(instance, IsInBlockEntityCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsInBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, IsInBlockEntityCondition::blockCondition,
+		BlockCondition.PACKET_CODEC, IsInBlockEntityCondition::condition,
 		IsInBlockEntityCondition::new
 	);
-
-	private final BlockCondition blockCondition;
 
 	@Override
 	public EntityConditionType<?> getType() {
@@ -37,27 +31,38 @@ public final class IsInBlockEntityCondition extends EntityCondition {
 	}
 
 	@Override
-	protected boolean impl(Context context) {
+	public boolean test(Context context) {
 
-		Entity entity = context.required(ContextParameters.ENTITY);
-		BlockPos blockPos = entity.getBlockPos();
+		if (!context.hasAllParameters(this.getRequiredParameters())) {
+			return false;
+		}
 
 		World world = context.getWorld();
-		Context blockContext = new ContextImpl.Builder(context)
+		BlockPos blockPos = BlockPos.ofFloored(context.required(ContextParameters.ENTITY_POS));
+
+		if (!world.isChunkLoaded(blockPos)) {
+			return false;
+		}
+
+		Context blockContext = ContextImpl.of(context, builder -> builder
 			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
 			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.build(context.getWorld());
+			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
-		return blockCondition().test(blockContext.makeChild(".block_condition"));
+		return condition().test(blockContext.makeChild(".block_condition"));
 
 	}
 
 	@Override
+	public Set<ContextParameter<?>> getRequiredParameters() {
+		return Set.of(ContextParameters.ENTITY_POS);
+	}
+
+	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
-		blockCondition().validate(reporter
+		EntityCondition.super.validate(reporter);
+		condition().validate(reporter
 			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 	}

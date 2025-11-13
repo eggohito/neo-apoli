@@ -3,63 +3,56 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.keybinding.KeyBindingReference;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.KeyBound;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.Unit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+@Getter
 public class TogglePower extends Power implements KeyBound {
 
-	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(TogglePower::getEntityAction))
-		.and(KeyBindingReference.CODEC.fieldOf("key").forGetter(TogglePower::getKeyBindingReference))
+	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Action.BASE_CODEC.optionalFieldOf("action", new NothingAction()).forGetter(TogglePower::getAction))
+		.and(KeyBindingReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
 		.apply(instance, TogglePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, TogglePower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			EntityAction.PACKET_CODEC.encode(buf, power.getEntityAction());
-			KeyBindingReference.PACKET_CODEC.encode(buf, power.getKeyBindingReference());
-			BooleanProvider.PACKET_CODEC.encode(buf, power.getRetainState());
-			BooleanProvider.PACKET_CODEC.encode(buf, power.getActiveByDefault());
-		},
-		(buf, properties, activeCondition) -> new TogglePower(properties, activeCondition,
-			EntityAction.PACKET_CODEC.decode(buf),
-			KeyBindingReference.PACKET_CODEC.decode(buf),
-			BooleanProvider.PACKET_CODEC.decode(buf),
-			BooleanProvider.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, TogglePower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Action.BASE_PACKET_CODEC, TogglePower::getAction,
+		KeyBindingReference.PACKET_CODEC, TogglePower::getKey,
+		BooleanProvider.PACKET_CODEC, TogglePower::getRetainState,
+		BooleanProvider.PACKET_CODEC, TogglePower::getActiveByDefault,
+		TogglePower::new
 	);
 
-	@Getter
-	private final EntityAction entityAction;
+	private final Action action;
 	private final KeyBindingReference key;
 
-	@Getter
 	private final BooleanProvider retainState;
-	@Getter
 	private final BooleanProvider activeByDefault;
 
-	public TogglePower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction, KeyBindingReference key, BooleanProvider retainState, BooleanProvider activeByDefault) {
-		super(properties, activeCondition);
-		this.entityAction = entityAction;
+	public TogglePower(Optional<Condition> activeCondition, Action action, KeyBindingReference key, BooleanProvider retainState, BooleanProvider activeByDefault) {
+		super(activeCondition);
+		this.action = action;
 		this.key = key;
 		this.retainState = retainState;
 		this.activeByDefault = activeByDefault;
@@ -76,7 +69,7 @@ public class TogglePower extends Power implements KeyBound {
 	}
 
 	@Override
-	public KeyBindingReference getKeyBindingReference() {
+	public KeyBindingReference getKey() {
 		return key;
 	}
 
@@ -86,7 +79,7 @@ public class TogglePower extends Power implements KeyBound {
 
 		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
-			this.toggled = power.getActiveByDefault().next(this.createContext().makeChild(".active_by_default"));
+			this.toggled = power.getActiveByDefault().next(this.createHolderContext().makeChild(".active_by_default"));
 		}
 
 		@Override
@@ -119,7 +112,7 @@ public class TogglePower extends Power implements KeyBound {
 		@Override
 		public void onTick() {
 
-			Context context = this.createContext();
+			Context context = this.createHolderContext();
 
 			if (toggled && !super.isActive(context)) {
 				this.toggle(context);
@@ -130,7 +123,7 @@ public class TogglePower extends Power implements KeyBound {
 		@Override
 		public boolean shouldTick() {
 			return power.getActiveCondition().isPresent()
-				&& !power.getRetainState().next(this.createContext().makeChild(".retain_state"));
+				&& !power.getRetainState().next(this.createHolderContext().makeChild(".retain_state"));
 		}
 
 		@Override
@@ -145,7 +138,7 @@ public class TogglePower extends Power implements KeyBound {
 				this.toggled = !toggled;
 				this.syncData();
 
-				power.getEntityAction().execute(context.makeChild(".entity_action"));
+				power.getAction().execute(context.makeChild(".action"));
 
 			}
 

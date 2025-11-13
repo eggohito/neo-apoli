@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
-import io.github.eggohito.neo_apoli.util.alias.RegistryAlias;
+import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -15,9 +15,10 @@ import org.jetbrains.annotations.Range;
 
 public interface ContainerType {
 
-	RegistryAlias<ContainerType> ALIASES = new RegistryAlias<>(NeoApoliRegistries.CONTAINER_TYPE);
+	RegistryFixedAlias<ContainerType> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.CONTAINER_TYPE);
 
 	Codec<ContainerType> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+
 	PacketCodec<RegistryByteBuf, ContainerType> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.CONTAINER_TYPE);
 
 	default TextAlignment textAlignment() {

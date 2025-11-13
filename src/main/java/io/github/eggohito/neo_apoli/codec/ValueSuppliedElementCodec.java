@@ -47,4 +47,8 @@ public final class ValueSuppliedElementCodec<E> implements Codec<E> {
 		return idGetter.apply(value).mapOrElse(id -> Identifier.CODEC.encode(id, ops, prefix), error -> elementCodec.encode(value, ops, prefix));
 	}
 
+	public boolean allowInlineDefinitions() {
+		return allowInlineDefinitions;
+	}
+
 }

@@ -42,6 +42,10 @@ public interface Prioritized<P extends Power & Prioritized<P>> extends Comparabl
 			this.add(entity, instanceClass, instanceFilter);
 		}
 
+		public InstanceCollection(Entity entity, Class<I> instanceClass) {
+			this.add(entity, instanceClass, instance -> true);
+		}
+
 		public InstanceCollection() {
 
 		}

@@ -3,7 +3,9 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
@@ -12,6 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.event.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -57,7 +60,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (!original && PowersComponent.hasInstances(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(null);
-				boolean result = PowersComponent.hasInstances(this.neo_apoli$thisAsEntity(), ModifyInvisibilityPower.Instance.class, instance -> instance.isActive(context));
+				boolean result = ModifyInvisibilityPower.doesApply(context, Power.Instance::isActive);
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;
@@ -76,7 +79,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (viewer != null && PowersComponent.hasInstances(entity, ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
-				boolean result = PowersComponent.hasInstances(entity, ModifyInvisibilityPower.Instance.class, instance -> instance.isInvisibleTo(context));
+				boolean result = ModifyInvisibilityPower.doesApply(context, ModifyInvisibilityPower.Instance::isInvisibleTo);
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;
@@ -100,7 +103,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (viewer != null && PowersComponent.hasInstances(entity, ModifyInvisibilityPower.Instance.class)) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(viewer);
-				boolean result = PowersComponent.hasInstances(entity, ModifyInvisibilityPower.Instance.class, instance -> instance.isInvisibleTo(context));
+				boolean result = ModifyInvisibilityPower.doesApply(context, ModifyInvisibilityPower.Instance::isInvisibleTo);
 
 				this.neo_apoli$invisibilityContext.remove();
 				return result;

@@ -1,30 +1,60 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
+import com.google.common.collect.Streams;
+import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-@EqualsAndHashCode
-@Data
-public final class AddExperienceEntityAction extends EntityAction {
+public record AddExperienceEntityAction(Optional<NumberProvider> points, Optional<NumberProvider> levels) implements EntityAction {
 
-	public static final MapCodec<AddExperienceEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.optionalFieldOf("points").forGetter(AddExperienceEntityAction::points),
-		NumberProvider.CODEC.optionalFieldOf("levels").forGetter(AddExperienceEntityAction::levels)
-	).apply(instance, AddExperienceEntityAction::new));
+	private static final MapCodec<Optional<NumberProvider>> POINTS_CODEC = NumberProvider.CODEC.optionalFieldOf("points");
+	private static final MapCodec<Optional<NumberProvider>> LEVELS_CODEC = NumberProvider.CODEC.optionalFieldOf("levels");
+
+	public static final MapCodec<AddExperienceEntityAction> CODEC = new MapCodec<>() {
+
+		@Override
+		public <T> Stream<T> keys(DynamicOps<T> ops) {
+			return Streams.concat(POINTS_CODEC.keys(ops), LEVELS_CODEC.keys(ops));
+		}
+
+		@Override
+		public <T> DataResult<AddExperienceEntityAction> decode(DynamicOps<T> ops, MapLike<T> input) {
+			return LEVELS_CODEC.decode(ops, input)
+				.flatMap(levels -> POINTS_CODEC.decode(ops, input)
+					.flatMap(points -> validate(points, levels, input)));
+		}
+
+		@Override
+		public <T> RecordBuilder<T> encode(AddExperienceEntityAction input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
+			return LEVELS_CODEC
+				.encode(input.levels(), ops, POINTS_CODEC
+					.encode(input.points(), ops, prefix));
+		}
+
+		private <I> DataResult<AddExperienceEntityAction> validate(Optional<NumberProvider> points, Optional<NumberProvider> levels, MapLike<I> input) {
+
+			if (points.isEmpty() && levels.isEmpty()) {
+				return DataResult.error(() -> "Any of 'points' or 'levels' keys must be present in input: " + input);
+			}
+
+			else {
+				return DataResult.success(new AddExperienceEntityAction(points, levels));
+			}
+
+		}
+
+	};
 
 	public static final PacketCodec<RegistryByteBuf, AddExperienceEntityAction> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.optional(NumberProvider.PACKET_CODEC), AddExperienceEntityAction::points,
@@ -32,37 +62,28 @@ public final class AddExperienceEntityAction extends EntityAction {
 		AddExperienceEntityAction::new
 	);
 
-	private final Optional<NumberProvider> points;
-	private final Optional<NumberProvider> levels;
-
-	public AddExperienceEntityAction(Optional<NumberProvider> points, Optional<NumberProvider> levels) {
-		this.points = points;
-		this.levels = levels;
-	}
-
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.ADD_EXPERIENCE;
 	}
 
 	@Override
-	protected void impl(Context context) {
+	public void execute(Context context) {
 
-		if (!(context.required(ContextParameters.ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
+		if (!(context.nullable(ContextParameters.THIS_ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
 			return;
 		}
 
 		Context pointsContext = context.makeChild(".points");
-		Context levelsContext = context.makeChild(".levels");
-
 		this.points()
-			.map(pointsProvider -> pointsProvider.nextInt(pointsContext))
-			.filter(points -> !pointsContext.hasErrors())
+			.map(provider -> provider.nextInt(pointsContext))
+			.filter(Predicate.not(points -> pointsContext.hasErrors()))
 			.ifPresent(serverPlayer::addExperience);
 
+		Context levelsContext = context.makeChild(".levels");
 		this.levels()
-			.map(levelsProvider -> levelsProvider.nextInt(levelsContext))
-			.filter(levels -> !levelsContext.hasErrors())
+			.map(provider -> provider.nextInt(levelsContext))
+			.filter(Predicate.not(levels -> levelsContext.hasErrors()))
 			.ifPresent(serverPlayer::addExperienceLevels);
 
 	}
@@ -70,10 +91,10 @@ public final class AddExperienceEntityAction extends EntityAction {
 	@Override
 	public void validate(ErrorReporter reporter) {
 
-		super.validate(reporter);
+		EntityAction.super.validate(reporter);
 
-		points().ifPresent(pointsProvider -> pointsProvider.validate(reporter.makeChild(".points")));
-		levels().ifPresent(levelsProvider -> levelsProvider.validate(reporter.makeChild(".levels")));
+		points().ifPresent(points -> points.validate(reporter.makeChild(".points")));
+		levels().ifPresent(levels -> levels.validate(reporter.makeChild(".levels")));
 
 	}
 

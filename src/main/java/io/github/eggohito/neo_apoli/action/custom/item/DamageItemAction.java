@@ -1,42 +1,37 @@
 package io.github.eggohito.neo_apoli.action.custom.item;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.ItemAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-@EqualsAndHashCode
-@Data
-public final class DamageItemAction extends ItemAction {
+public record DamageItemAction(EntityTarget entity, NumberProvider amount, BooleanProvider ignoreUnbreaking) implements ItemAction {
 
 	public static final MapCodec<DamageItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		EntityTarget.CODEC.optionalFieldOf("entity", EntityTarget.THIS).forGetter(DamageItemAction::entity),
 		NumberProvider.CODEC.optionalFieldOf("amount", new ConstantNumberProvider(1)).forGetter(DamageItemAction::amount),
-		Codec.BOOL.optionalFieldOf("ignore_unbreaking", false).forGetter(DamageItemAction::ignoreUnbreaking)
+		BooleanProvider.CODEC.optionalFieldOf("ignore_unbreaking", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreUnbreaking)
 	).apply(instance, DamageItemAction::new));
 
 	public static final PacketCodec<RegistryByteBuf, DamageItemAction> PACKET_CODEC = PacketCodec.tuple(
+		EntityTarget.PACKET_CODEC, DamageItemAction::entity,
 		NumberProvider.PACKET_CODEC, DamageItemAction::amount,
-		PacketCodecs.BOOLEAN, DamageItemAction::ignoreUnbreaking,
+		BooleanProvider.PACKET_CODEC, DamageItemAction::ignoreUnbreaking,
 		DamageItemAction::new
 	);
-
-	private final NumberProvider amount;
-	private final boolean ignoreUnbreaking;
 
 	@Override
 	public ItemActionType<?> getType() {
@@ -44,36 +39,47 @@ public final class DamageItemAction extends ItemAction {
 	}
 
 	@Override
-	protected void impl(ServerContext context) {
+	public void serverExecute(ServerContext context) {
+
+		if (!context.hasAllParameters(this.getRequiredParameters())) {
+			return;
+		}
 
 		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
 		Context amountContext = context.makeChild(".amount");
-		int amount = Math.abs(this.amount().nextInt(amountContext)) + stack.getDamage();
+		int amount = Math.abs(amount().nextInt(amountContext));
 
 		if (!amountContext.hasErrors()) {
 
-			if (this.ignoreUnbreaking()) {
+			Context ignoreUnbreakingContext = context.makeChild(".ignore_unbreaking");
+			boolean ignoreUnbreaking = ignoreUnbreaking().next(ignoreUnbreakingContext);
 
-				if (amount >= stack.getMaxDamage()) {
-					stack.decrement(1);
+			if (!ignoreUnbreakingContext.hasErrors()) {
+
+				if (ignoreUnbreaking) {
+
+					if (amount >= stack.getMaxDamage()) {
+						stack.decrement(1);
+					}
+
+					else {
+						stack.setDamage(stack.getDamage() + amount);
+					}
+
 				}
 
 				else {
-					stack.setDamage(amount);
+
+					ServerPlayerEntity itemHolder = context.optional(entity().getParameter())
+						.filter(ServerPlayerEntity.class::isInstance)
+						.map(ServerPlayerEntity.class::cast)
+						.orElse(null);
+
+					stack.damage(amount, context.getWorld(), itemHolder, item -> {});
+
 				}
-
-			}
-
-			else {
-
-				ServerPlayerEntity serverPlayerHolder = context.optional(ContextParameters.ENTITY)
-					.filter(ServerPlayerEntity.class::isInstance)
-					.map(ServerPlayerEntity.class::cast)
-					.orElse(null);
-
-				stack.damage(amount, context.getWorld(), serverPlayerHolder, item -> {});
 
 			}
 
@@ -83,8 +89,12 @@ public final class DamageItemAction extends ItemAction {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
+
+		ItemAction.super.validate(reporter);
+
 		amount().validate(reporter.makeChild(".amount"));
+		ignoreUnbreaking().validate(reporter.makeChild(".ignore_unbreaking"));
+
 	}
 
 }

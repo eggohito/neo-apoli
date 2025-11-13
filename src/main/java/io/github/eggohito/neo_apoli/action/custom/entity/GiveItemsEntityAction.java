@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.ItemAction;
-import io.github.eggohito.neo_apoli.action.meta.item.NothingItemAction;
+import io.github.eggohito.neo_apoli.action.custom.item.ItemAction;
+import io.github.eggohito.neo_apoli.action.custom.item.NothingItemAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
@@ -12,8 +11,6 @@ import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
@@ -25,9 +22,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-@EqualsAndHashCode
-@Data
-public final class GiveItemsEntityAction extends EntityAction {
+public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> stacks) implements EntityAction {
 
 	public static final MapCodec<GiveItemsEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ItemAction.CODEC.optionalFieldOf("item_action", new NothingItemAction()).forGetter(GiveItemsEntityAction::itemAction),
@@ -40,56 +35,53 @@ public final class GiveItemsEntityAction extends EntityAction {
 		GiveItemsEntityAction::new
 	);
 
-	private final ItemAction itemAction;
-	private final List<IndexedStack> stacks;
-
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.GIVE_ITEMS;
 	}
 
 	@Override
-	protected void impl(Context context) {
+	public void execute(Context context) {
 
 		World world = context.getWorld();
-		Entity entity = context.required(ContextParameters.ENTITY);
+		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
 
-		if (!(world instanceof ServerWorld serverWorld)) {
+		if (!(world instanceof ServerWorld serverWorld) || entity == null) {
 			return;
 		}
 
 		loopingStacks:
-		for (IndexedStack slottedStack : stacks()) {
+		for (var indexedStack : stacks()) {
 
-			StackReference givenStackReference = InventoryUtil.createStackReference(slottedStack.stack());
-			Context itemContext = new ContextImpl.Builder(context)
+			StackReference stackReference = InventoryUtil.createStackReference(indexedStack.stack());
+			ServerContext itemContext = new ServerContext.Builder(context)
 				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
-				.add(ContextParameters.STACK_REFERENCE, givenStackReference)
-				.add(ContextParameters.ITEM_STACK, givenStackReference.get())
-				.build(context.getWorld());
+				.add(ContextParameters.STACK_REFERENCE, stackReference)
+				.add(ContextParameters.ITEM_STACK, stackReference.get())
+				.build(serverWorld);
 
 			itemAction().execute(itemContext.makeChild(".item_action"));
 
-			ItemStack givenStack = givenStackReference.get();
-			IntList slots = slottedStack.slotIds().orElseGet(IntArrayList::new);
+			ItemStack stack = stackReference.get();
+			IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
 
-			for (int slot : slots) {
+			for (var slot : slots) {
 
-				StackReference slotStackReference = entity.getStackReference(slot);
-				ItemStack slotStack = slotStackReference.get();
+				StackReference slotReference = entity.getStackReference(slot);
+				ItemStack slotStack = slotReference.get();
 
-				if (slotStack.isEmpty() && slotStackReference.set(givenStack)) {
+				if (slotStack.isEmpty() && slotReference.set(stack)) {
 					continue loopingStacks;
 				}
 
-				else if (ItemStack.areEqual(slotStack, givenStack) && slotStack.getCount() < slotStack.getMaxCount()) {
+				else if (ItemStack.areEqual(slotStack, stack) && slotStack.getCount() < slotStack.getMaxCount()) {
 
-					int amountToGive = Math.min(slotStack.getMaxCount() - slotStack.getCount(), givenStack.getCount());
+					int amountToGive = Math.min(slotStack.getMaxCount() - slotStack.getCount(), stack.getCount());
 
 					slotStack.increment(amountToGive);
-					givenStack.decrement(amountToGive);
+					stack.decrement(amountToGive);
 
-					if (givenStack.isEmpty()) {
+					if (stack.isEmpty()) {
 						continue loopingStacks;
 					}
 
@@ -98,11 +90,11 @@ public final class GiveItemsEntityAction extends EntityAction {
 			}
 
 			if (entity instanceof PlayerEntity player) {
-				player.getInventory().offerOrDrop(givenStack);
+				player.getInventory().offerOrDrop(stack);
 			}
 
 			else {
-				InventoryUtil.dropItem(serverWorld, entity, givenStack, false, false, 0);
+				InventoryUtil.dropItem(serverWorld, entity, stack, false, false, 0);
 			}
 
 		}
@@ -111,13 +103,10 @@ public final class GiveItemsEntityAction extends EntityAction {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-
-		super.validate(reporter);
-
+		EntityAction.super.validate(reporter);
 		itemAction().validate(reporter
 			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ITEM))
 			.makeChild(".item_action"));
-
 	}
 
 }

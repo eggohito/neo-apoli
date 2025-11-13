@@ -1,13 +1,11 @@
 package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -16,15 +14,15 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.util.context.ContextParameter;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 
-@EqualsAndHashCode
-@Data
-public final class ItemNbtProvider extends NbtProvider {
+public record ItemNbtProvider() implements NbtProvider {
 
 	public static final MapCodec<ItemNbtProvider> CODEC = MapCodec.unit(ItemNbtProvider::new);
-	public static final PacketCodec<RegistryByteBuf, ItemNbtProvider> PACKET_CODEC = PacketCodec.unit(new ItemNbtProvider());
+	public static final PacketCodec<RegistryByteBuf, ItemNbtProvider> PACKET_CODEC = PacketCodecUtil.unit(ItemNbtProvider::new);
 
 	@Override
 	public NbtProviderType<?> getType() {
@@ -32,13 +30,17 @@ public final class ItemNbtProvider extends NbtProvider {
 	}
 
 	@Override
-	protected NbtElement impl(Context context) {
+	public @NotNull NbtElement next(Context context) {
 
-		RegistryOps<NbtElement> nbtOps = context.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
-		ItemStack stack = context.optional(ContextParameters.ITEM_STACK).orElse(ItemStack.EMPTY);
+		RegistryOps<NbtElement> ops = context.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
+		Optional<ItemStack> optStack = context.optional(ContextParameters.ITEM_STACK);
 
-		return ItemStack.CODEC.encodeStart(nbtOps, stack)
-			.resultOrPartial(context.getReporter()::report)
+		if (optStack.isEmpty()) {
+			context.getReporter().report("Couldn't encode and provide non-existent item stack as NBT!");
+		}
+
+		return optStack
+			.flatMap(stack -> ItemStack.OPTIONAL_CODEC.encodeStart(ops, stack).resultOrPartial(context.getReporter()::report))
 			.orElseGet(NbtCompound::new);
 
 	}

@@ -5,12 +5,12 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 
 public interface KeyBound {
 
-	KeyBindingReference getKeyBindingReference();
+	KeyBindingReference getKey();
 
 	interface Instance {
 
-		default KeyBindingReference getKeyBindingReference() {
-			return this.getKeyBound().getKeyBindingReference();
+		default KeyBindingReference getKey() {
+			return this.getKeyBound().getKey();
 		}
 
 		KeyBound getKeyBound();

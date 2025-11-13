@@ -137,8 +137,7 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 
 			else {
 
-				Optional<Context> optContext = this.neo_apoli$getOrCreateModifiedTagContext();
-				boolean result = optContext
+				boolean result = this.neo_apoli$getOrCreateModifiedTagContext()
 					.map(context -> ModifyEntityTypeTagPower.doesApply(context, tag))
 					.orElse(false);
 
@@ -158,8 +157,7 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 
 			else {
 
-				Optional<Context> optContext = this.neo_apoli$getOrCreateModifiedTagContext();
-				boolean result = optContext
+				boolean result = this.neo_apoli$getOrCreateModifiedTagContext()
 					.map(context -> ModifyEntityTypeTagPower.doesApply(context, tagsEntryList))
 					.orElse(false);
 

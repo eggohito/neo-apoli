@@ -2,14 +2,12 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.meta.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -19,6 +17,7 @@ import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,32 +26,23 @@ import java.util.Optional;
 @Getter
 public class ModifyGlowingSelfPower extends Power {
 
-	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyGlowingSelfPower::getBiEntityCondition))
+	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::getUseTeamColors))
 		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::getColor))
 		.apply(instance, ModifyGlowingSelfPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyGlowingSelfPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
-			BooleanProvider.PACKET_CODEC.encode(buf, power.getUseTeamColors());
-			Color.PACKET_CODEC.encode(buf, power.getColor());
-		},
-		(buf, properties, activeCondition) -> new ModifyGlowingSelfPower(properties, activeCondition,
-			BiEntityCondition.PACKET_CODEC.decode(buf),
-			BooleanProvider.PACKET_CODEC.decode(buf),
-			Color.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, ModifyGlowingSelfPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		BooleanProvider.PACKET_CODEC, ModifyGlowingSelfPower::getUseTeamColors,
+		Color.PACKET_CODEC, ModifyGlowingSelfPower::getColor,
+		ModifyGlowingSelfPower::new
 	);
 
-	private final BiEntityCondition biEntityCondition;
 	private final BooleanProvider useTeamColors;
 	private final Color color;
 
-	public ModifyGlowingSelfPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, BooleanProvider useTeamColors, Color color) {
-		super(properties, activeCondition);
-		this.biEntityCondition = biEntityCondition;
+	public ModifyGlowingSelfPower(Optional<Condition> activeCondition, BooleanProvider useTeamColors, Color color) {
+		super(activeCondition);
 		this.useTeamColors = useTeamColors;
 		this.color = color;
 	}
@@ -72,7 +62,6 @@ public class ModifyGlowingSelfPower extends Power {
 
 		super.validate(reporter);
 
-		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
 		getUseTeamColors().validate(reporter.makeChild(".use_team_color"));
 		getColor().validate(reporter.makeChild(".color"));
 
@@ -88,13 +77,7 @@ public class ModifyGlowingSelfPower extends Power {
 			return this.getPower().getColor().getValue(context.makeChild(".color"));
 		}
 
-		public boolean doesApply(Context context) {
-			context = this.addPowerContext(context);
-			return this.getPower().getBiEntityCondition().test(context.makeChild(".bientity_condition"));
-		}
-
 		public boolean shouldUseTeamColor(Context context) {
-			context = this.addPowerContext(context);
 			return this.getPower().getUseTeamColors().next(context.makeChild(".use_team_color"));
 		}
 
@@ -104,7 +87,7 @@ public class ModifyGlowingSelfPower extends Power {
 		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
 			.addNullable(ContextParameters.ACTOR, actor)
 			.add(ContextParameters.TARGET, target)
-			.add(ContextParameters.ENTITY, target)
+			.add(ContextParameters.THIS_ENTITY, target)
 			.add(ContextParameters.ENTITY_POS, target.getPos())
 			.build(target.getWorld());
 	}

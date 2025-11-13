@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.util.modifier.custom;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.modifier.SimplePhasedModifier;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;

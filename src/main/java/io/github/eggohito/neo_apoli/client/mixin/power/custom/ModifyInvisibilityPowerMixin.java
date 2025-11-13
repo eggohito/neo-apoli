@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.MinecraftClient;
@@ -26,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.lang.ref.WeakReference;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public abstract class ModifyInvisibilityPowerMixin {
 
@@ -58,7 +56,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (original) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderedEntity);
-				boolean result = !PowersComponent.hasInstances(renderedEntity, ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderOutline(context)));
+				boolean result = !ModifyInvisibilityPower.doesApply(context, (instance, ctx) -> !instance.shouldRenderOutline(ctx));
 
 				this.neo_apoli$invisibilityContext.clear();
 				return result;
@@ -77,7 +75,7 @@ public abstract class ModifyInvisibilityPowerMixin {
 			if (featureRenderer instanceof ArmorFeatureRenderer<?, ?, ?> && state instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderCache.neo_apoli$getEntity());
-				boolean result = !PowersComponent.hasInstances(renderCache.neo_apoli$getEntity(), ModifyInvisibilityPower.Instance.class, Predicate.not(instance -> instance.shouldRenderArmor(context)));
+				boolean result = ModifyInvisibilityPower.doesApply(context, (instance, ctx) -> !instance.shouldRenderArmor(ctx));
 
 				this.neo_apoli$invisibilityContext.clear();
 				return result;

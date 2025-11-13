@@ -49,7 +49,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
 			boolean result = original
-				|| PowersComponent.hasInstances(context.required(ContextParameters.TARGET), ModifyGlowingSelfPower.Instance.class, instance -> instance.doesApply(context));
+				|| PowersComponent.hasInstances(context.required(ContextParameters.TARGET), ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context));
 
 			this.neo_apoli$glowingContext.clear();
 			return result;
@@ -93,10 +93,11 @@ public abstract class ModifyGlowingSelfPowerMixin {
 			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
 			int color = original;
 
-			for (var instance: PowersComponent.getInstances(renderedEntity, ModifyGlowingSelfPower.Instance.class, instance -> instance.doesApply(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
+			for (var instance: PowersComponent.getInstances(renderedEntity, ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
 				color = Color.mix(color, instance.getColor(context));
 			}
 
+			this.neo_apoli$glowingContext.clear();
 			return color;
 
 		}

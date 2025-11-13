@@ -99,13 +99,13 @@ public class NeoApoliS2CNetworkHandler {
 	}
 
 	private static void onActionTagsSynchronized(SynchronizeActionTagsS2CPacket payload, ClientPlayNetworking.Context context) {
-		NeoApoli.LOGGER.info("Received {} action tag(s) from server!", payload.actionTags().size());
-		ActionManager.receiveSyncTagPayload(payload, context);
+		NeoApoli.LOGGER.info("Received {} action tag(s) from server!", payload.tags().size());
+		ActionManager.receiveTagSyncPayload(payload, context);
 	}
 
 	private static void onConditionsSynchronized(SynchronizeConditionsS2CPacket payload, ClientPlayNetworking.Context context) {
 		NeoApoli.LOGGER.info("Received {} condition(s) from server!", payload.conditions().size());
-		ConditionManager.receiveSyncPayload(payload);
+		ConditionManager.receiveSyncPayload(payload, context);
 	}
 
 	private static void onDataCommandStorageSynchronized(SynchronizeDataCommandStorageS2CPacket payload, ClientPlayNetworking.Context context) {

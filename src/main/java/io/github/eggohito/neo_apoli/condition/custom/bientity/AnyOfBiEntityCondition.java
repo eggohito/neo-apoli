@@ -1,0 +1,29 @@
+package io.github.eggohito.neo_apoli.condition.custom.bientity;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.condition.custom.meta.AnyOfMetaCondition;
+import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
+import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+
+import java.util.List;
+
+public record AnyOfBiEntityCondition(List<BiEntityCondition> conditions) implements BiEntityCondition, AnyOfMetaCondition<BiEntityCondition> {
+
+	public static final MapCodec<AnyOfBiEntityCondition> CODEC = MapCodecUtil.lazy(AnyOfBiEntityCondition.class.getSimpleName(), () -> AnyOfMetaCondition.codec(BiEntityCondition.CODEC, AnyOfBiEntityCondition::new));
+	public static final PacketCodec<RegistryByteBuf, AnyOfBiEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(AnyOfBiEntityCondition.class.getSimpleName(), () -> AnyOfMetaCondition.packetCodec(BiEntityCondition.PACKET_CODEC, AnyOfBiEntityCondition::new));
+
+	@Override
+	public BiEntityConditionType<?> getType() {
+		return BiEntityConditionTypes.ANY_OF;
+	}
+
+	@Override
+	public String asDisplayString() {
+		return BiEntityCondition.super.asDisplayString();
+	}
+
+}

@@ -1,128 +1,80 @@
 package io.github.eggohito.neo_apoli.command.argument;
 
 import com.google.gson.JsonObject;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.category.ActionCategory;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
+import lombok.AllArgsConstructor;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.serialize.ArgumentSerializer;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.RegistryOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public record ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ActionCategory<? extends Action> category, Codec<? extends Action> entryCodec) implements ArgumentType<Action> {
+public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 
-	@Override
-	public Action parse(StringReader reader) throws CommandSyntaxException {
-		return this.parse(reader, StringNbtReader.fromOps(NbtOps.INSTANCE));
+	protected ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ValueSuppliedElementCodec<Action> codec) {
+		super(wrapperLookup, codec);
 	}
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestIdentifiers(ActionManager.streamIds(category()), builder);
+		return CommandSource.suggestIdentifiers(ActionManager.ids(), builder);
 	}
 
-	private <I> Action parse(StringReader reader, StringNbtReader<I> snbtReader) throws CommandSyntaxException {
-
-		RegistryOps<I> registryOps = wrapperLookup().getOps(snbtReader.getOps());
-		Dynamic<I> result = parseAsNbt(registryOps, reader, snbtReader);
-
-		return entryCodec().parse(result).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
-
+	public static ActionArgumentType action(CommandRegistryAccess registryAccess, boolean allowInlineDefinitions) {
+		return new ActionArgumentType(registryAccess, ActionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
-	static <I> Dynamic<I> parseAsNbt(RegistryOps<I> ops, StringReader reader, StringNbtReader<I> snbtReader) throws CommandSyntaxException {
-
-		int prevCursor = reader.getCursor();
-		I read = snbtReader.readAsArgument(reader);
-
-		if (hasFinishedReading(reader)) {
-			return new Dynamic<>(ops, read);
-		}
-
-		else {
-
-			reader.setCursor(prevCursor);
-			Identifier id = Identifier.fromCommandInput(reader);
-
-			if (hasFinishedReading(reader)) {
-				return new Dynamic<>(ops, ops.createString(id.toString()));
-			}
-
-			else {
-				reader.setCursor(prevCursor);
-				throw MiscUtil.createCommandExceptionWithContext(reader, Text.translatable("argument.resource_or_id.invalid"));
-			}
-
-		}
-
+	public static ActionArgumentType action(CommandRegistryAccess registryAccess) {
+		return action(registryAccess, true);
 	}
 
-	static boolean hasFinishedReading(StringReader reader) {
-		return !reader.canRead() || reader.peek() == ' ';
+	public static Action getAction(CommandContext<ServerCommandSource> context, String argumentName) {
+		return context.getArgument(argumentName, Action.class);
 	}
 
-	public static <A extends Action, C extends ActionCategory<A>> ActionArgumentType action(CommandRegistryAccess registryAccess, C category) {
-		return new ActionArgumentType(registryAccess, category, new ValueSuppliedElementCodec<>(category.codec(), true, id -> ActionManager.getAsResult(category, id), ActionManager::getIdAsResult));
-	}
-
-	public static <A extends Action> A getAction(CommandContext<ServerCommandSource> context, String argumentName, Class<A> actionClass) {
-		return context.getArgument(argumentName, actionClass);
-	}
-
-	public record Serializer() implements ArgumentSerializer<ActionArgumentType, Serializer.Properties> {
+	public final static class Serializer implements ArgumentSerializer<ActionArgumentType, Serializer.Properties> {
 
 		@Override
 		public void writePacket(Properties properties, PacketByteBuf buf) {
-			buf.writeRegistryKey(NeoApoliRegistries.ACTION_CATEGORY.getKey(properties.category()).orElseThrow());
+			buf.writeBoolean(properties.allowInlineDefinitions);
 		}
 
 		@Override
 		public Properties fromPacket(PacketByteBuf buf) {
-			return new Properties(this, NeoApoliRegistries.ACTION_CATEGORY.getValueOrThrow(buf.readRegistryKey(NeoApoliRegistryKeys.ACTION_CATEGORY)));
+			return new Properties(buf.readBoolean());
 		}
 
 		@Override
 		public void writeJson(Properties properties, JsonObject json) {
-			json.addProperty("category", Objects.requireNonNull(NeoApoliRegistries.ACTION_CATEGORY.getId(properties.category())).toString());
+			json.addProperty("allow_inline_definitions", properties.allowInlineDefinitions);
 		}
 
 		@Override
 		public Properties getArgumentTypeProperties(ActionArgumentType argumentType) {
-			return new Properties(this, argumentType.category());
+			return new Properties(argumentType.codec.allowInlineDefinitions());
 		}
 
-		public record Properties(Serializer serializer, ActionCategory<?> category) implements ArgumentTypeProperties<ActionArgumentType> {
+		@AllArgsConstructor
+		public final class Properties implements ArgumentTypeProperties<ActionArgumentType> {
+
+			private final boolean allowInlineDefinitions;
 
 			@Override
 			public ActionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return ActionArgumentType.action(registryAccess, category());
+				return action(registryAccess, allowInlineDefinitions);
 			}
 
 			@Override
-			public Serializer getSerializer() {
-				return serializer();
+			public ArgumentSerializer<ActionArgumentType, ?> getSerializer() {
+				return Serializer.this;
 			}
 
 		}

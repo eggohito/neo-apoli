@@ -2,17 +2,22 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
+import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
-import net.fabricmc.fabric.mixin.resource.conditions.RegistryOpsAccessor;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.EntityShapeContext;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.registry.RegistryOps;
@@ -23,6 +28,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -44,14 +50,19 @@ public class MiscUtil {
 		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message, reader.getString(), reader.getCursor());
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
-	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonObject jsonObject, String directory, RegistryOps<JsonElement> ops) {
-		return ResourceConditionsImpl.applyResourceConditions(jsonObject, directory, resourceId, ((RegistryOpsAccessor) ops).getRegistryInfoGetter());
-	}
+	private static final MapCodec<Optional<ResourceCondition>> RESOURCE_CONDITION_MAP_CODEC = ResourceCondition.CONDITION_CODEC.optionalFieldOf(ResourceConditions.CONDITIONS_KEY);
 
 	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonElement jsonElement, String directory, RegistryOps<JsonElement> ops) {
-		return !(jsonElement instanceof JsonObject jsonObject)
-			|| isResourceConditionFulfilled(resourceId, jsonObject, directory, ops);
+		RegistryOps.RegistryInfoGetter infoGetter = ((RegistryOpsAccessor) ops).getRegistryInfoGetter();
+		return ops.getMap(jsonElement)
+			.result()
+			.flatMap(mapLike -> RESOURCE_CONDITION_MAP_CODEC.decode(ops, mapLike)
+				.ifError(error -> NeoApoli.LOGGER.error("Failed to parse resource conditions for file of type {} with id {}, skipping: {}", directory, resourceId, error.message()))
+				.result()
+				.map(optCondition -> optCondition
+					.map(condition -> condition.test(infoGetter))
+					.orElse(true)))
+			.orElse(true);
 	}
 
 	public static boolean isResultPass(ActionResult result) {
@@ -119,6 +130,16 @@ public class MiscUtil {
 
 		return null;
 
+	}
+
+	public static boolean hasFinishedReading(StringReader reader) {
+		return !reader.canRead()
+			|| reader.peek() == ' ';
+	}
+
+	public static boolean hasEntity(ShapeContext shapeContext) {
+		return shapeContext instanceof EntityShapeContext entityShapeContext
+			&& entityShapeContext.getEntity() != null;
 	}
 
 }

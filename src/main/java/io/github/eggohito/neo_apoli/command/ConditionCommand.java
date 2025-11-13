@@ -7,50 +7,44 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import io.github.eggohito.neo_apoli.command.argument.category.ConditionCategoryArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
-import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-
-import java.util.Optional;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class ConditionCommand {
 
-	public static final CommandNode<ServerCommandSource> NODE = literal("condition")
-		.requires(source -> source.hasPermissionLevel(2))
-		.build();
+	public static void register(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> rootNode) {
 
-	public static void register(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode) {
+		CommandNode<ServerCommandSource> baseNode = literal("condition")
+			.requires(source -> source.hasPermissionLevel(2))
+			.build();
 
-		NODE.addChild(DumpSubCommand.node());
-		NODE.addChild(TestSubCommand.node(registryAccess));
+		baseNode.addChild(DumpSubCommand.node(registryAccess));
+		baseNode.addChild(TestSubCommand.node(registryAccess));
 
-		baseNode.addChild(NODE);
+		rootNode.addChild(baseNode);
 
 	}
 
 	static final class DumpSubCommand {
 
-		static CommandNode<ServerCommandSource> node() {
-			return literal("dump")
-				.then(argument("category", ConditionCategoryArgumentType.category())
-					.then(argument("condition", IdentifierArgumentType.identifier())
-						.suggests((context, builder) -> CommandSource.suggestIdentifiers(ConditionManager.streamIds(ConditionCategoryArgumentType.getCategory(context, "category")), builder))
-						.executes(DumpSubCommand::withDefaultIndent)
-						.then(argument("indent", IntegerArgumentType.integer(0))
-							.executes(DumpSubCommand::withSpecificIndent)))).build();
+		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+
+			var node = literal("dump")
+				.then(argument("condition", ConditionArgumentType.condition(registryAccess, false))
+					.executes(DumpSubCommand::withDefaultIndent)
+					.then(argument("indent", IntegerArgumentType.integer(0))
+						.executes(DumpSubCommand::withSpecificIndent)));
+
+			return node.build();
+
 		}
 
 		static int withDefaultIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
@@ -61,34 +55,35 @@ public class ConditionCommand {
 			return execute(commandContext, IntegerArgumentType.getInteger(commandContext, "indent"));
 		}
 
-		@SuppressWarnings("unchecked")
 		static int execute(CommandContext<ServerCommandSource> commandContext, int indent) throws CommandSyntaxException {
 
-			ConditionCategory<Condition> category = (ConditionCategory<Condition>) ConditionCategoryArgumentType.getCategory(commandContext, "category");
-			Condition condition = ConditionManager.getAsResult(category, IdentifierArgumentType.getIdentifier(commandContext, "condition")).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
-
 			ServerCommandSource commandSource = commandContext.getSource();
-			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
+			RegistryOps<JsonElement> ops = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
 
-			return switch (category.codec().encodeStart(jsonOps, condition)) {
+			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
+
+			return switch (Condition.BASE_CODEC.encodeStart(ops, condition)) {
 				case DataResult.Success<JsonElement> success -> {
-					commandSource.sendFeedback(() -> JsonTextFormatter.format(success.value(), indent), false);
-					yield 1;
+
+					JsonElement jsonElement = success.value();
+					commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false);
+
+					yield jsonElement.toString().length();
+
 				}
-				case DataResult.Error<JsonElement> error -> {
-					commandSource.sendError(Text.literal(error.message()));
-					yield 0;
-				}
+				case DataResult.Error<JsonElement> error ->
+					throw MiscUtil.createCommandException(error::message);
 			};
 
 		}
 
 	}
 
+	//	TODO: Re-implement testing of conditions with dynamic context parameter arguments
 	static final class TestSubCommand {
 
 		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
-			return ConditionCategories.addArguments(Optional.empty(), registryAccess, literal("test"), true).build();
+			return literal("test").build();
 		}
 
 	}

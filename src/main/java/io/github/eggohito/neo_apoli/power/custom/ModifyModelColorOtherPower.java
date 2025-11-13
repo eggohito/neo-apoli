@@ -2,9 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BiEntityCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.meta.bientity.ConstantBiEntityCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -16,6 +14,7 @@ import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,28 +25,20 @@ import java.util.OptionalInt;
 @Getter
 public class ModifyModelColorOtherPower extends Power {
 
-	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(ModifyModelColorOtherPower::getBiEntityCondition))
+	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::getColor))
 		.apply(instance, ModifyModelColorOtherPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyModelColorOtherPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			BiEntityCondition.PACKET_CODEC.encode(buf, power.getBiEntityCondition());
-			Color.PACKET_CODEC.encode(buf, power.getColor());
-		},
-		(buf, properties, condition) -> new ModifyModelColorOtherPower(properties, condition,
-			BiEntityCondition.PACKET_CODEC.decode(buf),
-			Color.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, ModifyModelColorOtherPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Color.PACKET_CODEC, ModifyModelColorOtherPower::getColor,
+		ModifyModelColorOtherPower::new
 	);
 
-	private final BiEntityCondition biEntityCondition;
 	private final Color color;
 
-	public ModifyModelColorOtherPower(Properties properties, Optional<EntityCondition> activeCondition, BiEntityCondition biEntityCondition, Color color) {
-		super(properties, activeCondition);
-		this.biEntityCondition = biEntityCondition;
+	public ModifyModelColorOtherPower(Optional<Condition> activeCondition, Color color) {
+		super(activeCondition);
 		this.color = color;
 	}
 
@@ -63,12 +54,8 @@ public class ModifyModelColorOtherPower extends Power {
 
 	@Override
 	public void validate(ContextAware.ErrorReporter reporter) {
-
 		super.validate(reporter);
-
-		getBiEntityCondition().validate(reporter.makeChild(".bientity_condition"));
 		getColor().validate(reporter.makeChild(".color"));
-
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
@@ -79,11 +66,11 @@ public class ModifyModelColorOtherPower extends Power {
 
 		public OptionalInt getColor(Context context) {
 
-			context = this.addPowerContext(context);
 			Entity renderedEntity = context.nullable(ContextParameters.TARGET);
+			Context colorContext = context.makeChild(".color");
 
-			if (!Objects.equals(holder, renderedEntity) && this.doesApply(context)) {
-				return OptionalInt.of(power.getColor().getValue(context.makeChild(".color")));
+			if (!Objects.equals(holder, renderedEntity) && this.isActive(context)) {
+				return OptionalInt.of(power.getColor().getValue(colorContext));
 			}
 
 			else {
@@ -92,18 +79,13 @@ public class ModifyModelColorOtherPower extends Power {
 
 		}
 
-		public boolean doesApply(Context context) {
-			return this.isActive(context)
-				&& power.getBiEntityCondition().test(context.makeChild(".bientity_condition"));
-		}
-
 	}
 
 	public static Context createContext(@NotNull Entity viewer, @Nullable Entity renderedEntity) {
 		return PowerTypes.MODIFY_MODEL_COLOR_OTHER.contextBuilder()
 			.add(ContextParameters.ACTOR, viewer)
 			.addNullable(ContextParameters.TARGET, renderedEntity)
-			.add(ContextParameters.ENTITY, viewer)
+			.add(ContextParameters.THIS_ENTITY, viewer)
 			.add(ContextParameters.ENTITY_POS, viewer.getPos())
 			.build(viewer.getWorld());
 	}

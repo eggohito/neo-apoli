@@ -2,27 +2,19 @@ package io.github.eggohito.neo_apoli.provider.type.nbt;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.provider.NbtProvider;
-import io.github.eggohito.neo_apoli.provider.custom.nbt.BlockEntityNbtProvider;
-import io.github.eggohito.neo_apoli.provider.custom.nbt.EntityNbtProvider;
-import io.github.eggohito.neo_apoli.provider.custom.nbt.ItemNbtProvider;
-import io.github.eggohito.neo_apoli.provider.custom.nbt.StorageNbtProvider;
-import io.github.eggohito.neo_apoli.provider.meta.nbt.ConstantNbtProvider;
-import io.github.eggohito.neo_apoli.provider.meta.nbt.IfElseListNbtProvider;
-import io.github.eggohito.neo_apoli.provider.meta.nbt.IfElseNbtProvider;
+import io.github.eggohito.neo_apoli.provider.custom.nbt.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
-public final class NbtProviderTypes {
-
-	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.PACKET_CODEC);
-	public static final NbtProviderType<IfElseListNbtProvider> IF_ELSE_LIST = registerInternal("if_else_list", IfElseListNbtProvider.CODEC, IfElseListNbtProvider.PACKET_CODEC);
-	public static final NbtProviderType<IfElseNbtProvider> IF_ELSE = registerInternal("if_else", IfElseNbtProvider.CODEC, IfElseNbtProvider.PACKET_CODEC);
+public class NbtProviderTypes {
 
 	public static final NbtProviderType<BlockEntityNbtProvider> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityNbtProvider.CODEC, BlockEntityNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<ChoiceNbtProvider> CHOICE = registerInternal("choice", ChoiceNbtProvider.CODEC, ChoiceNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<ConditionalNbtProvider> CONDITIONAL = registerInternal("conditional", ConditionalNbtProvider.CODEC, ConditionalNbtProvider.PACKET_CODEC);
+	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<ItemNbtProvider> ITEM = registerInternal("item", ItemNbtProvider.CODEC, ItemNbtProvider.PACKET_CODEC);
 	public static final NbtProviderType<StorageNbtProvider> STORAGE = registerInternal("storage", StorageNbtProvider.CODEC, StorageNbtProvider.PACKET_CODEC);

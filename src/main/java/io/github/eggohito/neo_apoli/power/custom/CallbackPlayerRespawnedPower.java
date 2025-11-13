@@ -1,42 +1,31 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.event.Level;
 
 import java.util.Optional;
 
 @Getter
-public class CallbackPlayerRespawnedPower extends Power {
+public class CallbackPlayerRespawnedPower extends SimpleCallbackPower {
 
-	public static final MapCodec<CallbackPlayerRespawnedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.fieldOf("entity_action").forGetter(CallbackPlayerRespawnedPower::getEntityAction))
-		.apply(instance, CallbackPlayerRespawnedPower::new));
+	public static final MapCodec<CallbackPlayerRespawnedPower> CODEC = createSimpleCallbackCodec(CallbackPlayerRespawnedPower::new);
+	public static final PacketCodec<RegistryByteBuf, CallbackPlayerRespawnedPower> PACKET_CODEC = createSimpleCallbackPacketCodec(CallbackPlayerRespawnedPower::new);
 
-	public static final PacketCodec<RegistryByteBuf, CallbackPlayerRespawnedPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) ->
-			EntityAction.PACKET_CODEC.encode(buf, power.getEntityAction()),
-		(buf, properties, activeCondition) -> new CallbackPlayerRespawnedPower(properties, activeCondition,
-			EntityAction.PACKET_CODEC.decode(buf)
-		)
-	);
-
-	private final EntityAction entityAction;
-
-	public CallbackPlayerRespawnedPower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction) {
-		super(properties, activeCondition);
-		this.entityAction = entityAction;
+	public CallbackPlayerRespawnedPower(Optional<Condition> activeCondition, Action action) {
+		super(activeCondition, action);
 	}
 
 	@Override
@@ -49,12 +38,6 @@ public class CallbackPlayerRespawnedPower extends Power {
 		return new Instance(holder, this);
 	}
 
-	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
-		super.validate(reporter);
-		getEntityAction().validate(reporter.makeChild(".entity_action"));
-	}
-
 	public static class Instance extends Power.Instance<CallbackPlayerRespawnedPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull CallbackPlayerRespawnedPower power) {
@@ -65,10 +48,10 @@ public class CallbackPlayerRespawnedPower extends Power {
 		public void onRespawned() {
 
 			super.onRespawned();
-			Context context = this.createContext();
+			Context context = createHolderContext();
 
 			if (this.isActive(context)) {
-				power.getEntityAction().execute(context.makeChild(".entity_action"));
+				power.getAction().execute(context.makeChild(".action"));
 			}
 
 		}

@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.util.comparison;
 import com.google.common.base.Strings;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -72,12 +72,13 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	private double getValue(NumberProvider provider, int decimals, Supplier<Context> contextSupplier) {
 
 		Context context = contextSupplier.get();
+		DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", decimals));
+
 		if (decimals == 0) {
 			return provider.nextLong(context);
 		}
 
 		else {
-			DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", decimals));
 			return Double.parseDouble(decimalFormat.format(provider.nextDouble(context)));
 		}
 

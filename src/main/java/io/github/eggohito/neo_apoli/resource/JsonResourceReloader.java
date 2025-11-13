@@ -8,6 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.quiltmc.parsers.json.JsonFormat;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public interface JsonResourceReloader extends ResourceReloader, IdentifiableResourceReloadListener {
 
@@ -22,8 +23,18 @@ public interface JsonResourceReloader extends ResourceReloader, IdentifiableReso
 	}
 
 	default JsonFormat getJsonFormat(Identifier fileId) {
+
 		String fileExtension = FilenameUtils.getExtension(fileId.getPath());
-		return this.getSupportedJsonFormats().get(fileExtension);
+		JsonFormat format = this.getSupportedJsonFormats().get(fileExtension);
+
+		if (format != null) {
+			return format;
+		}
+
+		else {
+			throw new NoSuchElementException("No supported JSON formats was found for file extension: '" + fileExtension + "'");
+		}
+
 	}
 
 	default Identifier trimExtension(Identifier fileId, String directory) {

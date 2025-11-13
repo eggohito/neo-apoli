@@ -21,6 +21,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.ServerRecipeManager;
@@ -28,38 +29,25 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class CraftingRecipePower extends Power implements Prioritized<CraftingRecipePower> {
 
-	public static final MapCodec<CraftingRecipePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonFields(instance)
-		.and(NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.codec().fieldOf("recipe").forGetter(CraftingRecipePower::getRecipeEntry))
-		.and(Codec.BOOL.optionalFieldOf("show_when_ungranted", true).forGetter(CraftingRecipePower::shouldShowWhenUngranted))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::getPriority))
-		.apply(instance, CraftingRecipePower::new));
+	public static final MapCodec<CraftingRecipePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::getRecipeEntry),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::getPriority)
+	).apply(instance, CraftingRecipePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CraftingRecipePower> PACKET_CODEC = createCommonPacketCodec(
-		(buf, power) -> {
-			NeoApoliPacketCodecs.CRAFTING_RECIPE_ENTRY.encode(buf, power.getRecipeEntry());
-			buf.writeBoolean(power.shouldShowWhenUngranted());
-			buf.writeInt(power.getPriority());
-		},
-		(buf, properties) -> new CraftingRecipePower(properties,
-			NeoApoliPacketCodecs.CRAFTING_RECIPE_ENTRY.decode(buf),
-			buf.readBoolean(),
-			buf.readInt()
-		)
+	public static final PacketCodec<RegistryByteBuf, CraftingRecipePower> PACKET_CODEC = PacketCodec.tuple(
+		NeoApoliPacketCodecs.CRAFTING_RECIPE_ENTRY, CraftingRecipePower::getRecipeEntry,
+		PacketCodecs.INTEGER, CraftingRecipePower::getPriority,
+		CraftingRecipePower::new
 	);
 
-	@Getter
 	private final RecipeEntry<CraftingRecipe> recipeEntry;
-
-	private final boolean showWhenUngranted;
-	@Getter
 	private final int priority;
 
-	public CraftingRecipePower(Properties properties, RecipeEntry<CraftingRecipe> recipeEntry, boolean showWhenUngranted, int priority) {
-		super(properties);
+	public CraftingRecipePower(RecipeEntry<CraftingRecipe> recipeEntry, int priority) {
 		this.recipeEntry = recipeEntry;
-		this.showWhenUngranted = showWhenUngranted;
 		this.priority = priority;
 	}
 
@@ -71,10 +59,6 @@ public class CraftingRecipePower extends Power implements Prioritized<CraftingRe
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
 		return new Instance(holder, this);
-	}
-
-	public boolean shouldShowWhenUngranted() {
-		return showWhenUngranted;
 	}
 
 	public static class Instance extends Power.Instance<CraftingRecipePower> {

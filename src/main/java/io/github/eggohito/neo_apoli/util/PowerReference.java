@@ -19,10 +19,12 @@ import java.util.Objects;
 public sealed interface PowerReference extends ContextKey, StringDisplayable permits PowerReference.Power, PowerReference.SubPower {
 
 	Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::ofValidated, PowerReference::toString);
+
 	PacketCodec<ByteBuf, PowerReference> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerReference::of, PowerReference::toString);
 
 	String createTranslationKey();
-	boolean isSubPower();
+
+	boolean subPower();
 
 	static PowerReference.Power ofPower(Identifier id) {
 		return new Power(id);
@@ -128,7 +130,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 		}
 
 		@Override
-		public boolean isSubPower() {
+		public boolean subPower() {
 			return false;
 		}
 
@@ -180,7 +182,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 		}
 
 		@Override
-		public boolean isSubPower() {
+		public boolean subPower() {
 			return true;
 		}
 

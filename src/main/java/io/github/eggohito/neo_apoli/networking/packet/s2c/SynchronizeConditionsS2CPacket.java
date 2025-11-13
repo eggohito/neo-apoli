@@ -2,62 +2,21 @@ package io.github.eggohito.neo_apoli.networking.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.category.ConditionCategories;
-import io.github.eggohito.neo_apoli.condition.category.ConditionCategory;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
-public record SynchronizeConditionsS2CPacket(Map<ConditionCategory<?>, Map<Identifier, Condition>> conditions) implements CustomPayload {
+public record SynchronizeConditionsS2CPacket(Map<Identifier, Condition> conditions) implements CustomPayload {
+
+	private static final PacketCodec<RegistryByteBuf, Map<Identifier, Condition>> CONDITIONS_PACKET_CODEC = PacketCodecs.map(Object2ObjectOpenHashMap::new, Identifier.PACKET_CODEC, Condition.BASE_PACKET_CODEC);
 
 	public static final Id<SynchronizeConditionsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_conditions"));
-	public static final PacketCodec<RegistryByteBuf, SynchronizeConditionsS2CPacket> CODEC = PacketCodec.of(SynchronizeConditionsS2CPacket::write, SynchronizeConditionsS2CPacket::read);
-
-	private static SynchronizeConditionsS2CPacket read(RegistryByteBuf buf) {
-
-		Map<ConditionCategory<?>, Map<Identifier, Condition>> conditions = new Object2ObjectOpenHashMap<>();
-		int conditionsCount = buf.readVarInt();
-
-		for (int i = 0; i < conditionsCount; i++) {
-
-			ConditionCategory<Condition> category = (ConditionCategory<Condition>) ConditionCategories.PACKET_CODEC.decode(buf);
-			int entriesCount = buf.readVarInt();
-
-			for (int j = 0; j < entriesCount; j++) {
-
-				Identifier id = buf.readIdentifier();
-				Condition condition = category.packetCodec().decode(buf);
-
-				conditions.computeIfAbsent(category, key -> new Object2ObjectOpenHashMap<>()).put(id, condition);
-
-			}
-
-		}
-
-		return new SynchronizeConditionsS2CPacket(conditions);
-
-	}
-
-	private void write(RegistryByteBuf buf) {
-		buf.writeVarInt(conditions().size());
-		conditions().forEach((category, entries) -> {
-
-			ConditionCategory<Condition> castedCategory = (ConditionCategory<Condition>) category;
-			ConditionCategories.PACKET_CODEC.encode(buf, castedCategory);
-
-			buf.writeVarInt(entries.size());
-			entries.forEach((id, condition) -> {
-				buf.writeIdentifier(id);
-				castedCategory.packetCodec().encode(buf, condition);
-			});
-
-		});
-	}
+	public static final PacketCodec<RegistryByteBuf, SynchronizeConditionsS2CPacket> CODEC = CONDITIONS_PACKET_CODEC.xmap(SynchronizeConditionsS2CPacket::new, SynchronizeConditionsS2CPacket::conditions);
 
 	@Override
 	public Id<? extends CustomPayload> getId() {

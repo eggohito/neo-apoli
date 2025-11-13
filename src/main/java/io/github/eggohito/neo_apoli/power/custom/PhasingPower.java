@@ -3,15 +3,14 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
+import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
@@ -20,48 +19,40 @@ import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 
 @Getter
 public class PhasingPower extends Power {
 
-	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(BlockCondition.CODEC.fieldOf("block_condition").forGetter(PhasingPower::getBlockCondition))
-		.and(EntityCondition.CODEC.optionalFieldOf("phase_down_condition", new IsSneakingEntityCondition()).forGetter(PhasingPower::getPhaseDownCondition))
+	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.BASE_CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(PhasingPower::getPhaseDownCondition))
 		.and(RenderType.CODEC.optionalFieldOf("render_type", RenderType.BLINDNESS).forGetter(PhasingPower::getRenderType))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, PhasingPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			BlockCondition.PACKET_CODEC.encode(buf, power.getBlockCondition());
-			EntityCondition.PACKET_CODEC.encode(buf, power.getPhaseDownCondition());
-			RenderType.PACKET_CODEC.encode(buf, power.getRenderType());
-			buf.writeFloat(power.getViewDistance());
-		},
-		(buf, properties, activeCondition) -> new PhasingPower(properties, activeCondition,
-			BlockCondition.PACKET_CODEC.decode(buf),
-			EntityCondition.PACKET_CODEC.decode(buf),
-			RenderType.PACKET_CODEC.decode(buf),
-			buf.readFloat()
-		)
+	public static final PacketCodec<RegistryByteBuf, PhasingPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Condition.BASE_PACKET_CODEC, PhasingPower::getPhaseDownCondition,
+		RenderType.PACKET_CODEC, PhasingPower::getRenderType,
+		PacketCodecs.FLOAT, PhasingPower::getViewDistance,
+		PhasingPower::new
 	);
 
-	private final BlockCondition blockCondition;
-	private final EntityCondition phaseDownCondition;
-
+	private final Condition phaseDownCondition;
 	private final RenderType renderType;
+
 	private final float viewDistance;
 
-	public PhasingPower(Properties properties, Optional<EntityCondition> activeCondition, BlockCondition blockCondition, EntityCondition phaseDownCondition, RenderType renderType, float viewDistance) {
-		super(properties, activeCondition);
-		this.blockCondition = blockCondition;
+	public PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderType renderType, float viewDistance) {
+		super(activeCondition);
 		this.phaseDownCondition = phaseDownCondition;
 		this.renderType = renderType;
 		this.viewDistance = viewDistance;
@@ -79,12 +70,8 @@ public class PhasingPower extends Power {
 
 	@Override
 	public void validate(ContextAware.ErrorReporter reporter) {
-
 		super.validate(reporter);
-
-		getBlockCondition().validate(reporter.makeChild(".block_condition"));
 		getPhaseDownCondition().validate(reporter.makeChild(".phase_down_condition"));
-
 	}
 
 	public static class Instance extends Power.Instance<PhasingPower> {
@@ -101,22 +88,59 @@ public class PhasingPower extends Power {
 			return this.getPower().getViewDistance();
 		}
 
-		public boolean doesApply(Context context) {
-			context = this.addPowerContext(context);
-			return this.isActive(context)
-				&& power.getBlockCondition().test(context.makeChild(".block_condition"));
-		}
-
 		public boolean shouldPhaseDown(Context context, VoxelShape shape) {
-
-			context = this.addPowerContext(context);
 			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
-
 			return holder.getY() < (double) blockPos.getY() + shape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));
+		}
+
+	}
+
+	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
+
+		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
+
+		boolean init = false;
+		float result = defaultValue.getAsFloat();
+
+		for (var instance : instances) {
+
+			try {
+
+				if (context.markActive(instance) && instance.isActive(context)) {
+
+					if (init) {
+						result = Math.min(result, instance.getViewDistance());
+					}
+
+					else {
+						result = instance.getViewDistance();
+						init = true;
+					}
+
+				}
+
+			}
+
+			finally {
+				context.markInActive(instance);
+			}
 
 		}
 
+		return result;
+
+	}
+
+	public static Context createContext(Entity entity, SavedBlockPosition savedBlock) {
+		return PowerTypes.PHASING.contextBuilder()
+			.add(ContextParameters.BLOCK_POS, savedBlock.getBlockPos())
+			.add(ContextParameters.BLOCK_STATE, savedBlock.getBlockState())
+			.addNullable(ContextParameters.BLOCK_ENTITY, savedBlock.getBlockEntity())
+			.add(ContextParameters.THIS_ENTITY, entity)
+			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.build(entity.getWorld());
 	}
 
 	public enum RenderType implements StringIdentifiable {
@@ -138,16 +162,6 @@ public class PhasingPower extends Power {
 			return name;
 		}
 
-	}
-
-	public static Context createContext(Entity entity, SavedBlockPosition savedBlock) {
-		return PowerTypes.PHASING.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, savedBlock.getBlockPos())
-			.add(ContextParameters.BLOCK_STATE, savedBlock.getBlockState())
-			.addNullable(ContextParameters.BLOCK_ENTITY, savedBlock.getBlockEntity())
-			.add(ContextParameters.ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos())
-			.build(entity.getWorld());
 	}
 
 }

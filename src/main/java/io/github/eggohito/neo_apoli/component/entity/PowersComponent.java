@@ -226,7 +226,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			return false;
 		}
 
-		Power power = entry.value();
+		Power power = entry.power();
 		Power.Instance<?> instance = power.createInstance(holder);
 
 		sources.add(source);
@@ -239,8 +239,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		this.instances.put(reference, instance);
 		if (power instanceof MultiplePower multiplePower) {
 
-			for (PowerReference.SubPower subReference : multiplePower.getSubPowers().keySet()) {
-				PowerManager.getEntryAsResult(subReference).ifSuccess(subEntry -> this.grantPower(subEntry, source, addedAction, grantedAction));
+			for (PowerEntry<?> subPower : multiplePower.getSubPowers()) {
+				PowerManager.getEntryAsResult(subPower.reference()).ifSuccess(realSubPower -> this.grantPower(realSubPower, source, addedAction, grantedAction));
 			}
 
 		}
@@ -283,7 +283,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			return false;
 		}
 
-		Power power = entry.value();
+		Power power = entry.power();
 		sources.remove(source);
 
 		if (instances.containsKey(reference)) {
@@ -300,8 +300,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		if (power instanceof MultiplePower multiplePower) {
 
-			for (PowerReference.SubPower subReference : multiplePower.getSubPowers().keySet()) {
-				PowerManager.getEntryAsResult(subReference).ifSuccess(subEntry -> this.revokePower(subEntry, source, revokedAction));
+			for (PowerEntry<?> subPower : multiplePower.getSubPowers()) {
+				PowerManager.getEntryAsResult(subPower.reference()).ifSuccess(realSubPower -> this.revokePower(realSubPower, source, revokedAction));
 			}
 
 		}
@@ -378,7 +378,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		List<Power> collected = new ObjectArrayList<>();
 		this.forEach((reference, type, sources) -> {
 
-			if (includingSubPowers || !reference.isSubPower()) {
+			if (includingSubPowers || !reference.subPower()) {
 				collected.add(type.getPower());
 			}
 

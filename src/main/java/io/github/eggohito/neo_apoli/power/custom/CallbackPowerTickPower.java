@@ -2,20 +2,21 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
-import io.github.eggohito.neo_apoli.action.meta.entity.NothingEntityAction;
-import io.github.eggohito.neo_apoli.condition.EntityCondition;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.meta.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -23,39 +24,32 @@ import java.util.Optional;
 @Getter
 public class CallbackPowerTickPower extends Power {
 
-	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addCommonConditionedFields(instance)
-		.and(EntityAction.CODEC.optionalFieldOf("entity_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getEntityAction))
-		.and(EntityAction.CODEC.optionalFieldOf("rising_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getRisingEntityAction))
-		.and(EntityAction.CODEC.optionalFieldOf("falling_action", new NothingEntityAction()).forGetter(CallbackPowerTickPower::getFallingEntityAction))
+	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Action.BASE_CODEC.optionalFieldOf("tick_action", new NothingAction()).forGetter(CallbackPowerTickPower::getTickAction))
+		.and(Action.BASE_CODEC.optionalFieldOf("rising_action", new NothingAction()).forGetter(CallbackPowerTickPower::getRisingAction))
+		.and(Action.BASE_CODEC.optionalFieldOf("falling_action", new NothingAction()).forGetter(CallbackPowerTickPower::getFallingAction))
 		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = createCommonConditionedPacketCodec(
-		(buf, power) -> {
-			EntityAction.PACKET_CODEC.encode(buf, power.getEntityAction());
-			EntityAction.PACKET_CODEC.encode(buf, power.getRisingEntityAction());
-			EntityAction.PACKET_CODEC.encode(buf, power.getFallingEntityAction());
-			NumberProvider.PACKET_CODEC.encode(buf, power.getInterval());
-		},
-		(buf, properties, condition) -> new CallbackPowerTickPower(properties, condition,
-			EntityAction.PACKET_CODEC.decode(buf),
-			EntityAction.PACKET_CODEC.decode(buf),
-			EntityAction.PACKET_CODEC.decode(buf),
-			NumberProvider.PACKET_CODEC.decode(buf)
-		)
+	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = PacketCodec.tuple(
+		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getTickAction,
+		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getRisingAction,
+		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getFallingAction,
+		NumberProvider.PACKET_CODEC, CallbackPowerTickPower::getInterval,
+		CallbackPowerTickPower::new
 	);
 
-	private final EntityAction entityAction;
-	private final EntityAction risingEntityAction;
-	private final EntityAction fallingEntityAction;
-
+	private final Action tickAction;
+	private final Action risingAction;
+	private final Action fallingAction;
 	private final NumberProvider interval;
 
-	public CallbackPowerTickPower(Properties properties, Optional<EntityCondition> activeCondition, EntityAction entityAction, EntityAction risingEntityAction, EntityAction fallingEntityAction, NumberProvider interval) {
-		super(properties, activeCondition);
-		this.entityAction = entityAction;
-		this.risingEntityAction = risingEntityAction;
-		this.fallingEntityAction = fallingEntityAction;
+	public CallbackPowerTickPower(Optional<Condition> activeCondition, Action tickAction, Action risingAction, Action fallingAction, NumberProvider interval) {
+		super(activeCondition);
+		this.tickAction = tickAction;
+		this.risingAction = risingAction;
+		this.fallingAction = fallingAction;
 		this.interval = interval;
 	}
 
@@ -74,9 +68,9 @@ public class CallbackPowerTickPower extends Power {
 
 		super.validate(reporter);
 
-		getEntityAction().validate(reporter.makeChild(".entity_action"));
-		getRisingEntityAction().validate(reporter.makeChild(".rising_action"));
-		getFallingEntityAction().validate(reporter.makeChild(".falling_action"));
+		getTickAction().validate(reporter.makeChild(".tick_action"));
+		getRisingAction().validate(reporter.makeChild(".rising_action"));
+		getFallingAction().validate(reporter.makeChild(".falling_action"));
 		getInterval().validate(reporter.makeChild(".interval"));
 
 	}
@@ -95,7 +89,7 @@ public class CallbackPowerTickPower extends Power {
 		@Override
 		public void onTick() {
 
-			Context context = this.createContext();
+			Context context = createHolderContext();
 			int interval = power.getInterval().nextInt(context.makeChild(".interval"));
 
 			if (context.hasAnyErrors()) {
@@ -120,12 +114,12 @@ public class CallbackPowerTickPower extends Power {
 					else if (ticks == startTicks) {
 
 						if (!wasActive) {
-							power.getRisingEntityAction().execute(context.makeChild(".rising_action"));
+							power.getRisingAction().execute(context.makeChild(".rising_action"));
 							wasActive = true;
 						}
 
 						else {
-							power.getEntityAction().execute(context.makeChild(".tick_action"));
+							power.getTickAction().execute(context.makeChild(".tick_action"));
 						}
 
 					}
@@ -140,7 +134,7 @@ public class CallbackPowerTickPower extends Power {
 					}
 
 					else if (ticks == endTicks) {
-						power.getFallingEntityAction().execute(context.makeChild(".falling_action"));
+						power.getFallingAction().execute(context.makeChild(".falling_action"));
 						wasActive = false;
 					}
 

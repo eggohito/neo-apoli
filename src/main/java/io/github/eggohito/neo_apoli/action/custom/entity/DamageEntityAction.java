@@ -2,29 +2,24 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.EntityAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryFixedCodec;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 
-@EqualsAndHashCode
-@Data
-public final class DamageEntityAction extends EntityAction {
+public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) implements EntityAction {
 
 	public static final MapCodec<DamageEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		RegistryFixedCodec.of(RegistryKeys.DAMAGE_TYPE).fieldOf("damage_type").forGetter(DamageEntityAction::damageType),
+		DamageType.ENTRY_CODEC.fieldOf("damage_type").forGetter(DamageEntityAction::damageType),
 		NumberProvider.CODEC.fieldOf("amount").forGetter(DamageEntityAction::amount)
 	).apply(instance, DamageEntityAction::new));
 
@@ -34,23 +29,18 @@ public final class DamageEntityAction extends EntityAction {
 		DamageEntityAction::new
 	);
 
-	private final RegistryEntry<DamageType> damageType;
-	private final NumberProvider amount;
-
-	public DamageEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) {
-		this.damageType = damageType;
-		this.amount = amount;
-	}
-
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.DAMAGE;
 	}
 
 	@Override
-	protected void impl(Context context) {
+	public void execute(Context context) {
 
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+		World world = context.getWorld();
+		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+
+		if (!(world instanceof ServerWorld serverWorld) || entity == null) {
 			return;
 		}
 
@@ -58,14 +48,14 @@ public final class DamageEntityAction extends EntityAction {
 		float amount = amount().nextFloat(amountContext);
 
 		if (!amountContext.hasErrors()) {
-			context.required(ContextParameters.ENTITY).damage(serverWorld, new DamageSource(damageType()), amount);
+			entity.damage(serverWorld, new DamageSource(this.damageType()), amount);
 		}
 
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
+		EntityAction.super.validate(reporter);
 		amount().validate(reporter.makeChild(".amount"));
 	}
 

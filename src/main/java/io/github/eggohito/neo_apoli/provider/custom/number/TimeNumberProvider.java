@@ -2,37 +2,29 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Data
-public final class TimeNumberProvider extends NumberProvider {
+public record TimeNumberProvider(Optional<NumberProvider> period) implements NumberProvider {
 
-	public static final MapCodec<TimeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.optionalFieldOf("modulo").forGetter(TimeNumberProvider::modulo)
-	).apply(instance, TimeNumberProvider::new));
+	public static final MapCodec<TimeNumberProvider> CODEC = MapCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NumberProvider.CODEC.optionalFieldOf("period").forGetter(TimeNumberProvider::period)
+	).apply(instance, TimeNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, TimeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(NumberProvider.PACKET_CODEC), TimeNumberProvider::modulo,
+	public static final PacketCodec<RegistryByteBuf, TimeNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
+		PacketCodecs.optional(NumberProvider.PACKET_CODEC), TimeNumberProvider::period,
 		TimeNumberProvider::new
-	);
-
-	private final Optional<NumberProvider> modulo;
-
-	public TimeNumberProvider(Optional<NumberProvider> modulo) {
-		this.modulo = modulo;
-	}
+	));
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -40,18 +32,18 @@ public final class TimeNumberProvider extends NumberProvider {
 	}
 
 	@Override
-	protected Number impl(Context context) {
+	public @NotNull Number next(Context context) {
 
 		World world = context.getWorld();
 		long time = world.getTime();
 
-		if (modulo().isPresent()) {
+		if (period().isPresent()) {
 
-			Context moduloContext = context.makeChild(".modulo");
-			long modulo = modulo().get().nextLong(moduloContext);
+			Context periodContext = context.makeChild(".period");
+			long period = period().get().nextLong(periodContext);
 
-			if (!moduloContext.hasErrors()) {
-				time %= modulo;
+			if (!periodContext.hasErrors()) {
+				time %= period;
 			}
 
 		}
@@ -62,8 +54,8 @@ public final class TimeNumberProvider extends NumberProvider {
 
 	@Override
 	public void validate(ErrorReporter reporter) {
-		super.validate(reporter);
-		modulo().ifPresent(modulo -> modulo.validate(reporter.makeChild(".modulo")));
+		NumberProvider.super.validate(reporter);
+		period().ifPresent(period -> period.validate(reporter.makeChild(".period")));
 	}
 
 }
