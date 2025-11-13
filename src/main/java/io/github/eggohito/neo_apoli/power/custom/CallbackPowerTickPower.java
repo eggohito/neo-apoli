@@ -28,7 +28,7 @@ public class CallbackPowerTickPower extends Power {
 		.and(Action.BASE_CODEC.optionalFieldOf("tick_action", new NothingAction()).forGetter(CallbackPowerTickPower::getTickAction))
 		.and(Action.BASE_CODEC.optionalFieldOf("rising_action", new NothingAction()).forGetter(CallbackPowerTickPower::getRisingAction))
 		.and(Action.BASE_CODEC.optionalFieldOf("falling_action", new NothingAction()).forGetter(CallbackPowerTickPower::getFallingAction))
-		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
+		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = PacketCodec.tuple(
@@ -103,19 +103,22 @@ public class CallbackPowerTickPower extends Power {
 
 			else {
 
-				int ticks = holder.age % interval;
+				int ticks = interval > 0
+					? holder.age % interval
+					: holder.age;
+
 				if (this.isActive(context)) {
 
-					if (startTicks == null) {
+					if (interval > 0 && startTicks == null) {
 						this.startTicks = ticks;
 						this.endTicks = null;
 					}
 
-					else if (ticks == startTicks) {
+					else if (interval <= 0 || ticks == startTicks) {
 
 						if (!wasActive) {
 							power.getRisingAction().execute(context.makeChild(".rising_action"));
-							wasActive = true;
+							this.wasActive = true;
 						}
 
 						else {
@@ -128,14 +131,14 @@ public class CallbackPowerTickPower extends Power {
 
 				else if (wasActive) {
 
-					if (endTicks == null) {
+					if (interval > 0 && endTicks == null) {
 						this.startTicks = null;
 						this.endTicks = ticks;
 					}
 
-					else if (ticks == endTicks) {
+					else if (interval <= 0 || ticks == endTicks) {
 						power.getFallingAction().execute(context.makeChild(".falling_action"));
-						wasActive = false;
+						this.wasActive = false;
 					}
 
 				}
