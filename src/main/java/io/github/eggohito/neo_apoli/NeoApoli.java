@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
+import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
 import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.ClearLogsS2CPacket;
@@ -126,6 +127,8 @@ public class NeoApoli implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
+		ServerPlayConnectionEvents.DISCONNECT.register(KeyBindingStateHolder::stopTrackingServer);
+
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
 			LOGS.clear();
 			server.getPlayerManager().getPlayerList().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, ClearLogsS2CPacket.INSTANCE));

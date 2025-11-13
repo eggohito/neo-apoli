@@ -4,8 +4,10 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestActionTagsC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.RequestPowerTagsC2SPacket;
+import io.github.eggohito.neo_apoli.networking.packet.c2s.SynchronizeKeyBindingStatesC2SPacket;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.TriggerPowerImplsC2SPacket;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -22,6 +24,7 @@ public class NeoApoliC2SNetworkHandler {
 		ServerPlayConnectionEvents.INIT.register((handler, server) -> {
 			ServerPlayNetworking.registerReceiver(handler, RequestPowerTagsC2SPacket.ID, NeoApoliC2SNetworkHandler::onPowerTagsRequest);
 			ServerPlayNetworking.registerReceiver(handler, RequestActionTagsC2SPacket.ID, NeoApoliC2SNetworkHandler::onActionTagsRequest);
+			ServerPlayNetworking.registerReceiver(handler, SynchronizeKeyBindingStatesC2SPacket.ID, KeyBindingStateHolder::updateStates);
 			ServerPlayNetworking.registerReceiver(handler, TriggerPowerImplsC2SPacket.ID, NeoApoliC2SNetworkHandler::onPowersTriggered);
 		});
 

@@ -23,6 +23,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
+import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
@@ -68,6 +69,7 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<DamageConditionType<?>>> DAMAGE_CONDITION_TYPE = create("condition_type/damage");
 	public static final RegistryKey<Registry<EntityConditionType<?>>> ENTITY_CONDITION_TYPE = create("condition_type/entity");
 	public static final RegistryKey<Registry<ItemConditionType<?>>> ITEM_CONDITION_TYPE = create("condition_type/item");
+	public static final RegistryKey<Registry<KeyConditionType<?>>> KEY_CONDITION_TYPE = create("condition_type/key");
 
 	public static final RegistryKey<Registry<BooleanProviderType<?>>> BOOLEAN_PROVIDER_TYPE = create("provider_type/bool");
 	public static final RegistryKey<Registry<BoxProviderType<?>>> BOX_PROVIDER_TYPE = create("provider_type/box");

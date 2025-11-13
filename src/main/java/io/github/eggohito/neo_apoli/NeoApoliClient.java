@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.keybinding.KeyBindingReference;
+import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
 import io.github.eggohito.neo_apoli.networking.NeoApoliS2CNetworkHandler;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.TriggerPowerImplsC2SPacket;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -38,6 +39,9 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		NeoApoliS2CNetworkHandler.init();
 		PowerIntegrationsClient.registerAll();
+
+		ClientTickEvents.END_CLIENT_TICK.register(KeyBindingStateHolder::startTrackingClient);
+		ClientPlayConnectionEvents.DISCONNECT.register(KeyBindingStateHolder::stopTrackingClient);
 
 		ClientTickEvents.END_CLIENT_TICK.register(NeoApoliClient::triggerKeyBoundPowerImpls);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {

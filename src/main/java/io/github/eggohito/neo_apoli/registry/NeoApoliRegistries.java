@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
+import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
@@ -42,6 +43,7 @@ public class NeoApoliRegistries {
 	public static final Registry<DamageConditionType<?>> DAMAGE_CONDITION_TYPE = create(NeoApoliRegistryKeys.DAMAGE_CONDITION_TYPE);
 	public static final Registry<EntityConditionType<?>> ENTITY_CONDITION_TYPE = create(NeoApoliRegistryKeys.ENTITY_CONDITION_TYPE);
 	public static final Registry<ItemConditionType<?>> ITEM_CONDITION_TYPE = create(NeoApoliRegistryKeys.ITEM_CONDITION_TYPE);
+	public static final Registry<KeyConditionType<?>> KEY_CONDITION_TYPE = create(NeoApoliRegistryKeys.KEY_CONDITION_TYPE);
 
 	public static final Registry<BooleanProviderType<?>> BOOLEAN_PROVIDER_TYPE = create(NeoApoliRegistryKeys.BOOLEAN_PROVIDER_TYPE);
 	public static final Registry<BoxProviderType<?>> BOX_PROVIDER_TYPE = create(NeoApoliRegistryKeys.BOX_PROVIDER_TYPE);
