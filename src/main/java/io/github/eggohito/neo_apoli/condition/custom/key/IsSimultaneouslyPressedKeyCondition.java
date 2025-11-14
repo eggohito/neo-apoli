@@ -20,16 +20,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
 
-public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider buffer) implements KeyCondition {
+public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider startBuffer) implements KeyCondition {
 
 	public static final MapCodec<IsSimultaneouslyPressedKeyCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.listOf(2, Integer.MAX_VALUE).fieldOf("ids").forGetter(IsSimultaneouslyPressedKeyCondition::ids),
-		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(5)).forGetter(IsSimultaneouslyPressedKeyCondition::buffer)
+		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(3)).forGetter(IsSimultaneouslyPressedKeyCondition::startBuffer)
 	).apply(instance, IsSimultaneouslyPressedKeyCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsSimultaneouslyPressedKeyCondition> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.collection(ObjectArrayList::new, StringProvider.PACKET_CODEC), IsSimultaneouslyPressedKeyCondition::ids,
-		NumberProvider.PACKET_CODEC, IsSimultaneouslyPressedKeyCondition::buffer,
+		NumberProvider.PACKET_CODEC, IsSimultaneouslyPressedKeyCondition::startBuffer,
 		IsSimultaneouslyPressedKeyCondition::new
 	);
 
@@ -46,7 +46,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 		}
 
 		Context bufferContext = context.makeChild(".buffer");
-		long buffer = buffer().nextLong(bufferContext);
+		long buffer = startBuffer().nextLong(bufferContext);
 
 		if (bufferContext.hasErrors()) {
 			return false;
@@ -56,6 +56,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 		ListIterator<StringProvider> iterator = ids().listIterator();
 
 		long previousPressedTime = Long.MIN_VALUE;
+		boolean result = false;
 
 		while (iterator.hasNext()) {
 
@@ -65,28 +66,32 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			Context idContext = context.makeChild(".ids[" + index + "]");
 			String id = idProvider.next(idContext);
 
-			if (!idContext.hasErrors() || KeyBindingStateHolder.getState(uuid, id).isEmpty()) {
-				continue;
-			}
+			if (!idContext.hasErrors() && KeyBindingStateHolder.getState(uuid, id).isPresent()) {
 
-			KeyBindingState state = KeyBindingStateHolder.getState(uuid, id).orElseThrow();
-			long currentPressedTime = state.pressedTime();
+				KeyBindingState state = KeyBindingStateHolder.getState(uuid, id).orElseThrow();
+				long currentPressedTime = state.pressedTime();
 
-			if (state.pressed()) {
+				if (state.pressed()) {
 
-				if (previousPressedTime == Long.MIN_VALUE) {
-					previousPressedTime = currentPressedTime;
-				}
+					if (previousPressedTime == Long.MIN_VALUE) {
+						previousPressedTime = currentPressedTime;
+					}
 
-				else if (currentPressedTime < (previousPressedTime - buffer) || currentPressedTime > (previousPressedTime + buffer)) {
-					return false;
+					else if (currentPressedTime < (previousPressedTime - buffer) || currentPressedTime > (previousPressedTime + buffer)) {
+						return false;
+					}
+
+					else {
+						result = true;
+					}
+
 				}
 
 			}
 
 		}
 
-		return true;
+		return result;
 
 	}
 
@@ -105,7 +110,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 
 		}
 
-		buffer().validate(reporter.makeChild(".buffer"));
+		startBuffer().validate(reporter.makeChild(".buffer"));
 
 	}
 
