@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.condition.type.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.*;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -26,6 +25,7 @@ public class BlockConditionTypes extends ConditionTypes {
 	public static final BlockConditionType<HasBlockEntityBlockCondition> HAS_BLOCK_ENTITY = registerInternal("has_block_entity", HasBlockEntityBlockCondition.CODEC, HasBlockEntityBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<IsInTagBlockCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagBlockCondition.CODEC, IsInTagBlockCondition.PACKET_CODEC);
 	public static final BlockConditionType<IsOfBlockCondition> IS_OF = registerInternal("is_of", IsOfBlockCondition.CODEC, IsOfBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<IsReplaceableBlockCondition> IS_REPLACEABLE = registerInternal("is_replaceable", IsReplaceableBlockCondition.CODEC, IsReplaceableBlockCondition.PACKET_CODEC);
 
 	public static void registerAll() {
 
