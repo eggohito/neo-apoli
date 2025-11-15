@@ -52,7 +52,7 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 		else if (context.hasParameter(ContextParameters.DIRECTION)) {
 
 			Direction direction = context.required(ContextParameters.DIRECTION);
-			BlockState blockState = context.required(ContextParameters.BLOCK_STATE);
+			BlockState blockState = world.getBlockState(blockPos);
 
 			if (blockState.isSideSolidFullSquare(world, blockPos, direction) && BoneMealItem.useOnGround(ItemStack.EMPTY, world, blockPos.offset(direction), direction)) {
 				this.showEffects(context, blockPos);

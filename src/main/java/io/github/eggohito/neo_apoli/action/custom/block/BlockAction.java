@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.ContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -36,7 +36,7 @@ public interface BlockAction extends Action {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return ContextTypes.BLOCK.getRequired();
+		return Set.of(ContextParameters.BLOCK_POS);
 	}
 
 	@Override

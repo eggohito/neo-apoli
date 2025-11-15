@@ -16,8 +16,10 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
+import net.minecraft.util.context.ContextParameter;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements BlockAction {
@@ -115,6 +117,11 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 			context.getReporter().report("Block \"" + RegistryUtil.getId(Registries.BLOCK, blockState.getBlock()) + "\" does not have a state property with the name \"" + propertyName + "\"!");
 		}
 
+	}
+
+	@Override
+	public Set<ContextParameter<?>> getRequiredParameters() {
+		return Set.of(ContextParameters.BLOCK_STATE);
 	}
 
 	@Override
