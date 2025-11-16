@@ -42,6 +42,7 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
 			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
+			.add(ContextParameters.BLOCK_POS, blockPos)
 			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
 			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
