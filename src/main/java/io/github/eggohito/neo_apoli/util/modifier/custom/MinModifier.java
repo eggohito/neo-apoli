@@ -2,20 +2,16 @@ package io.github.eggohito.neo_apoli.util.modifier.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.modifier.SimplePhasedModifier;
+import io.github.eggohito.neo_apoli.util.modifier.ValueBasedModifier;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public class MinModifier extends SimplePhasedModifier {
+public record MinModifier(Phase phase, int order, NumberProvider value) implements ValueBasedModifier {
 
-	public static final MapCodec<MinModifier> CODEC = simplePhasedCommonCodec(5000, MinModifier::new);
-	public static final PacketCodec<RegistryByteBuf, MinModifier> PACKET_CODEC = simplePhasedCommonPacketCodec(MinModifier::new);
-
-	public MinModifier(NumberProvider value, int order, Phase phase) {
-		super(value, order, phase);
-	}
+	public static final MapCodec<MinModifier> CODEC = ValueBasedModifier.createValueBasedCodec(MinModifier::new, 5000);
+	public static final PacketCodec<RegistryByteBuf, MinModifier> PACKET_CODEC = ValueBasedModifier.createValueBasedPacketCodec(MinModifier::new);
 
 	@Override
 	public ModifierType<?> getType() {
@@ -23,7 +19,7 @@ public class MinModifier extends SimplePhasedModifier {
 	}
 
 	@Override
-	protected double calculate(double value, double base, double total) {
+	public double calculate(double value, double base, double total) {
 		return Math.min(total, value);
 	}
 

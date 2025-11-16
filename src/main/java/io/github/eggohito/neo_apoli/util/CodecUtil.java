@@ -10,6 +10,7 @@ import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.function.ValueLists;
 
+import java.util.Locale;
 import java.util.function.*;
 
 public class CodecUtil {
@@ -65,15 +66,19 @@ public class CodecUtil {
 	}
 
 	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass) {
+		return enumType(enumClass, ValueLists.OutOfBoundsHandling.CLAMP);
+	}
+
+	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass, ValueLists.OutOfBoundsHandling oobHandler) {
 
 		E[] enumConstants = enumClass.getEnumConstants();
 
 		ToIntFunction<E> toOrdinal = Enum::ordinal;
-		IntFunction<E> fromOrdinal = ValueLists.createIndexToValueFunction(toOrdinal, enumConstants, ValueLists.OutOfBoundsHandling.CLAMP);
+		IntFunction<E> fromOrdinal = ValueLists.createIndexToValueFunction(toOrdinal, enumConstants, oobHandler);
 
-		Function<E, String> toString = enumConstant -> enumConstant instanceof StringIdentifiable stringIdentifiable
+		Function<E, String> toString = enumConstant -> (enumConstant instanceof StringIdentifiable stringIdentifiable
 			? stringIdentifiable.asString()
-			: enumConstant.name();
+			: enumConstant.name()).toLowerCase(Locale.ROOT);
 		Function<String, E> fromString = name -> {
 
 			for (E enumConstant : enumConstants) {
