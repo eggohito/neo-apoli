@@ -17,6 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class PowerTypes {
 
 	public static final PowerType<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal("callback/block/break", CallbackBlockBreakPower.CODEC, CallbackBlockBreakPower.PACKET_CODEC, ContextTypes.BLOCK, ContextTypes.ENTITY);
+	public static final PowerType<CallbackDamageDealtPower> CALLBACK_DAMAGE_DEALT = registerInternal("callback/damage/dealt", CallbackDamageDealtPower.CODEC, CallbackDamageDealtPower.PACKET_CODEC, ContextTypes.BIENTITY, ContextTypes.DAMAGE, ContextTypes.ENTITY);
 	public static final PowerType<CallbackPlayerRespawnedPower> CALLBACK_PLAYER_RESPAWNED = registerInternal("callback/player/respawned", CallbackPlayerRespawnedPower.CODEC, CallbackPlayerRespawnedPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<CallbackPowerAddedPower> CALLBACK_POWER_ADDED = registerInternal("callback/power/added", CallbackPowerAddedPower.CODEC, CallbackPowerAddedPower.PACKET_CODEC, ContextTypes.ENTITY);
 	public static final PowerType<CallbackPowerGrantedPower> CALLBACK_POWER_GRANTED = registerInternal("callback/power/granted", CallbackPowerGrantedPower.CODEC, CallbackPowerGrantedPower.PACKET_CODEC, ContextTypes.ENTITY);

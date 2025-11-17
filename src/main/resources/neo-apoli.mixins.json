@@ -30,6 +30,8 @@
 		"misc.TextCodecsMixin$DispatchingCodecMixin",
 		"power.PowerMixin$Callbacks",
 		"power.custom.CallbackBlockBreakPowerMixin",
+		"power.custom.CallbackDamageDealtPowerMixin$ArmorStandDelegate",
+		"power.custom.CallbackDamageDealtPowerMixin$BaseImpl",
 		"power.custom.CraftingRecipePowerMixin$AbstractCraftingScreenCacheInitializer",
 		"power.custom.CraftingRecipePowerMixin$CraftingInventoryCache",
 		"power.custom.CraftingRecipePowerMixin$CraftingRecipeInputCache",

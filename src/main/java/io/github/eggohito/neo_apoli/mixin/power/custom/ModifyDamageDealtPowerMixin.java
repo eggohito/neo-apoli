@@ -52,18 +52,6 @@ public abstract class ModifyDamageDealtPowerMixin {
 
 		}
 
-//		@ModifyReturnValue(method = "damage", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;becomeAngry(Lnet/minecraft/entity/damage/DamageSource;)V")))
-//		private boolean invokeActions(boolean original, ServerWorld world, DamageSource source, float amount, @Share("modifyDamageDealt$context") LocalRef<Context> modifyDamageDealt$contextRef, @Share(value = "modifyDamageDealt$instances", namespace = NeoApoli.MOD_NAMESPACE) LocalRef<List<ModifyDamageDealtPower.Instance>> modifyDamageDealt$instancesRef) {
-//
-//			if (original && modifyDamageDealt$contextRef.get() != null && modifyDamageDealt$instancesRef.get() != null) {
-//				Context context = modifyDamageDealt$contextRef.get();
-//				modifyDamageDealt$instancesRef.get().forEach(instance -> instance.execute(context));
-//			}
-//
-//			return original;
-//
-//		}
-
 	}
 
 	@Mixin(PlayerEntity.class)
@@ -91,28 +79,5 @@ public abstract class ModifyDamageDealtPowerMixin {
 		}
 
 	}
-
-//	@Mixin(ArmorStandEntity.class)
-//	public static abstract class ArmorStandDelegate extends LivingEntity {
-//
-//		protected ArmorStandDelegate(EntityType<? extends LivingEntity> entityType, World world) {
-//			super(entityType, world);
-//		}
-//
-//		@Inject(method = "damage", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageSource;isSourceCreativePlayer()Z")))
-//		private void invokeActions(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-//
-//			if (cir.getReturnValueZ() && source.getAttacker() != null) {
-//
-//				Entity attacker = source.getAttacker();
-//				Context context = ModifyDamageDealtPower.createContext(attacker, this, source, amount);
-//
-//				PowersComponent.getInstances(attacker, ModifyDamageDealtPower.Instance.class, instance -> instance.isActive(context)).forEach(instance -> instance.execute(context));
-//
-//			}
-//
-//		}
-//
-//	}
 
 }
