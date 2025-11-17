@@ -2,16 +2,16 @@ package io.github.eggohito.neo_apoli.util.modifier.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.modifier.ValueBasedModifier;
+import io.github.eggohito.neo_apoli.util.modifier.AmountBasedModifier;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record MultiplyMultiplicativeModifier(Phase phase, int order, NumberProvider value) implements ValueBasedModifier {
+public record MultiplyMultiplicativeModifier(Phase phase, int order, NumberProvider amount) implements AmountBasedModifier {
 
-	public static final MapCodec<MultiplyMultiplicativeModifier> CODEC = ValueBasedModifier.createValueBasedCodec(MultiplyMultiplicativeModifier::new, 2000);
-	public static final PacketCodec<RegistryByteBuf, MultiplyMultiplicativeModifier> PACKET_CODEC = ValueBasedModifier.createValueBasedPacketCodec(MultiplyMultiplicativeModifier::new);
+	public static final MapCodec<MultiplyMultiplicativeModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyMultiplicativeModifier::new, 2000);
+	public static final PacketCodec<RegistryByteBuf, MultiplyMultiplicativeModifier> PACKET_CODEC = AmountBasedModifier.createValueBasedPacketCodec(MultiplyMultiplicativeModifier::new);
 
 	@Override
 	public ModifierType<?> getType() {
@@ -19,8 +19,8 @@ public record MultiplyMultiplicativeModifier(Phase phase, int order, NumberProvi
 	}
 
 	@Override
-	public double calculate(double value, double base, double total) {
-		return total * (1.0 + value);
+	public double calculate(double amount, double base, double total) {
+		return total * (1.0 + amount);
 	}
 
 }

@@ -2,16 +2,16 @@ package io.github.eggohito.neo_apoli.util.modifier.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.modifier.ValueBasedModifier;
+import io.github.eggohito.neo_apoli.util.modifier.AmountBasedModifier;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
-public record DivideModifier(Phase phase, int order, NumberProvider value) implements ValueBasedModifier {
+public record DivideModifier(Phase phase, int order, NumberProvider amount) implements AmountBasedModifier {
 
-	public static final MapCodec<DivideModifier> CODEC = ValueBasedModifier.createValueBasedCodec(DivideModifier::new, 3000);
-	public static final PacketCodec<RegistryByteBuf, DivideModifier> PACKET_CODEC = ValueBasedModifier.createValueBasedPacketCodec(DivideModifier::new);
+	public static final MapCodec<DivideModifier> CODEC = AmountBasedModifier.createValueBasedCodec(DivideModifier::new, 3000);
+	public static final PacketCodec<RegistryByteBuf, DivideModifier> PACKET_CODEC = AmountBasedModifier.createValueBasedPacketCodec(DivideModifier::new);
 
 	@Override
 	public ModifierType<?> getType() {
@@ -19,8 +19,8 @@ public record DivideModifier(Phase phase, int order, NumberProvider value) imple
 	}
 
 	@Override
-	public double calculate(double value, double base, double total) {
-		return total / value;
+	public double calculate(double amount, double base, double total) {
+		return total / amount;
 	}
 
 }

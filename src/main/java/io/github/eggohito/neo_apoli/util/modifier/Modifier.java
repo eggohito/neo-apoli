@@ -79,11 +79,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 				Phase currentPhase = modifier.phase();
 
-				if (previousPhase == null) {
-					previousPhase = currentPhase;
-				}
-
-				if (previousPhase != currentPhase) {
+				if (currentPhase != previousPhase) {
 					previousPhase = currentPhase;
 					currentBase = currentTotal;
 				}

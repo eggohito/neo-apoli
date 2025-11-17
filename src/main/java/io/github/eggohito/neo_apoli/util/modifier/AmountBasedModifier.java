@@ -10,38 +10,38 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 
-public interface ValueBasedModifier extends Modifier {
+public interface AmountBasedModifier extends Modifier {
 
 	@Override
 	ModifierType<?> getType();
 
 	@Override
 	default double apply(Context context, double base, double total) {
-		return calculate(value().nextDouble(context.makeChild(".value")), base, total);
+		return calculate(amount().nextDouble(context.makeChild(".amount")), base, total);
 	}
 
 	@Override
 	default void validate(ErrorReporter reporter) {
 		Modifier.super.validate(reporter);
-		value().validate(reporter.makeChild(".value"));
+		amount().validate(reporter.makeChild(".amount"));
 	}
 
-	NumberProvider value();
+	NumberProvider amount();
 
-	double calculate(double value, double base, double total);
+	double calculate(double amount, double base, double total);
 
-	static <M extends ValueBasedModifier> MapCodec<M> createValueBasedCodec(Function3<Phase, Integer, NumberProvider, M> constructor, int defaultOrder) {
+	static <M extends AmountBasedModifier> MapCodec<M> createValueBasedCodec(Function3<Phase, Integer, NumberProvider, M> constructor, int defaultOrder) {
 		return RecordCodecBuilder.mapCodec(instance -> Modifier
 			.addPhaseAndOrderFields(instance, defaultOrder)
-			.and(NumberProvider.CODEC.fieldOf("value").forGetter(ValueBasedModifier::value))
+			.and(NumberProvider.CODEC.fieldOf("amount").forGetter(AmountBasedModifier::amount))
 			.apply(instance, constructor));
 	}
 
-	static <M extends ValueBasedModifier> PacketCodec<RegistryByteBuf, M> createValueBasedPacketCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
+	static <M extends AmountBasedModifier> PacketCodec<RegistryByteBuf, M> createValueBasedPacketCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
 		return PacketCodec.tuple(
-			Phase.PACKET_CODEC, ValueBasedModifier::phase,
-			PacketCodecs.INTEGER, ValueBasedModifier::order,
-			NumberProvider.PACKET_CODEC, ValueBasedModifier::value,
+			Phase.PACKET_CODEC, AmountBasedModifier::phase,
+			PacketCodecs.INTEGER, AmountBasedModifier::order,
+			NumberProvider.PACKET_CODEC, AmountBasedModifier::amount,
 			constructor
 		);
 	}
