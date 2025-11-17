@@ -21,29 +21,30 @@ import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 
 @Getter
 public class ModifyDamageDealtPower extends Power {
 
 	public static final MapCodec<ModifyDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.BASE_CODEC.optionalFieldOf("on_hit_action", new NothingAction()).forGetter(ModifyDamageDealtPower::getOnHitAction))
+		.and(Action.BASE_CODEC.optionalFieldOf("on_modify_action", new NothingAction()).forGetter(ModifyDamageDealtPower::getOnModifyAction))
 		.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(ModifyDamageDealtPower::getModifiers))
 		.apply(instance, ModifyDamageDealtPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyDamageDealtPower> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Action.BASE_PACKET_CODEC, ModifyDamageDealtPower::getOnHitAction,
+		Action.BASE_PACKET_CODEC, ModifyDamageDealtPower::getOnModifyAction,
 		PacketCodecs.collection(ObjectArrayList::new, Modifier.PACKET_CODEC), ModifyDamageDealtPower::getModifiers,
 		ModifyDamageDealtPower::new
 	);
 
-	private final Action onHitAction;
+	private final Action onModifyAction;
 	private final List<Modifier> modifiers;
 
-	public ModifyDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, List<Modifier> modifiers) {
+	public ModifyDamageDealtPower(Optional<Condition> activeCondition, Action onModifyAction, List<Modifier> modifiers) {
 		super(activeCondition);
-		this.onHitAction = onHitAction;
+		this.onModifyAction = onModifyAction;
 		this.modifiers = modifiers;
 	}
 
@@ -57,6 +58,25 @@ public class ModifyDamageDealtPower extends Power {
 		return new Instance(holder, this);
 	}
 
+	@Override
+	public void validate(ErrorReporter reporter) {
+
+		super.validate(reporter);
+		getOnModifyAction().validate(reporter.makeChild(".on_modify_action"));
+
+		ListIterator<Modifier> listIterator = getModifiers().listIterator();
+
+		while (listIterator.hasNext()) {
+
+			int index = listIterator.nextIndex();
+			Modifier modifier = listIterator.next();
+
+			modifier.validate(reporter.makeChild(".modifiers[" + index + "]"));
+
+		}
+
+	}
+
 	public static class Instance extends Power.Instance<ModifyDamageDealtPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyDamageDealtPower power) {
@@ -68,7 +88,7 @@ public class ModifyDamageDealtPower extends Power {
 		}
 
 		public void execute(Context context) {
-			power.getOnHitAction().execute(context.makeChild(".on_hit_action"));
+			power.getOnModifyAction().execute(context.makeChild(".on_modify_action"));
 		}
 
 	}
@@ -76,7 +96,11 @@ public class ModifyDamageDealtPower extends Power {
 	public static float modify(Context context, List<Instance> instances, float baseValue) {
 
 		List<Modifier> modifiers = new ObjectArrayList<>();
-		instances.forEach(instance -> modifiers.addAll(instance.getModifiers()));
+
+		for (var instance : instances) {
+			instance.execute(context);
+			modifiers.addAll(instance.getModifiers());
+		}
 
 		return (float) Modifier.applyAll(index -> context.makeChild(".modifiers[" + index + "]"), modifiers, baseValue);
 

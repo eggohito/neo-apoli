@@ -41,7 +41,6 @@
 		"power.custom.ModifyBlockSelectablePowerMixin",
 		"power.custom.ModifyBlockUsePowerMixin",
 		"power.custom.ModifyClimbingPowerMixin",
-		"power.custom.ModifyDamageDealtPowerMixin$ArmorStandDelegate",
 		"power.custom.ModifyDamageDealtPowerMixin$BaseImpl",
 		"power.custom.ModifyDamageDealtPowerMixin$PlayerDelegate",
 		"power.custom.ModifyEntityTypeTagPowerMixin$EntityCache",
