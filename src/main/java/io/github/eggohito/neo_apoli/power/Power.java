@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
@@ -36,6 +37,7 @@ import java.util.Set;
  * 	<p>A power gives a certain "ability" to an entity upon being granted. As for what kind of "ability" it provides will
  * 	depend on the implementation (see: {@link Instance}) of the power itself.</p>
  */
+@EqualsAndHashCode
 @Getter
 public abstract class Power implements ContextAware {
 

@@ -54,7 +54,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		.setPrettyPrinting()
 		.create();
 
-	private static final Identifier ID = NeoApoli.id("conditions");
+	private static final Identifier ID = NeoApoli.id("manager/conditions");
 	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
 
 	private static final BiMap<Identifier, Condition> CONDITIONS = HashBiMap.create();

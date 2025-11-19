@@ -61,7 +61,7 @@ public final class ActionManager implements JsonResourceReloader {
 		.setPrettyPrinting()
 		.create();
 
-	private static final Identifier ID = NeoApoli.id("actions");
+	private static final Identifier ID = NeoApoli.id("manager/actions");
 	private static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ConditionManager.getId()));
 
 	private static final BiMap<Identifier, Action> ACTIONS = HashBiMap.create();

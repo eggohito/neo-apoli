@@ -68,7 +68,7 @@ public final class PowerManager implements JsonResourceReloader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
 	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
 
-	private static final Identifier ID = NeoApoli.id("powers");
+	private static final Identifier ID = NeoApoli.id("manager/powers");
 	private static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.getId()));
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();

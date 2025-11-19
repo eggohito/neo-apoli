@@ -17,7 +17,10 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -42,6 +45,8 @@ import java.util.function.*;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
+
+	private static final Identifier ID = NeoApoli.id("powers");
 
 	private static final int FULL_SYNC_ID = 0;
 	private static final int GRANT_SYNC_ID = 1;
@@ -250,63 +255,53 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	public boolean revokePower(PowerReference id, Identifier source) {
-		return !holder.getWorld().isClient()
-			&& revokePowerSideAgnostic(id, source);
-	}
 
-	private boolean revokePowerSideAgnostic(PowerReference reference, Identifier source) {
-		return PowerManager.getEntryAsResult(reference)
-			.mapError(error -> "Error trying to revoke " + reference.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
-			.resultOrPartial(NeoApoli.LOGGER::warn)
-			.map(entry -> revokePower(entry, source))
-			.orElse(false);
-	}
-
-	private boolean revokePower(PowerEntry<?> entry, Identifier source) {
-
-		List<PowerReference> revokedPowers = new ObjectArrayList<>();
-		boolean result = this.revokePower(entry, source, revokedPowers::add);
-
-		instances.keySet().removeIf(revokedPowers::contains);
-		sources.keySet().removeIf(revokedPowers::contains);
-
-		return result;
-
-	}
-
-	private boolean revokePower(PowerEntry<?> entry, Identifier source, Consumer<PowerReference> revokedAction) {
-
-		PowerReference reference = entry.reference();
-		Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
-
-		if (!sources.contains(source)) {
+		if (holder.getWorld().isClient()) {
 			return false;
 		}
 
-		Power power = entry.power();
-		sources.remove(source);
+		else {
 
-		if (instances.containsKey(reference)) {
+			List<PowerReference> revokedPowers = new ObjectArrayList<>();
+			boolean result = this.revokePower(id, source, revokedPowers::add);
 
-			Power.Instance<?> instance = instances.get(reference);
+			instances.keySet().removeIf(revokedPowers::contains);
+			sources.keySet().removeIf(revokedPowers::contains);
+
+			return result;
+
+		}
+
+	}
+
+	private boolean revokePower(PowerReference id, Identifier source, Consumer<PowerReference> onRevokedCallback) {
+
+		Set<Identifier> sources = this.sources.getOrDefault(id, new ObjectOpenHashSet<>());
+		boolean removed = sources.remove(source);
+
+		if (removed && instances.containsKey(id)) {
+
+			Power.Instance<?> instance = instances.get(id);
 			instance.onRemoved();
 
 			if (sources.isEmpty()) {
 				instance.onRevoked();
-				revokedAction.accept(reference);
+				onRevokedCallback.accept(id);
 			}
+
+			if (instance.getPower() instanceof MultiplePower multiplePower) {
+
+				for (var subPower : multiplePower.getSubPowers()) {
+					PowerManager.getEntryAsResult(subPower.reference()).ifSuccess(realSubPower -> this.revokePower(realSubPower.reference(), source, onRevokedCallback));
+				}
+
+			}
+
+			return true;
 
 		}
 
-		if (power instanceof MultiplePower multiplePower) {
-
-			for (PowerEntry<?> subPower : multiplePower.getSubPowers()) {
-				PowerManager.getEntryAsResult(subPower.reference()).ifSuccess(realSubPower -> this.revokePower(realSubPower, source, revokedAction));
-			}
-
-		}
-
-		return true;
+		return false;
 
 	}
 
@@ -496,6 +491,99 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			.orElseGet(ObjectArrayList::new);
 	}
 
+	public static Identifier getId() {
+		return ID;
+	}
+
+	private static void update(Entity entity, boolean initialize) {
+
+		PowersComponent component = NeoApoliEntityComponents.POWERS.get(entity);
+		Set<Map.Entry<PowerReference, Power.Instance<?>>> entries = new ObjectOpenHashSet<>(component.instances.entrySet());
+
+		int mismatches = 0;
+
+		for (var entry : entries) {
+
+			PowerReference reference = entry.getKey();
+			Set<Identifier> sources = component.getSources(reference);
+
+			if (!PowerManager.contains(reference)) {
+
+				NeoApoli.LOGGER.error("Removed unregistered {} from entity {}!", reference.asDisplayString(false), entity.getName().getString());
+
+				for (var source : sources) {
+					component.revokePower(reference, source);
+				}
+
+			}
+
+			else {
+
+				Power oldPower = entry.getValue().getPower();
+				Power newPower = PowerManager.get(reference);
+
+				if (!Objects.equals(oldPower, newPower)) {
+
+					NeoApoli.LOGGER.warn("{} from entity {} has mismatched data! Updating...", reference.asDisplayString(), entity.getName().getString());
+					mismatches++;
+
+					for (var source : sources) {
+						component.revokePower(reference, source);
+						component.grantPower(reference, source);
+					}
+
+					Power.Instance<?> oldInstance = entry.getValue();
+					Power.Instance<?> newInstance = component.getInstance(reference);
+
+					if (oldInstance.getClass().isInstance(newInstance)) {
+
+						RegistryOps<NbtElement> nbtOps = entity.getRegistryManager().getOps(NbtOps.INSTANCE);
+						DataResult<NbtElement> data = oldInstance.encodeData(nbtOps);
+
+						switch (data) {
+							case DataResult.Success<NbtElement> success ->
+								newInstance.decodeData(nbtOps, success.value())
+									.ifSuccess(unit -> NeoApoli.LOGGER.info("Successfully migrated old data of {}!", reference.asDisplayString(false)))
+									.ifError(error -> NeoApoli.LOGGER.warn("Couldn't decode old data of {} during migration: {}", reference.asDisplayString(false), error.message()));
+							case DataResult.Error<NbtElement> error ->
+								NeoApoli.LOGGER.warn("Couldn't encode old data of {} during migration: {}", reference.asDisplayString(false), error.message());
+						}
+
+					}
+
+					else {
+						NeoApoli.LOGGER.warn("Couldn't migrate old data of {}, as it's using a different power type!", reference.asDisplayString(false));
+					}
+
+				}
+
+			}
+
+		}
+
+		if (mismatches > 0) {
+			NeoApoli.LOGGER.info("Finished updating {} power(s) with mismatched data from entity {}!", mismatches, entity.getName().getString());
+		}
+
+		NeoApoliEntityComponents.POWERS.sync(entity);
+
+	}
+
+	static {
+
+		ServerEntityEvents.ENTITY_LOAD.register(getId(), (entity, world) -> {
+
+			if (!(entity instanceof PlayerEntity)) {
+				update(entity, false);
+			}
+
+		});
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.getId(), getId());
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(getId(), PowersComponent::update);
+
+	}
+
 	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -541,7 +629,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			MAP_ENCODER,
 			MAP_DECODER,
 			(powersComponent, map) -> map.forEach((source, ids) ->
-				ids.forEach(id -> powersComponent.revokePowerSideAgnostic(id, source))
+				ids.forEach(id -> powersComponent.revokePower(id, source))
 			)
 		);
 
