@@ -6,7 +6,6 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import lombok.AllArgsConstructor;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
@@ -19,8 +18,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 
-	protected ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ValueSuppliedElementCodec<Action> codec) {
-		super(wrapperLookup, codec);
+	protected ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, boolean allowInlineDefinitions) {
+		super(wrapperLookup, ActionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
 	@Override
@@ -28,12 +27,12 @@ public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 		return CommandSource.suggestIdentifiers(ActionManager.ids(), builder);
 	}
 
-	public static ActionArgumentType action(CommandRegistryAccess registryAccess, boolean allowInlineDefinitions) {
-		return new ActionArgumentType(registryAccess, ActionManager.createEntryCodec(allowInlineDefinitions));
+	public static ActionArgumentType inlineAction(CommandRegistryAccess registryAccess) {
+		return new ActionArgumentType(registryAccess, true);
 	}
 
 	public static ActionArgumentType action(CommandRegistryAccess registryAccess) {
-		return action(registryAccess, true);
+		return new ActionArgumentType(registryAccess, false);
 	}
 
 	public static Action getAction(CommandContext<ServerCommandSource> context, String argumentName) {
@@ -69,7 +68,7 @@ public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 
 			@Override
 			public ActionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return action(registryAccess, allowInlineDefinitions);
+				return new ActionArgumentType(registryAccess, allowInlineDefinitions);
 			}
 
 			@Override

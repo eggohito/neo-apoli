@@ -38,7 +38,7 @@ public class ActionCommand {
 		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
 
 			var node = literal("dump")
-				.then(argument("action", ActionArgumentType.action(registryAccess, false))
+				.then(argument("action", ActionArgumentType.action(registryAccess))
 					.executes(DumpSubCommand::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(DumpSubCommand::withSpecificIndent)));

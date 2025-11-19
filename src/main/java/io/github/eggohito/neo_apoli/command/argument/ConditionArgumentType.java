@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import lombok.AllArgsConstructor;
@@ -19,8 +18,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 
-	protected ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, ValueSuppliedElementCodec<Condition> codec) {
-		super(wrapperLookup, codec);
+	protected ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, boolean allowInlineDefinitions) {
+		super(wrapperLookup, ConditionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
 	@Override
@@ -28,12 +27,12 @@ public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 		return CommandSource.suggestIdentifiers(ConditionManager.ids(), builder);
 	}
 
-	public static ConditionArgumentType condition(CommandRegistryAccess registryAccess, boolean allowInlineDefinitions) {
-		return new ConditionArgumentType(registryAccess, ConditionManager.createEntryCodec(allowInlineDefinitions));
+	public static ConditionArgumentType inlineCondition(CommandRegistryAccess registryAccess) {
+		return new ConditionArgumentType(registryAccess, true);
 	}
 
 	public static ConditionArgumentType condition(CommandRegistryAccess registryAccess) {
-		return condition(registryAccess, true);
+		return new ConditionArgumentType(registryAccess, false);
 	}
 
 	public static Condition getCondition(CommandContext<ServerCommandSource> context, String argumentName) {
@@ -69,7 +68,7 @@ public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 
 			@Override
 			public ConditionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return condition(registryAccess, allowInlineDefinitions);
+				return new ConditionArgumentType(registryAccess, allowInlineDefinitions);
 			}
 
 			@Override

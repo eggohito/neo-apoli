@@ -38,7 +38,7 @@ public class ConditionCommand {
 		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
 
 			var node = literal("dump")
-				.then(argument("condition", ConditionArgumentType.condition(registryAccess, false))
+				.then(argument("condition", ConditionArgumentType.condition(registryAccess))
 					.executes(DumpSubCommand::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(DumpSubCommand::withSpecificIndent)));
