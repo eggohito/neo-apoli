@@ -51,7 +51,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	}
 
 	@Override
-	public Instance createInstance(Entity holder) {
+	public Power.Instance<?> createInstance(Entity holder) {
 		return new Instance(holder, this);
 	}
 

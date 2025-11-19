@@ -28,7 +28,7 @@ public class DummyPower extends Power {
 	}
 
 	@Override
-	public Instance<?> createInstance(Entity holder) {
+	public Power.Instance<?> createInstance(Entity holder) {
 		return new Instance<>(holder, this) {};
 	}
 
