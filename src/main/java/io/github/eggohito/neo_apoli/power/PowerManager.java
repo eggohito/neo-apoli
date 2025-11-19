@@ -21,7 +21,6 @@ import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.EnvType;
@@ -97,7 +96,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> preparePendingTags(ResourceManager manager, Profiler profiler) {
+	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> preparePendingTags(ResourceManager manager, Profiler ignoredProfiler) {
 
 		PREPARED_TAGS.clear();
 		Map<Identifier, List<TagGroupLoader.TrackedEntry>> pendingTags = TAG_LOADER.loadTags(manager);
@@ -127,7 +126,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, Profiler profiler) {
+	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, Profiler ignoredProfiler) {
 
 		Map<PowerReference.Power, Entry> prepared = new Object2ObjectOpenHashMap<>();
 		manager.findResources(DIRECTORY, this::supportsJsonFormat).forEach((fileId, resource) -> {
@@ -151,7 +150,9 @@ public final class PowerManager implements JsonResourceReloader {
 						Entry entry = new Entry(packName, jsonObject);
 						PowerPreparation.EVENT.invoker().prepare(resourceId, entry, DIRECTORY, ops);
 
-						prepared.put(PowerReference.ofPower(resourceId), entry);
+						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), entry) != null) {
+							throw new IllegalStateException("Duplicate power JSON file!");
+						}
 
 					}
 
@@ -333,12 +334,18 @@ public final class PowerManager implements JsonResourceReloader {
 		DEPENDENCIES.add(id);
 	}
 
-	public static List<PowerEntry<?>> getEntriesFromTagOrEmpty(TagKey<Power> tag) {
-		return TAGS.getOrDefault(tag.id(), new ObjectArrayList<>());
+	public static Set<Identifier> getTags() {
+		return TAGS.keySet();
 	}
 
-	public static List<PowerEntry<?>> getEntriesFromTagOrEmpty(Identifier tagId) {
-		return getEntriesFromTagOrEmpty(TagKey.of(NeoApoliRegistryKeys.POWER, tagId));
+	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(TagKey<Power> tag) {
+		return getEntriesFromTag(tag.id());
+	}
+
+	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(Identifier tagId) {
+		return Optional.ofNullable(TAGS.get(tagId))
+			.map(DataResult::success)
+			.orElseGet(() -> DataResult.error(() -> "Unknown power tag: " + tagId));
 	}
 
 	public static DataResult<PowerEntry<?>> getEntryAsResult(PowerReference reference) {

@@ -10,7 +10,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.command.argument.PowerReferenceArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.PowerArgumentType;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -73,7 +73,7 @@ public class PowerCommand {
 
 			var node = literal("grant")
 				.then(argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.then(argument("power", PowerArgumentType.powerOrTag())
 						.executes(GrantSubCommand::withDefaultSource)
 						.then(argument("source", IdentifierArgumentType.identifier())
 							.executes(GrantSubCommand::withSpecificSource))));
@@ -92,51 +92,104 @@ public class PowerCommand {
 
 		static int execute(CommandContext<ServerCommandSource> commandContext, Identifier source) throws CommandSyntaxException {
 
-			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets"));
-			List<Entity> processedTargets = new ObjectArrayList<>();
-
-			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power");
-
-			PowerEntry<?> entry = PowerManager.getEntry(reference);
-			Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.of(reference.toString()))));
-
-			Map<Identifier, Collection<PowerReference>> grantedPowers = Map.of(source, List.of(reference));
 			ServerCommandSource commandSource = commandContext.getSource();
 
-			for (Entity target : targets) {
+			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets"));
+			Map<Entity, Collection<PowerReference>> processedTargets = new Object2ObjectOpenHashMap<>();
+
+			PowerArgumentType.PowerArgument powerArgument = PowerArgumentType.getArgument(commandContext, "power");
+			List<PowerEntry<?>> entries = powerArgument.get(commandContext);
+
+			for (var target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				if (!powersComponent.grantPower(reference, source)) {
+				Collection<PowerReference> grantedPowers = new ObjectArrayList<>();
+
+				for (var entry : entries) {
+
+					PowerReference reference = entry.reference();
+
+					if (powersComponent.grantPower(reference, source)) {
+						grantedPowers.add(reference);
+					}
+
+				}
+
+				if (grantedPowers.isEmpty()) {
 					continue;
 				}
 
-				processedTargets.add(target);
-				PowersComponent.Synchronizer.GRANT.sync(target, grantedPowers);
+				processedTargets.put(target, grantedPowers);
+				PowersComponent.Synchronizer.GRANT.sync(target, Map.of(source, grantedPowers));
 
 			}
 
-			if (processedTargets.isEmpty()) {
+			switch (powerArgument) {
+				case PowerArgumentType.Power power -> {
 
-				if (targets.size() == 1) {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.single", targets.getFirst().getName(), powerName, source.toString()));
+					HoverEvent hoverEvent = new HoverEvent.ShowText(Text.of(power.reference().toString()));
+					Text powerName = entries.getFirst().name().copy().styled(style -> style.withHoverEvent(hoverEvent));
+
+					if (processedTargets.isEmpty()) {
+
+						if (targets.size() == 1) {
+							commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source.toString()));
+						}
+
+						else {
+							commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.single_power.fail.multiple_entities", targets.size(), powerName, source.toString()));
+						}
+
+					}
+
+					else {
+
+						if (processedTargets.size() == 1) {
+							commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.single_power.success.single_entity", processedTargets.keySet().iterator().next().getName(), powerName, source.toString()), true);
+						}
+
+						else {
+							commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.single_power.success.multiple_entities", processedTargets.size(), powerName, source.toString()), true);
+						}
+
+					}
+
 				}
+				case PowerArgumentType.Tag tag -> {
 
-				else {
-					commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.fail.multiple", targets.size(), powerName, source.toString()));
+					if (processedTargets.isEmpty()) {
+
+						if (targets.size() == 1) {
+							commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.multiple_powers.fail.single_entity", targets.getFirst().getName(), tag.id().toString(), source.toString()));
+						}
+
+						else {
+							commandSource.sendError(Text.translatable("commands.neo-apoli.power.grant.multiple_powers.fail.multiple_entities", targets.size(), tag.id().toString(), source.toString()));
+						}
+
+					}
+
+					else {
+
+						if (processedTargets.size() == 1) {
+							Map.Entry<Entity, Collection<PowerReference>> processedTarget = processedTargets.entrySet().iterator().next();
+							commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getValue().size(), tag.id().toString(), source.toString()), true);
+						}
+
+						else {
+
+							int grantedPowers = processedTargets.values()
+								.stream()
+								.mapToInt(Collection::size)
+								.sum();
+
+							commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), tag.id().toString(), grantedPowers, source.toString()), true);
+
+						}
+
+					}
+
 				}
-
-			}
-
-			else {
-
-				if (processedTargets.size() == 1) {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
-				}
-
-				else {
-					commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.grant.success.multiple", processedTargets.size(), powerName, source.toString()), true);
-				}
-
 			}
 
 			return processedTargets.size();
@@ -155,7 +208,7 @@ public class PowerCommand {
 						.executes(RevokeSubCommand::allFromDefaultSource)
 						.then(argument("source", IdentifierArgumentType.identifier())
 							.executes(RevokeSubCommand::allFromSpecificSource)))
-					.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.then(argument("power", PowerArgumentType.power())
 						.executes(RevokeSubCommand::oneFromDefaultSource)
 						.then(argument("source", IdentifierArgumentType.identifier())
 							.executes(RevokeSubCommand::oneFromSpecificSource))));
@@ -186,7 +239,7 @@ public class PowerCommand {
 			return execute(
 				commandContext,
 				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
-				PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power"),
+				PowerArgumentType.getPower(commandContext, "power"),
 				DEFAULT_SOURCE
 			);
 		}
@@ -195,12 +248,12 @@ public class PowerCommand {
 			return execute(
 				commandContext,
 				new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets")),
-				PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power"),
+				PowerArgumentType.getPower(commandContext, "power"),
 				IdentifierArgumentType.getIdentifier(commandContext, "source")
 			);
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets, @Nullable PowerReference powerReference, Identifier source) {
+		static int execute(CommandContext<ServerCommandSource> commandContext, List<Entity> targets, @Nullable PowerEntry<?> entry, Identifier source) {
 
 			ServerCommandSource commandSource = commandContext.getSource();
 			List<Entity> processedTargets = new ObjectArrayList<>();
@@ -212,10 +265,12 @@ public class PowerCommand {
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 				Map<Identifier, Collection<PowerReference>> revokedPowers = new Object2ObjectOpenHashMap<>();
 
-				if (powerReference != null) {
+				if (entry != null) {
 
-					if (powersComponent.revokePower(powerReference, source)) {
-						revokedPowers.put(source, List.of(powerReference));
+					PowerReference reference = entry.reference();
+
+					if (powersComponent.revokePower(reference, source)) {
+						revokedPowers.put(source, List.of(reference));
 					}
 
 				}
@@ -238,7 +293,12 @@ public class PowerCommand {
 					processedTargets.add(target);
 					PowersComponent.Synchronizer.REVOKE.sync(target, revokedPowers);
 
-					revokedPowersCount.addAndGet(revokedPowers.size());
+					int count = revokedPowers.values()
+						.stream()
+						.mapToInt(Collection::size)
+						.sum();
+
+					revokedPowersCount.addAndGet(count);
 
 				}
 
@@ -248,10 +308,10 @@ public class PowerCommand {
 
 				if (targets.size() == 1) {
 
-					if (powerReference != null) {
+					if (entry != null) {
 
-						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
-						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerReference reference = entry.reference();
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
 
 						commandSource.sendError(Text.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), powerName, source));
 
@@ -265,10 +325,10 @@ public class PowerCommand {
 
 				else {
 
-					if (powerReference != null) {
+					if (entry != null) {
 
-						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
-						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerReference reference = entry.reference();
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
 
 						commandSource.sendError(Text.stringifiedTranslatable("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), powerName, source.toString()));
 
@@ -286,10 +346,10 @@ public class PowerCommand {
 
 				if (processedTargets.size() == 1) {
 
-					if (powerReference != null) {
+					if (entry != null) {
 
-						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
-						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerReference reference = entry.reference();
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
 
 						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
 
@@ -303,10 +363,10 @@ public class PowerCommand {
 
 				else {
 
-					if (powerReference != null) {
+					if (entry != null) {
 
-						PowerEntry<?> entry = PowerManager.getEntry(powerReference);
-						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(powerReference.toString()))));
+						PowerReference reference = entry.reference();
+						Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
 
 						commandSource.sendFeedback(() -> Text.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), powerName, source.toString()), true);
 
@@ -332,7 +392,7 @@ public class PowerCommand {
 
 			var node = literal("remove")
 				.then(argument("targets", EntityArgumentType.entities())
-					.then(argument("power", PowerReferenceArgumentType.powerReference())
+					.then(argument("power", PowerArgumentType.power())
 						.executes(RemoveSubCommand::execute)));
 
 			return node.build();
@@ -344,11 +404,13 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgumentType.getEntities(commandContext, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(commandContext, "power");
+			PowerEntry<?> entry = PowerArgumentType.getPower(commandContext, "power");
+
+			PowerReference reference = entry.reference();
 			List<PowerReference> references = List.of(reference);
 
 			ServerCommandSource commandSource = commandContext.getSource();
-			Text powerName = PowerManager.getEntry(reference).name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(reference.toString()))));
+			Text powerName = entry.name().copy().styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(entry.toString()))));
 
 			for (Entity target : targets) {
 
@@ -449,7 +511,12 @@ public class PowerCommand {
 					PowersComponent.Synchronizer.REVOKE.sync(target, clearedPowers);
 				}
 
-				totalClearedPowers.addAndGet(clearedPowers.size());
+				int count = clearedPowers.values()
+					.stream()
+					.mapToInt(Collection::size)
+					.sum();
+
+				totalClearedPowers.addAndGet(count);
 
 			}
 
@@ -559,7 +626,7 @@ public class PowerCommand {
 		static CommandNode<ServerCommandSource> node() {
 
 			var node = literal("dump")
-				.then(argument("power", PowerReferenceArgumentType.powerReference())
+				.then(argument("power", PowerArgumentType.power())
 					.executes(DumpSubCommand::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(DumpSubCommand::withSpecificIndent)));
@@ -578,8 +645,8 @@ public class PowerCommand {
 
 		static int execute(CommandContext<ServerCommandSource> context, int indent) throws CommandSyntaxException {
 
-			PowerReference reference = PowerReferenceArgumentType.getExistingPowerReference(context, "power");
-			Power power = PowerManager.get(reference);
+			PowerEntry<?> entry = PowerArgumentType.getPower(context, "power");
+			Power power = entry.power();
 
 			ServerCommandSource commandSource = context.getSource();
 			RegistryOps<JsonElement> jsonOps = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
