@@ -17,7 +17,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -50,7 +50,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		.apply(instance, ModifyBlockUsePower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyBlockUsePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		Actions.PACKET_CODEC, ModifyBlockUsePower::getActions,
 		Conditions.PACKET_CODEC, ModifyBlockUsePower::getConditions,
 		BlockUsePhase.SET_PACKET_CODEC, ModifyBlockUsePower::getUsePhases,
@@ -109,12 +109,12 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 	public record Actions(Action action, ActionResult result) implements ContextAware {
 
 		public static final MapCodec<Actions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Action.BASE_CODEC.optionalFieldOf("action", new NothingItemAction()).forGetter(Actions::action),
+			Action.CODEC.optionalFieldOf("action", new NothingItemAction()).forGetter(Actions::action),
 			NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", ActionResult.SUCCESS).forGetter(Actions::result)
 		).apply(instance, Actions::new));
 
 		public static final PacketCodec<RegistryByteBuf, Actions> PACKET_CODEC = PacketCodec.tuple(
-			Action.BASE_PACKET_CODEC, Actions::action,
+			Action.PACKET_CODEC, Actions::action,
 			NeoApoliPacketCodecs.ACTION_RESULT, Actions::result,
 			Actions::new
 		);
@@ -146,8 +146,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		);
 
 		public boolean test(Context context) {
-			return context.optional(ContextParameters.DIRECTION).map(directions()::contains).orElse(false)
-				&& context.optional(ContextParameters.HAND).map(hands()::contains).orElse(false);
+			return context.optional(NeoApoliContextParameters.DIRECTION).map(directions()::contains).orElse(false)
+				&& context.optional(NeoApoliContextParameters.HAND).map(hands()::contains).orElse(false);
 		}
 
 	}
@@ -267,13 +267,13 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		StackReference stackReference = StackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack));
 
 		return instance.createHolderContextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.add(ContextParameters.DIRECTION, blockHitResult.getSide())
-			.add(ContextParameters.STACK_REFERENCE, stackReference)
-			.add(ContextParameters.ITEM_STACK, stackReference.get())
-			.add(ContextParameters.HAND, hand)
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+			.add(NeoApoliContextParameters.DIRECTION, blockHitResult.getSide())
+			.add(NeoApoliContextParameters.STACK_REFERENCE, stackReference)
+			.add(NeoApoliContextParameters.ITEM_STACK, stackReference.get())
+			.add(NeoApoliContextParameters.HAND, hand)
 			.build(world);
 
 	}

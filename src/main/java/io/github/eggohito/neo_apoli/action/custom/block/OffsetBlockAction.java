@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -52,7 +52,7 @@ public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implem
 		}
 
 		World world = context.getWorld();
-		BlockPos offsetBlockPos = BlockPos.ofFloored(context.required(ContextParameters.BLOCK_POS)
+		BlockPos offsetBlockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.BLOCK_POS)
 			.toCenterPos()
 			.add(offset));
 
@@ -61,9 +61,9 @@ public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implem
 		}
 
 		Context actionContext = ContextImpl.of(context, builder -> builder
-			.add(ContextParameters.BLOCK_POS, offsetBlockPos)
-			.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetBlockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
+			.add(NeoApoliContextParameters.BLOCK_POS, offsetBlockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(offsetBlockPos))
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
 
 		action().execute(actionContext.makeChild(".action"));
 
@@ -71,7 +71,7 @@ public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implem
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_POS);
+		return Set.of(NeoApoliContextParameters.BLOCK_POS);
 	}
 
 	@Override

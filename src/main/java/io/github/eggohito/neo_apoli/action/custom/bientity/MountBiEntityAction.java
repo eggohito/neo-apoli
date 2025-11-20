@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -41,8 +41,8 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 			return;
 		}
 
-		Entity actor = context.nullable(ContextParameters.ACTOR);
-		Entity target = context.nullable(ContextParameters.TARGET);
+		Entity actor = context.nullable(NeoApoliContextParameters.ACTOR);
+		Entity target = context.nullable(NeoApoliContextParameters.TARGET);
 
 		if (actor == null || target == null) {
 			return;

@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -22,7 +22,7 @@ public record IsReplaceableBlockCondition() implements BlockCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(ContextParameters.BLOCK_STATE)
+		return context.optional(NeoApoliContextParameters.BLOCK_STATE)
 			.map(AbstractBlock.AbstractBlockState::isReplaceable)
 			.orElse(false);
 	}

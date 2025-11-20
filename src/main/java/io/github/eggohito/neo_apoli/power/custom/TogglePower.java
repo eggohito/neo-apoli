@@ -29,15 +29,15 @@ import java.util.Optional;
 public class TogglePower extends Power implements KeyBound {
 
 	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.BASE_CODEC.optionalFieldOf("action", new NothingAction()).forGetter(TogglePower::getAction))
+		.and(Action.CODEC.optionalFieldOf("action", new NothingAction()).forGetter(TogglePower::getAction))
 		.and(KeyBindingReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
 		.apply(instance, TogglePower::new));
 
 	public static final PacketCodec<RegistryByteBuf, TogglePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Action.BASE_PACKET_CODEC, TogglePower::getAction,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Action.PACKET_CODEC, TogglePower::getAction,
 		KeyBindingReference.PACKET_CODEC, TogglePower::getKey,
 		BooleanProvider.PACKET_CODEC, TogglePower::getRetainState,
 		BooleanProvider.PACKET_CODEC, TogglePower::getActiveByDefault,

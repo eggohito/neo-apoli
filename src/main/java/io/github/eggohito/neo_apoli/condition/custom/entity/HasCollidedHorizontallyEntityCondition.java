@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -21,7 +21,7 @@ public record HasCollidedHorizontallyEntityCondition() implements EntityConditio
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(ContextParameters.THIS_ENTITY)
+		return context.optional(NeoApoliContextParameters.THIS_ENTITY)
 			.map(entity -> entity.horizontalCollision)
 			.orElse(false);
 	}

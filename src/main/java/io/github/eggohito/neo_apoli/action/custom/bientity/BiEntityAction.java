@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -24,7 +24,7 @@ public interface BiEntityAction extends Action {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return ContextTypes.BIENTITY.getAllowed();
+		return NeoApoliContextTypes.BIENTITY.getAllowed();
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.registry.Registry;
@@ -56,6 +57,8 @@ public class NeoApoliRegistries {
 	public static final Registry<ContainerType> CONTAINER_TYPE = create(NeoApoliRegistryKeys.CONTAINER_TYPE);
 	public static final Registry<ModifierType<?>> MODIFIER_TYPE = create(NeoApoliRegistryKeys.MODIFIER_TYPE);
 	public static final Registry<ColorType<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
+
+	public static final Registry<TypedContextParameter<?>> TYPED_CONTEXT_PARAMETER = create(NeoApoliRegistryKeys.TYPED_CONTEXT_PARAMETER);
 
 	private static <T> Registry<T> create(RegistryKey<Registry<T>> key) {
 		return FabricRegistryBuilder.createSimple(key).buildAndRegister();

@@ -16,7 +16,7 @@ import java.util.Optional;
 public class DummyPower extends Power {
 
 	public static final MapCodec<DummyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, DummyPower::new));
-	public static final PacketCodec<RegistryByteBuf, DummyPower> PACKET_CODEC = PacketCodec.tuple(PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition, DummyPower::new);
+	public static final PacketCodec<RegistryByteBuf, DummyPower> PACKET_CODEC = PacketCodec.tuple(PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition, DummyPower::new);
 
 	public DummyPower(Optional<Condition> activeCondition) {
 		super(activeCondition);

@@ -29,6 +29,8 @@ import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
@@ -122,6 +124,9 @@ public class NeoApoli implements ModInitializer {
 
 		PowerIntegrations.registerAll();
 		NeoApoliConfig.init();
+
+		NeoApoliContextParameters.init();
+		NeoApoliContextTypes.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);

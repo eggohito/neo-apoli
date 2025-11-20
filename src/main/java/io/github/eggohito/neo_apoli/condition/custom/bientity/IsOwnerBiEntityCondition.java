@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.Ownable;
 import net.minecraft.entity.Tameable;
@@ -27,8 +27,8 @@ public record IsOwnerBiEntityCondition() implements BiEntityCondition {
 	@Override
 	public boolean test(Context context) {
 
-		Entity actor = context.nullable(ContextParameters.ACTOR);
-		Entity target = context.nullable(ContextParameters.TARGET);
+		Entity actor = context.nullable(NeoApoliContextParameters.ACTOR);
+		Entity target = context.nullable(NeoApoliContextParameters.TARGET);
 
 		return actor != null
 			&& this.isOwnedBy(target, actor);

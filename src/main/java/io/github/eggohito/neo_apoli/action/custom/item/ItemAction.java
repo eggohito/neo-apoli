@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -38,7 +38,7 @@ public interface ItemAction extends Action {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.STACK_REFERENCE);
+		return Set.of(NeoApoliContextParameters.STACK_REFERENCE);
 	}
 
 	@Override

@@ -15,7 +15,7 @@ import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -64,7 +64,7 @@ public abstract class Power implements ContextAware {
 	public abstract Instance<?> createInstance(Entity holder);
 
 	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Optional<Condition>> addActiveConditionField(RecordCodecBuilder.Instance<P> instance) {
-		return instance.group(Condition.BASE_CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition));
+		return instance.group(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition));
 	}
 
 	/**
@@ -97,8 +97,8 @@ public abstract class Power implements ContextAware {
 		public final ContextImpl.Builder createHolderContextBuilder() {
 			return power.getType().contextBuilder()
 				.withReporter(this.createReporter())
-				.add(ContextParameters.THIS_ENTITY, holder)
-				.add(ContextParameters.ENTITY_POS, holder.getPos());
+				.add(NeoApoliContextParameters.THIS_ENTITY, holder)
+				.add(NeoApoliContextParameters.ENTITY_POS, holder.getPos());
 		}
 
 		public final Context createHolderContext() {

@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -30,7 +30,7 @@ public class ModifyModelColorSelfPower extends Power {
 		.apply(instance, ModifyModelColorSelfPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyModelColorSelfPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		Color.PACKET_CODEC, ModifyModelColorSelfPower::getColor,
 		ModifyModelColorSelfPower::new
 	);
@@ -66,7 +66,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 		public OptionalInt getColor(Context context) {
 
-			Entity viewer = context.nullable(ContextParameters.ACTOR);
+			Entity viewer = context.nullable(NeoApoliContextParameters.ACTOR);
 			Context colorContext = context.makeChild(".color");
 
 			if (viewer == null || Objects.equals(viewer, holder) || this.isActive(context)) {
@@ -83,10 +83,10 @@ public class ModifyModelColorSelfPower extends Power {
 
 	public static Context createContext(@NotNull Entity renderedEntity, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_MODEL_COLOR_SELF.contextBuilder()
-			.addNullable(ContextParameters.ACTOR, viewer)
-			.add(ContextParameters.TARGET, renderedEntity)
-			.add(ContextParameters.THIS_ENTITY, renderedEntity)
-			.add(ContextParameters.ENTITY_POS, renderedEntity.getPos())
+			.addNullable(NeoApoliContextParameters.ACTOR, viewer)
+			.add(NeoApoliContextParameters.TARGET, renderedEntity)
+			.add(NeoApoliContextParameters.THIS_ENTITY, renderedEntity)
+			.add(NeoApoliContextParameters.ENTITY_POS, renderedEntity.getPos())
 			.build(renderedEntity.getWorld());
 	}
 

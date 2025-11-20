@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -38,8 +38,8 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 			return;
 		}
 
-		Entity entity = context.required(ContextParameters.THIS_ENTITY);
-		Vec3d pos = context.required(ContextParameters.ENTITY_POS);
+		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		Vec3d pos = context.required(NeoApoliContextParameters.ENTITY_POS);
 
 		context.getWorld().emitGameEvent(entity, gameEvent(), pos);
 

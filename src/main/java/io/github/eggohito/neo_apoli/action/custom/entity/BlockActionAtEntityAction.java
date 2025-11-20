@@ -33,18 +33,18 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasParameter(ContextParameters.ENTITY_POS)) {
+		if (!context.hasParameter(NeoApoliContextParameters.ENTITY_POS)) {
 			return;
 		}
 
 		World world = context.getWorld();
-		BlockPos blockPos = BlockPos.ofFloored(context.required(ContextParameters.ENTITY_POS));
+		BlockPos blockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.ENTITY_POS));
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
-			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 		blockAction().execute(blockContext.makeChild(".block_action"));
 
@@ -52,14 +52,14 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ENTITY_POS);
+		return Set.of(NeoApoliContextParameters.ENTITY_POS);
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 		EntityAction.super.validate(reporter);
 		blockAction().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".block_action"));
 	}
 

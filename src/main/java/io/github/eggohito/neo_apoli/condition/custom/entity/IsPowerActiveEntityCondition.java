@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -41,7 +41,7 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 
 			if (context.markActive(this)) {
 
-				Entity entity = context.required(ContextParameters.THIS_ENTITY);
+				Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 				return powersComponent.hasInstance(this.power())

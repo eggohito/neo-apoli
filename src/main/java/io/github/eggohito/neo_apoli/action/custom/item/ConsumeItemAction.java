@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -37,7 +37,7 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 		int amount = Math.abs(amount().nextInt(amountContext));
 
 		if (!amountContext.hasErrors()) {
-			context.required(ContextParameters.STACK_REFERENCE).get().decrement(amount);
+			context.required(NeoApoliContextParameters.STACK_REFERENCE).get().decrement(amount);
 		}
 
 	}

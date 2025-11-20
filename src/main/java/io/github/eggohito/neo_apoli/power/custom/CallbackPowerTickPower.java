@@ -25,17 +25,17 @@ import java.util.Optional;
 public class CallbackPowerTickPower extends Power {
 
 	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.BASE_CODEC.optionalFieldOf("tick_action", new NothingAction()).forGetter(CallbackPowerTickPower::getTickAction))
-		.and(Action.BASE_CODEC.optionalFieldOf("rising_action", new NothingAction()).forGetter(CallbackPowerTickPower::getRisingAction))
-		.and(Action.BASE_CODEC.optionalFieldOf("falling_action", new NothingAction()).forGetter(CallbackPowerTickPower::getFallingAction))
+		.and(Action.CODEC.optionalFieldOf("tick_action", new NothingAction()).forGetter(CallbackPowerTickPower::getTickAction))
+		.and(Action.CODEC.optionalFieldOf("rising_action", new NothingAction()).forGetter(CallbackPowerTickPower::getRisingAction))
+		.and(Action.CODEC.optionalFieldOf("falling_action", new NothingAction()).forGetter(CallbackPowerTickPower::getFallingAction))
 		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getTickAction,
-		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getRisingAction,
-		Action.BASE_PACKET_CODEC, CallbackPowerTickPower::getFallingAction,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Action.PACKET_CODEC, CallbackPowerTickPower::getTickAction,
+		Action.PACKET_CODEC, CallbackPowerTickPower::getRisingAction,
+		Action.PACKET_CODEC, CallbackPowerTickPower::getFallingAction,
 		NumberProvider.PACKET_CODEC, CallbackPowerTickPower::getInterval,
 		CallbackPowerTickPower::new
 	);

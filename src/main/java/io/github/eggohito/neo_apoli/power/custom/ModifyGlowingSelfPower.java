@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -32,7 +32,7 @@ public class ModifyGlowingSelfPower extends Power {
 		.apply(instance, ModifyGlowingSelfPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyGlowingSelfPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		BooleanProvider.PACKET_CODEC, ModifyGlowingSelfPower::getUseTeamColors,
 		Color.PACKET_CODEC, ModifyGlowingSelfPower::getColor,
 		ModifyGlowingSelfPower::new
@@ -85,10 +85,10 @@ public class ModifyGlowingSelfPower extends Power {
 
 	public static Context createContext(@Nullable Entity actor, Entity target) {
 		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
-			.addNullable(ContextParameters.ACTOR, actor)
-			.add(ContextParameters.TARGET, target)
-			.add(ContextParameters.THIS_ENTITY, target)
-			.add(ContextParameters.ENTITY_POS, target.getPos())
+			.addNullable(NeoApoliContextParameters.ACTOR, actor)
+			.add(NeoApoliContextParameters.TARGET, target)
+			.add(NeoApoliContextParameters.THIS_ENTITY, target)
+			.add(NeoApoliContextParameters.ENTITY_POS, target.getPos())
 			.build(target.getWorld());
 	}
 

@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -22,8 +22,8 @@ public record HasBlockEntityBlockCondition() implements BlockCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.hasParameter(ContextParameters.BLOCK_ENTITY)
-			|| context.optional(ContextParameters.BLOCK_STATE).map(BlockState::hasBlockEntity).orElse(false);
+		return context.hasParameter(NeoApoliContextParameters.BLOCK_ENTITY)
+			|| context.optional(NeoApoliContextParameters.BLOCK_STATE).map(BlockState::hasBlockEntity).orElse(false);
 	}
 
 }

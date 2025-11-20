@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -37,7 +37,7 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 		int ticks = ticks().nextInt(ticksContext);
 
 		if (!ticksContext.hasErrors() && ticks > 0) {
-			context.required(ContextParameters.THIS_ENTITY).setOnFireForTicks(ticks);
+			context.required(NeoApoliContextParameters.THIS_ENTITY).setOnFireForTicks(ticks);
 		}
 
 	}

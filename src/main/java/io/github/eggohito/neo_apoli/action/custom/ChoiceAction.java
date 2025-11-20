@@ -15,8 +15,8 @@ import java.util.List;
 
 public record ChoiceAction(List<Case<Condition, Action>> cases, Action defaultAction) implements ChoiceMetaAction<Condition, Action> {
 
-	public static final MapCodec<ChoiceAction> CODEC = MapCodecUtil.lazy(ChoiceAction.class.getSimpleName(), () -> ChoiceMetaAction.codec(Condition.BASE_CODEC, Action.BASE_CODEC, ChoiceAction::new));
-	public static final PacketCodec<RegistryByteBuf, ChoiceAction> PACKET_CODEC = PacketCodecUtil.lazy(ChoiceAction.class.getSimpleName(), () -> ChoiceMetaAction.packetCodec(Condition.BASE_PACKET_CODEC, Action.BASE_PACKET_CODEC, ChoiceAction::new));
+	public static final MapCodec<ChoiceAction> CODEC = MapCodecUtil.lazy(ChoiceAction.class.getSimpleName(), () -> ChoiceMetaAction.codec(Condition.CODEC, Action.CODEC, ChoiceAction::new));
+	public static final PacketCodec<RegistryByteBuf, ChoiceAction> PACKET_CODEC = PacketCodecUtil.lazy(ChoiceAction.class.getSimpleName(), () -> ChoiceMetaAction.packetCodec(Condition.PACKET_CODEC, Action.PACKET_CODEC, ChoiceAction::new));
 
 	@Override
 	public ActionType<?> getType() {

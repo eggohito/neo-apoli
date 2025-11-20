@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -40,7 +40,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	@Override
 	public boolean test(Context context) {
 
-		if (!context.hasParameter(ContextParameters.BLOCK_STATE)) {
+		if (!context.hasParameter(NeoApoliContextParameters.BLOCK_STATE)) {
 			return false;
 		}
 
@@ -51,7 +51,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 			return false;
 		}
 
-		BlockState blockState = context.required(ContextParameters.BLOCK_STATE);
+		BlockState blockState = context.required(NeoApoliContextParameters.BLOCK_STATE);
 		Property<?> property = blockState.getBlock().getStateManager().getProperty(propertyName);
 
 		if (property == null) {
@@ -65,7 +65,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_STATE);
+		return Set.of(NeoApoliContextParameters.BLOCK_STATE);
 	}
 
 	@Override

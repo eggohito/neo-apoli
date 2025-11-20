@@ -14,7 +14,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -34,14 +34,14 @@ import java.util.Optional;
 public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
 
 	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.BASE_CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
+		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
 		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::getOnlyWhenHarvested))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
 		.apply(instance, CallbackBlockBreakPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, CallbackBlockBreakPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Action.BASE_PACKET_CODEC, CallbackBlockBreakPower::getOnBreakAction,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Action.PACKET_CODEC, CallbackBlockBreakPower::getOnBreakAction,
 		BooleanProvider.PACKET_CODEC, CallbackBlockBreakPower::getOnlyWhenHarvested,
 		PacketCodecs.INTEGER, CallbackBlockBreakPower::getPriority,
 		CallbackBlockBreakPower::new
@@ -112,12 +112,12 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
 		return PowerTypes.CALLBACK_BLOCK_BREAK.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, blockState)
-			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-			.addNullable(ContextParameters.DIRECTION, direction)
-			.add(ContextParameters.THIS_ENTITY, player)
-			.add(ContextParameters.ENTITY_POS, player.getPos())
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
+			.addNullable(NeoApoliContextParameters.DIRECTION, direction)
+			.add(NeoApoliContextParameters.THIS_ENTITY, player)
+			.add(NeoApoliContextParameters.ENTITY_POS, player.getPos())
 			.build(player.getWorld());
 	}
 

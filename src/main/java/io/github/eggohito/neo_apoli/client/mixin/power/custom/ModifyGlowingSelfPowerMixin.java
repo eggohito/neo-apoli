@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -49,7 +49,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
 			boolean result = original
-				|| PowersComponent.hasInstances(context.required(ContextParameters.TARGET), ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context));
+				|| PowersComponent.hasInstances(context.required(NeoApoliContextParameters.TARGET), ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context));
 
 			this.neo_apoli$glowingContext.clear();
 			return result;

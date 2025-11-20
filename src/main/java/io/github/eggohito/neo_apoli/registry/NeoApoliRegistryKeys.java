@@ -35,6 +35,7 @@ import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -82,6 +83,8 @@ public class NeoApoliRegistryKeys {
 	public static final RegistryKey<Registry<ContainerType>> CONTAINER_TYPE = create("container_type");
 	public static final RegistryKey<Registry<ModifierType<?>>> MODIFIER_TYPE = create("modifier_type");
 	public static final RegistryKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
+
+	public static final RegistryKey<Registry<TypedContextParameter<?>>> TYPED_CONTEXT_PARAMETER = create("typed_context_parameter");
 
 	private static <T> RegistryKey<Registry<T>> create(String path) {
 		return RegistryKey.ofRegistry(NeoApoli.id(path));

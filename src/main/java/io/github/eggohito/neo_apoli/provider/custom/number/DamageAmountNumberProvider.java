@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -25,12 +25,12 @@ public record DamageAmountNumberProvider() implements NumberProvider {
 
 	@Override
 	public @NotNull Number next(Context context) {
-		return context.optional(ContextParameters.DAMAGE_AMOUNT).orElse(0.0f);
+		return context.optional(NeoApoliContextParameters.DAMAGE_AMOUNT).orElse(0.0f);
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.DAMAGE_AMOUNT);
+		return Set.of(NeoApoliContextParameters.DAMAGE_AMOUNT);
 	}
 
 }

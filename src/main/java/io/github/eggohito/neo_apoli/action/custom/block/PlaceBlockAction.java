@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
@@ -50,7 +50,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 		}
 
 		ServerWorld world = context.getWorld();
-		BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
+		BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
 
 		int flags = Block.NOTIFY_LISTENERS | mode().flag;
 
@@ -67,7 +67,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 			case DEFAULT -> {
 
 				placeBlock = world.isAir(blockPos);
-				Direction direction = context.nullable(ContextParameters.DIRECTION);
+				Direction direction = context.nullable(NeoApoliContextParameters.DIRECTION);
 
 				if (!placeBlock && direction != null) {
 
@@ -89,7 +89,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_POS);
+		return Set.of(NeoApoliContextParameters.BLOCK_POS);
 	}
 
 	public enum Mode implements StringIdentifiable {

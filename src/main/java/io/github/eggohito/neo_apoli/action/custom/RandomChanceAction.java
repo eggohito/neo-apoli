@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public record RandomChanceAction(Action successAction, Optional<Action> failAction, NumberProvider chance) implements RandomChanceMetaAction<Action> {
 
-	public static final MapCodec<RandomChanceAction> CODEC = MapCodecUtil.lazy(RandomChanceAction.class.getSimpleName(), () -> RandomChanceMetaAction.codec(Action.BASE_CODEC, RandomChanceAction::new));
-	public static final PacketCodec<RegistryByteBuf, RandomChanceAction> PACKET_CODEC = PacketCodecUtil.lazy(RandomChanceAction.class.getSimpleName(), () -> RandomChanceMetaAction.packetCodec(Action.BASE_PACKET_CODEC, RandomChanceAction::new));
+	public static final MapCodec<RandomChanceAction> CODEC = MapCodecUtil.lazy(RandomChanceAction.class.getSimpleName(), () -> RandomChanceMetaAction.codec(Action.CODEC, RandomChanceAction::new));
+	public static final PacketCodec<RegistryByteBuf, RandomChanceAction> PACKET_CODEC = PacketCodecUtil.lazy(RandomChanceAction.class.getSimpleName(), () -> RandomChanceMetaAction.packetCodec(Action.PACKET_CODEC, RandomChanceAction::new));
 
 	@Override
 	public ActionType<?> getType() {

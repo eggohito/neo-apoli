@@ -14,9 +14,9 @@ import net.minecraft.network.codec.PacketCodec;
 
 public interface Condition extends ContextAware, StringDisplayable {
 
-	Codec<Condition> BASE_CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(ConditionType.CODEC.dispatch(Condition::getType, ConditionType::mapCodec), ConstantCondition.INLINE_CODEC));
+	Codec<Condition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(ConditionType.CODEC.dispatch(Condition::getType, ConditionType::mapCodec), ConstantCondition.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, Condition> BASE_PACKET_CODEC = ConditionType.PACKET_CODEC.dispatch(Condition::getType, ConditionType::packetCodec);
+	PacketCodec<RegistryByteBuf, Condition> PACKET_CODEC = ConditionType.PACKET_CODEC.dispatch(Condition::getType, ConditionType::packetCodec);
 
 	@Override
 	default String asDisplayString() {

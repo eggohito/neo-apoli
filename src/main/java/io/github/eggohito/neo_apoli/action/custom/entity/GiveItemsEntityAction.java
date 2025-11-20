@@ -44,7 +44,7 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	public void execute(Context context) {
 
 		World world = context.getWorld();
-		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
 
 		if (!(world instanceof ServerWorld serverWorld) || entity == null) {
 			return;
@@ -55,9 +55,9 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 
 			StackReference stackReference = InventoryUtil.createStackReference(indexedStack.stack());
 			ServerContext itemContext = new ServerContext.Builder(context)
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
-				.add(ContextParameters.STACK_REFERENCE, stackReference)
-				.add(ContextParameters.ITEM_STACK, stackReference.get())
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.ITEM))
+				.add(NeoApoliContextParameters.STACK_REFERENCE, stackReference)
+				.add(NeoApoliContextParameters.ITEM_STACK, stackReference.get())
 				.build(serverWorld);
 
 			itemAction().execute(itemContext.makeChild(".item_action"));
@@ -105,7 +105,7 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	public void validate(ErrorReporter reporter) {
 		EntityAction.super.validate(reporter);
 		itemAction().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ITEM))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ITEM))
 			.makeChild(".item_action"));
 	}
 

@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
@@ -48,7 +48,7 @@ public class ModifyEntityTypeTagPower extends Power {
 		.apply(instance, ModifyEntityTypeTagPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyEntityTypeTagPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		TagKey.packetCodec(RegistryKeys.ENTITY_TYPE), ModifyEntityTypeTagPower::getTag,
 		ModifyEntityTypeTagPower::new
 	);
@@ -142,14 +142,14 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	public static Context createContext(@NotNull Entity entity) {
 		return PowerTypes.MODIFY_ENTITY_TYPE_TAG.contextBuilder()
-			.add(ContextParameters.THIS_ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
 			.build(entity.getWorld());
 	}
 
 	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
 
-		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
 
 		for (var instance : instances) {

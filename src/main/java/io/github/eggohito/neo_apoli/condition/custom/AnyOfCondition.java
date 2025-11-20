@@ -14,9 +14,9 @@ import java.util.List;
 
 public record AnyOfCondition(List<Condition> conditions) implements AnyOfMetaCondition<Condition> {
 
-	public static final MapCodec<AnyOfCondition> CODEC = MapCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.codec(Condition.BASE_CODEC, AnyOfCondition::new));
+	public static final MapCodec<AnyOfCondition> CODEC = MapCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.codec(Condition.CODEC, AnyOfCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, AnyOfCondition> PACKET_CODEC = PacketCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.packetCodec(Condition.BASE_PACKET_CODEC, AnyOfCondition::new));
+	public static final PacketCodec<RegistryByteBuf, AnyOfCondition> PACKET_CODEC = PacketCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.packetCodec(Condition.PACKET_CODEC, AnyOfCondition::new));
 
 	@Override
 	public ConditionType<?> getType() {

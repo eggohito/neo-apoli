@@ -93,14 +93,14 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 
 		public static <P extends ValueProvider<?>> Codec<Case<P>> codec(Codec<P> codec) {
 			return RecordCodecBuilder.create(instance -> instance.group(
-				Condition.BASE_CODEC.fieldOf("condition").forGetter(Case::condition),
+				Condition.CODEC.fieldOf("condition").forGetter(Case::condition),
 				codec.fieldOf("value").forGetter(Case::value)
 			).apply(instance, Case::new));
 		}
 
 		public static <P extends ValueProvider<?>> PacketCodec<RegistryByteBuf, Case<P>> packetCodec(PacketCodec<RegistryByteBuf, P> codec) {
 			return PacketCodec.tuple(
-				Condition.BASE_PACKET_CODEC, Case::condition,
+				Condition.PACKET_CODEC, Case::condition,
 				codec, Case::value,
 				Case::new
 			);

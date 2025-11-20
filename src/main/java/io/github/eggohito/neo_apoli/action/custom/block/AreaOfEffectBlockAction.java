@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockConditio
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -45,7 +45,7 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	public void serverExecute(ServerContext context) {
 
 		ServerWorld world = context.getWorld();
-		BlockPos originBlockPos = context.nullable(ContextParameters.BLOCK_POS);
+		BlockPos originBlockPos = context.nullable(NeoApoliContextParameters.BLOCK_POS);
 
 		if (originBlockPos == null) {
 			return;
@@ -65,9 +65,9 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 			}
 
 			ServerContext blockContext = new ServerContext.Builder(context)
-				.add(ContextParameters.BLOCK_POS, blockPos)
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+				.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 				.build(world);
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
@@ -80,7 +80,7 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_POS);
+		return Set.of(NeoApoliContextParameters.BLOCK_POS);
 	}
 
 	@Override

@@ -119,7 +119,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		LOGGER.info("Parsing conditions from data packs...");
 		CONDITIONS.clear();
 
-		prepared.forEach((id, entry) -> Condition.BASE_CODEC.parse(ops, entry.element())
+		prepared.forEach((id, entry) -> Condition.CODEC.parse(ops, entry.element())
 			.ifSuccess(condition -> CONDITIONS.put(id, condition))
 			.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
 
@@ -215,7 +215,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	public static ValueSuppliedElementCodec<Condition> createEntryCodec(boolean allowInlineDefinitions) {
-		return new ValueSuppliedElementCodec<>(Condition.BASE_CODEC, allowInlineDefinitions, ConditionManager::getAsResult, ConditionManager::getIdAsResult);
+		return new ValueSuppliedElementCodec<>(Condition.CODEC, allowInlineDefinitions, ConditionManager::getAsResult, ConditionManager::getIdAsResult);
 	}
 
 	public static void init() {

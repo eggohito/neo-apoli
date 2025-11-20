@@ -17,7 +17,7 @@ import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -44,7 +44,7 @@ import java.util.function.Supplier;
 public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemUsePower> {
 
 	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.BASE_CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
+		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
 		.and(NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", ActionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
 		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(Hand.class)).forGetter(ModifyItemUsePower::getHands))
 		.and(TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::getTriggerType))
@@ -52,8 +52,8 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 		.apply(instance, ModifyItemUsePower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyItemUsePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Action.BASE_PACKET_CODEC, ModifyItemUsePower::getOnUseAction,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Action.PACKET_CODEC, ModifyItemUsePower::getOnUseAction,
 		NeoApoliPacketCodecs.ACTION_RESULT, ModifyItemUsePower::getResult,
 		NeoApoliPacketCodecs.HAND_SET, ModifyItemUsePower::getHands,
 		TriggerType.PACKET_CODEC, ModifyItemUsePower::getTriggerType,
@@ -228,11 +228,11 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	public static Context createContext(LivingEntity user, Hand hand, StackReference stackReference) {
 		return PowerTypes.MODIFY_ITEM_USE.contextBuilder()
-			.add(ContextParameters.HAND, hand)
-			.add(ContextParameters.THIS_ENTITY, user)
-			.add(ContextParameters.ENTITY_POS, user.getPos())
-			.add(ContextParameters.STACK_REFERENCE, stackReference)
-			.add(ContextParameters.ITEM_STACK, stackReference.get())
+			.add(NeoApoliContextParameters.HAND, hand)
+			.add(NeoApoliContextParameters.THIS_ENTITY, user)
+			.add(NeoApoliContextParameters.ENTITY_POS, user.getPos())
+			.add(NeoApoliContextParameters.STACK_REFERENCE, stackReference)
+			.add(NeoApoliContextParameters.ITEM_STACK, stackReference.get())
 			.build(user.getWorld());
 	}
 

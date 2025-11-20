@@ -31,14 +31,14 @@ public abstract class SimpleCallbackPower extends Power {
 
 	protected static <P extends SimpleCallbackPower> MapCodec<P> createSimpleCallbackCodec(BiFunction<Optional<Condition>, Action, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-			.and(Action.BASE_CODEC.fieldOf("action").forGetter(SimpleCallbackPower::getAction))
+			.and(Action.CODEC.fieldOf("action").forGetter(SimpleCallbackPower::getAction))
 			.apply(instance, constructor));
 	}
 
 	protected static <P extends SimpleCallbackPower> PacketCodec<RegistryByteBuf, P> createSimpleCallbackPacketCodec(BiFunction<Optional<Condition>, Action, P> constructor) {
 		return PacketCodec.tuple(
-			PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-			Action.BASE_PACKET_CODEC, SimpleCallbackPower::getAction,
+			PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+			Action.PACKET_CODEC, SimpleCallbackPower::getAction,
 			constructor
 		);
 	}

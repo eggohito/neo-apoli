@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -24,7 +24,7 @@ public interface DamageCondition extends Condition {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return ContextTypes.DAMAGE.getRequired();
+		return NeoApoliContextTypes.DAMAGE.getRequired();
 	}
 
 	@Override

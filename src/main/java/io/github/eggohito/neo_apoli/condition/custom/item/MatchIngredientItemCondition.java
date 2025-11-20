@@ -5,8 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
-import lombok.Data;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
@@ -29,7 +28,7 @@ public record MatchIngredientItemCondition(Ingredient ingredient) implements Ite
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(ContextParameters.ITEM_STACK)
+		return context.optional(NeoApoliContextParameters.ITEM_STACK)
 			.stream()
 			.anyMatch(ingredient());
 	}

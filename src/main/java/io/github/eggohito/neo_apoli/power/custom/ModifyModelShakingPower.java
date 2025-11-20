@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ModifyModelShakingPower extends Power {
 
 	public static final MapCodec<ModifyModelShakingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyModelShakingPower::new));
-	public static final PacketCodec<RegistryByteBuf, ModifyModelShakingPower> PACKET_CODEC = PacketCodec.tuple(PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition, ModifyModelShakingPower::new);
+	public static final PacketCodec<RegistryByteBuf, ModifyModelShakingPower> PACKET_CODEC = PacketCodec.tuple(PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition, ModifyModelShakingPower::new);
 
 	public ModifyModelShakingPower(Optional<Condition> activeCondition) {
 		super(activeCondition);

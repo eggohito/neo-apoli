@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public record ConditionalAction(Condition condition, Action ifAction, Optional<Action> elseAction) implements ConditionalMetaAction<Condition, Action> {
 
-	public static final MapCodec<ConditionalAction> CODEC = MapCodecUtil.lazy(ConditionalAction.class.getSimpleName(), () -> ConditionalMetaAction.codec(Condition.BASE_CODEC, Action.BASE_CODEC, ConditionalAction::new));
-	public static final PacketCodec<RegistryByteBuf, ConditionalAction> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalAction.class.getSimpleName(), () -> ConditionalMetaAction.packetCodec(Condition.BASE_PACKET_CODEC, Action.BASE_PACKET_CODEC, ConditionalAction::new));
+	public static final MapCodec<ConditionalAction> CODEC = MapCodecUtil.lazy(ConditionalAction.class.getSimpleName(), () -> ConditionalMetaAction.codec(Condition.CODEC, Action.CODEC, ConditionalAction::new));
+	public static final PacketCodec<RegistryByteBuf, ConditionalAction> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalAction.class.getSimpleName(), () -> ConditionalMetaAction.packetCodec(Condition.PACKET_CODEC, Action.PACKET_CODEC, ConditionalAction::new));
 
 	@Override
 	public ActionType<?> getType() {

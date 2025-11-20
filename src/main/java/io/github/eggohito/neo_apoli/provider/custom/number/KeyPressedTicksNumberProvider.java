@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -49,7 +49,7 @@ public record KeyPressedTicksNumberProvider(StringProvider id) implements Number
 		}
 
 		World world = context.getWorld();
-		UUID uuid = context.required(ContextParameters.THIS_ENTITY).getUuid();
+		UUID uuid = context.required(NeoApoliContextParameters.THIS_ENTITY).getUuid();
 
 		return KeyBindingStateHolder.getState(uuid, id)
 			.filter(KeyBindingState::pressed)
@@ -61,7 +61,7 @@ public record KeyPressedTicksNumberProvider(StringProvider id) implements Number
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY);
+		return Set.of(NeoApoliContextParameters.THIS_ENTITY);
 	}
 
 	@Override

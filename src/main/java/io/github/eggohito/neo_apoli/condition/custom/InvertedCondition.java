@@ -12,9 +12,9 @@ import net.minecraft.network.codec.PacketCodec;
 
 public record InvertedCondition(Condition condition) implements InvertedMetaCondition<Condition> {
 
-	public static final MapCodec<InvertedCondition> CODEC = MapCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.codec(Condition.BASE_CODEC, InvertedCondition::new));
+	public static final MapCodec<InvertedCondition> CODEC = MapCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.codec(Condition.CODEC, InvertedCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, InvertedCondition> PACKET_CODEC = PacketCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.packetCodec(Condition.BASE_PACKET_CODEC, InvertedCondition::new));
+	public static final PacketCodec<RegistryByteBuf, InvertedCondition> PACKET_CODEC = PacketCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.packetCodec(Condition.PACKET_CODEC, InvertedCondition::new));
 
 	@Override
 	public ConditionType<?> getType() {

@@ -35,15 +35,15 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Attrib
 	@Override
 	public boolean test(Context context) {
 
-		if (!(context.nullable(ContextParameters.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
+		if (!(context.nullable(NeoApoliContextParameters.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
 			return false;
 		}
 
 		for (var equipmentSlot : EquipmentSlot.values()) {
 
 			Context itemContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ITEM))
-				.add(ContextParameters.ITEM_STACK, thisLiving.getEquippedStack(equipmentSlot)));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.ITEM))
+				.add(NeoApoliContextParameters.ITEM_STACK, thisLiving.getEquippedStack(equipmentSlot)));
 
 			if (itemCondition().test(itemContext.makeChild(".item_condition"))) {
 				return true;
@@ -59,7 +59,7 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Attrib
 	public void validate(ErrorReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		itemCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ITEM))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ITEM))
 			.makeChild(".item_condition"));
 	}
 

@@ -169,7 +169,7 @@ public final class ActionManager implements JsonResourceReloader {
 		LOGGER.info("Parsing actions from data packs...");
 		ACTIONS.clear();
 
-		prepared.forEach((id, entry) -> Action.BASE_CODEC.parse(ops, entry.element())
+		prepared.forEach((id, entry) -> Action.CODEC.parse(ops, entry.element())
 			.ifSuccess(action -> ACTIONS.put(id, action))
 			.ifError(error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
 
@@ -279,7 +279,7 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	public static ValueSuppliedElementCodec<Action> createEntryCodec(boolean allowInlineDefinitions) {
-		return new ValueSuppliedElementCodec<>(Action.BASE_CODEC, allowInlineDefinitions, ActionManager::getAsResult, ActionManager::getIdAsResult);
+		return new ValueSuppliedElementCodec<>(Action.CODEC, allowInlineDefinitions, ActionManager::getAsResult, ActionManager::getIdAsResult);
 	}
 
 	public static void init() {

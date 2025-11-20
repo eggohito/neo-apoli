@@ -45,7 +45,7 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 		}
 
 		World world = context.getWorld();
-		Entity actor = context.required(ContextParameters.THIS_ENTITY);
+		Entity actor = context.required(NeoApoliContextParameters.THIS_ENTITY);
 
 		Context radiusContext = context.makeChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
@@ -54,12 +54,12 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		for (var target : shape().getEntities(world, context.required(ContextParameters.ENTITY_POS), radius)) {
+		for (var target : shape().getEntities(world, context.required(NeoApoliContextParameters.ENTITY_POS), radius)) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
-				.add(ContextParameters.ACTOR, actor)
-				.add(ContextParameters.TARGET, target));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
+				.add(NeoApoliContextParameters.ACTOR, actor)
+				.add(NeoApoliContextParameters.TARGET, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				biEntityAction().execute(biEntityContext.makeChild(".bientity_action"));
@@ -73,7 +73,7 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	public void validate(ErrorReporter reporter) {
 
 		EntityAction.super.validate(reporter);
-		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BIENTITY));
+		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY));
 
 		biEntityAction().validate(biEntityReporter.makeChild(".bientity_action"));
 		biEntityCondition().validate(biEntityReporter.makeChild(".bientity_condition"));

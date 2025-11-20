@@ -52,10 +52,10 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 			}
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.BLOCK_POS, blockPos)
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+				.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -72,7 +72,7 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 
 		NumberProvider.super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 
 		box().validate(reporter.makeChild(".box"));

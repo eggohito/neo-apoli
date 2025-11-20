@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -24,7 +24,7 @@ public interface EntityAction extends Action {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY);
+		return Set.of(NeoApoliContextParameters.THIS_ENTITY);
 	}
 
 	@Override

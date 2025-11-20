@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.Codec;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -12,11 +12,11 @@ import net.minecraft.util.context.ContextParameter;
 //	TODO: Replace this with a type-specific codec dispatch and a registry for context parameters
 public enum EntityTarget implements StringIdentifiable {
 
-	THIS("this", ContextParameters.THIS_ENTITY),
-	ACTOR("actor", ContextParameters.ACTOR),
-	TARGET("target", ContextParameters.TARGET),
-	DAMAGING_ENTITY("damaging_entity", ContextParameters.DAMAGING_ENTITY),
-	DIRECT_DAMAGE_ENTITY_SOURCE("direct_damaging_entity", ContextParameters.DIRECT_DAMAGING_ENTITY);
+	THIS("this", NeoApoliContextParameters.THIS_ENTITY),
+	ACTOR("actor", NeoApoliContextParameters.ACTOR),
+	TARGET("target", NeoApoliContextParameters.TARGET),
+	DAMAGING_ENTITY("damaging_entity", NeoApoliContextParameters.DAMAGING_ENTITY),
+	DIRECT_DAMAGE_ENTITY_SOURCE("direct_damaging_entity", NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY);
 
 	public static final Codec<EntityTarget> CODEC = CodecUtil.enumType(EntityTarget.class);
 	public static final PacketCodec<ByteBuf, EntityTarget> PACKET_CODEC = PacketCodecUtil.enumType(EntityTarget.class);

@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -33,7 +33,7 @@ public record ItemNbtProvider() implements NbtProvider {
 	public @NotNull NbtElement next(Context context) {
 
 		RegistryOps<NbtElement> ops = context.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
-		Optional<ItemStack> optStack = context.optional(ContextParameters.ITEM_STACK);
+		Optional<ItemStack> optStack = context.optional(NeoApoliContextParameters.ITEM_STACK);
 
 		if (optStack.isEmpty()) {
 			context.getReporter().report("Couldn't encode and provide non-existent item stack as NBT!");
@@ -47,7 +47,7 @@ public record ItemNbtProvider() implements NbtProvider {
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ITEM_STACK);
+		return Set.of(NeoApoliContextParameters.ITEM_STACK);
 	}
 
 }

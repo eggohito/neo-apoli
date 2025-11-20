@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.block.Block;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -31,7 +31,7 @@ public record IsInTagBlockCondition(TagKey<Block> tag) implements BlockCondition
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(ContextParameters.BLOCK_STATE)
+		return context.optional(NeoApoliContextParameters.BLOCK_STATE)
 			.map(state -> state.isIn(this.tag()))
 			.orElse(false);
 	}

@@ -38,17 +38,17 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 		}
 
 		World world = context.getWorld();
-		BlockPos blockPos = BlockPos.ofFloored(context.required(ContextParameters.ENTITY_POS));
+		BlockPos blockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.ENTITY_POS));
 
 		if (!world.isChunkLoaded(blockPos)) {
 			return false;
 		}
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
-			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 		return condition().test(blockContext.makeChild(".block_condition"));
 
@@ -56,14 +56,14 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ENTITY_POS);
+		return Set.of(NeoApoliContextParameters.ENTITY_POS);
 	}
 
 	@Override
 	public void validate(ErrorReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		condition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 	}
 

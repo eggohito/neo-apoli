@@ -3,8 +3,6 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.*;
 import net.minecraft.entity.Entity;
@@ -13,7 +11,6 @@ import net.minecraft.network.codec.PacketCodec;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public interface TestEntityMetaCondition extends MetaCondition {
 
@@ -26,8 +23,8 @@ public interface TestEntityMetaCondition extends MetaCondition {
 
 		Optional<Entity> entity = context.optional(entity().getParameter());
 		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.addOptional(ContextParameters.THIS_ENTITY, entity)
-			.addOptional(ContextParameters.ENTITY_POS, entity.map(Entity::getPos)));
+			.addOptional(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.addOptional(NeoApoliContextParameters.ENTITY_POS, entity.map(Entity::getPos)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
@@ -36,7 +33,7 @@ public interface TestEntityMetaCondition extends MetaCondition {
 	@Override
 	default void validate(ErrorReporter reporter) {
 		condition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ENTITY))
 			.makeChild(".condition"));
 	}
 

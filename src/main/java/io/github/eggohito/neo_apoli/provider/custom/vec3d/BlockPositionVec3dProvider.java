@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -27,14 +27,14 @@ public record BlockPositionVec3dProvider() implements Vec3dProvider {
 
 	@Override
 	public @NotNull Vec3d next(Context context) {
-		return context.optional(ContextParameters.BLOCK_POS)
+		return context.optional(NeoApoliContextParameters.BLOCK_POS)
 			.map(BlockPos::toCenterPos)
 			.orElse(Vec3d.ZERO);
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_POS);
+		return Set.of(NeoApoliContextParameters.BLOCK_POS);
 	}
 
 }

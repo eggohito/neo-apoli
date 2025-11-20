@@ -31,7 +31,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 		.apply(instance, ModifyAttributeLegacyConditionalPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyAttributeLegacyConditionalPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		NeoApoliPacketCodecs.ATTRIBUTE_MODIFIERS, AttributeModifying::getModifiers,
 		BooleanProvider.PACKET_CODEC, AttributeModifying::getSendUpdate,
 		NumberProvider.PACKET_CODEC, ModifyAttributeLegacyConditionalPower::getTickRate,

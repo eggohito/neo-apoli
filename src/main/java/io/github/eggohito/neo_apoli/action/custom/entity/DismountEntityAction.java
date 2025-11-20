@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -22,7 +22,7 @@ public record DismountEntityAction() implements EntityAction {
 
 	@Override
 	public void execute(Context context) {
-		context.optional(ContextParameters.THIS_ENTITY).ifPresent(Entity::stopRiding);
+		context.optional(NeoApoliContextParameters.THIS_ENTITY).ifPresent(Entity::stopRiding);
 	}
 
 }

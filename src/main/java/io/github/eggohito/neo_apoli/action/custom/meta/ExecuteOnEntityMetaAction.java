@@ -25,9 +25,9 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 
 		Optional<Entity> entity = context.optional(entity().getParameter());
 		Context entityContext = ContextImpl.of(context, builder -> builder
-			.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.ENTITY))
-			.addOptional(ContextParameters.THIS_ENTITY, entity)
-			.addOptional(ContextParameters.ENTITY_POS, entity.map(Entity::getPos)));
+			.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.ENTITY))
+			.addOptional(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.addOptional(NeoApoliContextParameters.ENTITY_POS, entity.map(Entity::getPos)));
 
 		action().execute(entityContext.makeChild(".action"));
 
@@ -42,7 +42,7 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 	default void validate(ErrorReporter reporter) {
 		MetaAction.super.validate(reporter);
 		action().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ENTITY))
 			.makeChild(".action"));
 	}
 

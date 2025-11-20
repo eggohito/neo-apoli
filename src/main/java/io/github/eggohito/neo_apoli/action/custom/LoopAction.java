@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public record LoopAction(Optional<Action> beforeAction, Optional<Action> afterAction, NumberProvider iterations, Action action) implements LoopMetaAction<Action> {
 
-	public static final MapCodec<LoopAction> CODEC = MapCodecUtil.lazy(LoopAction.class.getSimpleName(), () -> LoopMetaAction.codec(Action.BASE_CODEC, LoopAction::new));
-	public static final PacketCodec<RegistryByteBuf, LoopAction> PACKET_CODEC = PacketCodecUtil.lazy(LoopAction.class.getSimpleName(), () -> LoopMetaAction.packetCodec(Action.BASE_PACKET_CODEC, LoopAction::new));
+	public static final MapCodec<LoopAction> CODEC = MapCodecUtil.lazy(LoopAction.class.getSimpleName(), () -> LoopMetaAction.codec(Action.CODEC, LoopAction::new));
+	public static final PacketCodec<RegistryByteBuf, LoopAction> PACKET_CODEC = PacketCodecUtil.lazy(LoopAction.class.getSimpleName(), () -> LoopMetaAction.packetCodec(Action.PACKET_CODEC, LoopAction::new));
 
 	@Override
 	public ActionType<?> getType() {

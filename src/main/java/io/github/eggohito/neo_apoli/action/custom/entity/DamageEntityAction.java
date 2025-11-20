@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
@@ -38,7 +38,7 @@ public record DamageEntityAction(RegistryEntry<DamageType> damageType, NumberPro
 	public void execute(Context context) {
 
 		World world = context.getWorld();
-		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
 
 		if (!(world instanceof ServerWorld serverWorld) || entity == null) {
 			return;

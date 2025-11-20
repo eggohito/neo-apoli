@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -24,7 +24,7 @@ public interface ItemCondition extends Condition {
 
 	@Override
 	default Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ITEM_STACK);
+		return Set.of(NeoApoliContextParameters.ITEM_STACK);
 	}
 
 	@Override

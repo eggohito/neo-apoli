@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -52,7 +52,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			return false;
 		}
 
-		UUID uuid = context.required(ContextParameters.THIS_ENTITY).getUuid();
+		UUID uuid = context.required(NeoApoliContextParameters.THIS_ENTITY).getUuid();
 		ListIterator<StringProvider> iterator = ids().listIterator();
 
 		long previousPressedTime = Long.MIN_VALUE;

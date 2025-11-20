@@ -14,8 +14,8 @@ import java.util.List;
 
 public record SequenceAction(List<Action> actions) implements SequenceMetaAction<Action> {
 
-	public static final MapCodec<SequenceAction> CODEC = MapCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.codec(Action.BASE_CODEC, SequenceAction::new));
-	public static final PacketCodec<RegistryByteBuf, SequenceAction> PACKET_CODEC = PacketCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(Action.BASE_PACKET_CODEC, SequenceAction::new));
+	public static final MapCodec<SequenceAction> CODEC = MapCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.codec(Action.CODEC, SequenceAction::new));
+	public static final PacketCodec<RegistryByteBuf, SequenceAction> PACKET_CODEC = PacketCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(Action.PACKET_CODEC, SequenceAction::new));
 
 	@Override
 	public ActionType<?> getType() {

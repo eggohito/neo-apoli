@@ -112,10 +112,10 @@ public interface ExplodeMetaAction extends MetaAction {
 		MetaAction.super.validate(reporter);
 
 		damageableBiEntityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BIENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY))
 			.makeChild(".damageable_bientity_condition"));
 		destructibleBlockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".destructible_block_condition"));
 
 		property().validate(reporter);
@@ -132,10 +132,10 @@ public interface ExplodeMetaAction extends MetaAction {
 		public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power) {
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.BLOCK_POS, pos)
-				.add(ContextParameters.BLOCK_STATE, state)
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+				.add(NeoApoliContextParameters.BLOCK_POS, pos)
+				.add(NeoApoliContextParameters.BLOCK_STATE, state)
+				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
 
 			return action.destructibleBlockCondition().test(blockContext.makeChild(".destructible_block_condition"));
 
@@ -145,9 +145,9 @@ public interface ExplodeMetaAction extends MetaAction {
 		public boolean shouldDamage(Explosion explosion, Entity entity) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
-				.addNullable(ContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
-				.addNullable(ContextParameters.TARGET, entity));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
+				.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextParameters.TARGET, entity));
 
 			return action.damageableBiEntityCondition().test(biEntityContext.makeChild(".damageable_bientity_condition"));
 
@@ -157,9 +157,9 @@ public interface ExplodeMetaAction extends MetaAction {
 		public float getKnockbackModifier(Entity entity) {
 
 			Context knockbackModifierContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
-				.addNullable(ContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
-				.addNullable(ContextParameters.TARGET, entity));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
+				.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextParameters.TARGET, entity));
 
 			return action.property().knockbackMultiplier().nextFloat(knockbackModifierContext.makeChild(".knockback_multiplier"));
 

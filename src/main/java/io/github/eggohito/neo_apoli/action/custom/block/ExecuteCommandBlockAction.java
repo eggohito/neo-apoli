@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.RegistryByteBuf;
@@ -45,8 +45,8 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 		ServerWorld world = context.getWorld();
 		MinecraftServer server = context.getServer();
 
-		BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
-		BlockState blockState = context.required(ContextParameters.BLOCK_STATE);
+		BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
+		BlockState blockState = context.required(NeoApoliContextParameters.BLOCK_STATE);
 
 		ServerContext commandContext = context.makeChild(".command");
 		String command = command().next(commandContext);

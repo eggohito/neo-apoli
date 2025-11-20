@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -31,7 +31,7 @@ public record IsInTagDamageCondition(TagKey<DamageType> tag) implements DamageCo
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(ContextParameters.DAMAGE_SOURCE)
+		return context.optional(NeoApoliContextParameters.DAMAGE_SOURCE)
 			.map(source -> source.isIn(this.tag()))
 			.orElse(false);
 	}

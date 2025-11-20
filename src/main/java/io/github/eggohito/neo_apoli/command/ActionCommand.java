@@ -8,12 +8,22 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
+import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -62,7 +72,7 @@ public class ActionCommand {
 
 			Action action = ActionArgumentType.getAction(commandContext, "action");
 
-			return switch (Action.BASE_CODEC.encodeStart(ops, action)) {
+			return switch (Action.CODEC.encodeStart(ops, action)) {
 				case DataResult.Success<JsonElement> success -> {
 
 					JsonElement jsonElement = success.value();
@@ -79,11 +89,83 @@ public class ActionCommand {
 
 	}
 
-	//	TODO: Re-implement execution of actions with dynamic context parameter arguments
 	static final class ExecuteSubCommand {
 
 		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
-			return literal("execute").build();
+
+			CommandNode<ServerCommandSource> executeNode = literal("execute").build();
+			CommandNode<ServerCommandSource> withNode = literal("with").build();
+			CommandNode<ServerCommandSource> runNode = literal("run")
+				.then(argument("action", ActionArgumentType.inlineAction(registryAccess))
+					.executes(ExecuteSubCommand::execute)).build();
+
+			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_PARAMETER) {
+
+				String id = parameter.getId().toString();
+				TypedContextParameter.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
+
+				if (parameterCommandBuilder == null) {
+					continue;
+				}
+
+				CommandNode<ServerCommandSource> parameterNode = literal(id).build();
+				parameterCommandBuilder.addArguments(registryAccess, executeNode, parameterNode);
+
+				withNode.addChild(parameterNode);
+
+			}
+
+			executeNode.addChild(withNode);
+			executeNode.addChild(runNode);
+
+			return executeNode;
+
+		}
+
+		static int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+
+			ServerCommandSource source = commandContext.getSource();
+			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
+
+			Action action = ActionArgumentType.getAction(commandContext, "action");
+			String display = action.asDisplayString(false);
+
+			try {
+
+				String rootPath = ActionManager.getIdAsResult(action).mapOrElse(
+					id -> "{\"" + id + "\"}",
+					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\", ...}"
+				);
+
+				ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(NeoApoliContextTypes.ANY, rootPath);
+				ServerContext serverContext = builder
+					.withReporter(reporter)
+					.build(source.getWorld());
+
+				action.validate(reporter);
+
+				if (reporter.hasAnyErrors()) {
+					throw MiscUtil.createCommandException(Text.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+				}
+
+				action.execute(serverContext);
+
+				if (reporter.hasAnyErrors()) {
+					source.sendFeedback(() -> Text.literal("").append("Warnings found when executing " + display + ": ").formatted(Formatting.YELLOW).append(reporter.getErrorsAsString()), false);
+					return 0;
+				}
+
+				else {
+					source.sendFeedback(() -> Text.of("Successfully executed " + display + "!"), true);
+					return 1;
+				}
+
+			}
+
+			catch (Exception e) {
+				throw MiscUtil.createCommandException(() -> "Error executing " + display + ": " + e.getMessage());
+			}
+
 		}
 
 	}

@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
 import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -43,7 +43,7 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 			return false;
 		}
 
-		return context.optional(ContextParameters.THIS_ENTITY)
+		return context.optional(NeoApoliContextParameters.THIS_ENTITY)
 			.map(Entity::getUuid)
 			.flatMap(uuid -> KeyBindingStateHolder.getState(uuid, id))
 			.map(KeyBindingState::pressed)

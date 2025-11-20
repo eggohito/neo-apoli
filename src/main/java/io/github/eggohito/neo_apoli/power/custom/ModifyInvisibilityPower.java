@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -29,14 +29,14 @@ import java.util.function.BiPredicate;
 public class ModifyInvisibilityPower extends Power {
 
 	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.BASE_CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
+		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
 		.apply(instance, ModifyInvisibilityPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyInvisibilityPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Condition.BASE_PACKET_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Condition.PACKET_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
 		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderArmor,
 		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderOutline,
 		ModifyInvisibilityPower::new
@@ -96,7 +96,7 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static boolean doesApply(Context context, BiPredicate<Instance, Context> tester) {
 
-		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
 
 		for (var instance : instances) {
@@ -121,10 +121,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static Context createContext(@NotNull Entity target, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_INVISIBILITY.contextBuilder()
-			.addNullable(ContextParameters.ACTOR, viewer)
-			.add(ContextParameters.TARGET, target)
-			.add(ContextParameters.THIS_ENTITY, target)
-			.add(ContextParameters.ENTITY_POS, target.getPos())
+			.addNullable(NeoApoliContextParameters.ACTOR, viewer)
+			.add(NeoApoliContextParameters.TARGET, target)
+			.add(NeoApoliContextParameters.THIS_ENTITY, target)
+			.add(NeoApoliContextParameters.ENTITY_POS, target.getPos())
 			.build(target.getWorld());
 	}
 

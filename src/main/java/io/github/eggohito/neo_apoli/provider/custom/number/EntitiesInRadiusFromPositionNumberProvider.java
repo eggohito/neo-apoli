@@ -62,8 +62,8 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 		for (var target : shape().getEntities(world, position, radius)) {
 
 			Context entityContext = ContextImpl.of(context, builder -> builder
-				.add(ContextParameters.THIS_ENTITY, target)
-				.add(ContextParameters.ENTITY_POS, target.getPos()));
+				.add(NeoApoliContextParameters.THIS_ENTITY, target)
+				.add(NeoApoliContextParameters.ENTITY_POS, target.getPos()));
 
 			if (entityCondition().test(entityContext.makeChild(".entity_condition"))) {
 				matches++;
@@ -80,7 +80,7 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 
 		NumberProvider.super.validate(reporter);
 		entityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.ENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ENTITY))
 			.makeChild(".entity_condition"));
 
 		position().validate(reporter.makeChild(".position"));

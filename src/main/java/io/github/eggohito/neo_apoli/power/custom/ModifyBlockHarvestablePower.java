@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -37,7 +37,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 		.apply(instance, ModifyBlockHarvestablePower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyBlockHarvestablePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		BooleanProvider.PACKET_CODEC, ModifyBlockHarvestablePower::getAllow,
 		PacketCodecs.INTEGER, ModifyBlockHarvestablePower::getPriority,
 		ModifyBlockHarvestablePower::new
@@ -112,11 +112,11 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 		return PowerTypes.MODIFY_BLOCK_HARVESTABLE.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, blockState)
-			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-			.add(ContextParameters.THIS_ENTITY, player)
-			.add(ContextParameters.ENTITY_POS, player.getPos())
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
+			.add(NeoApoliContextParameters.THIS_ENTITY, player)
+			.add(NeoApoliContextParameters.ENTITY_POS, player.getPos())
 			.build(player.getWorld());
 	}
 

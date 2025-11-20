@@ -13,7 +13,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -33,14 +33,14 @@ import java.util.Optional;
 public class PhasingPower extends Power {
 
 	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.BASE_CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(PhasingPower::getPhaseDownCondition))
+		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(PhasingPower::getPhaseDownCondition))
 		.and(RenderType.CODEC.optionalFieldOf("render_type", RenderType.BLINDNESS).forGetter(PhasingPower::getRenderType))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, PhasingPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Condition.BASE_PACKET_CODEC, PhasingPower::getPhaseDownCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Condition.PACKET_CODEC, PhasingPower::getPhaseDownCondition,
 		RenderType.PACKET_CODEC, PhasingPower::getRenderType,
 		PacketCodecs.FLOAT, PhasingPower::getViewDistance,
 		PhasingPower::new
@@ -89,7 +89,7 @@ public class PhasingPower extends Power {
 		}
 
 		public boolean shouldPhaseDown(Context context, VoxelShape shape) {
-			BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
+			BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
 			return holder.getY() < (double) blockPos.getY() + shape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));
 		}
@@ -98,7 +98,7 @@ public class PhasingPower extends Power {
 
 	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
 
-		Entity entity = context.nullable(ContextParameters.THIS_ENTITY);
+		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
 
 		boolean init = false;
@@ -135,11 +135,11 @@ public class PhasingPower extends Power {
 
 	public static Context createContext(Entity entity, SavedBlockPosition savedBlock) {
 		return PowerTypes.PHASING.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, savedBlock.getBlockPos())
-			.add(ContextParameters.BLOCK_STATE, savedBlock.getBlockState())
-			.addNullable(ContextParameters.BLOCK_ENTITY, savedBlock.getBlockEntity())
-			.add(ContextParameters.THIS_ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.add(NeoApoliContextParameters.BLOCK_POS, savedBlock.getBlockPos())
+			.add(NeoApoliContextParameters.BLOCK_STATE, savedBlock.getBlockState())
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, savedBlock.getBlockEntity())
+			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
 			.build(entity.getWorld());
 	}
 

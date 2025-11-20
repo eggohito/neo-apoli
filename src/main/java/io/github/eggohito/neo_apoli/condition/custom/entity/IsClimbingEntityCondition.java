@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -24,7 +24,7 @@ public record IsClimbingEntityCondition() implements EntityCondition {
 	public boolean test(Context context) {
 
 		try {
-			return context.optional(ContextParameters.THIS_ENTITY)
+			return context.optional(NeoApoliContextParameters.THIS_ENTITY)
 				.stream()
 				.filter(LivingEntity.class::isInstance)
 				.map(LivingEntity.class::cast)

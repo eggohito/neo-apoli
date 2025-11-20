@@ -13,7 +13,7 @@ import java.util.Map;
 
 public record SynchronizeActionsS2CPacket(Map<Identifier, Action> actions) implements CustomPayload {
 
-	private static final PacketCodec<RegistryByteBuf, Map<Identifier, Action>> ACTIONS_PACKET_CODEC = PacketCodecs.map(Object2ObjectOpenHashMap::new, Identifier.PACKET_CODEC, Action.BASE_PACKET_CODEC);
+	private static final PacketCodec<RegistryByteBuf, Map<Identifier, Action>> ACTIONS_PACKET_CODEC = PacketCodecs.map(Object2ObjectOpenHashMap::new, Identifier.PACKET_CODEC, Action.PACKET_CODEC);
 
 	public static final Id<SynchronizeActionsS2CPacket> ID = new Id<>(NeoApoli.id("s2c/synchronize_actions"));
 	public static final PacketCodec<RegistryByteBuf, SynchronizeActionsS2CPacket> CODEC = ACTIONS_PACKET_CODEC.xmap(SynchronizeActionsS2CPacket::new, SynchronizeActionsS2CPacket::actions);

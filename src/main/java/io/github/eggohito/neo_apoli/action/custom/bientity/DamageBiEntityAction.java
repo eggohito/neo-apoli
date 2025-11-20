@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
@@ -47,8 +47,8 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 			return;
 		}
 
-		Entity actor = context.nullable(ContextParameters.ACTOR);
-		Entity target = context.nullable(ContextParameters.TARGET);
+		Entity actor = context.nullable(NeoApoliContextParameters.ACTOR);
+		Entity target = context.nullable(NeoApoliContextParameters.TARGET);
 
 		if (actor != null && target != null) {
 			target.damage(serverWorld, new DamageSource(this.damageType(), actor), amount);

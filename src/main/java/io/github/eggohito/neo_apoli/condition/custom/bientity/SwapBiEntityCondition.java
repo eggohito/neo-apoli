@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -32,8 +32,8 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	public boolean test(Context context) {
 
 		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.addNullable(ContextParameters.ACTOR, context.nullable(ContextParameters.TARGET))
-			.addNullable(ContextParameters.TARGET, context.nullable(ContextParameters.ACTOR)));
+			.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(NeoApoliContextParameters.TARGET))
+			.addNullable(NeoApoliContextParameters.TARGET, context.nullable(NeoApoliContextParameters.ACTOR)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 

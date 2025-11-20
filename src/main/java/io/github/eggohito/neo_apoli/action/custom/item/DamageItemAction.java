@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
@@ -45,7 +45,7 @@ public record DamageItemAction(EntityTarget entity, NumberProvider amount, Boole
 			return;
 		}
 
-		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
+		StackReference stackReference = context.required(NeoApoliContextParameters.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
 		Context amountContext = context.makeChild(".amount");

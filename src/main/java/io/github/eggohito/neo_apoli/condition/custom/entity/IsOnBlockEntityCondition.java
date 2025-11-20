@@ -37,7 +37,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 		}
 
 		World world = context.getWorld();
-		Entity entity = context.required(ContextParameters.THIS_ENTITY);
+		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
 
 		try {
 
@@ -49,10 +49,10 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 
 				BlockPos steppingPos = entity.getSteppingPos();
 				Context blockContext = ContextImpl.of(context, builder -> builder
-					.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-					.add(ContextParameters.BLOCK_POS, steppingPos)
-					.add(ContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
-					.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
+					.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+					.add(NeoApoliContextParameters.BLOCK_POS, steppingPos)
+					.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
+					.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
 
 				return blockCondition().test(blockContext.makeChild(".block_condition"));
 
@@ -74,7 +74,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 	public void validate(ErrorReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 	}
 

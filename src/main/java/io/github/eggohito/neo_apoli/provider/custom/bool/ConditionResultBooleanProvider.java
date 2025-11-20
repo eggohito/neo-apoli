@@ -13,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 public record ConditionResultBooleanProvider(Condition condition) implements BooleanProvider {
 
 	public static final MapCodec<ConditionResultBooleanProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Condition.BASE_CODEC.fieldOf("condition").forGetter(ConditionResultBooleanProvider::condition)
+		Condition.CODEC.fieldOf("condition").forGetter(ConditionResultBooleanProvider::condition)
 	).apply(instance, ConditionResultBooleanProvider::new));
 
 	public static final PacketCodec<RegistryByteBuf, ConditionResultBooleanProvider> PACKET_CODEC = PacketCodec.tuple(
-		Condition.BASE_PACKET_CODEC, ConditionResultBooleanProvider::condition,
+		Condition.PACKET_CODEC, ConditionResultBooleanProvider::condition,
 		ConditionResultBooleanProvider::new
 	);
 

@@ -54,7 +54,7 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 
 	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> MapCodec<M> codec(Codec<P> providerCodec, Function3<Condition, P, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Condition.BASE_CODEC.fieldOf("condition").forGetter(ConditionalValueProvider::condition),
+			Condition.CODEC.fieldOf("condition").forGetter(ConditionalValueProvider::condition),
 			providerCodec.fieldOf("if_value").forGetter(ConditionalValueProvider::ifValue),
 			providerCodec.fieldOf("else_value").forGetter(ConditionalValueProvider::elseValue)
 		).apply(instance, constructor));
@@ -62,7 +62,7 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 
 	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, P> providerCodec, Function3<Condition, P, P, M> constructor) {
 		return PacketCodec.tuple(
-			Condition.BASE_PACKET_CODEC, ConditionalValueProvider::condition,
+			Condition.PACKET_CODEC, ConditionalValueProvider::condition,
 			providerCodec, ConditionalValueProvider::ifValue,
 			providerCodec, ConditionalValueProvider::elseValue,
 			constructor

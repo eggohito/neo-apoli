@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.context.ContextParameter;
@@ -49,8 +49,8 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 			return false;
 		}
 
-		Vec3d offsetPos = context.required(ContextParameters.ENTITY_POS).add(offset);
-		Context conditionContext = ContextImpl.of(context, builder -> builder.add(ContextParameters.ENTITY_POS, offsetPos));
+		Vec3d offsetPos = context.required(NeoApoliContextParameters.ENTITY_POS).add(offset);
+		Context conditionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextParameters.ENTITY_POS, offsetPos));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
@@ -58,7 +58,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ENTITY_POS);
+		return Set.of(NeoApoliContextParameters.ENTITY_POS);
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.network.RegistryByteBuf;
@@ -25,9 +25,9 @@ public record TameBiEntityAction() implements BiEntityAction {
 	@Override
 	public void execute(Context context) {
 
-		if (context.nullable(ContextParameters.ACTOR) instanceof ServerPlayerEntity serverPlayer) {
+		if (context.nullable(NeoApoliContextParameters.ACTOR) instanceof ServerPlayerEntity serverPlayer) {
 
-			switch (context.nullable(ContextParameters.TARGET)) {
+			switch (context.nullable(NeoApoliContextParameters.TARGET)) {
 				case TameableEntity tameable ->
 					tameable.setTamedBy(serverPlayer);
 				case AbstractHorseEntity abstractHorse ->

@@ -24,6 +24,7 @@
 		"misc.ExecuteCommandMixin",
 		"misc.KeyDispatchCodecMixin",
 		"misc.MinecraftServerMixin",
+		"misc.ServerCommandSourceMixin",
 		"misc.ServerRecipeManagerMixin",
 		"misc.ServerWorldMixin",
 		"misc.TextCodecsMixin",

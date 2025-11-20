@@ -13,8 +13,8 @@ import net.minecraft.util.collection.WeightedList;
 
 public record WeightedAction(WeightedList<Action> entries) implements WeightedMetaAction<Action> {
 
-	public static final MapCodec<WeightedAction> CODEC = MapCodecUtil.lazy(WeightedAction.class.getSimpleName(), () -> WeightedMetaAction.codec(Action.BASE_CODEC, WeightedAction::new));
-	public static final PacketCodec<RegistryByteBuf, WeightedAction> PACKET_CODEC = PacketCodecUtil.lazy(WeightedAction.class.getSimpleName(), () -> WeightedMetaAction.packetCodec(Action.BASE_PACKET_CODEC, WeightedAction::new));
+	public static final MapCodec<WeightedAction> CODEC = MapCodecUtil.lazy(WeightedAction.class.getSimpleName(), () -> WeightedMetaAction.codec(Action.CODEC, WeightedAction::new));
+	public static final PacketCodec<RegistryByteBuf, WeightedAction> PACKET_CODEC = PacketCodecUtil.lazy(WeightedAction.class.getSimpleName(), () -> WeightedMetaAction.packetCodec(Action.PACKET_CODEC, WeightedAction::new));
 
 	@Override
 	public ActionType<?> getType() {

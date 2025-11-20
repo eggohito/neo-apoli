@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -46,8 +46,8 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			return;
 		}
 
-		Entity entity = context.required(ContextParameters.THIS_ENTITY);
-		Vec3d pos = context.required(ContextParameters.ENTITY_POS);
+		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		Vec3d pos = context.required(NeoApoliContextParameters.ENTITY_POS);
 
 		Context commandContext = context.makeChild(".command");
 		String command = command().next(commandContext);
@@ -87,7 +87,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.THIS_ENTITY, ContextParameters.ENTITY_POS);
+		return Set.of(NeoApoliContextParameters.THIS_ENTITY, NeoApoliContextParameters.ENTITY_POS);
 	}
 
 }

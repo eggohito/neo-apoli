@@ -62,7 +62,7 @@ public class ConditionCommand {
 
 			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
 
-			return switch (Condition.BASE_CODEC.encodeStart(ops, condition)) {
+			return switch (Condition.CODEC.encodeStart(ops, condition)) {
 				case DataResult.Success<JsonElement> success -> {
 
 					JsonElement jsonElement = success.value();

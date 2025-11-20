@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BoneMealItem;
@@ -38,20 +38,20 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	@Override
 	public void serverExecute(ServerContext context) {
 
-		if (!context.hasParameter(ContextParameters.BLOCK_POS)) {
+		if (!context.hasParameter(NeoApoliContextParameters.BLOCK_POS)) {
 			return;
 		}
 
 		ServerWorld world = context.getWorld();
-		BlockPos blockPos = context.required(ContextParameters.BLOCK_POS);
+		BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
 
 		if (BoneMealItem.useOnFertilizable(ItemStack.EMPTY, world, blockPos)) {
 			this.showEffects(context, blockPos);
 		}
 
-		else if (context.hasParameter(ContextParameters.DIRECTION)) {
+		else if (context.hasParameter(NeoApoliContextParameters.DIRECTION)) {
 
-			Direction direction = context.required(ContextParameters.DIRECTION);
+			Direction direction = context.required(NeoApoliContextParameters.DIRECTION);
 			BlockState blockState = world.getBlockState(blockPos);
 
 			if (blockState.isSideSolidFullSquare(world, blockPos, direction) && BoneMealItem.useOnGround(ItemStack.EMPTY, world, blockPos.offset(direction), direction)) {

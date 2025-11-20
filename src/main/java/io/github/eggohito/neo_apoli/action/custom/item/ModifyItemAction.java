@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
@@ -48,7 +48,7 @@ public record ModifyItemAction(EntityTarget entity, RegistryKey<LootFunction> mo
 			return;
 		}
 
-		StackReference stackReference = context.required(ContextParameters.STACK_REFERENCE);
+		StackReference stackReference = context.required(NeoApoliContextParameters.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
 		LootFunction modifier = context.getServer().getReloadableRegistries().createRegistryLookup()
@@ -56,7 +56,7 @@ public record ModifyItemAction(EntityTarget entity, RegistryKey<LootFunction> mo
 			.value();
 
 		LootWorldContext lootWorldContext = new LootWorldContext.Builder(context.getWorld())
-			.add(LootContextParameters.ORIGIN, context.optional(ContextParameters.ENTITY_POS).orElse(Vec3d.ZERO))
+			.add(LootContextParameters.ORIGIN, context.optional(NeoApoliContextParameters.ENTITY_POS).orElse(Vec3d.ZERO))
 			.addOptional(LootContextParameters.THIS_ENTITY, context.nullable(entity().getParameter()))
 			.build(LootContextTypes.COMMAND);
 

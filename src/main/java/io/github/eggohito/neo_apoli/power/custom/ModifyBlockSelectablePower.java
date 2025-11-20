@@ -11,7 +11,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -37,7 +37,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 		.apply(instance, ModifyBlockSelectablePower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyBlockSelectablePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		BooleanProvider.PACKET_CODEC, ModifyBlockSelectablePower::getAllow,
 		PacketCodecs.INTEGER, ModifyBlockSelectablePower::getPriority,
 		ModifyBlockSelectablePower::new
@@ -82,7 +82,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	public static VoxelShape modify(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
-		for (var instance : new InstanceCollection<>(context.nullable(ContextParameters.THIS_ENTITY), Instance.class)) {
+		for (var instance : new InstanceCollection<>(context.nullable(NeoApoliContextParameters.THIS_ENTITY), Instance.class)) {
 
 			try {
 
@@ -116,11 +116,11 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	public static Context createContext(@NotNull Entity entity, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 		return PowerTypes.MODIFY_BLOCK_SELECTABLE.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, blockState)
-			.addNullable(ContextParameters.BLOCK_ENTITY, blockEntity)
-			.add(ContextParameters.THIS_ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
+			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
 			.build(entity.getWorld());
 	}
 

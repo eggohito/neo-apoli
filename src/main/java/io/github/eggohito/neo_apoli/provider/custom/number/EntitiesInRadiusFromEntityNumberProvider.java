@@ -66,9 +66,9 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 		for (Entity target : shape().getEntities(world, pos, radius)) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BIENTITY))
-				.add(ContextParameters.ACTOR, actor)
-				.add(ContextParameters.TARGET, target));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
+				.add(NeoApoliContextParameters.ACTOR, actor)
+				.add(NeoApoliContextParameters.TARGET, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				matches++;
@@ -90,7 +90,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 
 		NumberProvider.super.validate(reporter);
 		biEntityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BIENTITY))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY))
 			.makeChild(".bientity_condition"));
 
 		radius().validate(reporter.makeChild(".radius"));

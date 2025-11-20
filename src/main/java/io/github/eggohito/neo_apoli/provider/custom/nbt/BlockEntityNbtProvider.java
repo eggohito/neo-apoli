@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -32,7 +32,7 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 	public @NotNull NbtElement next(Context context) {
 
 		RegistryWrapper.WrapperLookup wrapperLookup = context.getWorld().getRegistryManager();
-		Optional<BlockEntity> optBlockEntity = context.optional(ContextParameters.BLOCK_ENTITY);
+		Optional<BlockEntity> optBlockEntity = context.optional(NeoApoliContextParameters.BLOCK_ENTITY);
 
 		if (optBlockEntity.isEmpty()) {
 			context.getReporter().report("Couldn't get and provide NBT from non-existent block entity!");
@@ -46,7 +46,7 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.BLOCK_ENTITY);
+		return Set.of(NeoApoliContextParameters.BLOCK_ENTITY);
 	}
 
 }

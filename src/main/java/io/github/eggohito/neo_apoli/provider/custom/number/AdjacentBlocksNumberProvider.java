@@ -54,10 +54,10 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 			}
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), ContextTypes.BLOCK))
-				.add(ContextParameters.BLOCK_POS, offsetPos)
-				.add(ContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
-				.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
+				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
+				.add(NeoApoliContextParameters.BLOCK_POS, offsetPos)
+				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
+				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
 
 			if (adjacentBlockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -74,7 +74,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 
 		NumberProvider.super.validate(reporter);
 		adjacentBlockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), ContextTypes.BLOCK))
+			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
 			.makeChild(".block_condition"));
 
 		position().validate(reporter.makeChild(".position"));

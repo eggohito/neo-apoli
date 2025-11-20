@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.minecraft.item.FuelRegistry;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -27,14 +27,14 @@ public record FuelAmountNumberProvider() implements NumberProvider {
 	@Override
 	public @NotNull Number next(Context context) {
 		FuelRegistry fuelRegistry = context.getWorld().getFuelRegistry();
-		return context.optional(ContextParameters.ITEM_STACK)
+		return context.optional(NeoApoliContextParameters.ITEM_STACK)
 			.map(fuelRegistry::getFuelTicks)
 			.orElse(0);
 	}
 
 	@Override
 	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(ContextParameters.ITEM_STACK);
+		return Set.of(NeoApoliContextParameters.ITEM_STACK);
 	}
 
 }

@@ -15,9 +15,9 @@ import net.minecraft.network.codec.PacketCodec;
 
 public interface Action extends ContextAware, StringDisplayable {
 
-	Codec<Action> BASE_CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(ActionType.CODEC.dispatch(Action::getType, ActionType::mapCodec), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions), NothingAction.INLINE_CODEC));
+	Codec<Action> CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(ActionType.CODEC.dispatch(Action::getType, ActionType::mapCodec), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions), NothingAction.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, Action> BASE_PACKET_CODEC = ActionType.PACKET_CODEC.dispatch(Action::getType, ActionType::packetCodec);
+	PacketCodec<RegistryByteBuf, Action> PACKET_CODEC = ActionType.PACKET_CODEC.dispatch(Action::getType, ActionType::packetCodec);
 
 	@Override
 	default String asDisplayString() {

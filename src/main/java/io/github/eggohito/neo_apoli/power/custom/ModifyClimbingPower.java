@@ -13,7 +13,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.RegistryByteBuf;
@@ -29,13 +29,13 @@ import java.util.Optional;
 public class ModifyClimbingPower extends Power {
 
 	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.BASE_CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(ModifyClimbingPower::getHoldingCondition))
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(ModifyClimbingPower::getHoldingCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, ModifyClimbingPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.BASE_PACKET_CODEC), Power::getActiveCondition,
-		Condition.BASE_PACKET_CODEC, ModifyClimbingPower::getHoldingCondition,
+		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
+		Condition.PACKET_CODEC, ModifyClimbingPower::getHoldingCondition,
 		BooleanProvider.PACKET_CODEC, ModifyClimbingPower::getAllowHolding,
 		ModifyClimbingPower::new
 	);
@@ -89,11 +89,11 @@ public class ModifyClimbingPower extends Power {
 		BlockPos blockPos = entity.getBlockPos();
 
 		return PowerTypes.MODIFY_CLIMBING.contextBuilder()
-			.add(ContextParameters.BLOCK_POS, blockPos)
-			.add(ContextParameters.BLOCK_STATE, entity.getBlockStateAtPos())
-			.addNullable(ContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.add(ContextParameters.THIS_ENTITY, entity)
-			.add(ContextParameters.ENTITY_POS, entity.getPos())
+			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
+			.add(NeoApoliContextParameters.BLOCK_STATE, entity.getBlockStateAtPos())
+			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
+			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
 			.build(world);
 
 	}
