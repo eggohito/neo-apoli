@@ -102,7 +102,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 			if (!cycleContext.hasErrors()) {
 
 				if (cycle.orElse(false)) {
-					blockState.cycle(property);
+					context.getWorld().setBlockState(context.required(NeoApoliContextParameters.BLOCK_POS), blockState.cycle(property));
 				}
 
 				else {
