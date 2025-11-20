@@ -35,16 +35,16 @@ public class ItemStackContextParameter extends TypedContextParameter<ItemStack> 
 		return new CommandBuilder() {
 
 			@Override
-			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode) {
+			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode) {
 
 				CommandNode<ServerCommandSource> blockNode = literal("block")
 					.then(argument("pos", BlockPosArgumentType.blockPos())
 						.then(argument("slot", ItemSlotArgumentType.itemSlot())
-							.redirect(executeNode, this::redirectBlock))).build();
+							.redirect(baseNode, this::redirectBlock))).build();
 				CommandNode<ServerCommandSource> entityNode = literal("entity")
 					.then(argument("target", EntityArgumentType.entity())
 						.then(argument("slot", ItemSlotArgumentType.itemSlot())
-							.redirect(executeNode, this::redirectEntity))).build();
+							.redirect(baseNode, this::redirectEntity))).build();
 
 				parameterNode.addChild(blockNode);
 				parameterNode.addChild(entityNode);

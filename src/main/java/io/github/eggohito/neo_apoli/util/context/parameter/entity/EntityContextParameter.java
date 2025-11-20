@@ -25,10 +25,10 @@ public class EntityContextParameter extends TypedContextParameter<Entity> {
 		return new CommandBuilder() {
 
 			@Override
-			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode) {
+			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode) {
 
 				CommandNode<ServerCommandSource> entityNode = argument("entity", EntityArgumentType.entity())
-					.redirect(executeNode, this::redirect)
+					.redirect(baseNode, this::redirect)
 					.build();
 
 				parameterNode.addChild(entityNode);

@@ -95,7 +95,7 @@ public class ActionCommand {
 
 			CommandNode<ServerCommandSource> executeNode = literal("execute").build();
 			CommandNode<ServerCommandSource> withNode = literal("with").build();
-			CommandNode<ServerCommandSource> runNode = literal("run")
+			CommandNode<ServerCommandSource> onNode = literal("on")
 				.then(argument("action", ActionArgumentType.inlineAction(registryAccess))
 					.executes(ExecuteSubCommand::execute)).build();
 
@@ -116,7 +116,7 @@ public class ActionCommand {
 			}
 
 			executeNode.addChild(withNode);
-			executeNode.addChild(runNode);
+			executeNode.addChild(onNode);
 
 			return executeNode;
 

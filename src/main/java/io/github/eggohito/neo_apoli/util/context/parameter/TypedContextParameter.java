@@ -25,7 +25,7 @@ public class TypedContextParameter<T> extends ContextParameter<T> {
 
 	@FunctionalInterface
 	public interface CommandBuilder {
-		void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode);
+		void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode);
 	}
 
 }

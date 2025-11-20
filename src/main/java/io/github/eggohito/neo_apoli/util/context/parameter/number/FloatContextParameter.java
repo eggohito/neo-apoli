@@ -24,10 +24,10 @@ public class FloatContextParameter extends TypedContextParameter<Float> {
 		return new CommandBuilder() {
 
 			@Override
-			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode) {
+			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode) {
 
 				CommandNode<ServerCommandSource> valueNode = argument("value", FloatArgumentType.floatArg())
-					.redirect(executeNode, this::redirect)
+					.redirect(baseNode, this::redirect)
 					.build();
 
 				parameterNode.addChild(valueNode);

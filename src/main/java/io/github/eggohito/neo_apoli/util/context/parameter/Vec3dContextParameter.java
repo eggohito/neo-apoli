@@ -24,10 +24,10 @@ public class Vec3dContextParameter extends TypedContextParameter<Vec3d> {
 		return new CommandBuilder() {
 
 			@Override
-			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode) {
+			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode) {
 
 				CommandNode<ServerCommandSource> posNode = argument("pos", Vec3ArgumentType.vec3())
-					.redirect(executeNode, this::redirect)
+					.redirect(baseNode, this::redirect)
 					.build();
 
 				parameterNode.addChild(posNode);

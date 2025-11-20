@@ -25,10 +25,10 @@ public class BlockPosContextParameter extends TypedContextParameter<BlockPos> {
 		return new CommandBuilder() {
 
 			@Override
-			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> executeNode, CommandNode<ServerCommandSource> parameterNode) {
+			public void addArguments(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> baseNode, CommandNode<ServerCommandSource> parameterNode) {
 
 				CommandNode<ServerCommandSource> posNode = argument("pos", BlockPosArgumentType.blockPos())
-					.redirect(executeNode, this::redirect)
+					.redirect(baseNode, this::redirect)
 					.build();
 
 				parameterNode.addChild(posNode);

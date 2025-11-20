@@ -9,11 +9,21 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
+import io.github.eggohito.neo_apoli.util.context.ServerContext;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.registry.RegistryOps;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -79,11 +89,92 @@ public class ConditionCommand {
 
 	}
 
-	//	TODO: Re-implement testing of conditions with dynamic context parameter arguments
-	static final class TestSubCommand {
+	public static final class TestSubCommand {
 
-		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
-			return literal("test").build();
+		 static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+
+			CommandNode<ServerCommandSource> baseNode = literal("test").build();
+			CommandNode<ServerCommandSource> withNode = literal("with").build();
+			CommandNode<ServerCommandSource> onNode = literal("on")
+				.then(argument("condition", ConditionArgumentType.inlineCondition(registryAccess))
+					.executes(TestSubCommand::testAsInt)).build();
+
+			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_PARAMETER) {
+
+				String id = parameter.getId().toString();
+				TypedContextParameter.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
+
+				if (parameterCommandBuilder == null) {
+					continue;
+				}
+
+				CommandNode<ServerCommandSource> parameterNode = literal(id).build();
+				parameterCommandBuilder.addArguments(registryAccess, baseNode, parameterNode);
+
+				withNode.addChild(parameterNode);
+
+			}
+
+			baseNode.addChild(withNode);
+			baseNode.addChild(onNode);
+
+			return baseNode;
+
+		}
+
+		 static int testAsInt(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+
+			if (test(commandContext)) {
+				commandContext.getSource().sendFeedback(() -> Text.translatable("commands.execute.conditional.pass"), false);
+				return 1;
+			}
+
+			else {
+				throw MiscUtil.createCommandException(Text.translatable("commands.execute.conditional.fail"));
+			}
+
+		}
+
+		public static boolean test(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+
+			ServerCommandSource source = commandContext.getSource();
+			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
+
+			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
+			String display = condition.asDisplayString(false);
+
+			try {
+
+				String rootPath = ConditionManager.getIdAsResult(condition).mapOrElse(
+					id -> "{\"" + id + "\"}",
+					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\", ...}"
+				);
+
+				ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(NeoApoliContextTypes.ANY, rootPath);
+				ServerContext serverContext = builder
+					.withReporter(reporter)
+					.build(source.getWorld());
+
+				condition.validate(reporter);
+
+				if (reporter.hasAnyErrors()) {
+					throw MiscUtil.createCommandException(Text.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+				}
+
+				boolean result = condition.test(serverContext) && !reporter.hasAnyErrors();
+
+				if (reporter.hasAnyErrors()) {
+					source.sendFeedback(() -> Text.literal("").append("Warnings found when testing " + display + ": ").formatted(Formatting.YELLOW).append(reporter.getErrorsAsString()), false);
+				}
+
+				return result;
+
+			}
+
+			catch (Exception e) {
+				throw MiscUtil.createCommandException(() -> "Error testing " + display + ": " + e.getMessage());
+			}
+
 		}
 
 	}
