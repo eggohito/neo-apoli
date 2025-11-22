@@ -7,7 +7,11 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.mixin.access.StringNbtReaderAccessor;
-import io.github.eggohito.neo_apoli.util.*;
+import io.github.eggohito.neo_apoli.util.AttributeModifier;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
+import io.github.eggohito.neo_apoli.util.HandProperty;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.BlockState;
@@ -27,7 +31,6 @@ import net.minecraft.world.explosion.Explosion;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class NeoApoliCodecs {
@@ -55,8 +58,6 @@ public class NeoApoliCodecs {
 	};
 
 	public static final Codec<LightType> LIGHT_TYPE = CodecUtil.enumType(LightType.class);
-
-	public static final Codec<Map<EntityTarget, EntityTarget>> ENTITY_PARAMETER_MAP = Codec.unboundedMap(EntityTarget.CODEC, EntityTarget.CODEC);
 
 	public static final Codec<Explosion.DestructionType> DESTRUCTION_TYPE = CodecUtil.enumType(Explosion.DestructionType.class);
 
@@ -115,5 +116,7 @@ public class NeoApoliCodecs {
 	public static final Codec<List<AttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = Codecs.nonEmptyList(AttributeModifier.CODEC.listOf());
 
 	public static final Codec<Vec3d> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3d.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
+
+	public static final Codec<TypedContextParameter<Number>> NUMBER_PARAMETER = CodecUtil.createParameterCodec("number", Number.class);
 
 }

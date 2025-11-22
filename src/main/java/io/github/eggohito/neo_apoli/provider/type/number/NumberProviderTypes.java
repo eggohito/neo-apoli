@@ -43,6 +43,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<KeyPressedTicksNumberProvider> KEY_PRESSED_TICKS = registerInternal("key_pressed/ticks", KeyPressedTicksNumberProvider.CODEC, KeyPressedTicksNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<KeyPressedTimeNumberProvider> KEY_PRESSED_TIME = registerInternal("key_pressed/time", KeyPressedTimeNumberProvider.CODEC, KeyPressedTimeNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.PACKET_CODEC);
+	public static final NumberProviderType<ParameterNumberProvider> PARAMETER = registerInternal("parameter", ParameterNumberProvider.CODEC, ParameterNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<PositionComponentNumberProvider> POSITION_COMPONENT = registerInternal("position/component", PositionComponentNumberProvider.CODEC, PositionComponentNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.PACKET_CODEC);
 	public static final NumberProviderType<VelocityComponentNumberProvider> VELOCITY_COMPONENT = registerInternal("velocity/component", VelocityComponentNumberProvider.CODEC, VelocityComponentNumberProvider.PACKET_CODEC);

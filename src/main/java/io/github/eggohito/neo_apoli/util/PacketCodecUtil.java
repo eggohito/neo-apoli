@@ -4,8 +4,11 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import io.github.eggohito.neo_apoli.mixin.access.WeightedListAccessor;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.collection.WeightedList;
@@ -13,6 +16,7 @@ import net.minecraft.util.function.ValueLists;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.*;
 
 public final class PacketCodecUtil {
@@ -164,6 +168,24 @@ public final class PacketCodecUtil {
 			}
 
 		};
+	}
+
+	public static <T> PacketCodec<RegistryByteBuf, TypedContextParameter<T>> createParameterCodec(String name, Class<T> typeClass) {
+		return NeoApoliContextParameters.PACKET_CODEC.xmap(
+			parameter -> {
+
+				if (typeClass.isAssignableFrom(parameter.getTypeClass())) {
+					//noinspection unchecked
+					return (TypedContextParameter<T>) parameter;
+				}
+
+				else {
+					throw new IllegalArgumentException("Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.getId() + "\"");
+				}
+
+			},
+			Function.identity()
+		);
 	}
 
 }

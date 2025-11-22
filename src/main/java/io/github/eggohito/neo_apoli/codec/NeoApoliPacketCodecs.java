@@ -4,8 +4,8 @@ import com.google.gson.internal.LazilyParsedNumber;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.util.*;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.BlockState;
@@ -29,7 +29,6 @@ import net.minecraft.world.explosion.Explosion;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -118,8 +117,6 @@ public class NeoApoliPacketCodecs {
 
 	public static final PacketCodec<ByteBuf, Direction.Axis> AXIS = PacketCodecUtil.enumType(Direction.Axis.class);
 
-	public static final PacketCodec<ByteBuf, Map<EntityTarget, EntityTarget>> ENTITY_PARAMETER_MAP = PacketCodecs.map(Object2ObjectOpenHashMap::new, EntityTarget.PACKET_CODEC, EntityTarget.PACKET_CODEC);
-
 	public static final PacketCodec<ByteBuf, Explosion.DestructionType> DESTRUCTION_TYPE = PacketCodecUtil.enumType(Explosion.DestructionType.class);
 
 	public static final PacketCodec<PacketByteBuf, ActionResult> ACTION_RESULT = PacketCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
@@ -145,5 +142,7 @@ public class NeoApoliPacketCodecs {
 		recipeEntry -> new RecipeEntry<>(recipeEntry.id(), RecipeUtil.validateCraftingRecipe(recipeEntry.value()).getOrThrow()),
 		Function.identity()
 	);
+
+	public static final PacketCodec<RegistryByteBuf, TypedContextParameter<Number>> NUMBER_PARAMETER = PacketCodecUtil.createParameterCodec("number", Number.class);
 
 }

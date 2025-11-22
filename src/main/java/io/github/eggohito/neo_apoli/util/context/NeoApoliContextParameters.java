@@ -1,8 +1,12 @@
 package io.github.eggohito.neo_apoli.util.context;
 
+import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import io.github.eggohito.neo_apoli.util.context.parameter.Vec3dContextParameter;
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockEntityContextParameter;
@@ -18,6 +22,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -28,6 +35,10 @@ import net.minecraft.util.math.Vec3d;
 import java.util.function.Function;
 
 public final class NeoApoliContextParameters {
+
+	public static final RegistryFixedAlias<TypedContextParameter<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.TYPED_CONTEXT_PARAMETER);
+	public static final Codec<TypedContextParameter<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final PacketCodec<RegistryByteBuf, TypedContextParameter<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.TYPED_CONTEXT_PARAMETER);
 
 	//	Usually used in bi-entity contexts
 	public static final TypedContextParameter<Entity> ACTOR = registerInternal("actor", EntityContextParameter::new);

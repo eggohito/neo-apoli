@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.dynamic.Codecs;
@@ -109,20 +109,21 @@ public class CodecUtil {
 	}
 
 	public static <T> Codec<TypedContextParameter<T>> createParameterCodec(String name, Class<T> typeClass) {
-		return NeoApoliRegistries.TYPED_CONTEXT_PARAMETER.getCodec().comapFlatMap(
+		return NeoApoliContextParameters.CODEC.comapFlatMap(
 			parameter -> {
 
-				if (parameter.getTypeClass().isAssignableFrom(typeClass)) {
+				if (typeClass.isAssignableFrom(parameter.getTypeClass())) {
 					//noinspection unchecked
 					return DataResult.success((TypedContextParameter<T>) parameter);
 				}
 
 				else {
-					return DataResult.error(() -> "Unknown " + name + " parameter with ID: \"" + parameter.getId() + "\"");
+					return DataResult.error(() -> "Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.getId() + "\"");
 				}
 
 			},
 			Function.identity()
 		);
 	}
+
 }
