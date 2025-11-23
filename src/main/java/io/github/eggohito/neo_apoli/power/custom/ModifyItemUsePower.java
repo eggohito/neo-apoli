@@ -136,7 +136,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 			for (var instance: instances) {
 
-				Context context = createContext(user, hand, stackReference);
+				Context context = createContext(instance, user, hand, stackReference);
 
 				if (instance.isActive(context)) {
 
@@ -195,7 +195,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 				for (var instance: instances) {
 
-					Context context = createContext(user, hand, stackReference);
+					Context context = createContext(instance, user, hand, stackReference);
 
 					if (instance.isActive(context)) {
 
@@ -226,8 +226,8 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	}
 
-	public static Context createContext(LivingEntity user, Hand hand, StackReference stackReference) {
-		return PowerTypes.MODIFY_ITEM_USE.contextBuilder()
+	public static Context createContext(Instance instance, LivingEntity user, Hand hand, StackReference stackReference) {
+		return instance.createHolderContextBuilder()
 			.add(NeoApoliContextParameters.HAND, hand)
 			.add(NeoApoliContextParameters.THIS_ENTITY, user)
 			.add(NeoApoliContextParameters.ENTITY_POS, user.getPos())

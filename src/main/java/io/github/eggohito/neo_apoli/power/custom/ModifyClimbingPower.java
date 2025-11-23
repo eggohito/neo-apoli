@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
@@ -13,6 +14,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -23,7 +25,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 @Getter
 public class ModifyClimbingPower extends Power {
@@ -80,6 +84,40 @@ public class ModifyClimbingPower extends Power {
 				&& this.getPower().getAllowHolding().next(context.makeChild(".allow_holding"))
 				&& this.getPower().getHoldingCondition().test(context.makeChild(".holding_condition"));
 		}
+
+	}
+
+	public static boolean modify(Context context, BiPredicate<Instance, Context> tester) {
+
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+
+		return modify(context, instances, tester);
+
+	}
+
+	public static boolean modify(Context context, List<Instance> instances, BiPredicate<Instance, Context> tester) {
+
+		for (var instance : instances) {
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
+			try {
+
+				if (instanceContext.markActive(instance) && tester.test(instance, instanceContext)) {
+					return true;
+				}
+
+			}
+
+			finally {
+				instanceContext.markInActive(instance);
+			}
+
+		}
+
+		return false;
 
 	}
 

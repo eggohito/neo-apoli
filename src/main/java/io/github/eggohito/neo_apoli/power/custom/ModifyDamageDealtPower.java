@@ -4,13 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -93,16 +96,50 @@ public class ModifyDamageDealtPower extends Power {
 
 	}
 
+	public static float modify(Context context, float baseValue) {
+
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+
+		return modify(context, instances, baseValue);
+
+	}
+
 	public static float modify(Context context, List<Instance> instances, float baseValue) {
 
-		List<Modifier> modifiers = new ObjectArrayList<>();
-
+		List<Pair<Modifier, Context>> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
-			instance.execute(context);
-			modifiers.addAll(instance.getModifiers());
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
+			try {
+
+				if (!instanceContext.markActive(instance) || !instance.isActive(instanceContext)) {
+					continue;
+				}
+
+				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
+				instance.execute(instanceContext);
+
+				while (listIterator.hasNext()) {
+
+					int index = listIterator.nextIndex();
+					Modifier modifier = listIterator.next();
+
+					modifiers.add(Pair.of(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+
+				}
+
+			}
+
+			finally {
+				instanceContext.markInActive(instance);
+			}
+
 		}
 
-		return (float) Modifier.applyAll(index -> context.makeChild(".modifiers[" + index + "]"), modifiers, baseValue);
+		return (float) Modifier.applyAll(modifiers, baseValue);
 
 	}
 

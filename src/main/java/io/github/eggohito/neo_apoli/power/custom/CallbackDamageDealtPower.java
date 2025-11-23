@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -25,23 +26,23 @@ import java.util.Optional;
 public class CallbackDamageDealtPower extends Power implements Prioritized<CallbackDamageDealtPower> {
 
 	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("action").forGetter(CallbackDamageDealtPower::getAction))
+		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::getOnHitAction))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::getPriority))
 		.apply(instance, CallbackDamageDealtPower::new));
 
 	public static final PacketCodec<RegistryByteBuf, CallbackDamageDealtPower> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, CallbackDamageDealtPower::getAction,
+		Action.PACKET_CODEC, CallbackDamageDealtPower::getOnHitAction,
 		PacketCodecs.INTEGER, CallbackDamageDealtPower::getPriority,
 		CallbackDamageDealtPower::new
 	);
 
-	private final Action action;
+	private final Action onHitAction;
 	private final int priority;
 
-	public CallbackDamageDealtPower(Optional<Condition> activeCondition, Action action, int priority) {
+	public CallbackDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, int priority) {
 		super(activeCondition);
-		this.action = action;
+		this.onHitAction = onHitAction;
 		this.priority = priority;
 	}
 
@@ -58,7 +59,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	@Override
 	public void validate(ErrorReporter reporter) {
 		super.validate(reporter);
-		getAction().validate(reporter.makeChild(".action"));
+		getOnHitAction().validate(reporter.makeChild(".on_hit_action"));
 	}
 
 	public static class Instance extends Power.Instance<CallbackDamageDealtPower> {
@@ -68,15 +69,39 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 		}
 
 		public void execute(Context context) {
-			power.getAction().execute(context.makeChild(".action"));
+			power.getOnHitAction().execute(context.makeChild(".on_hit_action"));
 		}
+
+	}
+
+	public static void execute(Context context) {
+
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+
+		execute(context, instances);
 
 	}
 
 	public static void execute(Context context, InstanceCollection<Instance> instances) {
 
 		for (var instance : instances) {
-			instance.execute(context);
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
+			try {
+
+				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
+					instance.execute(instanceContext);
+				}
+
+			}
+
+			finally {
+				instanceContext.markInActive(instance);
+			}
+
 		}
 
 	}

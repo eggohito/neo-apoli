@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
@@ -88,43 +89,64 @@ public class PhasingPower extends Power {
 			return this.getPower().getViewDistance();
 		}
 
-		public boolean shouldPhaseDown(Context context, VoxelShape shape) {
+		public boolean shouldPhaseDown(Context context, VoxelShape collisionShape) {
 			BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
-			return holder.getY() < (double) blockPos.getY() + shape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
+			return holder.getY() < (double) blockPos.getY() + collisionShape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));
 		}
 
 	}
 
-	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
+	public static boolean shouldPhaseDown(Context context, VoxelShape collisionShape) {
 
-		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
-
-		boolean init = false;
-		float result = defaultValue.getAsFloat();
+		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
 
 		for (var instance : instances) {
 
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
 			try {
 
-				if (context.markActive(instance) && instance.isActive(context)) {
-
-					if (init) {
-						result = Math.min(result, instance.getViewDistance());
-					}
-
-					else {
-						result = instance.getViewDistance();
-						init = true;
-					}
-
+				if (instanceContext.markActive(instance) && instance.isActive(instanceContext) && instance.shouldPhaseDown(instanceContext, collisionShape)) {
+					return true;
 				}
 
 			}
 
 			finally {
-				context.markInActive(instance);
+				instanceContext.markInActive(instance);
+			}
+
+		}
+
+		return false;
+
+	}
+
+	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
+
+		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
+
+		float result = defaultValue.getAsFloat();
+
+		for (var instance : instances) {
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
+			try {
+
+				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
+					result = Math.min(result, instance.getViewDistance());
+				}
+
+			}
+
+			finally {
+				instanceContext.markInActive(instance);
 			}
 
 		}

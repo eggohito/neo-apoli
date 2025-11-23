@@ -85,14 +85,23 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	}
 
+	public static boolean modify(Context context, BooleanSupplier defaultValue) {
+
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+
+		return modify(context, instances, defaultValue);
+
+	}
+
 	public static boolean modify(Context context, InstanceCollection<Instance> instances, BooleanSupplier defaultValue) {
 
 		for (var instance : instances) {
 
-			try {
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
-				ErrorReporter reporter = instance.createReporter();
-				Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			try {
 
 				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
 					return instance.isAllowed(instanceContext);
@@ -101,7 +110,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 			}
 
 			finally {
-				context.markInActive(instance);
+				instanceContext.markInActive(instance);
 			}
 
 		}

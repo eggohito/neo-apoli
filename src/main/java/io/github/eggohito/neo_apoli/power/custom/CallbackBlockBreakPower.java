@@ -95,6 +95,15 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	}
 
+	public static void execute(Context context, boolean harvested) {
+
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+
+		execute(context, instances, harvested);
+
+	}
+
 	public static void execute(Context context, InstanceCollection<Instance> instances, boolean harvested) {
 
 		for (var instance : instances) {
@@ -102,8 +111,16 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 			ErrorReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
-			if (instance.doesApply(instanceContext, harvested)) {
-				instance.execute(instanceContext);
+			try {
+
+				if (instanceContext.markActive(instance) && instance.doesApply(instanceContext, harvested)) {
+					instance.execute(instanceContext);
+				}
+
+			}
+
+			finally {
+				instanceContext.markInActive(instance);
 			}
 
 		}

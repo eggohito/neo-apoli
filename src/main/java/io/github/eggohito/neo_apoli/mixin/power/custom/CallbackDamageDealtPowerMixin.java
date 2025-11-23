@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -32,9 +31,8 @@ public abstract class CallbackDamageDealtPowerMixin {
 			if (original && source.getAttacker() != null) {
 
 				Context context = CallbackDamageDealtPower.createContext(source.getAttacker(), this, source, amount);
-				Prioritized.InstanceCollection<CallbackDamageDealtPower.Instance> instances = new Prioritized.InstanceCollection<>(source.getAttacker(), CallbackDamageDealtPower.Instance.class, instance -> instance.isActive(context));
 
-				CallbackDamageDealtPower.execute(context, instances);
+				CallbackDamageDealtPower.execute(context);
 
 			}
 
@@ -57,9 +55,8 @@ public abstract class CallbackDamageDealtPowerMixin {
 			if (cir.getReturnValueZ() && source.getAttacker() != null) {
 
 				Context context = CallbackDamageDealtPower.createContext(source.getAttacker(), this, source, amount);
-				Prioritized.InstanceCollection<CallbackDamageDealtPower.Instance> instances = new Prioritized.InstanceCollection<>(source.getAttacker(), CallbackDamageDealtPower.Instance.class, instance -> instance.isActive(context));
 
-				CallbackDamageDealtPower.execute(context, instances);
+				CallbackDamageDealtPower.execute(context);
 
 			}
 

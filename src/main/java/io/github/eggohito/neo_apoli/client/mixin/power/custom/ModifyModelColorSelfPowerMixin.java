@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.client.duck.PlayerRendererHelper;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
@@ -38,7 +37,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.OptionalInt;
 
 public abstract class ModifyModelColorSelfPowerMixin {
 
@@ -61,11 +59,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 
 				if (!instances.isEmpty()) {
 
-					color = instances
-						.stream()
-						.map(instance -> instance.getColor(context))
-						.flatMapToInt(OptionalInt::stream)
-						.reduce(color, Color::mix);
+					color = ModifyModelColorSelfPower.modify(context, instances, color);
 
 					renderCache.neo_apoli$setColor(color);
 					float alpha = ColorHelper.getAlphaFloat(color);
@@ -117,11 +111,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 			if (player != null && !instances.isEmpty()) {
 
 				Context context = ModifyModelColorSelfPower.createContext(player, null);
-				int color = instances
-					.stream()
-					.map(instance -> instance.getColor(context))
-					.flatMapToInt(OptionalInt::stream)
-					.reduce(-1, Color::mix);
+				int color = ModifyModelColorSelfPower.modify(context, instances, -1);
 
 				armPart.render(matrices, vertices, light, overlay, color);
 

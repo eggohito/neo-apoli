@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.block.BlockState;
@@ -82,22 +83,30 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	public static VoxelShape modify(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
-		for (var instance : new InstanceCollection<>(context.nullable(NeoApoliContextParameters.THIS_ENTITY), Instance.class)) {
+		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+
+		return modify(context, instances, defaultValue);
+
+	}
+
+	public static VoxelShape modify(Context context, InstanceCollection<Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
+
+		for (var instance : instances) {
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
 
-				if (context.markActive(instance)) {
+				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
 
-					if (instance.isActive(context)) {
+					if (instance.isAllowed(instanceContext)) {
+						return defaultValue.get();
+					}
 
-						if (instance.isAllowed(context)) {
-							return defaultValue.get();
-						}
-
-						else {
-							return VoxelShapes.empty();
-						}
-
+					else {
+						return VoxelShapes.empty();
 					}
 
 				}
@@ -105,7 +114,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 			}
 
 			finally {
-				context.markInActive(instance);
+				instanceContext.markInActive(instance);
 			}
 
 		}

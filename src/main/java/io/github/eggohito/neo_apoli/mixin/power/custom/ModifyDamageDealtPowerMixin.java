@@ -20,8 +20,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-
 public abstract class ModifyDamageDealtPowerMixin {
 
 	@Mixin(LivingEntity.class)
@@ -37,11 +35,9 @@ public abstract class ModifyDamageDealtPowerMixin {
 			if (source.getAttacker() != null) {
 
 				Context context = ModifyDamageDealtPower.createContext(source.getAttacker(), this, source, original);
-				List<ModifyDamageDealtPower.Instance> instances = PowersComponent.getInstances(source.getAttacker(), ModifyDamageDealtPower.Instance.class, instance -> instance.isActive(context));
+				float modified = ModifyDamageDealtPower.modify(context, original);
 
-				float modified = ModifyDamageDealtPower.modify(context, instances, original);
 				damageAmountModifiedRef.set(modified != original);
-
 				return modified;
 
 			}

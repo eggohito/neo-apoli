@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -18,9 +19,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 @Getter
 public class ModifyModelColorOtherPower extends Power {
@@ -64,20 +65,37 @@ public class ModifyModelColorOtherPower extends Power {
 			super(holder, power);
 		}
 
-		public OptionalInt getColor(Context context) {
+		public int getColor(Context context) {
+			return power.getColor().getValue(context.makeChild(".color"));
+		}
 
-			Entity renderedEntity = context.nullable(NeoApoliContextParameters.TARGET);
-			Context colorContext = context.makeChild(".color");
+	}
 
-			if (!Objects.equals(holder, renderedEntity) && this.isActive(context)) {
-				return OptionalInt.of(power.getColor().getValue(colorContext));
+	public static int modify(Context context, List<Instance> instances, int original) {
+
+		Entity renderedEntity = context.nullable(NeoApoliContextParameters.TARGET);
+		int color = original;
+
+		for (var instance : instances) {
+
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
+			try {
+
+				if (instanceContext.markActive(instance) && !Objects.equals(instance.getHolder(), renderedEntity) && instance.isActive(instanceContext)) {
+					color = Color.mix(color, instance.getColor(instanceContext));
+				}
+
 			}
 
-			else {
-				return OptionalInt.empty();
+			finally {
+				instanceContext.markInActive(instance);
 			}
 
 		}
+
+		return color;
 
 	}
 

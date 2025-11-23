@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
 import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
@@ -17,7 +16,6 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import org.slf4j.event.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -75,7 +73,7 @@ public abstract class PhasingPowerMixin {
 			if (shapeContext instanceof EntityShapeContext entityShapeContext && entityShapeContext.getEntity() != null) {
 
 				Context context = this.neo_apoli$getOrCreatePhasingContext(entityShapeContext.getEntity(), blockPos);
-				boolean result = PowersComponent.hasInstances(entityShapeContext.getEntity(), PhasingPower.Instance.class, instance ->  instance.isActive(context) && instance.shouldPhaseDown(context, original));
+				boolean result = PhasingPower.shouldPhaseDown(context, original);
 
 				this.neo_apoli$phasingContext.remove();
 

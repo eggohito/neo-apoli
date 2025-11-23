@@ -2,11 +2,8 @@ package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -48,8 +45,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 		private boolean neo_apoli$applyProxy(boolean original, Entity entity) {
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
-			boolean result = original
-				|| PowersComponent.hasInstances(context.required(NeoApoliContextParameters.TARGET), ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context));
+			boolean result = original || ModifyGlowingSelfPower.modifyOutlineVisibility(context);
 
 			this.neo_apoli$glowingContext.clear();
 			return result;
@@ -91,11 +87,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 				&& team.getColor().getColorValue() != null;
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
-			int color = original;
-
-			for (var instance: PowersComponent.getInstances(renderedEntity, ModifyGlowingSelfPower.Instance.class, instance -> instance.isActive(context) && (!hasTeamColor || !instance.shouldUseTeamColor(context)))) {
-				color = Color.mix(color, instance.getColor(context));
-			}
+			int color = ModifyGlowingSelfPower.modifyColor(context, hasTeamColor, original);
 
 			this.neo_apoli$glowingContext.clear();
 			return color;

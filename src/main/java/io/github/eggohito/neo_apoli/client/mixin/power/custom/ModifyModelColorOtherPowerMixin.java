@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorOtherPower;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -23,7 +22,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.List;
-import java.util.OptionalInt;
 
 public abstract class ModifyModelColorOtherPowerMixin {
 
@@ -46,11 +44,7 @@ public abstract class ModifyModelColorOtherPowerMixin {
 
 				if (!instances.isEmpty()) {
 
-					color = instances
-						.stream()
-						.map(instance -> instance.getColor(context))
-						.flatMapToInt(OptionalInt::stream)
-						.reduce(color, Color::mix);
+					color = ModifyModelColorOtherPower.modify(context, instances, color);
 
 					renderCache.neo_apoli$setColor(color);
 					float alpha = ColorHelper.getAlphaFloat(color);

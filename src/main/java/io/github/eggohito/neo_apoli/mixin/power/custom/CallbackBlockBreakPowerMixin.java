@@ -4,9 +4,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -64,9 +62,8 @@ public abstract class CallbackBlockBreakPowerMixin {
 	private void onBlockBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir, @Share("brokenBlockState") LocalRef<BlockState> brokenBlockStateRef, @Share("brokenBlockEntity") LocalRef<BlockEntity> brokenBlockEntityRef) {
 
 		Context context = CallbackBlockBreakPower.createContext(this.player, pos, brokenBlockStateRef.get(), brokenBlockEntityRef.get(), this.neo_apoli$blockBreakDirection.get());
-		Prioritized.InstanceCollection<CallbackBlockBreakPower.Instance> instances = new Prioritized.InstanceCollection<>(this.player, CallbackBlockBreakPower.Instance.class);
 
-		CallbackBlockBreakPower.execute(context, instances, this.neo_apoli$harvested);
+		CallbackBlockBreakPower.execute(context, this.neo_apoli$harvested);
 
 	}
 

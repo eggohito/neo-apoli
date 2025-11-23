@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -101,16 +102,19 @@ public class ModifyInvisibilityPower extends Power {
 
 		for (var instance : instances) {
 
+			ErrorReporter reporter = instance.createReporter();
+			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+
 			try {
 
-				if (context.markActive(instance) && tester.test(instance, context)) {
+				if (instanceContext.markActive(instance) && tester.test(instance, instanceContext)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				context.markInActive(instance);
+				instanceContext.markInActive(instance);
 			}
 
 		}

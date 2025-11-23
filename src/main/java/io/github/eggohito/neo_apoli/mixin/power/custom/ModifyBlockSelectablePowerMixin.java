@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.block.*;
-import net.minecraft.entity.Entity;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.math.BlockPos;
@@ -29,14 +28,9 @@ public abstract class ModifyBlockSelectablePowerMixin extends State<Block, Block
 	@ModifyReturnValue(method = "getOutlineShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;", at = @At("RETURN"))
 	private VoxelShape neo_apoli$modifySelectableShape(VoxelShape original, BlockView blockView, BlockPos blockPos, ShapeContext shapeContext) {
 
-		if (shapeContext == ShapeContext.absent()) {
-			return original;
-		}
+		if (shapeContext instanceof EntityShapeContext entityShapeContext && entityShapeContext.getEntity() != null) {
 
-		else if (shapeContext instanceof EntityShapeContext entityShapeContext && entityShapeContext.getEntity() != null) {
-
-			Entity entity = entityShapeContext.getEntity();
-			Context context = ModifyBlockSelectablePower.createContext(entity, blockPos, this.asBlockState(), blockView.getBlockEntity(blockPos));
+			Context context = ModifyBlockSelectablePower.createContext(entityShapeContext.getEntity(), blockPos, this.asBlockState(), blockView.getBlockEntity(blockPos));
 
 			return ModifyBlockSelectablePower.modify(context, () -> original);
 
