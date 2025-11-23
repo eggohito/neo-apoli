@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.keybinding;
 
+import io.github.eggohito.neo_apoli.integration.KeyBindingEvents;
 import io.github.eggohito.neo_apoli.networking.packet.c2s.SynchronizeKeyBindingStatesC2SPacket;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -41,7 +42,7 @@ public final class KeyBindingStateHolder {
 			return;
 		}
 
-		Map<String, KeyBindingState> currentStates = new Object2ObjectOpenHashMap<>();
+		Map<String, KeyBindingState> states = KEYBINDING_STATES.computeIfAbsent(player.getUuid(), k -> new Object2ObjectOpenHashMap<>());
 		Object2BooleanMap<String> statesToUpdate = new Object2BooleanOpenHashMap<>();
 
 		for (var keyBinding : client.options.allKeys) {
@@ -49,23 +50,37 @@ public final class KeyBindingStateHolder {
 			String id = keyBinding.getTranslationKey();
 			boolean pressed = keyBinding.isPressed();
 
-			Map<String, KeyBindingState> previousStates = KEYBINDING_STATES.computeIfAbsent(player.getUuid(), k -> new Object2ObjectOpenHashMap<>());
-			KeyBindingState state = previousStates.get(id);
+			KeyBindingState state = states.get(id);
+			boolean changed = state == null || pressed != state.pressed();
 
-			if (state == null || pressed != state.pressed()) {
+			if (changed) {
 
 				long pressedTime = pressed ? world.getTime() : 0;
-
 				state = new KeyBindingState(id, pressedTime);
+
 				statesToUpdate.put(id, pressed);
 
 			}
 
-			currentStates.put(id, state);
+			states.put(id, state);
+
+			if (changed) {
+
+				if (pressed) {
+					KeyBindingEvents.PRESSED.invoker().run(player, state);
+				}
+
+				else {
+					KeyBindingEvents.RELEASED.invoker().run(player, state);
+				}
+
+			}
+
+			if (state.pressed()) {
+				KeyBindingEvents.HELD.invoker().run(player, state);
+			}
 
 		}
-
-		KEYBINDING_STATES.put(player.getUuid(), currentStates);
 
 		if (!statesToUpdate.isEmpty()) {
 			ClientPlayNetworking.send(new SynchronizeKeyBindingStatesC2SPacket(statesToUpdate));
@@ -77,6 +92,25 @@ public final class KeyBindingStateHolder {
 	@Environment(EnvType.CLIENT)
 	public static void stopTrackingClient(ClientPlayNetworkHandler ignoredHandler, MinecraftClient ignoredClient) {
 		KEYBINDING_STATES.clear();
+	}
+
+	@ApiStatus.Internal
+	public static void startTrackingServer(MinecraftServer server) {
+
+		for (var player : server.getPlayerManager().getPlayerList()) {
+
+			Map<String, KeyBindingState> states = KEYBINDING_STATES.getOrDefault(player.getUuid(), new Object2ObjectOpenHashMap<>());
+
+			for (var state : states.values()) {
+
+				if (state.pressed()) {
+					KeyBindingEvents.HELD.invoker().run(player, state);
+				}
+
+			}
+
+		}
+
 	}
 
 	@ApiStatus.Internal
@@ -95,9 +129,25 @@ public final class KeyBindingStateHolder {
 			String id = entry.getKey();
 			boolean pressed = entry.getBooleanValue();
 
-			KEYBINDING_STATES
-				.computeIfAbsent(player.getUuid(), k -> new Object2ObjectOpenHashMap<>())
-				.put(id, new KeyBindingState(id, pressed ? world.getTime() : 0));
+			Map<String, KeyBindingState> states = KEYBINDING_STATES.computeIfAbsent(player.getUuid(), k -> new Object2ObjectOpenHashMap<>());
+			KeyBindingState state = states.get(id);
+
+			if (state == null || pressed != state.pressed()) {
+
+				long pressedTime = pressed ? world.getTime() : 0;
+				state = new KeyBindingState(id, pressedTime);
+
+				states.put(id, state);
+
+				if (pressed) {
+					KeyBindingEvents.PRESSED.invoker().run(player, state);
+				}
+
+				else {
+					KeyBindingEvents.RELEASED.invoker().run(player, state);
+				}
+
+			}
 
 		}
 

@@ -4,6 +4,7 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
+import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
@@ -18,6 +19,8 @@ public class PowerIntegrations {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ModifyEntityTypeTagPower::sendCache);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(CraftingRecipePower::sendRecipeDisplays);
+
+		KeyBindingEvents.PRESSED.register(TogglePower::onKeyBindingPressed);
 
 	}
 

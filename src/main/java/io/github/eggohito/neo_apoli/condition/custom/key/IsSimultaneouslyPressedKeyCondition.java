@@ -20,16 +20,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
 
-public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider startBuffer) implements KeyCondition {
+public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider buffer) implements KeyCondition {
 
 	public static final MapCodec<IsSimultaneouslyPressedKeyCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.listOf(2, Integer.MAX_VALUE).fieldOf("ids").forGetter(IsSimultaneouslyPressedKeyCondition::ids),
-		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(3)).forGetter(IsSimultaneouslyPressedKeyCondition::startBuffer)
+		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(3)).forGetter(IsSimultaneouslyPressedKeyCondition::buffer)
 	).apply(instance, IsSimultaneouslyPressedKeyCondition::new));
 
 	public static final PacketCodec<RegistryByteBuf, IsSimultaneouslyPressedKeyCondition> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.collection(ObjectArrayList::new, StringProvider.PACKET_CODEC), IsSimultaneouslyPressedKeyCondition::ids,
-		NumberProvider.PACKET_CODEC, IsSimultaneouslyPressedKeyCondition::startBuffer,
+		NumberProvider.PACKET_CODEC, IsSimultaneouslyPressedKeyCondition::buffer,
 		IsSimultaneouslyPressedKeyCondition::new
 	);
 
@@ -46,7 +46,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 		}
 
 		Context bufferContext = context.makeChild(".buffer");
-		long buffer = startBuffer().nextLong(bufferContext);
+		long buffer = buffer().nextLong(bufferContext);
 
 		if (bufferContext.hasErrors()) {
 			return false;
@@ -110,7 +110,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 
 		}
 
-		startBuffer().validate(reporter.makeChild(".buffer"));
+		buffer().validate(reporter.makeChild(".buffer"));
 
 	}
 

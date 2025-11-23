@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -132,6 +133,8 @@ public class NeoApoli implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
+
+		ServerTickEvents.END_SERVER_TICK.register(KeyBindingStateHolder::startTrackingServer);
 		ServerPlayConnectionEvents.DISCONNECT.register(KeyBindingStateHolder::stopTrackingServer);
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {

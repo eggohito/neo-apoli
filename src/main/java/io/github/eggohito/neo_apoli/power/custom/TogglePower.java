@@ -5,10 +5,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingReference;
+import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
+import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.KeyBound;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -16,6 +17,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -26,11 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 @Getter
-public class TogglePower extends Power implements KeyBound {
+public class TogglePower extends Power {
 
 	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.optionalFieldOf("action", new NothingAction()).forGetter(TogglePower::getAction))
-		.and(KeyBindingReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
+		.and(KeyCondition.CODEC.fieldOf("key_condition").forGetter(TogglePower::getKeyCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
 		.apply(instance, TogglePower::new));
@@ -38,22 +40,22 @@ public class TogglePower extends Power implements KeyBound {
 	public static final PacketCodec<RegistryByteBuf, TogglePower> PACKET_CODEC = PacketCodec.tuple(
 		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
 		Action.PACKET_CODEC, TogglePower::getAction,
-		KeyBindingReference.PACKET_CODEC, TogglePower::getKey,
+		KeyCondition.PACKET_CODEC, TogglePower::getKeyCondition,
 		BooleanProvider.PACKET_CODEC, TogglePower::getRetainState,
 		BooleanProvider.PACKET_CODEC, TogglePower::getActiveByDefault,
 		TogglePower::new
 	);
 
 	private final Action action;
-	private final KeyBindingReference key;
+	private final KeyCondition keyCondition;
 
 	private final BooleanProvider retainState;
 	private final BooleanProvider activeByDefault;
 
-	public TogglePower(Optional<Condition> activeCondition, Action action, KeyBindingReference key, BooleanProvider retainState, BooleanProvider activeByDefault) {
+	public TogglePower(Optional<Condition> activeCondition, Action action, KeyCondition keyCondition, BooleanProvider retainState, BooleanProvider activeByDefault) {
 		super(activeCondition);
 		this.action = action;
-		this.key = key;
+		this.keyCondition = keyCondition;
 		this.retainState = retainState;
 		this.activeByDefault = activeByDefault;
 	}
@@ -68,33 +70,13 @@ public class TogglePower extends Power implements KeyBound {
 		return new Instance(holder, this);
 	}
 
-	@Override
-	public KeyBindingReference getKey() {
-		return key;
-	}
-
-	public static class Instance extends Power.Instance<TogglePower> implements KeyBound.Instance {
+	public static class Instance extends Power.Instance<TogglePower> {
 
 		private boolean toggled;
 
 		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
 			this.toggled = power.getActiveByDefault().next(this.createHolderContext().makeChild(".active_by_default"));
-		}
-
-		@Override
-		public KeyBound getKeyBound() {
-			return power;
-		}
-
-		@Override
-		public boolean shouldTrigger(Context context) {
-			return super.isActive(context);
-		}
-
-		@Override
-		public void onPress(Context context) {
-			this.toggle(context);
 		}
 
 		@Override
@@ -131,15 +113,34 @@ public class TogglePower extends Power implements KeyBound {
 			return toggled;
 		}
 
-		protected void toggle(Context context) {
+		public boolean shouldToggle(Context context) {
+			return super.isActive(context)
+				&& power.getKeyCondition().test(context.makeChild(".key_condition"));
+		}
+
+		public void toggle(Context context) {
 
 			if (!holder.getWorld().isClient()) {
 
 				this.toggled = !toggled;
 				this.syncData();
 
-				power.getAction().execute(context.makeChild(".action"));
+			}
 
+			power.getAction().execute(context.makeChild(".action"));
+
+		}
+
+	}
+
+	public static void onKeyBindingPressed(PlayerEntity player, KeyBindingState ignoredState) {
+
+		for (var instance : PowersComponent.getInstances(player, Instance.class)) {
+
+			Context instanceContext = instance.createHolderContext();
+
+			if (instance.shouldToggle(instanceContext)) {
+				instance.toggle(instanceContext);
 			}
 
 		}
