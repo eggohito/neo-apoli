@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.action;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -12,13 +11,13 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.integration.DependencyManager;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -54,18 +53,19 @@ public final class ActionManager implements JsonResourceReloader {
 	private static final String DIRECTORY = RegistryKeys.getPath(NeoApoliRegistryKeys.ACTION);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
-	private static final TagGroupLoader<Action> TAG_LOADER = new TagGroupLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
-
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
 
-	private static final Identifier ID = NeoApoli.id("manager/actions");
-	private static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ConditionManager.getId()));
+	public static final Identifier ID = NeoApoli.id("manager/actions");
+	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
 
-	private static final BiMap<Identifier, Action> ACTIONS = HashBiMap.create();
-	private static final Map<Identifier, List<Action>> TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Identifier, Action> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final IdentityHashMap<Action, Identifier> BY_ACTION = new IdentityHashMap<>();
+
+	private static final TagGroupLoader<Action> TAG_LOADER = new TagGroupLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
+	private static final Object2ObjectOpenHashMap<Identifier, List<Action>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -95,7 +95,7 @@ public final class ActionManager implements JsonResourceReloader {
 
 	@Override
 	public Identifier getFabricId() {
-		return getId();
+		return ID;
 	}
 
 	@Override
@@ -162,18 +162,20 @@ public final class ActionManager implements JsonResourceReloader {
 		TAGS.putAll(TAG_LOADER.buildGroup(prepared));
 		LOGGER.info("Finished parsing action tags from data packs. Parsed {} action tag(s)", TAGS.size());
 
+		TAGS.trim();
+
 	}
 
 	private void applyElements(Map<Identifier, Entry> prepared, ResourceManager ignoredManager, Profiler ignoredProfiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
-		ACTIONS.clear();
+		BY_ID.clear();
 
 		prepared.forEach((id, entry) -> Action.CODEC.parse(ops, entry.element())
-			.ifSuccess(action -> ACTIONS.put(id, action))
+			.ifSuccess(action -> BY_ID.put(id, action))
 			.ifError(error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
 
-		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s)", ACTIONS.size());
+		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s)", BY_ID.size());
 
 	}
 
@@ -184,8 +186,8 @@ public final class ActionManager implements JsonResourceReloader {
 			return;
 		}
 
-		LOGGER.info("Sent {} action(s) to player {}!", ACTIONS.size(), receiver.getName().getString());
-		ServerPlayNetworking.send(receiver, new SynchronizeActionsS2CPacket(ACTIONS));
+		LOGGER.info("Sent {} action(s) to player {}!", BY_ID.size(), receiver.getName().getString());
+		ServerPlayNetworking.send(receiver, new SynchronizeActionsS2CPacket(BY_ID));
 
 	}
 
@@ -196,8 +198,12 @@ public final class ActionManager implements JsonResourceReloader {
 		Objects.requireNonNull(context.client(), "client");
 		Objects.requireNonNull(context.responseSender(), "responseSender");
 
-		ACTIONS.clear();
-		ACTIONS.putAll(payload.actions());
+		BY_ID.clear();
+		BY_ACTION.clear();
+
+		payload.actions().forEach(ActionManager::register);
+
+		BY_ID.trim();
 
 	}
 
@@ -223,28 +229,19 @@ public final class ActionManager implements JsonResourceReloader {
 		TAGS.clear();
 		TAGS.putAll(payload.tags());
 
+		TAGS.trim();
+
 	}
 
-	public static Identifier getId() {
-		return ID;
-	}
-
-	public static void addDependency(Identifier id) {
-		DEPENDENCIES.add(id);
+	private static void register(Identifier id, Action action) {
+		BY_ID.put(id, action);
+		BY_ACTION.put(action, id);
 	}
 
 	public static DataResult<Action> getAsResult(Identifier id) {
-
-		Action action = ACTIONS.get(id);
-
-		if (action != null) {
-			return DataResult.success(action);
-		}
-
-		else {
-			return DataResult.error(() -> "Action with ID \"" + id + "\" does not exist!");
-		}
-
+		return contains(id)
+			? DataResult.success(BY_ID.get(id))
+			: DataResult.error(() -> "Action with ID \"" + id + "\" does not exist!");
 	}
 
 	public static Action get(Identifier id) {
@@ -252,18 +249,9 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	public static DataResult<Identifier> getIdAsResult(Action action) {
-
-		Map<Action, Identifier> inverse = ACTIONS.inverse();
-		Identifier id = inverse.get(action);
-
-		if (id != null) {
-			return DataResult.success(id);
-		}
-
-		else {
-			return DataResult.error(() -> action + " doesn't correspond to any identifier!");
-		}
-
+		return containsId(action)
+			? DataResult.success(BY_ACTION.get(action))
+			: DataResult.error(() -> action + " doesn't correspond to any identifiers!");
 	}
 
 	public static Identifier getId(Action action) {
@@ -271,11 +259,19 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	public static Stream<Action> actions() {
-		return ACTIONS.values().stream();
+		return BY_ID.values().stream();
 	}
 
 	public static Stream<Identifier> ids() {
-		return ACTIONS.keySet().stream();
+		return BY_ID.keySet().stream();
+	}
+
+	public static boolean contains(Identifier id) {
+		return BY_ID.containsKey(id);
+	}
+
+	public static boolean containsId(Action action) {
+		return BY_ACTION.containsKey(action);
 	}
 
 	public static ValueSuppliedElementCodec<Action> createEntryCodec(boolean allowInlineDefinitions) {
@@ -289,8 +285,9 @@ public final class ActionManager implements JsonResourceReloader {
 	static {
 
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
+		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.getId(), ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 	}

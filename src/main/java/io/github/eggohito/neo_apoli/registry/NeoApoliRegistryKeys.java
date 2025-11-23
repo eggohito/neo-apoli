@@ -24,7 +24,7 @@ import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
-import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
@@ -42,7 +42,7 @@ import net.minecraft.registry.RegistryKey;
 
 public class NeoApoliRegistryKeys {
 
-	public static final RegistryKey<Registry<Power>> POWER = create("power");
+	public static final RegistryKey<Registry<PowerEntry<?>>> POWER = create("power");
 	public static final RegistryKey<Registry<PowerType<?>>> POWER_TYPE = create("power_type");
 
 	public static final RegistryKey<Registry<Action>> ACTION = create("action");

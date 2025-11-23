@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.collect.ImmutableBiMap;
-import com.google.gson.JsonElement;
 import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MiscUtil {
 
@@ -52,16 +53,17 @@ public class MiscUtil {
 
 	private static final MapCodec<Optional<ResourceCondition>> RESOURCE_CONDITION_MAP_CODEC = ResourceCondition.CONDITION_CODEC.optionalFieldOf(ResourceConditions.CONDITIONS_KEY);
 
-	public static boolean isResourceConditionFulfilled(Identifier resourceId, JsonElement jsonElement, String directory, RegistryOps<JsonElement> ops) {
+	public static <I> boolean isResourceConditionFulfilled(Identifier resourceId, I input, String directory, RegistryOps<I> ops) {
+		return ops.getMap(input).mapOrElse(mapInput -> isResourceConditionFulfilled(resourceId, mapInput, directory, ops), error -> true);
+	}
+
+	public static <I> boolean isResourceConditionFulfilled(Identifier resourceId, MapLike<I> mapInput, String directory, RegistryOps<I> ops) {
 		RegistryOps.RegistryInfoGetter infoGetter = ((RegistryOpsAccessor) ops).getRegistryInfoGetter();
-		return ops.getMap(jsonElement)
+		return RESOURCE_CONDITION_MAP_CODEC.decode(ops, mapInput)
+			.ifError(error -> NeoApoli.LOGGER.error("Failed to parse resource conditions for file of type {} with ID '{}', skipping: {}", directory, resourceId, error.message()))
 			.result()
-			.flatMap(mapLike -> RESOURCE_CONDITION_MAP_CODEC.decode(ops, mapLike)
-				.ifError(error -> NeoApoli.LOGGER.error("Failed to parse resource conditions for file of type {} with id {}, skipping: {}", directory, resourceId, error.message()))
-				.result()
-				.map(optCondition -> optCondition
-					.map(condition -> condition.test(infoGetter))
-					.orElse(true)))
+			.flatMap(Function.identity())
+			.map(condition -> condition.test(infoGetter))
 			.orElse(true);
 	}
 

@@ -579,7 +579,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		});
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.getId(), getId());
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, getId());
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(getId(), PowersComponent::update);
 
 	}

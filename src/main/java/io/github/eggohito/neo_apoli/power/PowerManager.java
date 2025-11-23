@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
@@ -9,6 +10,7 @@ import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.integration.DataPackContentsEvents;
+import io.github.eggohito.neo_apoli.integration.DependencyManager;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
@@ -67,11 +69,11 @@ public final class PowerManager implements JsonResourceReloader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
 	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
 
-	private static final Identifier ID = NeoApoli.id("manager/powers");
-	private static final Set<Identifier> DEPENDENCIES = Util.make(new ObjectOpenHashSet<>(), set -> set.add(ActionManager.getId()));
+	public static final Identifier ID = NeoApoli.id("manager/powers");
+	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Power, PowerReference> BY_POWER = new Object2ObjectOpenHashMap<>();
+	private static final Map<Power, PowerReference> BY_POWER = new IdentityHashMap<>();
 
 	private static final Object2ObjectOpenHashMap<Identifier, List<TagGroupLoader.TrackedEntry>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
@@ -207,8 +209,9 @@ public final class PowerManager implements JsonResourceReloader {
 	static {
 
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.getId(), ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
@@ -251,8 +254,6 @@ public final class PowerManager implements JsonResourceReloader {
 		}
 
 		NeoApoli.LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", prevSize, BY_REFERENCE.size());
-
-		BY_POWER.trim();
 		BY_REFERENCE.trim();
 
 	}
@@ -326,19 +327,11 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	public static Identifier getId() {
-		return ID;
-	}
-
-	public static void addDependency(Identifier id) {
-		DEPENDENCIES.add(id);
-	}
-
 	public static Set<Identifier> getTags() {
 		return TAGS.keySet();
 	}
 
-	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(TagKey<Power> tag) {
+	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(TagKey<PowerEntry<?>> tag) {
 		return getEntriesFromTag(tag.id());
 	}
 
@@ -369,7 +362,7 @@ public final class PowerManager implements JsonResourceReloader {
 	public static DataResult<PowerReference> getReferenceAsResult(Power power) {
 		return containsReference(power)
 			? DataResult.success(BY_POWER.get(power))
-			: DataResult.error(() -> "Power " + power + " doesn't correspond to any references!");
+			: DataResult.error(() -> power + " doesn't correspond to any references!");
 	}
 
 	public static PowerReference getReference(Power power) {
@@ -424,7 +417,6 @@ public final class PowerManager implements JsonResourceReloader {
 
 	private static void endLoading() {
 		BY_REFERENCE.trim();
-		BY_POWER.trim();
 	}
 
 	public record Entry(String source, JsonObject element) implements JsonResourceReloader.Entry {

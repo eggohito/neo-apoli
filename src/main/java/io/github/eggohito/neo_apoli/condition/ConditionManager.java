@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.condition;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -10,12 +9,12 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
+import io.github.eggohito.neo_apoli.integration.DependencyManager;
 import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -30,6 +29,7 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonReader;
@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public final class ConditionManager extends SinglePreparationResourceReloader<Map<Identifier, JsonResourceReloader.Entry>> implements JsonResourceReloader {
@@ -54,10 +54,11 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		.setPrettyPrinting()
 		.create();
 
-	private static final Identifier ID = NeoApoli.id("manager/conditions");
-	private static final Set<Identifier> DEPENDENCIES = new ObjectOpenHashSet<>();
+	public static final Identifier ID = NeoApoli.id("manager/conditions");
+	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
 
-	private static final BiMap<Identifier, Condition> CONDITIONS = HashBiMap.create();
+	private static final Object2ObjectOpenHashMap<Identifier, Condition> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final IdentityHashMap<Condition, Identifier> BY_CONDITION = new IdentityHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -117,19 +118,19 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	protected void apply(Map<Identifier, Entry> prepared, ResourceManager manager, Profiler profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
-		CONDITIONS.clear();
+		BY_ID.clear();
 
 		prepared.forEach((id, entry) -> Condition.CODEC.parse(ops, entry.element())
-			.ifSuccess(condition -> CONDITIONS.put(id, condition))
+			.ifSuccess(condition -> register(id, condition))
 			.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
 
-		LOGGER.info("Finished parsing conditions from data packs. Parsed {} condition(s)", CONDITIONS.size());
+		LOGGER.info("Finished parsing conditions from data packs. Parsed {} condition(s)", BY_ID.size());
 
 	}
 
 	@Override
 	public Identifier getFabricId() {
-		return getId();
+		return ID;
 	}
 
 	@Override
@@ -144,8 +145,8 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 			return;
 		}
 
-		LOGGER.info("Sent {} condition(s) to player {}!", CONDITIONS.size(), receiver.getName().getString());
-		ServerPlayNetworking.send(receiver, new SynchronizeConditionsS2CPacket(CONDITIONS));
+		LOGGER.info("Sent {} condition(s) to player {}!", BY_ID.size(), receiver.getName().getString());
+		ServerPlayNetworking.send(receiver, new SynchronizeConditionsS2CPacket(BY_ID));
 
 	}
 
@@ -156,31 +157,25 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		Objects.requireNonNull(context.client(), "client");
 		Objects.requireNonNull(context.responseSender(), "responseSender");
 
-		CONDITIONS.clear();
-		CONDITIONS.putAll(payload.conditions());
+		BY_ID.clear();
+		BY_CONDITION.clear();
+
+		BY_ID.putAll(payload.conditions());
+		payload.conditions().forEach(ConditionManager::register);
+
+		BY_ID.trim();
 
 	}
 
-	public static Identifier getId() {
-		return ID;
-	}
-
-	public static void addDependency(Identifier id) {
-		DEPENDENCIES.add(id);
+	private static void register(Identifier id, Condition condition) {
+		BY_ID.put(id, condition);
+		BY_CONDITION.put(condition, id);
 	}
 
 	public static DataResult<Condition> getAsResult(Identifier id) {
-
-		Condition condition = CONDITIONS.get(id);
-
-		if (condition != null) {
-			return DataResult.success(condition);
-		}
-
-		else {
-			return DataResult.error(() -> "Condition with ID \"" + id + "\" does not exist!");
-		}
-
+		return contains(id)
+			? DataResult.success(BY_ID.get(id))
+			: DataResult.error(() -> "Condition with ID \"" + id + "\" does not exist!");
 	}
 
 	public static Condition get(Identifier id) {
@@ -188,18 +183,9 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	public static DataResult<Identifier> getIdAsResult(Condition condition) {
-
-		Map<Condition, Identifier> inverse = CONDITIONS.inverse();
-		Identifier id = inverse.get(condition);
-
-		if (id != null) {
-			return DataResult.success(id);
-		}
-
-		else {
-			return DataResult.error(() -> condition + " doesn't correspond to any identifier!");
-		}
-
+		return containsId(condition)
+			? DataResult.success(BY_CONDITION.get(condition))
+			: DataResult.error(() -> condition + " doesn't correspond to any identifiers!");
 	}
 
 	public static Identifier getId(Condition condition) {
@@ -207,11 +193,19 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	public static Stream<Condition> conditions() {
-		return CONDITIONS.values().stream();
+		return BY_ID.values().stream();
 	}
 
 	public static Stream<Identifier> ids() {
-		return CONDITIONS.keySet().stream();
+		return BY_ID.keySet().stream();
+	}
+
+	public static boolean contains(Identifier id) {
+		return BY_ID.containsKey(id);
+	}
+
+	public static boolean containsId(Condition condition) {
+		return BY_CONDITION.containsKey(condition);
 	}
 
 	public static ValueSuppliedElementCodec<Condition> createEntryCodec(boolean allowInlineDefinitions) {
