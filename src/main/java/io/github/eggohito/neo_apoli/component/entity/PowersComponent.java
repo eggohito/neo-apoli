@@ -255,22 +255,19 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	public boolean revokePower(PowerReference id, Identifier source) {
+		return !holder.getWorld().isClient()
+			&& revokePowerSideAgnostic(id, source);
+	}
 
-		if (holder.getWorld().isClient()) {
-			return false;
-		}
+	private boolean revokePowerSideAgnostic(PowerReference id, Identifier source) {
 
-		else {
+		List<PowerReference> revokedPowers = new ObjectArrayList<>();
+		boolean result = this.revokePower(id, source, revokedPowers::add);
 
-			List<PowerReference> revokedPowers = new ObjectArrayList<>();
-			boolean result = this.revokePower(id, source, revokedPowers::add);
+		instances.keySet().removeIf(revokedPowers::contains);
+		sources.keySet().removeIf(revokedPowers::contains);
 
-			instances.keySet().removeIf(revokedPowers::contains);
-			sources.keySet().removeIf(revokedPowers::contains);
-
-			return result;
-
-		}
+		return result;
 
 	}
 
@@ -629,7 +626,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			MAP_ENCODER,
 			MAP_DECODER,
 			(powersComponent, map) -> map.forEach((source, ids) ->
-				ids.forEach(id -> powersComponent.revokePower(id, source))
+				ids.forEach(id -> powersComponent.revokePowerSideAgnostic(id, source))
 			)
 		);
 
