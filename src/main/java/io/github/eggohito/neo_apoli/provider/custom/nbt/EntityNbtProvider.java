@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -44,7 +45,7 @@ public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
 		}
 
 		return optEntity
-			.map(entity -> entity.saveWithoutId(new CompoundTag()))
+			.map(NbtPredicate::getEntityTagToCompare)
 			.orElseGet(CompoundTag::new);
 
 	}
