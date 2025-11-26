@@ -6,11 +6,10 @@ import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-
-import java.util.Objects;
 
 public record NbtComparison(NbtProvider first, NbtProvider second) implements Comparison {
 
@@ -41,7 +40,7 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 
 		return !firstContext.hasErrors()
 			&& !secondContext.hasErrors()
-			&& Objects.equals(first, second);
+			&& NbtUtils.compareNbt(first, second, true);
 
 	}
 
