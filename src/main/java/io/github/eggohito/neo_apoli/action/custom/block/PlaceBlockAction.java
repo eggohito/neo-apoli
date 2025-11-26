@@ -6,23 +6,20 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-
-import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public record PlaceBlockAction(BlockState block, Mode mode) implements BlockAction {
 
@@ -31,9 +28,9 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 		Mode.CODEC.optionalFieldOf("mode", Mode.DEFAULT).forGetter(PlaceBlockAction::mode)
 	).apply(instance, PlaceBlockAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, PlaceBlockAction> PACKET_CODEC = PacketCodec.tuple(
-		NeoApoliPacketCodecs.BLOCK_STATE, PlaceBlockAction::block,
-		Mode.PACKET_CODEC, PlaceBlockAction::mode,
+	public static final StreamCodec<RegistryFriendlyByteBuf, PlaceBlockAction> STREAM_CODEC = StreamCodec.composite(
+		NeoApoliStreamCodecs.BLOCK_STATE, PlaceBlockAction::block,
+		Mode.STREAM_CODEC, PlaceBlockAction::mode,
 		PlaceBlockAction::new
 	);
 
@@ -49,30 +46,30 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 			return;
 		}
 
-		ServerWorld world = context.getWorld();
-		BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
+		ServerLevel world = context.getWorld();
+		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
 
-		int flags = Block.NOTIFY_LISTENERS | mode().flag;
+		int flags = Block.UPDATE_CLIENTS | mode().flag;
 
 		boolean placeBlock = true;
 		boolean updateNeighbors = true;
 
 		switch (mode()) {
 			case DESTROY -> {
-				world.breakBlock(blockPos, true);
-				placeBlock = !block().isAir() || !world.isAir(blockPos);
+				world.destroyBlock(blockPos, true);
+				placeBlock = !block().isAir() || !world.isEmptyBlock(blockPos);
 			}
 			case KEEP ->
-				placeBlock = world.isAir(blockPos);
+				placeBlock = world.isEmptyBlock(blockPos);
 			case DEFAULT -> {
 
-				placeBlock = world.isAir(blockPos);
-				Direction direction = context.nullable(NeoApoliContextParameters.DIRECTION);
+				placeBlock = world.isEmptyBlock(blockPos);
+				Direction direction = context.nullable(NeoApoliContextKeys.DIRECTION);
 
 				if (!placeBlock && direction != null) {
 
-					blockPos = blockPos.offset(direction);
-					placeBlock = world.isAir(blockPos);
+					blockPos = blockPos.relative(direction);
+					placeBlock = world.isEmptyBlock(blockPos);
 
 				}
 
@@ -81,27 +78,22 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 				updateNeighbors = false;
 		}
 
-		if (placeBlock && world.setBlockState(blockPos, block(), flags) && updateNeighbors) {
-			world.updateNeighbors(blockPos, block().getBlock());
+		if (placeBlock && world.setBlock(blockPos, block(), flags) && updateNeighbors) {
+			world.updateNeighborsAt(blockPos, block().getBlock());
 		}
 
 	}
 
-	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
-	}
-
-	public enum Mode implements StringIdentifiable {
+	public enum Mode implements StringRepresentable {
 
 		DESTROY("destroy"),
 		KEEP("keep"),
 		REPLACE("replace"),
 		DEFAULT("default"),
-		STRICT("strict", Block.FORCE_STATE_AND_SKIP_CALLBACKS_AND_DROPS);
+		STRICT("strict", Block.UPDATE_SKIP_ALL_SIDEEFFECTS);
 
 		public static final Codec<Mode> CODEC = CodecUtil.enumType(Mode.class);
-		public static final PacketCodec<ByteBuf, Mode> PACKET_CODEC = PacketCodecUtil.enumType(Mode.class);
+		public static final StreamCodec<ByteBuf, Mode> STREAM_CODEC = StreamCodecUtil.enumType(Mode.class);
 
 		final String id;
 		final int flag;
@@ -112,11 +104,11 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 		}
 
 		Mode(String id) {
-			this(id, Block.SKIP_BLOCK_ENTITY_REPLACED_CALLBACK);
+			this(id, Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS);
 		}
 
 		@Override
-		public String asString() {
+		public String getSerializedName() {
 			return id;
 		}
 

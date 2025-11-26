@@ -3,31 +3,31 @@ package io.github.eggohito.neo_apoli.mixin.action.custom.meta;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.action.custom.meta.ExplodeMetaAction;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.explosion.Explosion;
-import net.minecraft.world.explosion.ExplosionBehavior;
-import net.minecraft.world.explosion.ExplosionImpl;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.List;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.ExplosionDamageCalculator;
+import net.minecraft.world.level.ServerExplosion;
+import net.minecraft.world.phys.AABB;
 
-@Mixin(ExplosionImpl.class)
+@Mixin(ServerExplosion.class)
 public abstract class ExplodeMetaActionMixin implements Explosion {
 
 	@Shadow
 	@Final
-	private ExplosionBehavior behavior;
+	private ExplosionDamageCalculator damageCalculator;
 
-	@WrapOperation(method = "damageEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/world/ServerWorld;getOtherEntities(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Box;)Ljava/util/List;"))
-	private List<Entity> getAllEntitiesIncludingSelf(ServerWorld serverWorld, Entity entity, Box box, Operation<List<Entity>> original) {
+	@WrapOperation(method = "hurtEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"))
+	private List<Entity> getAllEntitiesIncludingSelf(ServerLevel serverWorld, Entity entity, AABB box, Operation<List<Entity>> original) {
 
-		if (this.behavior instanceof ExplodeMetaAction.Behavior) {
-			return serverWorld.getNonSpectatingEntities(Entity.class, box);
+		if (this.damageCalculator instanceof ExplodeMetaAction.DamageCalculator) {
+			return serverWorld.getEntitiesOfClass(Entity.class, box);
 		}
 
 		else {

@@ -6,29 +6,29 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record AttributeNumberProvider(RegistryEntry<EntityAttribute> attribute, EntityTarget entity) implements NumberProvider {
+public record AttributeNumberProvider(Holder<Attribute> attribute, EntityTarget entity) implements NumberProvider {
 
 	public static final MapCodec<AttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityAttribute.CODEC.fieldOf("attribute").forGetter(AttributeNumberProvider::attribute),
+		Attribute.CODEC.fieldOf("attribute").forGetter(AttributeNumberProvider::attribute),
 		EntityTarget.CODEC.fieldOf("entity").forGetter(AttributeNumberProvider::entity)
 	).apply(instance, AttributeNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, AttributeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityAttribute.PACKET_CODEC, AttributeNumberProvider::attribute,
-		EntityTarget.PACKET_CODEC, AttributeNumberProvider::entity,
+	public static final StreamCodec<RegistryFriendlyByteBuf, AttributeNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		Attribute.STREAM_CODEC, AttributeNumberProvider::attribute,
+		EntityTarget.STREAM_CODEC, AttributeNumberProvider::entity,
 		AttributeNumberProvider::new
 	);
 
@@ -40,7 +40,7 @@ public record AttributeNumberProvider(RegistryEntry<EntityAttribute> attribute, 
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ContextParameter<Entity> parameter = entity().getParameter();
+		ContextKey<Entity> parameter = entity().getParameter();
 		Context entityContext = context.makeChild(".entity");
 
 		try {
@@ -55,16 +55,16 @@ public record AttributeNumberProvider(RegistryEntry<EntityAttribute> attribute, 
 						}
 
 						else {
-							entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't have the attribute \"" + this.attribute().getKeyOrValue().map(RegistryKey::getValue, Registries.ATTRIBUTE::getId) + "\"!");
+							entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't have the attribute \"" + this.attribute().unwrap().map(ResourceKey::location, BuiltInRegistries.ATTRIBUTE::getKey) + "\"!");
 						}
 
 					}
 
 				}
 				case null ->
-					entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't exist!");
+					entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't exist!");
 				default ->
-					entityContext.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not an entity that can have attributes!");
+					entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" is not an entity that can have attributes!");
 			}
 
 			return 0.0d;
@@ -78,7 +78,7 @@ public record AttributeNumberProvider(RegistryEntry<EntityAttribute> attribute, 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 

@@ -5,10 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,9 +23,9 @@ public record UniformNumberProvider(Random random, NumberProvider min, NumberPro
 		NumberProvider.CODEC.fieldOf("max").forGetter(UniformNumberProvider::max)
 	).apply(instance, UniformNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, UniformNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(UniformNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, UniformNumberProvider::min,
-		NumberProvider.PACKET_CODEC, UniformNumberProvider::max,
+	public static final StreamCodec<RegistryFriendlyByteBuf, UniformNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(UniformNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, UniformNumberProvider::min,
+		NumberProvider.STREAM_CODEC, UniformNumberProvider::max,
 		UniformNumberProvider::new
 	));
 

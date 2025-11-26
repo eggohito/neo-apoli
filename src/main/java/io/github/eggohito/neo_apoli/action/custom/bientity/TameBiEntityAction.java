@@ -3,19 +3,19 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.passive.AbstractHorseEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.network.ServerPlayerEntity;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
 public record TameBiEntityAction() implements BiEntityAction {
 
 	public static final MapCodec<TameBiEntityAction> CODEC = MapCodec.unit(TameBiEntityAction::new);
-	public static final PacketCodec<RegistryByteBuf, TameBiEntityAction> PACKET_CODEC = PacketCodecUtil.unit(TameBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TameBiEntityAction> STREAM_CODEC = StreamCodecUtil.unit(TameBiEntityAction::new);
 
 	@Override
 	public BiEntityActionType<?> getType() {
@@ -25,13 +25,13 @@ public record TameBiEntityAction() implements BiEntityAction {
 	@Override
 	public void execute(Context context) {
 
-		if (context.nullable(NeoApoliContextParameters.ACTOR) instanceof ServerPlayerEntity serverPlayer) {
+		if (context.nullable(NeoApoliContextKeys.ACTOR) instanceof ServerPlayer serverPlayer) {
 
-			switch (context.nullable(NeoApoliContextParameters.TARGET)) {
-				case TameableEntity tameable ->
-					tameable.setTamedBy(serverPlayer);
-				case AbstractHorseEntity abstractHorse ->
-					abstractHorse.bondWithPlayer(serverPlayer);
+			switch (context.nullable(NeoApoliContextKeys.TARGET)) {
+				case TamableAnimal tameable ->
+					tameable.tame(serverPlayer);
+				case AbstractHorse abstractHorse ->
+					abstractHorse.tameWithName(serverPlayer);
 				case null, default -> {
 					//	No-op
 				}

@@ -5,14 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceBiEntityAction(Identifier value) implements BiEntityAction, ReferenceMetaAction<BiEntityAction> {
+public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntityAction, ReferenceMetaAction<BiEntityAction> {
 
-	public static final MapCodec<ReferenceBiEntityAction> CODEC = ReferenceMetaAction.codec(ReferenceBiEntityAction::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceBiEntityAction> PACKET_CODEC = ReferenceMetaAction.packetCodec(ReferenceBiEntityAction::new);
+	public static final MapCodec<ReferenceBiEntityAction> CODEC = ReferenceMetaAction.createCodec(ReferenceBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = ReferenceMetaAction.createStreamCodec(ReferenceBiEntityAction::new);
 
 	@Override
 	public Pair<Class<BiEntityAction>, String> classAndName() {

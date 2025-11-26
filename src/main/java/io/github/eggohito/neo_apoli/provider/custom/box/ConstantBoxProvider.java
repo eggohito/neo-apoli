@@ -7,16 +7,16 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.Util;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ConstantBoxProvider(Vec3d min, Vec3d max) implements BoxProvider {
+public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 
 	public static final MapCodec<ConstantBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.VECTOR_3_DOUBLE.fieldOf("min").forGetter(ConstantBoxProvider::min),
@@ -24,18 +24,18 @@ public record ConstantBoxProvider(Vec3d min, Vec3d max) implements BoxProvider {
 	).apply(instance, ConstantBoxProvider::new));
 
 	public static final Codec<ConstantBoxProvider> INLINE_CODEC = Codec.DOUBLE.listOf().comapFlatMap(
-		doubles -> Util.decodeFixedLengthList(doubles, 6).map(values -> new ConstantBoxProvider(values.getFirst(), values.get(1), values.get(2), values.get(3), values.get(4), values.getLast())),
-		constant -> List.of(constant.min().getX(), constant.min().getY(), constant.min().getZ(), constant.max().getX(), constant.max().getY(), constant.max().getZ())
+		doubles -> Util.fixedSize(doubles, 6).map(values -> new ConstantBoxProvider(values.getFirst(), values.get(1), values.get(2), values.get(3), values.get(4), values.getLast())),
+		constant -> List.of(constant.min().x(), constant.min().y(), constant.min().z(), constant.max().x(), constant.max().y(), constant.max().z())
 	);
 
-	public static final PacketCodec<RegistryByteBuf, ConstantBoxProvider> PACKET_CODEC = PacketCodec.tuple(
-		Vec3d.PACKET_CODEC, ConstantBoxProvider::min,
-		Vec3d.PACKET_CODEC, ConstantBoxProvider::max,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBoxProvider> STREAM_CODEC = StreamCodec.composite(
+		Vec3.STREAM_CODEC, ConstantBoxProvider::min,
+		Vec3.STREAM_CODEC, ConstantBoxProvider::max,
 		ConstantBoxProvider::new
 	);
 
 	public ConstantBoxProvider(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-		this(new Vec3d(minX, minY, minZ), new Vec3d(maxX, maxY, maxZ));
+		this(new Vec3(minX, minY, minZ), new Vec3(maxX, maxY, maxZ));
 	}
 
 	@Override
@@ -44,8 +44,8 @@ public record ConstantBoxProvider(Vec3d min, Vec3d max) implements BoxProvider {
 	}
 
 	@Override
-	public @NotNull Box next(Context context) {
-		return new Box(min(), max());
+	public @NotNull AABB next(Context context) {
+		return new AABB(min(), max());
 	}
 
 }

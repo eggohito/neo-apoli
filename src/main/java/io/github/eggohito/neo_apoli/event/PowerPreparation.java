@@ -4,8 +4,8 @@ import com.google.gson.JsonElement;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
 
 public interface PowerPreparation {
 
@@ -20,6 +20,6 @@ public interface PowerPreparation {
 		}
 	);
 
-	void prepare(Identifier id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops);
+	void prepare(ResourceLocation id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops);
 
 }

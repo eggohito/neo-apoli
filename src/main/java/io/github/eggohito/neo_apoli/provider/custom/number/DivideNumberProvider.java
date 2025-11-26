@@ -5,10 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record DivideNumberProvider(NumberProvider dividend, NumberProvider divisor) implements NumberProvider {
@@ -18,9 +18,9 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 		NumberProvider.CODEC.fieldOf("divisor").forGetter(DivideNumberProvider::divisor)
 	).apply(instance, DivideNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, DivideNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(DivideNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DivideNumberProvider::dividend,
-		NumberProvider.PACKET_CODEC, DivideNumberProvider::divisor,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DivideNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(DivideNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, DivideNumberProvider::dividend,
+		NumberProvider.STREAM_CODEC, DivideNumberProvider::divisor,
 		DivideNumberProvider::new
 	));
 
@@ -51,12 +51,12 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 
-		dividend().validate(reporter.makeChild(".dividend"));
-		divisor().validate(reporter.makeChild(".divisor"));
+		dividend().validate(reporter.forChild(".dividend"));
+		divisor().validate(reporter.forChild(".divisor"));
 
 	}
 

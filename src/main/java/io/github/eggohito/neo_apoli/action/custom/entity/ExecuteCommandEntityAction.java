@@ -7,18 +7,18 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
@@ -29,8 +29,8 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		.group(StringProvider.CODEC.fieldOf("command").forGetter(ExecuteCommandEntityAction::command))
 		.apply(instance, ExecuteCommandEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, ExecuteCommandEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, ExecuteCommandEntityAction::command,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteCommandEntityAction> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, ExecuteCommandEntityAction::command,
 		ExecuteCommandEntityAction::new
 	);
 
@@ -42,12 +42,12 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters()) || !(context.getWorld() instanceof ServerWorld serverWorld)) {
+		if (!context.hasAllParameters(this.getRequiredParameters()) || !(context.getWorld() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
-		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		Vec3d pos = context.required(NeoApoliContextParameters.ENTITY_POS);
+		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		Vec3 pos = context.required(NeoApoliContextKeys.ENTITY_POS);
 
 		Context commandContext = context.makeChild(".command");
 		String command = command().next(commandContext);
@@ -57,10 +57,10 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		}
 
 		MinecraftServer server = serverWorld.getServer();
-		ServerCommandSource commandSource = new ServerCommandSource(
+		CommandSourceStack commandSource = new CommandSourceStack(
 			NeoApoli.validateCommandOutput(this.getOutput(entity, server)),
 			pos,
-			Vec2f.ZERO,
+			Vec2.ZERO,
 			serverWorld,
 			NeoApoli.getConfig().command().permissionLevel(),
 			entity.getName().getString(),
@@ -69,14 +69,14 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			entity
 		);
 
-		server.getCommandManager().executeWithPrefix(commandSource, command);
+		server.getCommands().performPrefixedCommand(commandSource, command);
 
 	}
 
-	private CommandOutput getOutput(Entity entity, MinecraftServer server) {
+	private CommandSource getOutput(Entity entity, MinecraftServer server) {
 
-		if (entity instanceof ServerPlayerEntity serverPlayer && serverPlayer.networkHandler != null) {
-			return serverPlayer.getCommandOutput();
+		if (entity instanceof ServerPlayer serverPlayer && serverPlayer.connection != null) {
+			return serverPlayer.commandSource();
 		}
 
 		else {
@@ -86,8 +86,8 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.THIS_ENTITY, NeoApoliContextParameters.ENTITY_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.THIS_ENTITY, NeoApoliContextKeys.ENTITY_POS);
 	}
 
 }

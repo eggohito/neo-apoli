@@ -7,12 +7,11 @@ import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import joptsimple.internal.Strings;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
-import java.util.Locale;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
@@ -21,9 +20,9 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 		NumberProvider.CODEC.fieldOf("decimals").forGetter(NumberStringProvider::decimals)
 	).apply(instance, NumberStringProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, NumberStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, NumberStringProvider::number,
-		NumberProvider.PACKET_CODEC, NumberStringProvider::decimals,
+	public static final StreamCodec<RegistryFriendlyByteBuf, NumberStringProvider> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, NumberStringProvider::number,
+		NumberProvider.STREAM_CODEC, NumberStringProvider::decimals,
 		NumberStringProvider::new
 	);
 
@@ -49,12 +48,12 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		StringProvider.super.validate(reporter);
 
-		number().validate(reporter.makeChild(".number"));
-		decimals().validate(reporter.makeChild(".decimals"));
+		number().validate(reporter.forChild(".number"));
+		decimals().validate(reporter.forChild(".decimals"));
 
 	}
 

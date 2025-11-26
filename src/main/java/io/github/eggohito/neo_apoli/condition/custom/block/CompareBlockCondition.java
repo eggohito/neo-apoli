@@ -5,13 +5,13 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record CompareBlockCondition(Comparison comparison) implements BlockCondition, CompareMetaCondition {
 
-	public static final MapCodec<CompareBlockCondition> CODEC = CompareMetaCondition.codec(CompareBlockCondition::new);
-	public static final PacketCodec<RegistryByteBuf, CompareBlockCondition> PACKET_CODEC = CompareMetaCondition.packetCodec(CompareBlockCondition::new);
+	public static final MapCodec<CompareBlockCondition> CODEC = CompareMetaCondition.createCodec(CompareBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareBlockCondition> STREAM_CODEC = CompareMetaCondition.createStreamCodec(CompareBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {

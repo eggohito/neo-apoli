@@ -6,15 +6,15 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -26,8 +26,8 @@ public record BoundingBoxProvider(EntityTarget entity) implements BoxProvider {
 		EntityTarget.CODEC.fieldOf("entity").forGetter(BoundingBoxProvider::entity)
 	).apply(instance, BoundingBoxProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, BoundingBoxProvider> PACKET_CODEC = PacketCodecUtil.lazy(BoundingBoxProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, BoundingBoxProvider::entity,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BoundingBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(BoundingBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, BoundingBoxProvider::entity,
 		BoundingBoxProvider::new
 	));
 
@@ -37,26 +37,26 @@ public record BoundingBoxProvider(EntityTarget entity) implements BoxProvider {
 	}
 
 	@Override
-	public @NotNull Box next(Context context) {
+	public @NotNull AABB next(Context context) {
 
-		ContextParameter<Entity> parameter = entity().getParameter();
+		ContextKey<Entity> parameter = entity().getParameter();
 		Optional<Entity> entity = context.optional(parameter);
 
 		return entity
 			.map(Entity::getBoundingBox)
-			.orElseGet(() -> Box.from(Vec3d.ZERO));
+			.orElseGet(() -> AABB.unitCubeFromLowerCorner(Vec3.ZERO));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 
 	@Override
-	public ShapeContext getShapeContext(Context context) {
+	public CollisionContext getShapeContext(Context context) {
 
-		ContextParameter<Entity> parameter = entity().getParameter();
+		ContextKey<Entity> parameter = entity().getParameter();
 		Optional<Entity> entity = context.optional(parameter);
 
 		if (entity.isEmpty()) {
@@ -64,8 +64,8 @@ public record BoundingBoxProvider(EntityTarget entity) implements BoxProvider {
 		}
 
 		return entity
-			.map(ShapeContext::of)
-			.orElseGet(ShapeContext::absent);
+			.map(CollisionContext::of)
+			.orElseGet(CollisionContext::empty);
 
 	}
 

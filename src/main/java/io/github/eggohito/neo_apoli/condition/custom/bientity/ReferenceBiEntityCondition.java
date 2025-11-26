@@ -5,14 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceBiEntityCondition(Identifier value) implements BiEntityCondition, ReferenceMetaCondition<BiEntityCondition> {
+public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEntityCondition, ReferenceMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<ReferenceBiEntityCondition> CODEC = ReferenceMetaCondition.codec(ReferenceBiEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceBiEntityCondition> PACKET_CODEC = ReferenceMetaCondition.packetCodec(ReferenceBiEntityCondition::new);
+	public static final MapCodec<ReferenceBiEntityCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceBiEntityCondition::new);
 
 	@Override
 	public Pair<Class<BiEntityCondition>, String> classAndName() {

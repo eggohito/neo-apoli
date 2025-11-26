@@ -12,23 +12,23 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 @Getter
 public class PhasingPower extends Power {
@@ -39,11 +39,11 @@ public class PhasingPower extends Power {
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, PhasingPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Condition.PACKET_CODEC, PhasingPower::getPhaseDownCondition,
-		RenderType.PACKET_CODEC, PhasingPower::getRenderType,
-		PacketCodecs.FLOAT, PhasingPower::getViewDistance,
+	public static final StreamCodec<RegistryFriendlyByteBuf, PhasingPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Condition.STREAM_CODEC, PhasingPower::getPhaseDownCondition,
+		RenderType.STREAM_CODEC, PhasingPower::getRenderType,
+		ByteBufCodecs.FLOAT, PhasingPower::getViewDistance,
 		PhasingPower::new
 	);
 
@@ -66,13 +66,13 @@ public class PhasingPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.PhasingPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getPhaseDownCondition().validate(reporter.makeChild(".phase_down_condition"));
+		getPhaseDownCondition().validate(reporter.forChild(".phase_down_condition"));
 	}
 
 	public static class Instance extends Power.Instance<PhasingPower> {
@@ -89,27 +89,31 @@ public class PhasingPower extends Power {
 			return this.getPower().getViewDistance();
 		}
 
-		public boolean shouldPhaseDown(Context context, VoxelShape collisionShape) {
-			BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
-			return holder.getY() < (double) blockPos.getY() + collisionShape.getMax(Direction.Axis.Y) - (holder.isOnGround() ? 8.05 / 16.0 : 0.0015)
+		public boolean shouldPhase(Context context, VoxelShape collisionShape) {
+			BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
+			return holder.getY() < (double) blockPos.getY() + collisionShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));
 		}
 
 	}
 
-	public static boolean shouldPhaseDown(Context context, VoxelShape collisionShape) {
+	public static boolean shouldPhase(Context context, VoxelShape collisionShape) {
+		return shouldPhase(context, (instance, ctx) -> instance.isActive(ctx) && instance.shouldPhase(ctx, collisionShape));
+	}
 
-		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
+	public static boolean shouldPhase(Context context, BiPredicate<Instance, Context> tester) {
+
+		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext) && instance.shouldPhaseDown(instanceContext, collisionShape)) {
+				if (instanceContext.markActive(instance) && tester.test(instance, context)) {
 					return true;
 				}
 
@@ -127,14 +131,14 @@ public class PhasingPower extends Power {
 
 	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
 
-		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
+		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
 
 		float result = defaultValue.getAsFloat();
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -157,21 +161,21 @@ public class PhasingPower extends Power {
 
 	public static Context createContext(Entity entity, SavedBlockPosition savedBlock) {
 		return PowerTypes.PHASING.contextBuilder()
-			.add(NeoApoliContextParameters.BLOCK_POS, savedBlock.getBlockPos())
-			.add(NeoApoliContextParameters.BLOCK_STATE, savedBlock.getBlockState())
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, savedBlock.getBlockEntity())
-			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
-			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
-			.build(entity.getWorld());
+			.add(NeoApoliContextKeys.BLOCK_POS, savedBlock.getPos())
+			.add(NeoApoliContextKeys.BLOCK_STATE, savedBlock.getState())
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, savedBlock.getEntity())
+			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
+			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
+			.build(entity.level());
 	}
 
-	public enum RenderType implements StringIdentifiable {
+	public enum RenderType implements StringRepresentable {
 
 		BLINDNESS("blindness"),
 		NONE("none");
 
 		public static final Codec<RenderType> CODEC = CodecUtil.enumType(RenderType.class);
-		public static final PacketCodec<ByteBuf, RenderType> PACKET_CODEC = PacketCodecUtil.enumType(RenderType.class);
+		public static final StreamCodec<ByteBuf, RenderType> STREAM_CODEC = StreamCodecUtil.enumType(RenderType.class);
 
 		private final String name;
 
@@ -180,7 +184,7 @@ public class PhasingPower extends Power {
 		}
 
 		@Override
-		public String asString() {
+		public String getSerializedName() {
 			return name;
 		}
 

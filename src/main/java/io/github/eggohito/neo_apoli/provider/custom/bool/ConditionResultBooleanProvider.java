@@ -6,8 +6,8 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record ConditionResultBooleanProvider(Condition condition) implements BooleanProvider {
@@ -16,8 +16,8 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 		Condition.CODEC.fieldOf("condition").forGetter(ConditionResultBooleanProvider::condition)
 	).apply(instance, ConditionResultBooleanProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, ConditionResultBooleanProvider> PACKET_CODEC = PacketCodec.tuple(
-		Condition.PACKET_CODEC, ConditionResultBooleanProvider::condition,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionResultBooleanProvider> STREAM_CODEC = StreamCodec.composite(
+		Condition.STREAM_CODEC, ConditionResultBooleanProvider::condition,
 		ConditionResultBooleanProvider::new
 	);
 
@@ -32,9 +32,9 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		BooleanProvider.super.validate(reporter);
-		condition().validate(reporter.makeChild(".condition"));
+		condition().validate(reporter.forChild(".condition"));
 	}
 
 }

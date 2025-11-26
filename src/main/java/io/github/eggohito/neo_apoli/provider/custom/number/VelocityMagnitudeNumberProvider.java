@@ -7,10 +7,10 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -21,8 +21,8 @@ public record VelocityMagnitudeNumberProvider(EntityTarget entity) implements Nu
 		EntityTarget.CODEC.fieldOf("entity").forGetter(VelocityMagnitudeNumberProvider::entity)
 	).apply(instance, VelocityMagnitudeNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, VelocityMagnitudeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, VelocityMagnitudeNumberProvider::entity,
+	public static final StreamCodec<RegistryFriendlyByteBuf, VelocityMagnitudeNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, VelocityMagnitudeNumberProvider::entity,
 		VelocityMagnitudeNumberProvider::new
 	);
 
@@ -34,7 +34,7 @@ public record VelocityMagnitudeNumberProvider(EntityTarget entity) implements Nu
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ContextParameter<Entity> parameter = entity().getParameter();
+		ContextKey<Entity> parameter = entity().getParameter();
 		Entity entity = context.nullable(parameter);
 
 		switch (entity) {
@@ -42,9 +42,9 @@ public record VelocityMagnitudeNumberProvider(EntityTarget entity) implements Nu
 				return Math.sqrt(movingEntity.neo_apoli$getSquaredVelocityMagnitude());
 			}
 			case null ->
-				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't exist!");
+				context.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't exist!");
 			default ->
-				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not a moving entity!");
+				context.getReporter().report("Entity from parameter \"" + parameter.name() + "\" is not a moving entity!");
 		}
 
 		return 0.0d;
@@ -52,7 +52,7 @@ public record VelocityMagnitudeNumberProvider(EntityTarget entity) implements Nu
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 

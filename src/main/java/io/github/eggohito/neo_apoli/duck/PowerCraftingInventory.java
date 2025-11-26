@@ -1,14 +1,14 @@
 package io.github.eggohito.neo_apoli.duck;
 
-import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 
 public interface PowerCraftingInventory extends EntityCache {
 
-	default CraftingInventory neo_apoli$getInventory() {
+	default TransientCraftingContainer neo_apoli$getInventory() {
 		return null;
 	}
 
-	default void neo_apoli$setInventory(CraftingInventory inventory) {
+	default void neo_apoli$setInventory(TransientCraftingContainer inventory) {
 
 	}
 

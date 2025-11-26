@@ -3,13 +3,13 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
 public record ItemCountNumberProvider() implements NumberProvider {
 
 	public static final MapCodec<ItemCountNumberProvider> CODEC = MapCodec.unit(ItemCountNumberProvider::new);
-	public static final PacketCodec<RegistryByteBuf, ItemCountNumberProvider> PACKET_CODEC = PacketCodecUtil.unit(ItemCountNumberProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ItemCountNumberProvider> STREAM_CODEC = StreamCodecUtil.unit(ItemCountNumberProvider::new);
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -26,14 +26,14 @@ public record ItemCountNumberProvider() implements NumberProvider {
 
 	@Override
 	public @NotNull Number next(Context context) {
-		return context.optional(NeoApoliContextParameters.ITEM_STACK)
+		return context.optional(NeoApoliContextKeys.ITEM_STACK)
 			.map(ItemStack::getCount)
 			.orElse(0);
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ITEM_STACK);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ITEM_STACK);
 	}
 
 }

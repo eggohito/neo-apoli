@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
@@ -19,19 +19,19 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.ladysnake.cca.api.v3.component.Component;
@@ -46,14 +46,14 @@ import java.util.function.*;
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
 
-	private static final Identifier ID = NeoApoli.id("powers");
+	private static final ResourceLocation ID = NeoApoli.id("powers");
 
 	private static final int FULL_SYNC_ID = 0;
 	private static final int GRANT_SYNC_ID = 1;
 	private static final int REVOKE_SYNC_ID = 2;
 
 	private final Map<PowerReference, Power.Instance<?>> instances;
-	private final Map<PowerReference, Set<Identifier>> sources;
+	private final Map<PowerReference, Set<ResourceLocation>> sources;
 
 	private final Entity holder;
 
@@ -64,20 +64,20 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	@Override
-	public void writeToNbt(NbtCompound rootNbt, RegistryWrapper.WrapperLookup wrapperLookup) {
+	public void writeToNbt(CompoundTag rootNbt, HolderLookup.Provider wrapperLookup) {
 
-		RegistryOps<NbtElement> nbtOps = wrapperLookup.getOps(NbtOps.INSTANCE);
-		NbtList powersNbt = new NbtList();
+		RegistryOps<Tag> nbtOps = wrapperLookup.createSerializationContext(NbtOps.INSTANCE);
+		ListTag powersNbt = new ListTag();
 
 		this.instances.forEach((powerReference, instance) -> {
 
-			Set<Identifier> sources = this.sources.getOrDefault(powerReference, Set.of());
-			NbtElement data = instance.encodeData(nbtOps)
+			Set<ResourceLocation> sources = this.sources.getOrDefault(powerReference, Set.of());
+			Tag data = instance.encodeData(nbtOps)
 				.mapError(error -> "Error trying to encode data of " + powerReference.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.orElseGet(nbtOps::emptyMap);
 
-			Entry<NbtElement> entry = new Entry<>(powerReference, instance.getPower().getType(), sources, new Dynamic<>(nbtOps, data));
+			Entry<Tag> entry = new Entry<>(powerReference, instance.getPower().getType(), sources, new Dynamic<>(nbtOps, data));
 			Entry.CODEC.encoder().encodeStart(nbtOps, entry)
 				.mapError(error -> "Error trying to encode " + powerReference.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
@@ -90,12 +90,12 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	@Override
-	public void readFromNbt(NbtCompound rootNbt, RegistryWrapper.WrapperLookup wrapperLookup) {
+	public void readFromNbt(CompoundTag rootNbt, HolderLookup.Provider wrapperLookup) {
 
-		RegistryOps<NbtElement> nbtOps = wrapperLookup.getOps(NbtOps.INSTANCE);
+		RegistryOps<Tag> nbtOps = wrapperLookup.createSerializationContext(NbtOps.INSTANCE);
 
-		NbtList powersNbt = rootNbt.getListOrEmpty("powers");
-		ListIterator<NbtElement> powersNbtIterator = powersNbt.listIterator();
+		ListTag powersNbt = rootNbt.getListOrEmpty("powers");
+		ListIterator<Tag> powersNbtIterator = powersNbt.listIterator();
 
 		this.instances.clear();
 		this.sources.clear();
@@ -103,7 +103,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		while (powersNbtIterator.hasNext()) {
 
 			int index = powersNbtIterator.nextIndex();
-			NbtElement powerNbt = powersNbtIterator.next();
+			Tag powerNbt = powersNbtIterator.next();
 
 			try {
 
@@ -118,10 +118,10 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 					case DataResult.Success<Power> success -> {
 
 						Power power = success.value();
-						Dynamic<NbtElement> data = entry.data().convert(nbtOps);
+						Dynamic<Tag> data = entry.data().convert(nbtOps);
 
 						Power.Instance<?> instance = power.createInstance(holder);
-						Set<Identifier> sources = entry.sources();
+						Set<ResourceLocation> sources = entry.sources();
 
 						if (Objects.equals(entry.type(), power.getType())) {
 							instance.decodeData(nbtOps, data.getValue())
@@ -154,13 +154,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	}
 
 	@Override
-	public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+	public void writeSyncPacket(RegistryFriendlyByteBuf buf, ServerPlayer recipient) {
 		buf.writeVarInt(FULL_SYNC_ID);
 		AutoSyncedComponent.super.writeSyncPacket(buf, recipient);
 	}
 
 	@Override
-	public void applySyncPacket(RegistryByteBuf buf) {
+	public void applySyncPacket(RegistryFriendlyByteBuf buf) {
 
 		int syncId = buf.readVarInt();
 
@@ -172,7 +172,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			case REVOKE_SYNC_ID ->
 				Synchronizer.REVOKE.receive(buf, this);
 			default ->
-				NeoApoli.LOGGER.warn("Entity {} (UUID: {}) received powers component sync packet with unknown sync ID (Expected 0-2, received {})!", holder.getName().getString(), holder.getUuidAsString(), syncId);
+				NeoApoli.LOGGER.warn("Entity {} (UUID: {}) received powers component sync packet with unknown sync ID (Expected 0-2, received {})!", holder.getName().getString(), holder.getStringUUID(), syncId);
 		}
 
 	}
@@ -195,20 +195,20 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		return true;
 	}
 
-	public boolean grantPower(PowerReference reference, Identifier source) {
-		return !holder.getWorld().isClient()
+	public boolean grantPower(PowerReference reference, ResourceLocation source) {
+		return !holder.level().isClientSide()
 			&& grantPowerSideAgnostic(reference, source);
 	}
 
-	private boolean grantPowerSideAgnostic(PowerReference reference, Identifier source) {
+	private boolean grantPowerSideAgnostic(PowerReference reference, ResourceLocation source) {
 		return PowerManager.getEntryAsResult(reference)
-			.mapError(error -> "Error trying to grant " + reference.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getUuidAsString() + ")") + " (skipping): " + error)
+			.mapError(error -> "Error trying to grant " + reference.asDisplayString(false) + " from source '" + source + "' to entity " + (holder.getName().getString() + " (UUID: " + holder.getStringUUID() + ")") + " (skipping): " + error)
 			.resultOrPartial(NeoApoli.LOGGER::warn)
 			.map(entry -> grantPower(entry, source))
 			.orElse(false);
 	}
 
-	private boolean grantPower(PowerEntry<?> entry, Identifier source) {
+	private boolean grantPower(PowerEntry<?> entry, ResourceLocation source) {
 
 		List<Power.Instance<?>> addedPowers = new ObjectArrayList<>();
 		List<Power.Instance<?>> grantedPowers = new ObjectArrayList<>();
@@ -222,10 +222,10 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	private boolean grantPower(PowerEntry<?> entry, Identifier source, Consumer<Power.Instance<?>> addedAction, Consumer<Power.Instance<?>> grantedAction) {
+	private boolean grantPower(PowerEntry<?> entry, ResourceLocation source, Consumer<Power.Instance<?>> addedAction, Consumer<Power.Instance<?>> grantedAction) {
 
 		PowerReference reference = entry.reference();
-		Set<Identifier> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
+		Set<ResourceLocation> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
 
 		if (sources.contains(source)) {
 			return false;
@@ -254,12 +254,12 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public boolean revokePower(PowerReference id, Identifier source) {
-		return !holder.getWorld().isClient()
+	public boolean revokePower(PowerReference id, ResourceLocation source) {
+		return !holder.level().isClientSide()
 			&& revokePowerSideAgnostic(id, source);
 	}
 
-	private boolean revokePowerSideAgnostic(PowerReference id, Identifier source) {
+	private boolean revokePowerSideAgnostic(PowerReference id, ResourceLocation source) {
 
 		List<PowerReference> revokedPowers = new ObjectArrayList<>();
 		boolean result = this.revokePower(id, source, revokedPowers::add);
@@ -271,9 +271,9 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	private boolean revokePower(PowerReference id, Identifier source, Consumer<PowerReference> onRevokedCallback) {
+	private boolean revokePower(PowerReference id, ResourceLocation source, Consumer<PowerReference> onRevokedCallback) {
 
-		Set<Identifier> sources = this.sources.getOrDefault(id, new ObjectOpenHashSet<>());
+		Set<ResourceLocation> sources = this.sources.getOrDefault(id, new ObjectOpenHashSet<>());
 		boolean removed = sources.remove(source);
 
 		if (removed && instances.containsKey(id)) {
@@ -302,12 +302,12 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public void forEach(TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer, BooleanSupplier continueCondition) {
+	public void forEach(TriConsumer<PowerReference, Power.Instance<?>, Set<ResourceLocation>> consumer, BooleanSupplier continueCondition) {
 
 		for (var entry : this.instances.entrySet()) {
 
 			PowerReference reference = entry.getKey();
-			Set<Identifier> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
+			Set<ResourceLocation> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
 
 			if (!sources.isEmpty()) {
 
@@ -323,7 +323,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public void forEach(TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer) {
+	public void forEach(TriConsumer<PowerReference, Power.Instance<?>, Set<ResourceLocation>> consumer) {
 		this.forEach(consumer, () -> true);
 	}
 
@@ -380,7 +380,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public List<Power> getAllFromSource(Identifier source) {
+	public List<Power> getAllFromSource(ResourceLocation source) {
 
 		List<Power> collected = new ObjectArrayList<>();
 		this.forEach((reference, instance, sources) -> {
@@ -404,7 +404,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			&& sources.containsKey(reference);
 	}
 
-	public boolean hasInstance(PowerReference reference, Identifier source) {
+	public boolean hasInstance(PowerReference reference, ResourceLocation source) {
 		return hasInstance(reference)
 			&& sources.get(reference).contains(source);
 	}
@@ -416,7 +416,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 	public <I extends Power.Instance<?>> boolean hasInstances(Class<I> instanceClass, Predicate<I> instanceFilter) {
 
 		MutableBoolean result = new MutableBoolean(false);
-		TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer = (powerReference, instance, sources) -> {
+		TriConsumer<PowerReference, Power.Instance<?>, Set<ResourceLocation>> consumer = (powerReference, instance, sources) -> {
 
 			if (instanceClass.isInstance(instance) && instanceFilter.test(instanceClass.cast(instance))) {
 				result.setTrue();
@@ -429,13 +429,13 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public Set<Identifier> getSources(PowerReference reference) {
+	public Set<ResourceLocation> getSources(PowerReference reference) {
 		return sources.containsKey(reference)
 			? new ObjectOpenHashSet<>(sources.get(reference))
 			: ObjectOpenHashSet.of();
 	}
 
-	public Set<PowerReference> getReferences(Identifier source) {
+	public Set<PowerReference> getReferences(ResourceLocation source) {
 
 		Set<PowerReference> collected = new ObjectOpenHashSet<>();
 		this.forEach((reference, instance, sources) -> {
@@ -450,11 +450,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer, BooleanSupplier continueCondition) {
+	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Instance<?>, Set<ResourceLocation>> consumer, BooleanSupplier continueCondition) {
 		NeoApoliEntityComponents.POWERS.maybeGet(holder).ifPresent(powersComponent -> powersComponent.forEach(consumer, continueCondition));
 	}
 
-	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Instance<?>, Set<Identifier>> consumer) {
+	public static void forEach(Entity holder, TriConsumer<PowerReference, Power.Instance<?>, Set<ResourceLocation>> consumer) {
 		NeoApoliEntityComponents.POWERS.maybeGet(holder).ifPresent(powersComponent -> powersComponent.forEach(consumer));
 	}
 
@@ -488,7 +488,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			.orElseGet(ObjectArrayList::new);
 	}
 
-	public static Identifier getId() {
+	public static ResourceLocation getId() {
 		return ID;
 	}
 
@@ -502,7 +502,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		for (var entry : entries) {
 
 			PowerReference reference = entry.getKey();
-			Set<Identifier> sources = component.getSources(reference);
+			Set<ResourceLocation> sources = component.getSources(reference);
 
 			if (!PowerManager.contains(reference)) {
 
@@ -534,15 +534,15 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 					if (oldInstance.getClass().isInstance(newInstance)) {
 
-						RegistryOps<NbtElement> nbtOps = entity.getRegistryManager().getOps(NbtOps.INSTANCE);
-						DataResult<NbtElement> data = oldInstance.encodeData(nbtOps);
+						RegistryOps<Tag> nbtOps = entity.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+						DataResult<Tag> data = oldInstance.encodeData(nbtOps);
 
 						switch (data) {
-							case DataResult.Success<NbtElement> success ->
+							case DataResult.Success<Tag> success ->
 								newInstance.decodeData(nbtOps, success.value())
 									.ifSuccess(unit -> NeoApoli.LOGGER.info("Successfully migrated old data of {}!", reference.asDisplayString(false)))
 									.ifError(error -> NeoApoli.LOGGER.warn("Couldn't decode old data of {} during migration: {}", reference.asDisplayString(false), error.message()));
-							case DataResult.Error<NbtElement> error ->
+							case DataResult.Error<Tag> error ->
 								NeoApoli.LOGGER.warn("Couldn't encode old data of {} during migration: {}", reference.asDisplayString(false), error.message());
 						}
 
@@ -570,7 +570,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		ServerEntityEvents.ENTITY_LOAD.register(getId(), (entity, world) -> {
 
-			if (!(entity instanceof PlayerEntity)) {
+			if (!(entity instanceof Player)) {
 				update(entity, false);
 			}
 
@@ -581,7 +581,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
-	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<Identifier> sources, Dynamic<T> data) {
+	public record Entry<T>(PowerReference powerReference, PowerType<?> type, Set<ResourceLocation> sources, Dynamic<T> data) {
 
 		public static final MapCodec<Entry<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PowerReference.CODEC.fieldOf("id").forGetter(Entry::powerReference),
@@ -590,11 +590,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));
 
-		public static final PacketCodec<RegistryByteBuf, Entry<?>> PACKET_CODEC = PacketCodec.tuple(
-			PowerReference.PACKET_CODEC, Entry::powerReference,
-			PowerType.PACKET_CODEC, Entry::type,
-			NeoApoliPacketCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET, Entry::sources,
-			NeoApoliPacketCodecs.REGISTRY_PASSTHROUGH, Entry::data,
+		public static final StreamCodec<RegistryFriendlyByteBuf, Entry<?>> STREAM_CODEC = StreamCodec.composite(
+			PowerReference.STREAM_CODEC, Entry::powerReference,
+			PowerType.STREAM_CODEC, Entry::type,
+			NeoApoliStreamCodecs.MUTABLE_NON_EMPTY_IDENTIFIER_SET, Entry::sources,
+			NeoApoliStreamCodecs.REGISTRY_PASSTHROUGH, Entry::data,
 			Entry::new
 		);
 
@@ -602,17 +602,17 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	public static final class Synchronizer<T> {
 
-		private static final BiConsumer<RegistryByteBuf, Map<Identifier, Collection<PowerReference>>> MAP_ENCODER = (buf, map) -> buf.writeMap(map,
-			PacketByteBuf::writeIdentifier,
-			(valueBuf, references) -> valueBuf.writeCollection(references, PowerReference.PACKET_CODEC)
+		private static final BiConsumer<RegistryFriendlyByteBuf, Map<ResourceLocation, Collection<PowerReference>>> MAP_ENCODER = (buf, map) -> buf.writeMap(map,
+			FriendlyByteBuf::writeResourceLocation,
+			(valueBuf, references) -> valueBuf.writeCollection(references, PowerReference.STREAM_CODEC)
 		);
 
-		private static final Function<RegistryByteBuf, Map<Identifier, Collection<PowerReference>>> MAP_DECODER = buf -> buf.readMap(
-			PacketByteBuf::readIdentifier,
-			valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerReference.PACKET_CODEC)
+		private static final Function<RegistryFriendlyByteBuf, Map<ResourceLocation, Collection<PowerReference>>> MAP_DECODER = buf -> buf.readMap(
+			FriendlyByteBuf::readResourceLocation,
+			valueBuf -> valueBuf.readCollection(ObjectArrayList::new, PowerReference.STREAM_CODEC)
 		);
 
-		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> GRANT = new Synchronizer<>(
+		public static final Synchronizer<Map<ResourceLocation, Collection<PowerReference>>> GRANT = new Synchronizer<>(
 			GRANT_SYNC_ID,
 			MAP_ENCODER,
 			MAP_DECODER,
@@ -621,7 +621,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			)
 		);
 
-		public static final Synchronizer<Map<Identifier, Collection<PowerReference>>> REVOKE = new Synchronizer<>(
+		public static final Synchronizer<Map<ResourceLocation, Collection<PowerReference>>> REVOKE = new Synchronizer<>(
 			REVOKE_SYNC_ID,
 			MAP_ENCODER,
 			MAP_DECODER,
@@ -631,11 +631,11 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		);
 
 		private final int id;
-		private final BiConsumer<RegistryByteBuf, T> encoder;
-		private final Function<RegistryByteBuf, T> decoder;
+		private final BiConsumer<RegistryFriendlyByteBuf, T> encoder;
+		private final Function<RegistryFriendlyByteBuf, T> decoder;
 		private final BiConsumer<PowersComponent, T> processor;
 
-		private Synchronizer(int id, BiConsumer<RegistryByteBuf, T> encoder, Function<RegistryByteBuf, T> decoder, BiConsumer<PowersComponent, T> processor) {
+		private Synchronizer(int id, BiConsumer<RegistryFriendlyByteBuf, T> encoder, Function<RegistryFriendlyByteBuf, T> decoder, BiConsumer<PowersComponent, T> processor) {
 			this.id = id;
 			this.encoder = encoder;
 			this.decoder = decoder;
@@ -646,12 +646,12 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			NeoApoliEntityComponents.POWERS.sync(holder, (buf, recipient) -> this.send(buf, t));
 		}
 
-		public void send(RegistryByteBuf buf, T t) {
+		public void send(RegistryFriendlyByteBuf buf, T t) {
 			buf.writeVarInt(id);
 			encoder.accept(buf, t);
 		}
 
-		public void receive(RegistryByteBuf buf, PowersComponent powersComponent) {
+		public void receive(RegistryFriendlyByteBuf buf, PowersComponent powersComponent) {
 			processor.accept(powersComponent, decoder.apply(buf));
 		}
 

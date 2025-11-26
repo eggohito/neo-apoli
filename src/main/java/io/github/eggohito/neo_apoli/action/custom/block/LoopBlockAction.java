@@ -6,18 +6,18 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
 public record LoopBlockAction(Optional<BlockAction> beforeAction, Optional<BlockAction> afterAction, NumberProvider iterations, BlockAction action) implements BlockAction, LoopMetaAction<BlockAction> {
 
-	public static final MapCodec<LoopBlockAction> CODEC = MapCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> LoopMetaAction.codec(BlockAction.CODEC, LoopBlockAction::new));
-	public static final PacketCodec<RegistryByteBuf, LoopBlockAction> PACKET_CODEC = PacketCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> LoopMetaAction.packetCodec(BlockAction.PACKET_CODEC, LoopBlockAction::new));
+	public static final MapCodec<LoopBlockAction> CODEC = MapCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> LoopMetaAction.createCodec(BlockAction.CODEC, LoopBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> LoopMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, LoopBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

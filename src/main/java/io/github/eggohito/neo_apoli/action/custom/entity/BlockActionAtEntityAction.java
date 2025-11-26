@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.action.custom.block.BlockAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
@@ -20,8 +20,8 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 		BlockAction.CODEC.fieldOf("block_action").forGetter(BlockActionAtEntityAction::blockAction)
 	).apply(instance, BlockActionAtEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, BlockActionAtEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		BlockAction.PACKET_CODEC, BlockActionAtEntityAction::blockAction,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockActionAtEntityAction> STREAM_CODEC = StreamCodec.composite(
+		BlockAction.STREAM_CODEC, BlockActionAtEntityAction::blockAction,
 		BlockActionAtEntityAction::new
 	);
 
@@ -33,34 +33,34 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextParameters.ENTITY_POS)) {
+		if (!context.hasParameter(NeoApoliContextKeys.ENTITY_POS)) {
 			return;
 		}
 
-		World world = context.getWorld();
-		BlockPos blockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.ENTITY_POS));
+		Level world = context.getWorld();
+		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.ENTITY_POS));
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
-			.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 		blockAction().execute(blockContext.makeChild(".block_action"));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ENTITY_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ENTITY_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityAction.super.validate(reporter);
 		blockAction().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_action"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_action"));
 	}
 
 }

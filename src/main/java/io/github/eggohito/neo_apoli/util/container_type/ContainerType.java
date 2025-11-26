@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.screen.ScreenHandlerFactory;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.MenuConstructor;
 import org.jetbrains.annotations.Range;
 
 public interface ContainerType {
@@ -19,13 +19,13 @@ public interface ContainerType {
 
 	Codec<ContainerType> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 
-	PacketCodec<RegistryByteBuf, ContainerType> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.CONTAINER_TYPE);
+	StreamCodec<RegistryFriendlyByteBuf, ContainerType> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.CONTAINER_TYPE);
 
 	default TextAlignment textAlignment() {
 		return TextAlignment.NONE;
 	}
 
-	ScreenHandlerFactory create(Inventory inventory);
+	MenuConstructor create(Container inventory);
 
 	@Range(from = 1, to = Integer.MAX_VALUE)
 	int columns();

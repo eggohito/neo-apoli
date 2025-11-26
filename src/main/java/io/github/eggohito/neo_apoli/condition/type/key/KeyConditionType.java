@@ -8,11 +8,11 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
-public record KeyConditionType<C extends KeyCondition>(MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) implements ConditionType<C> {
+public record KeyConditionType<C extends KeyCondition>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) implements ConditionType<C> {
 
 	public static final String PREFIX = "key/";
 
@@ -20,6 +20,6 @@ public record KeyConditionType<C extends KeyCondition>(MapCodec<C> mapCodec, Pac
 
 	public static final Codec<KeyConditionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 
-	public static final PacketCodec<RegistryByteBuf, KeyConditionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.KEY_CONDITION_TYPE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, KeyConditionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.KEY_CONDITION_TYPE);
 
 }

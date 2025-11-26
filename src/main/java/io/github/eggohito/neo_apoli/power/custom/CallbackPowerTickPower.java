@@ -11,12 +11,11 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -31,12 +30,12 @@ public class CallbackPowerTickPower extends Power {
 		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CallbackPowerTickPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, CallbackPowerTickPower::getTickAction,
-		Action.PACKET_CODEC, CallbackPowerTickPower::getRisingAction,
-		Action.PACKET_CODEC, CallbackPowerTickPower::getFallingAction,
-		NumberProvider.PACKET_CODEC, CallbackPowerTickPower::getInterval,
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerTickPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Action.STREAM_CODEC, CallbackPowerTickPower::getTickAction,
+		Action.STREAM_CODEC, CallbackPowerTickPower::getRisingAction,
+		Action.STREAM_CODEC, CallbackPowerTickPower::getFallingAction,
+		NumberProvider.STREAM_CODEC, CallbackPowerTickPower::getInterval,
 		CallbackPowerTickPower::new
 	);
 
@@ -60,18 +59,18 @@ public class CallbackPowerTickPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.CallbackPowerTickPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		super.validate(reporter);
 
-		getTickAction().validate(reporter.makeChild(".tick_action"));
-		getRisingAction().validate(reporter.makeChild(".rising_action"));
-		getFallingAction().validate(reporter.makeChild(".falling_action"));
-		getInterval().validate(reporter.makeChild(".interval"));
+		getTickAction().validate(reporter.forChild(".tick_action"));
+		getRisingAction().validate(reporter.forChild(".rising_action"));
+		getFallingAction().validate(reporter.forChild(".falling_action"));
+		getInterval().validate(reporter.forChild(".interval"));
 
 	}
 
@@ -104,8 +103,8 @@ public class CallbackPowerTickPower extends Power {
 			else {
 
 				int ticks = interval > 0
-					? holder.age % interval
-					: holder.age;
+					? holder.tickCount % interval
+					: holder.tickCount;
 
 				if (this.isActive(context)) {
 

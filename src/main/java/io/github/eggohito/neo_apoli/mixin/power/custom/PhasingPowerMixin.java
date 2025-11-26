@@ -5,17 +5,22 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
 import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.block.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCollisionHandler;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.EntityCollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,13 +34,13 @@ public abstract class PhasingPowerMixin {
 	@Mixin(Entity.class)
 	public static abstract class EntityLogicHandler {
 
-		@WrapOperation(method = "method_30022", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/shape/VoxelShape;"))
-		private VoxelShape overrideShapeContextIfPresent(BlockState blockState, BlockView blockView, BlockPos blockPos, Operation<VoxelShape> original) {
+		@WrapOperation(method = "method_30022", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
+		private VoxelShape overrideShapeContextIfPresent(BlockState blockState, BlockGetter blockView, BlockPos blockPos, Operation<VoxelShape> original) {
 
 			Entity entity = (Entity) (Object) this;
 
 			if (PowersComponent.hasInstances(entity, PhasingPower.Instance.class)) {
-				return blockState.getCollisionShape(blockView, blockPos, ShapeContext.of(entity));
+				return blockState.getCollisionShape(blockView, blockPos, CollisionContext.of(entity));
 			}
 
 			else {
@@ -46,11 +51,11 @@ public abstract class PhasingPowerMixin {
 
 	}
 
-	@Mixin(AbstractBlock.AbstractBlockState.class)
+	@Mixin(BlockBehaviour.BlockStateBase.class)
 	public static abstract class PhasingImpl {
 
 		@Shadow
-		protected abstract BlockState asBlockState();
+		protected abstract BlockState asState();
 
 		@Unique
 		private final ThreadLocal<WeakReference<Context>> neo_apoli$phasingContext = new ThreadLocal<>();
@@ -60,25 +65,25 @@ public abstract class PhasingPowerMixin {
 
 			Context context = Optional.ofNullable(this.neo_apoli$phasingContext.get())
 				.flatMap(reference -> Optional.ofNullable(reference.get()))
-				.orElseGet(() -> PhasingPower.createContext(entity, new SavedBlockPosition(entity.getWorld(), blockPos, this.asBlockState(), entity.getWorld().getBlockEntity(blockPos))));
+				.orElseGet(() -> PhasingPower.createContext(entity, new SavedBlockPosition(entity.level(), blockPos, this.asState(), entity.level().getBlockEntity(blockPos))));
 
 			this.neo_apoli$phasingContext.set(new WeakReference<>(context));
 			return context;
 
 		}
 
-		@ModifyExpressionValue(method = "getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;getCollisionShape(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;"))
-		private VoxelShape overrideShapeWhenFulfilled(VoxelShape original, BlockView blockView, BlockPos blockPos, ShapeContext shapeContext) {
+		@ModifyExpressionValue(method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
+		private VoxelShape overrideShapeWhenFulfilled(VoxelShape original, BlockGetter blockView, BlockPos blockPos, CollisionContext shapeContext) {
 
-			if (shapeContext instanceof EntityShapeContext entityShapeContext && entityShapeContext.getEntity() != null) {
+			if (shapeContext instanceof EntityCollisionContext entityShapeContext && entityShapeContext.getEntity() != null) {
 
 				Context context = this.neo_apoli$getOrCreatePhasingContext(entityShapeContext.getEntity(), blockPos);
-				boolean result = PhasingPower.shouldPhaseDown(context, original);
+				boolean result = PhasingPower.shouldPhase(context, original);
 
 				this.neo_apoli$phasingContext.remove();
 
 				if (result) {
-					return VoxelShapes.empty();
+					return Shapes.empty();
 				}
 
 				else {
@@ -93,11 +98,11 @@ public abstract class PhasingPowerMixin {
 
 		}
 
-		@WrapWithCondition(method = "onEntityCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;onEntityCollision(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/EntityCollisionHandler;)V"))
-		private boolean disableEntityCollisionEffects(Block block, BlockState blockState, World world, BlockPos blockPos, Entity entity, EntityCollisionHandler entityCollisionHandler) {
+		@WrapWithCondition(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;entityInside(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/InsideBlockEffectApplier;)V"))
+		private boolean disableEntityCollisionEffects(Block block, BlockState blockState, Level level, BlockPos blockPos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier) {
 
 			Context context = this.neo_apoli$getOrCreatePhasingContext(entity, blockPos);
-			boolean result = !PowersComponent.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.isActive(context));
+			boolean result = !PhasingPower.shouldPhase(context, Power.Instance::isActive);
 
 			this.neo_apoli$phasingContext.remove();
 			return result;

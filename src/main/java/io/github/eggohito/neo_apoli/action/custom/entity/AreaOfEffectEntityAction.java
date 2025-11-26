@@ -10,10 +10,10 @@ import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCo
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.world.World;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 
 public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCondition biEntityCondition, Shape shape, NumberProvider radius) implements EntityAction {
 
@@ -24,11 +24,11 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 		NumberProvider.CODEC.fieldOf("radius").forGetter(AreaOfEffectEntityAction::radius)
 	).apply(instance, AreaOfEffectEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, AreaOfEffectEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		BiEntityAction.PACKET_CODEC, AreaOfEffectEntityAction::biEntityAction,
-		BiEntityCondition.PACKET_CODEC, AreaOfEffectEntityAction::biEntityCondition,
-		Shape.PACKET_CODEC, AreaOfEffectEntityAction::shape,
-		NumberProvider.PACKET_CODEC, AreaOfEffectEntityAction::radius,
+	public static final StreamCodec<RegistryFriendlyByteBuf, AreaOfEffectEntityAction> STREAM_CODEC = StreamCodec.composite(
+		BiEntityAction.STREAM_CODEC, AreaOfEffectEntityAction::biEntityAction,
+		BiEntityCondition.STREAM_CODEC, AreaOfEffectEntityAction::biEntityCondition,
+		Shape.STREAM_CODEC, AreaOfEffectEntityAction::shape,
+		NumberProvider.STREAM_CODEC, AreaOfEffectEntityAction::radius,
 		AreaOfEffectEntityAction::new
 	);
 
@@ -44,8 +44,8 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		World world = context.getWorld();
-		Entity actor = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		Level world = context.getWorld();
+		Entity actor = context.required(NeoApoliContextKeys.THIS_ENTITY);
 
 		Context radiusContext = context.makeChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
@@ -54,12 +54,12 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		for (var target : shape().getEntities(world, context.required(NeoApoliContextParameters.ENTITY_POS), radius)) {
+		for (var target : shape().getEntities(world, context.required(NeoApoliContextKeys.ENTITY_POS), radius)) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
-				.add(NeoApoliContextParameters.ACTOR, actor)
-				.add(NeoApoliContextParameters.TARGET, target));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+				.add(NeoApoliContextKeys.ACTOR, actor)
+				.add(NeoApoliContextKeys.TARGET, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				biEntityAction().execute(biEntityContext.makeChild(".bientity_action"));
@@ -70,15 +70,15 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		EntityAction.super.validate(reporter);
-		ErrorReporter biEntityReporter = reporter.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY));
+		ProblemReporter biEntityReporter = reporter.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY));
 
-		biEntityAction().validate(biEntityReporter.makeChild(".bientity_action"));
-		biEntityCondition().validate(biEntityReporter.makeChild(".bientity_condition"));
+		biEntityAction().validate(biEntityReporter.forChild(".bientity_action"));
+		biEntityCondition().validate(biEntityReporter.forChild(".bientity_condition"));
 
-		radius().validate(reporter.makeChild(".radius"));
+		radius().validate(reporter.forChild(".radius"));
 
 	}
 

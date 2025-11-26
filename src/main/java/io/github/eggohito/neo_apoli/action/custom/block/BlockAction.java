@@ -7,12 +7,12 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
@@ -20,7 +20,7 @@ public interface BlockAction extends Action {
 
 	Codec<BlockAction> CODEC = Codec.recursive(BlockAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BlockActionType.CODEC.dispatch(BlockAction::getType, BlockActionType::mapCodec), codec.listOf().xmap(SequenceBlockAction::new, SequenceBlockAction::actions), NothingBlockAction.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, BlockAction> PACKET_CODEC = BlockActionType.PACKET_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BlockAction> STREAM_CODEC = BlockActionType.STREAM_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
 
 	@Override
 	BlockActionType<?> getType();
@@ -28,15 +28,15 @@ public interface BlockAction extends Action {
 	@Override
 	default void execute(Context context) {
 
-		if (context.getWorld() instanceof ServerWorld serverWorld && !serverWorld.isDebugWorld()) {
+		if (context.getWorld() instanceof ServerLevel serverWorld && !serverWorld.isDebug()) {
 			this.serverExecute(new ServerContext.Builder(context).build(serverWorld));
 		}
 
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
+	default Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override

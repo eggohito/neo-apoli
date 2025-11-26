@@ -5,16 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import lombok.Data;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceEntityCondition(Identifier value) implements EntityCondition, ReferenceMetaCondition<EntityCondition> {
+public record ReferenceEntityCondition(ResourceLocation value) implements EntityCondition, ReferenceMetaCondition<EntityCondition> {
 
-	public static final MapCodec<ReferenceEntityCondition> CODEC = ReferenceMetaCondition.codec(ReferenceEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceEntityCondition> PACKET_CODEC = ReferenceMetaCondition.packetCodec(ReferenceEntityCondition::new);
+	public static final MapCodec<ReferenceEntityCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceEntityCondition::new);
 
 	@Override
 	public Pair<Class<EntityCondition>, String> classAndName() {

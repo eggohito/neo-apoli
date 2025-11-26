@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.util.comparison;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
 
-public enum Comparator implements StringIdentifiable {
+public enum Comparator implements StringRepresentable {
 
 	EQUALS("=="),
 	NOT_EQUALS("!="),
@@ -17,7 +17,7 @@ public enum Comparator implements StringIdentifiable {
 	LESS_THAN_OR_EQUAL("<=");
 
 	public static final Codec<Comparator> CODEC = CodecUtil.enumType(Comparator.class);
-	public static final PacketCodec<ByteBuf, Comparator> PACKET_CODEC = PacketCodecUtil.enumType(Comparator.class);
+	public static final StreamCodec<ByteBuf, Comparator> STREAM_CODEC = StreamCodecUtil.enumType(Comparator.class);
 
 	final String stringForm;
 	Comparator(String stringForm) {
@@ -25,7 +25,7 @@ public enum Comparator implements StringIdentifiable {
 	}
 
 	@Override
-	public String asString() {
+	public String getSerializedName() {
 		return stringForm;
 	}
 

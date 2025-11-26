@@ -7,13 +7,13 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConstantNbtProvider(NbtElement value) implements NbtProvider {
+public record ConstantNbtProvider(Tag value) implements NbtProvider {
 
 	public static final MapCodec<ConstantNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_NBT_ELEMENT.fieldOf("value").forGetter(ConstantNbtProvider::value)
@@ -24,8 +24,8 @@ public record ConstantNbtProvider(NbtElement value) implements NbtProvider {
 		ConstantNbtProvider::value
 	);
 
-	public static final PacketCodec<RegistryByteBuf, ConstantNbtProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.UNLIMITED_NBT_ELEMENT, ConstantNbtProvider::value,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantNbtProvider> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.TRUSTED_TAG, ConstantNbtProvider::value,
 		ConstantNbtProvider::new
 	);
 
@@ -35,7 +35,7 @@ public record ConstantNbtProvider(NbtElement value) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull NbtElement next(Context context) {
+	public @NotNull Tag next(Context context) {
 		return value();
 	}
 

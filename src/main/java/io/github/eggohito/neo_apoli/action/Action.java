@@ -10,14 +10,14 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public interface Action extends ContextAware, StringDisplayable {
 
 	Codec<Action> CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(ActionType.CODEC.dispatch(Action::getType, ActionType::mapCodec), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions), NothingAction.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, Action> PACKET_CODEC = ActionType.PACKET_CODEC.dispatch(Action::getType, ActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Action> STREAM_CODEC = ActionType.STREAM_CODEC.dispatch(Action::getType, ActionType::packetCodec);
 
 	@Override
 	default String asDisplayString() {

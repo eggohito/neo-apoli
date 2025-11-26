@@ -5,10 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.crafting.Ingredient;
 
 public record MatchIngredientItemCondition(Ingredient ingredient) implements ItemCondition {
 
@@ -16,8 +16,8 @@ public record MatchIngredientItemCondition(Ingredient ingredient) implements Ite
 		.group(Ingredient.CODEC.fieldOf("ingredient").forGetter(MatchIngredientItemCondition::ingredient))
 		.apply(instance, MatchIngredientItemCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, MatchIngredientItemCondition> PACKET_CODEC = PacketCodec.tuple(
-		Ingredient.PACKET_CODEC, MatchIngredientItemCondition::ingredient,
+	public static final StreamCodec<RegistryFriendlyByteBuf, MatchIngredientItemCondition> STREAM_CODEC = StreamCodec.composite(
+		Ingredient.CONTENTS_STREAM_CODEC, MatchIngredientItemCondition::ingredient,
 		MatchIngredientItemCondition::new
 	);
 
@@ -28,7 +28,7 @@ public record MatchIngredientItemCondition(Ingredient ingredient) implements Ite
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextParameters.ITEM_STACK)
+		return context.optional(NeoApoliContextKeys.ITEM_STACK)
 			.stream()
 			.anyMatch(ingredient());
 	}

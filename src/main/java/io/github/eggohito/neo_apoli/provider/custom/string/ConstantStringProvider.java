@@ -6,9 +6,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record ConstantStringProvider(String value) implements StringProvider {
@@ -22,8 +22,8 @@ public record ConstantStringProvider(String value) implements StringProvider {
 		ConstantStringProvider::value
 	);
 
-	public static final PacketCodec<RegistryByteBuf, ConstantStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.STRING, ConstantStringProvider::value,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantStringProvider> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.STRING_UTF8, ConstantStringProvider::value,
 		ConstantStringProvider::new
 	);
 

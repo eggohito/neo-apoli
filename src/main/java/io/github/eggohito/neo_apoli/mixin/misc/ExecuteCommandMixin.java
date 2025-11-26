@@ -8,48 +8,48 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.server.command.ExecuteCommand;
-import net.minecraft.server.command.ServerCommandSource;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.commands.ExecuteCommand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 @Mixin(ExecuteCommand.class)
 public abstract class ExecuteCommandMixin {
 
 	@Shadow
-	private static ArgumentBuilder<ServerCommandSource, ?> addConditionLogic(CommandNode<ServerCommandSource> root, ArgumentBuilder<ServerCommandSource, ?> builder, boolean positive, ExecuteCommand.Condition condition) {
+	private static ArgumentBuilder<CommandSourceStack, ?> addConditional(CommandNode<CommandSourceStack> root, ArgumentBuilder<CommandSourceStack, ?> builder, boolean positive, ExecuteCommand.CommandPredicate condition) {
 		throw new AssertionError();
 	}
 
-	@ModifyReturnValue(method = "addConditionArguments", at = @At("RETURN"))
-	private static ArgumentBuilder<ServerCommandSource, ?> addCustomConditionArgs(ArgumentBuilder<ServerCommandSource, ?> original, CommandNode<ServerCommandSource> rootNode, LiteralArgumentBuilder<ServerCommandSource> builder, boolean positive, CommandRegistryAccess registryAccess) {
+	@ModifyReturnValue(method = "addConditionals", at = @At("RETURN"))
+	private static ArgumentBuilder<CommandSourceStack, ?> addCustomConditionals(ArgumentBuilder<CommandSourceStack, ?> original, CommandNode<CommandSourceStack> rootNode, LiteralArgumentBuilder<CommandSourceStack> builder, boolean positive, CommandBuildContext registryAccess) {
 
-		CommandNode<ServerCommandSource> baseNode = literal(NeoApoli.id("condition").toString()).build();
-		CommandNode<ServerCommandSource> withNode = literal("with").build();
-		CommandNode<ServerCommandSource> onNode = literal("on")
-			.then(addConditionLogic(
+		CommandNode<CommandSourceStack> baseNode = literal(NeoApoli.id("condition").toString()).build();
+		CommandNode<CommandSourceStack> withNode = literal("with").build();
+		CommandNode<CommandSourceStack> onNode = literal("on")
+			.then(addConditional(
 				rootNode,
 				argument("condition", ConditionArgumentType.inlineCondition(registryAccess)),
 				positive,
 				ConditionCommand.TestSubCommand::test
 			)).build();
 
-		for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_PARAMETER) {
+		for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
 
-			String id = parameter.getId().toString();
-			TypedContextParameter.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
+			String id = parameter.name().toString();
+			TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
 
 			if (parameterCommandBuilder == null) {
 				continue;
 			}
 
-			CommandNode<ServerCommandSource> parameterNode = literal(id).build();
+			CommandNode<CommandSourceStack> parameterNode = literal(id).build();
 			parameterCommandBuilder.addArguments(registryAccess, baseNode, parameterNode);
 
 			withNode.addChild(parameterNode);

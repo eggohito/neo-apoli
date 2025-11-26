@@ -5,15 +5,6 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.registry.tag.TagEntry;
-import net.minecraft.registry.tag.TagGroupLoader;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.resource.DependencyTracker;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,23 +19,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagEntry;
+import net.minecraft.tags.TagKey;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.util.DependencySorter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 
 public abstract class ModifyEntityTypeTagPowerMixin {
 
-	@Mixin(TagGroupLoader.class)
+	@Mixin(TagLoader.class)
 	public static abstract class TagCache<T> {
 
 		@Unique
-		private static final String ENTITY_TYPE_TAG_PATH = RegistryKeys.getTagPath(RegistryKeys.ENTITY_TYPE);
+		private static final String ENTITY_TYPE_TAG_PATH = Registries.tagsDirPath(Registries.ENTITY_TYPE);
 
 		@Shadow
 		@Final
-		private String dataType;
+		private String directory;
 
-		@Inject(method = "buildGroup", at = @At("RETURN"))
-		private void cacheEntityTypeTags(Map<Identifier, List<TagGroupLoader.TrackedEntry>> tags, CallbackInfoReturnable<Map<Identifier, List<T>>> cir, @Local TagEntry.ValueGetter<T> getter, @Local DependencyTracker<Identifier, TagGroupLoader.TagDependencies> dependencyTracker) {
+		@Inject(method = "build", at = @At("RETURN"))
+		private void cacheEntityTypeTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> tags, CallbackInfoReturnable<Map<ResourceLocation, List<T>>> cir, @Local TagEntry.Lookup<T> getter, @Local DependencySorter<ResourceLocation, TagLoader.SortingEntry> dependencyTracker) {
 
-			if (Objects.equals(this.dataType, ENTITY_TYPE_TAG_PATH)) {
+			if (Objects.equals(this.directory, ENTITY_TYPE_TAG_PATH)) {
 				ModifyEntityTypeTagPower.setCache(getter, dependencyTracker);
 			}
 
@@ -69,7 +69,7 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 
 		}
 
-		@ModifyExpressionValue(method = "handleFallDamage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;type:Lnet/minecraft/entity/EntityType;"))
+		@ModifyExpressionValue(method = "causeFallDamage", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/Entity;type:Lnet/minecraft/world/entity/EntityType;"))
 		private EntityType<?> fixTypeCalls(EntityType<?> original) {
 			return this.getType();
 		}
@@ -128,7 +128,7 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 
 		}
 
-		@ModifyReturnValue(method = "isIn(Lnet/minecraft/registry/tag/TagKey;)Z", at = @At("RETURN"))
+		@ModifyReturnValue(method = "is(Lnet/minecraft/tags/TagKey;)Z", at = @At("RETURN"))
 		private boolean normalProxy(boolean original, TagKey<EntityType<?>> tag) {
 
 			if (original) {
@@ -148,8 +148,8 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 
 		}
 
-		@ModifyReturnValue(method = "isIn(Lnet/minecraft/registry/entry/RegistryEntryList;)Z", at = @At("RETURN"))
-		private boolean entryListProxy(boolean original, RegistryEntryList<EntityType<?>> tagsEntryList) {
+		@ModifyReturnValue(method = "is(Lnet/minecraft/core/HolderSet;)Z", at = @At("RETURN"))
+		private boolean entryListProxy(boolean original, HolderSet<EntityType<?>> tagsEntryList) {
 
 			if (original) {
 				return true;

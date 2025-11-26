@@ -2,16 +2,16 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
+import io.github.eggohito.neo_apoli.keybinding.KeyState;
+import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -23,8 +23,8 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 		StringProvider.CODEC.fieldOf("id").forGetter(KeyPressedTimeNumberProvider::id)
 	).apply(instance, KeyPressedTimeNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, KeyPressedTimeNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, KeyPressedTimeNumberProvider::id,
+	public static final StreamCodec<RegistryFriendlyByteBuf, KeyPressedTimeNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, KeyPressedTimeNumberProvider::id,
 		KeyPressedTimeNumberProvider::new
 	);
 
@@ -47,23 +47,23 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 			return 0L;
 		}
 
-		UUID uuid = context.required(NeoApoliContextParameters.THIS_ENTITY).getUuid();
-		return KeyBindingStateHolder.getState(uuid, id)
-			.filter(KeyBindingState::pressed)
-			.map(KeyBindingState::pressedTime)
+		UUID uuid = context.required(NeoApoliContextKeys.THIS_ENTITY).getUUID();
+		return KeyStateManager.getState(uuid, id)
+			.filter(KeyState::pressed)
+			.map(KeyState::pressedTime)
 			.orElse(0L);
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.THIS_ENTITY);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.THIS_ENTITY);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		NumberProvider.super.validate(reporter);
-		id().validate(reporter.makeChild(".id"));
+		id().validate(reporter.forChild(".id"));
 	}
 
 }

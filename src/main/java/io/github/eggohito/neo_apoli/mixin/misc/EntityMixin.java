@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
 import io.github.eggohito.neo_apoli.duck.MovingEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EntityMixin implements MovingEntity {
 
 	@Shadow
-	public abstract Vec3d getPos();
+	public abstract Vec3 position();
 
 	@Shadow
 	public abstract double getX();
@@ -26,18 +26,18 @@ public abstract class EntityMixin implements MovingEntity {
 	public abstract double getZ();
 
 	@Unique
-	private Vec3d neo_apoli$prevPos;
+	private Vec3 neo_apoli$prevPos;
 
 	@Unique
-	private Vec3d neo_apoli$velocity = Vec3d.ZERO;
+	private Vec3 neo_apoli$velocity = Vec3.ZERO;
 
 	@Override
-	public Vec3d neo_apoli$getVelocity() {
+	public Vec3 neo_apoli$getVelocity() {
 		return neo_apoli$velocity;
 	}
 
 	@Override
-	public void neo_apoli$setVelocity(Vec3d velocity) {
+	public void neo_apoli$setVelocity(Vec3 velocity) {
 		this.neo_apoli$velocity = velocity;
 	}
 
@@ -54,7 +54,7 @@ public abstract class EntityMixin implements MovingEntity {
 
 		}
 
-		this.neo_apoli$prevPos = this.getPos();
+		this.neo_apoli$prevPos = this.position();
 
 	}
 

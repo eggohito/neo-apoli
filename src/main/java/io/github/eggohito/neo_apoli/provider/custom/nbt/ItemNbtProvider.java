@@ -3,17 +3,17 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -22,7 +22,7 @@ import java.util.Set;
 public record ItemNbtProvider() implements NbtProvider {
 
 	public static final MapCodec<ItemNbtProvider> CODEC = MapCodec.unit(ItemNbtProvider::new);
-	public static final PacketCodec<RegistryByteBuf, ItemNbtProvider> PACKET_CODEC = PacketCodecUtil.unit(ItemNbtProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ItemNbtProvider> STREAM_CODEC = StreamCodecUtil.unit(ItemNbtProvider::new);
 
 	@Override
 	public NbtProviderType<?> getType() {
@@ -30,10 +30,10 @@ public record ItemNbtProvider() implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull NbtElement next(Context context) {
+	public @NotNull Tag next(Context context) {
 
-		RegistryOps<NbtElement> ops = context.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
-		Optional<ItemStack> optStack = context.optional(NeoApoliContextParameters.ITEM_STACK);
+		RegistryOps<Tag> ops = context.getWorld().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+		Optional<ItemStack> optStack = context.optional(NeoApoliContextKeys.ITEM_STACK);
 
 		if (optStack.isEmpty()) {
 			context.getReporter().report("Couldn't encode and provide non-existent item stack as NBT!");
@@ -41,13 +41,13 @@ public record ItemNbtProvider() implements NbtProvider {
 
 		return optStack
 			.flatMap(stack -> ItemStack.OPTIONAL_CODEC.encodeStart(ops, stack).resultOrPartial(context.getReporter()::report))
-			.orElseGet(NbtCompound::new);
+			.orElseGet(CompoundTag::new);
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ITEM_STACK);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ITEM_STACK);
 	}
 
 }

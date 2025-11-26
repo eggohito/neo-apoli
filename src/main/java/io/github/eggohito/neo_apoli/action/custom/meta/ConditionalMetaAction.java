@@ -7,9 +7,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
@@ -42,17 +42,17 @@ public interface ConditionalMetaAction<C extends Condition, A extends Action> ex
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		MetaAction.super.validate(reporter);
-		condition().validate(reporter.makeChild(".condition"));
+		condition().validate(reporter.forChild(".condition"));
 
-		ifAction().validate(reporter.makeChild(".if_action"));
-		elseAction().ifPresent(elseAction -> elseAction.validate(reporter.makeChild(".else_action")));
+		ifAction().validate(reporter.forChild(".if_action"));
+		elseAction().ifPresent(elseAction -> elseAction.validate(reporter.forChild(".else_action")));
 
 	}
 
-	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> MapCodec<M> codec(Codec<C> conditionCodec, Codec<A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
+	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> MapCodec<M> createCodec(Codec<C> conditionCodec, Codec<A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			conditionCodec.fieldOf("condition").forGetter(ConditionalMetaAction::condition),
 			actionCodec.fieldOf("if_action").forGetter(ConditionalMetaAction::ifAction),
@@ -60,11 +60,11 @@ public interface ConditionalMetaAction<C extends Condition, A extends Action> ex
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, C> conditionCodec, PacketCodec<RegistryByteBuf, A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
-		return PacketCodec.tuple(
+	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
+		return StreamCodec.composite(
 			conditionCodec, ConditionalMetaAction::condition,
 			actionCodec, ConditionalMetaAction::ifAction,
-			PacketCodecs.optional(actionCodec), ConditionalMetaAction::elseAction,
+			ByteBufCodecs.optional(actionCodec), ConditionalMetaAction::elseAction,
 			constructor
 		);
 	}

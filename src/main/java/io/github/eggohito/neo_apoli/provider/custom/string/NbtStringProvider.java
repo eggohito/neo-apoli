@@ -3,29 +3,29 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.command.argument.NbtPathArgumentType;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.commands.arguments.NbtPathArgument;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record NbtStringProvider(NbtProvider source, NbtPathArgumentType.NbtPath path) implements StringProvider {
+public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements StringProvider {
 
 	public static final MapCodec<NbtStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NbtProvider.CODEC.fieldOf("source").forGetter(NbtStringProvider::source),
-		NbtPathArgumentType.NbtPath.CODEC.fieldOf("path").forGetter(NbtStringProvider::path)
+		NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtStringProvider::path)
 	).apply(instance, NbtStringProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, NbtStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		NbtProvider.PACKET_CODEC, NbtStringProvider::source,
-		NeoApoliPacketCodecs.NBT_PATH, NbtStringProvider::path,
+	public static final StreamCodec<RegistryFriendlyByteBuf, NbtStringProvider> STREAM_CODEC = StreamCodec.composite(
+		NbtProvider.STREAM_CODEC, NbtStringProvider::source,
+		NeoApoliStreamCodecs.NBT_PATH, NbtStringProvider::path,
 		NbtStringProvider::new
 	);
 
@@ -38,7 +38,7 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgumentType.NbtPath 
 	public @NotNull String next(Context context) {
 
 		Context sourceContext = context.makeChild(".source");
-		NbtElement source = source().next(sourceContext);
+		Tag source = source().next(sourceContext);
 
 		if (sourceContext.hasErrors()) {
 			return "";
@@ -46,16 +46,16 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgumentType.NbtPath 
 
 		try {
 
-			List<NbtElement> elements = path().get(source);
+			List<Tag> elements = path().get(source);
 			int size = elements.size();
 
 			if (size == 1) {
-				NbtElement element = elements.getFirst();
+				Tag element = elements.getFirst();
 				return element.asString().orElseGet(element::toString);
 			}
 
 			else if (size > 1) {
-				return Integer.toString(path().count(source));
+				return Integer.toString(path().countMatching(source));
 			}
 
 			else {
@@ -73,9 +73,9 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgumentType.NbtPath 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		StringProvider.super.validate(reporter);
-		source().validate(reporter.makeChild(".source"));
+		source().validate(reporter.forChild(".source"));
 	}
 
 }

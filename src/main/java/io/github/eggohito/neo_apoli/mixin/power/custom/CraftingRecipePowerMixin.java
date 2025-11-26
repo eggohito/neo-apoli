@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
@@ -10,26 +9,31 @@ import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
-import io.github.eggohito.neo_apoli.recipe.PowerRecipeFinder;
+import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import it.unimi.dsi.fastutil.objects.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.RecipeInputInventory;
-import net.minecraft.item.Item;
-import net.minecraft.recipe.*;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.screen.AbstractCraftingScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeMap;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -44,20 +48,20 @@ import java.util.Map;
 
 public abstract class CraftingRecipePowerMixin {
 
-	@Mixin(ServerRecipeManager.class)
+	@Mixin(RecipeManager.class)
 	public static abstract class ManagerRegistrant implements PowerRecipeDisplayHolder {
 
 		@Shadow
-		private PreparedRecipes preparedRecipes;
+		private RecipeMap recipes;
 
 		@Shadow
-		private Map<RegistryKey<Recipe<?>>, List<ServerRecipeManager.ServerRecipe>> recipesByKey;
+		private Map<ResourceKey<Recipe<?>>, List<RecipeManager.ServerDisplayInfo>> recipeToDisplay;
 
-		@Inject(method = "initialize", at = @At("HEAD"))
-		private void onInit(FeatureSet features, CallbackInfo ci) {
+		@Inject(method = "finalizeRecipeLoading", at = @At("HEAD"))
+		private void onInit(FeatureFlagSet features, CallbackInfo ci) {
 
-			ObjectCollection<RecipeEntry<?>> recipeEntries = new ObjectOpenHashSet<>(this.preparedRecipes.recipes());
-			Object2IntMap<RegistryKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
+			ObjectCollection<RecipeHolder<?>> recipeEntries = new ObjectOpenHashSet<>(this.recipes.values());
+			Object2IntMap<ResourceKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
 
 			for (PowerEntry<?> powerEntry: PowerManager.entries()) {
 
@@ -65,15 +69,15 @@ public abstract class CraftingRecipePowerMixin {
 					continue;
 				}
 
-				RecipeEntry<CraftingRecipe> recipeEntry = craftingRecipePower.getRecipeEntry();
-				RegistryKey<Recipe<?>> recipeKey = recipeEntry.id();
+				RecipeHolder<CraftingRecipe> recipeEntry = craftingRecipePower.getRecipeEntry();
+				ResourceKey<Recipe<?>> recipeKey = recipeEntry.id();
 
 				CraftingRecipe recipe = recipeEntry.value();
 				int priority = craftingRecipePower.getPriority();
 
 				if (!replacedRecipes.containsKey(recipeKey) || replacedRecipes.getInt(recipeKey) < priority) {
 
-					RecipeEntry<PowerCraftingRecipe> replacement = new RecipeEntry<>(recipeKey, new PowerCraftingRecipe(powerEntry.reference(), recipe));
+					RecipeHolder<PowerCraftingRecipe> replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.reference(), recipe));
 
 					recipeEntries.remove(recipeEntry);
 					recipeEntries.add(replacement);
@@ -84,18 +88,18 @@ public abstract class CraftingRecipePowerMixin {
 
 			}
 
-			this.preparedRecipes = PreparedRecipes.of(recipeEntries);
+			this.recipes = RecipeMap.create(recipeEntries);
 
 		}
 
 		@Unique
 		private final Object2ObjectOpenHashMap<RecipeDisplayEntry, PowerReference> neo_apoli$referencesByDisplayEntry = new Object2ObjectOpenHashMap<>();
 
-		@Inject(method = "initialize", at = @At("TAIL"))
-		private void afterInit(FeatureSet features, CallbackInfo ci) {
+		@Inject(method = "finalizeRecipeLoading", at = @At("TAIL"))
+		private void afterInit(FeatureFlagSet features, CallbackInfo ci) {
 
 			this.neo_apoli$referencesByDisplayEntry.clear();
-			this.recipesByKey.forEach((key, serverRecipes) -> serverRecipes.forEach(serverRecipe -> {
+			this.recipeToDisplay.forEach((key, serverRecipes) -> serverRecipes.forEach(serverRecipe -> {
 
 				if (serverRecipe.parent().value() instanceof PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe ignoredDelegate)) {
 					neo_apoli$referencesByDisplayEntry.put(serverRecipe.display(), powerReference);
@@ -112,22 +116,22 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(CraftingRecipeInput.class)
-	public static abstract class CraftingRecipeInputCache implements PowerCraftingInventory {
+	@Mixin(CraftingInput.class)
+	public static abstract class CraftingInputCache implements PowerCraftingInventory {
 
 		@Unique
-		private final ThreadLocal<CraftingInventory> neo_apoli$inventory = new ThreadLocal<>();
+		private final ThreadLocal<TransientCraftingContainer> neo_apoli$inventory = new ThreadLocal<>();
 
 		@Unique
 		private final ThreadLocal<Entity> neo_apoli$entity = new ThreadLocal<>();
 
 		@Override
-		public CraftingInventory neo_apoli$getInventory() {
+		public TransientCraftingContainer neo_apoli$getInventory() {
 			return this.neo_apoli$inventory.get();
 		}
 
 		@Override
-		public void neo_apoli$setInventory(CraftingInventory inventory) {
+		public void neo_apoli$setInventory(TransientCraftingContainer inventory) {
 
 			if (inventory == null) {
 				this.neo_apoli$inventory.remove();
@@ -159,11 +163,11 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(RecipeInputInventory.class)
-	public interface RecipeInputInventoryCache extends PowerCraftingInventory {
+	@Mixin(CraftingContainer.class)
+	public interface CraftingContainerCache extends PowerCraftingInventory {
 
-		@ModifyReturnValue(method = "createPositionedRecipeInput", at = @At("RETURN"))
-		private CraftingRecipeInput.Positioned passCacheToPositioned(CraftingRecipeInput.Positioned original) {
+		@ModifyReturnValue(method = "asPositionedCraftInput", at = @At("RETURN"))
+		private CraftingInput.Positioned passCacheToPositioned(CraftingInput.Positioned original) {
 
 			if (original.input() instanceof PowerCraftingInventory newPci) {
 				newPci.neo_apoli$setInventory(this.neo_apoli$getInventory());
@@ -176,15 +180,15 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(CraftingInventory.class)
-	public static abstract class CraftingInventoryCache implements PowerCraftingInventory {
+	@Mixin(TransientCraftingContainer.class)
+	public static abstract class TransientCraftingContainerCache implements PowerCraftingInventory {
 
 		@Unique
 		private final ThreadLocal<Entity> neo_apoli$entity = new ThreadLocal<>();
 
 		@Override
-		public CraftingInventory neo_apoli$getInventory() {
-			return (CraftingInventory) (Object) this;
+		public TransientCraftingContainer neo_apoli$getInventory() {
+			return (TransientCraftingContainer) (Object) this;
 		}
 
 		@Override
@@ -207,16 +211,16 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(AbstractCraftingScreenHandler.class)
-	public static abstract class AbstractCraftingScreenCacheInitializer {
+	@Mixin(AbstractCraftingMenu.class)
+	public static abstract class AbstractCraftingMenuCacheInitializer {
 
 		@Shadow @Final
-		protected RecipeInputInventory craftingInventory;
+		protected CraftingContainer craftSlots;
 
 		@Inject(method = "addResultSlot", at = @At("TAIL"))
-		private void cachePlayerWhenAddingResultSlot(PlayerEntity player, int x, int y, CallbackInfoReturnable<Slot> cir) {
+		private void cachePlayerWhenAddingResultSlot(Player player, int x, int y, CallbackInfoReturnable<Slot> cir) {
 
-			if (this.craftingInventory instanceof PowerCraftingInventory powerCraftingInventory) {
+			if (this.craftSlots instanceof PowerCraftingInventory powerCraftingInventory) {
 				powerCraftingInventory.neo_apoli$setEntity(player);
 			}
 
@@ -228,17 +232,17 @@ public abstract class CraftingRecipePowerMixin {
 	public static abstract class RecipeDisplayCraftableProxy {
 
 		@Shadow
-		public abstract NetworkRecipeId id();
+		public abstract RecipeDisplayId id();
 
-		@WrapOperation(method = "isCraftable", at = @At(value = "INVOKE", target = "Lnet/minecraft/recipe/RecipeFinder;isCraftable(Ljava/util/List;Lnet/minecraft/recipe/RecipeMatcher$ItemCallback;)Z"))
-		private boolean accountForPowerCraftingRecipeDisplays(RecipeFinder finder, List<? extends RecipeMatcher.RawIngredient<RegistryEntry<Item>>> rawIngredients, RecipeMatcher.@Nullable ItemCallback<RegistryEntry<Item>> itemCallback, Operation<Boolean> original) {
+		@WrapOperation(method = "canCraft", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/StackedItemContents;canCraft(Ljava/util/List;Lnet/minecraft/world/entity/player/StackedContents$Output;)Z"))
+		private boolean accountForPowerCraftingRecipeDisplays(StackedItemContents contents, List<? extends StackedContents.IngredientInfo<Holder<Item>>> rawIngredients, StackedContents.@Nullable Output<Holder<Item>> itemCallback, Operation<Boolean> original) {
 
-			if (finder instanceof PowerRecipeFinder powerRecipeFinder) {
-				return powerRecipeFinder.isCraftable(this.id(), rawIngredients, 1, itemCallback);
+			if (contents instanceof PowerStackedItemContents powerStackedItemContents) {
+				return powerStackedItemContents.isCraftable(this.id(), rawIngredients, 1, itemCallback);
 			}
 
 			else {
-				return original.call(finder, rawIngredients, itemCallback);
+				return original.call(contents, rawIngredients, itemCallback);
 			}
 
 		}

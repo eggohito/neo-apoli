@@ -4,15 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -46,7 +42,7 @@ public interface AllOfMetaCondition<C extends Condition> extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		ListIterator<C> listIterator = conditions().listIterator();
 
@@ -55,21 +51,21 @@ public interface AllOfMetaCondition<C extends Condition> extends MetaCondition {
 			int index = listIterator.nextIndex();
 			C condition = listIterator.next();
 
-			condition.validate(reporter.makeChild(".conditions[" + index + "]"));
+			condition.validate(reporter.forChild(".conditions[" + index + "]"));
 
 		}
 
 	}
 
-	static <C extends Condition, M extends AllOfMetaCondition<C>> MapCodec<M> codec(Codec<C> conditionCodec, Function<List<C>, M> constructor) {
+	static <C extends Condition, M extends AllOfMetaCondition<C>> MapCodec<M> createCodec(Codec<C> conditionCodec, Function<List<C>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			conditionCodec.listOf().fieldOf("conditions").forGetter(AllOfMetaCondition::conditions)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, M extends AllOfMetaCondition<C>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
-		return PacketCodec.tuple(
-			PacketCodecs.collection(ObjectArrayList::new, conditionCodec), AllOfMetaCondition::conditions,
+	static <C extends Condition, M extends AllOfMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
+		return StreamCodec.composite(
+			ByteBufCodecs.collection(ObjectArrayList::new, conditionCodec), AllOfMetaCondition::conditions,
 			constructor
 		);
 	}

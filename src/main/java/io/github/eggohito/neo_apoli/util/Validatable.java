@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.util;
 
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.core.HolderLookup;
 
 public interface Validatable {
 
-	default void validate(RegistryWrapper.WrapperLookup wrapperLookup) {
+	default void validate(HolderLookup.Provider wrapperLookup) {
 
 	}
 

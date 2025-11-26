@@ -5,24 +5,24 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.event.GameEvent;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
 
-public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) implements EntityAction {
+public record EmitGameEventEntityAction(Holder<GameEvent> gameEvent) implements EntityAction {
 
 	public static final MapCodec<EmitGameEventEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(GameEvent.CODEC.fieldOf("game_event").forGetter(EmitGameEventEntityAction::gameEvent))
 		.apply(instance, EmitGameEventEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, EmitGameEventEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.registryEntry(RegistryKeys.GAME_EVENT), EmitGameEventEntityAction::gameEvent,
+	public static final StreamCodec<RegistryFriendlyByteBuf, EmitGameEventEntityAction> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.holderRegistry(Registries.GAME_EVENT), EmitGameEventEntityAction::gameEvent,
 		EmitGameEventEntityAction::new
 	);
 
@@ -38,10 +38,10 @@ public record EmitGameEventEntityAction(RegistryEntry<GameEvent> gameEvent) impl
 			return;
 		}
 
-		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		Vec3d pos = context.required(NeoApoliContextParameters.ENTITY_POS);
+		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		Vec3 pos = context.required(NeoApoliContextKeys.ENTITY_POS);
 
-		context.getWorld().emitGameEvent(entity, gameEvent(), pos);
+		context.getWorld().gameEvent(entity, gameEvent(), pos);
 
 	}
 

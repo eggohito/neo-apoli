@@ -8,11 +8,11 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
-public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, PacketCodec<RegistryByteBuf, A> packetCodec) implements ActionType<A> {
+public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> packetCodec) implements ActionType<A> {
 
 	public static final String PREFIX = "item/";
 
@@ -20,6 +20,6 @@ public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, PacketC
 
 	public static final Codec<ItemActionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 
-	public static final PacketCodec<RegistryByteBuf, ItemActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ITEM_ACTION_TYPE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ItemActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.ITEM_ACTION_TYPE);
 
 }

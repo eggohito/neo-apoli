@@ -7,9 +7,9 @@ import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Locale;
 
@@ -22,11 +22,11 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 		Codec.BOOL.optionalFieldOf("case_sensitive", true).forGetter(StringComparison::caseSensitive)
 	).apply(instance, StringComparison::new));
 
-	public static final PacketCodec<RegistryByteBuf, StringComparison> PACKET_CODEC = PacketCodec.tuple(
-		Comparator.PACKET_CODEC, StringComparison::comparator,
-		StringProvider.PACKET_CODEC, StringComparison::first,
-		StringProvider.PACKET_CODEC, StringComparison::second,
-		PacketCodecs.BOOLEAN, StringComparison::caseSensitive,
+	public static final StreamCodec<RegistryFriendlyByteBuf, StringComparison> STREAM_CODEC = StreamCodec.composite(
+		Comparator.STREAM_CODEC, StringComparison::comparator,
+		StringProvider.STREAM_CODEC, StringComparison::first,
+		StringProvider.STREAM_CODEC, StringComparison::second,
+		ByteBufCodecs.BOOL, StringComparison::caseSensitive,
 		StringComparison::new
 	);
 
@@ -62,12 +62,12 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		Comparison.super.validate(reporter);
 
-		first().validate(reporter.makeChild(".first"));
-		second().validate(reporter.makeChild(".second"));
+		first().validate(reporter.forChild(".first"));
+		second().validate(reporter.forChild(".second"));
 
 	}
 

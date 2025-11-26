@@ -2,15 +2,15 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record PositionComponentNumberProvider(Vec3dProvider position, Direction.Axis axis) implements NumberProvider {
@@ -20,9 +20,9 @@ public record PositionComponentNumberProvider(Vec3dProvider position, Direction.
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(PositionComponentNumberProvider::axis)
 	).apply(instance, PositionComponentNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, PositionComponentNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		Vec3dProvider.PACKET_CODEC, PositionComponentNumberProvider::position,
-		NeoApoliPacketCodecs.AXIS, PositionComponentNumberProvider::axis,
+	public static final StreamCodec<RegistryFriendlyByteBuf, PositionComponentNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		Vec3dProvider.STREAM_CODEC, PositionComponentNumberProvider::position,
+		NeoApoliStreamCodecs.AXIS, PositionComponentNumberProvider::axis,
 		PositionComponentNumberProvider::new
 	);
 
@@ -35,22 +35,22 @@ public record PositionComponentNumberProvider(Vec3dProvider position, Direction.
 	public @NotNull Number next(Context context) {
 
 		Context positionContext = context.makeChild(".position");
-		Vec3d position = position().next(positionContext);
+		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return 0.0d;
 		}
 
 		else {
-			return position.getComponentAlongAxis(this.axis());
+			return position.get(this.axis());
 		}
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		NumberProvider.super.validate(reporter);
-		position().validate(reporter.makeChild(".position"));
+		position().validate(reporter.forChild(".position"));
 	}
 
 }

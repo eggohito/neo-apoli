@@ -7,12 +7,12 @@ import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,8 +24,8 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 		StringProvider.CODEC.fieldOf("command").forGetter(CommandResultNumberProvider::command)
 	).apply(instance, CommandResultNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, CommandResultNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, CommandResultNumberProvider::command,
+	public static final StreamCodec<RegistryFriendlyByteBuf, CommandResultNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, CommandResultNumberProvider::command,
 		CommandResultNumberProvider::new
 	);
 
@@ -37,7 +37,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
 			return 0;
 		}
 
@@ -51,21 +51,21 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 			return result.get();
 		}
 
-		ServerCommandSource commandSource = server.getCommandSource()
-			.withPosition(Vec3d.ZERO)
-			.withLevel(NeoApoli.getConfig().command().permissionLevel())
-			.withOutput(NeoApoli.validateCommandOutput(server))
-			.withReturnValueConsumer((successful, returnValue) -> result.set(returnValue));
+		CommandSourceStack commandSource = server.createCommandSourceStack()
+			.withPosition(Vec3.ZERO)
+			.withPermission(NeoApoli.getConfig().command().permissionLevel())
+			.withSource(NeoApoli.validateCommandOutput(server))
+			.withCallback((successful, returnValue) -> result.set(returnValue));
 
-		server.getCommandManager().executeWithPrefix(commandSource, command);
+		server.getCommands().performPrefixedCommand(commandSource, command);
 		return result.get();
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		NumberProvider.super.validate(reporter);
-		command().validate(reporter.makeChild(".command"));
+		command().validate(reporter.forChild(".command"));
 	}
 
 }

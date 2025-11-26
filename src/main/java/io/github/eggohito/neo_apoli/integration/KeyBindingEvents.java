@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.integration;
 
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
+import io.github.eggohito.neo_apoli.keybinding.KeyState;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 
 public class KeyBindingEvents {
 
@@ -41,7 +41,7 @@ public class KeyBindingEvents {
 	);
 
 	public interface Runner {
-		void run(PlayerEntity player, KeyBindingState state);
+		void run(Player player, KeyState state);
 	}
 
 }

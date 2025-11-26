@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.action.custom.meta.ExecuteOnEntityMetaAction
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
 public record ExecuteOnEntityBiEntityAction(EntityAction action, EntityTarget entity) implements BiEntityAction, ExecuteOnEntityMetaAction {
 
-	public static final MapCodec<ExecuteOnEntityBiEntityAction> CODEC = ExecuteOnEntityMetaAction.codec(ExecuteOnEntityBiEntityAction::new);
-	public static final PacketCodec<RegistryByteBuf, ExecuteOnEntityBiEntityAction> PACKET_CODEC = ExecuteOnEntityMetaAction.packetCodec(ExecuteOnEntityBiEntityAction::new);
+	public static final MapCodec<ExecuteOnEntityBiEntityAction> CODEC = ExecuteOnEntityMetaAction.createCodec(ExecuteOnEntityBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteOnEntityBiEntityAction> STREAM_CODEC = ExecuteOnEntityMetaAction.createStreamCodec(ExecuteOnEntityBiEntityAction::new);
 
 	@Override
 	public BiEntityActionType<?> getType() {
@@ -23,7 +23,7 @@ public record ExecuteOnEntityBiEntityAction(EntityAction action, EntityTarget en
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return ExecuteOnEntityMetaAction.super.getRequiredParameters();
 	}
 

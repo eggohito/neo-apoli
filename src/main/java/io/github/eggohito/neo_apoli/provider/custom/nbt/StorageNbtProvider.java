@@ -2,24 +2,24 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-public record StorageNbtProvider(Identifier id) implements NbtProvider {
+public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 
 	public static final MapCodec<StorageNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Identifier.CODEC.fieldOf("id").forGetter(StorageNbtProvider::id)
+		ResourceLocation.CODEC.fieldOf("id").forGetter(StorageNbtProvider::id)
 	).apply(instance, StorageNbtProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, StorageNbtProvider> PACKET_CODEC = PacketCodec.tuple(
-		Identifier.PACKET_CODEC, StorageNbtProvider::id,
+	public static final StreamCodec<RegistryFriendlyByteBuf, StorageNbtProvider> STREAM_CODEC = StreamCodec.composite(
+		ResourceLocation.STREAM_CODEC, StorageNbtProvider::id,
 		StorageNbtProvider::new
 	);
 
@@ -29,8 +29,8 @@ public record StorageNbtProvider(Identifier id) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull NbtElement next(Context context) {
-		return ((DataCommandStorageHolder) context.getWorld()).neo_apoli$get(this.id());
+	public @NotNull Tag next(Context context) {
+		return ((CommandStorageHolder) context.getWorld()).neo_apoli$get(this.id());
 	}
 
 }

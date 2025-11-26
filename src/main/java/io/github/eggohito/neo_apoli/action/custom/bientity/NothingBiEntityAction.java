@@ -5,9 +5,9 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record NothingBiEntityAction() implements BiEntityAction, NothingMetaAction {
 
@@ -15,7 +15,7 @@ public record NothingBiEntityAction() implements BiEntityAction, NothingMetaActi
 
 	public static final MapCodec<NothingBiEntityAction> CODEC = MapCodec.unit(NothingBiEntityAction::new);
 
-	public static final PacketCodec<RegistryByteBuf, NothingBiEntityAction> PACKET_CODEC = PacketCodecUtil.unit(NothingBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, NothingBiEntityAction> STREAM_CODEC = StreamCodecUtil.unit(NothingBiEntityAction::new);
 
 	@Override
 	public BiEntityActionType<?> getType() {

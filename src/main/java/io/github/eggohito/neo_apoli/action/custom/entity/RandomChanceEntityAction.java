@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
 public record RandomChanceEntityAction(EntityAction successAction, Optional<EntityAction> failAction, NumberProvider chance) implements EntityAction, RandomChanceMetaAction<EntityAction> {
 
-	public static final MapCodec<RandomChanceEntityAction> CODEC = MapCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.codec(EntityAction.CODEC, RandomChanceEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, RandomChanceEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.packetCodec(EntityAction.PACKET_CODEC, RandomChanceEntityAction::new));
+	public static final MapCodec<RandomChanceEntityAction> CODEC = MapCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.createCodec(EntityAction.CODEC, RandomChanceEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.createStreamCodec(EntityAction.STREAM_CODEC, RandomChanceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

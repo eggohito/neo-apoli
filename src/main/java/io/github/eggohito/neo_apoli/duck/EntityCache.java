@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.duck;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 public interface EntityCache {

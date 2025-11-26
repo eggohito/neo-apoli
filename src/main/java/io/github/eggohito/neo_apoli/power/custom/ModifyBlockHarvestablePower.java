@@ -10,18 +10,17 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,10 +35,10 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::getPriority))
 		.apply(instance, ModifyBlockHarvestablePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyBlockHarvestablePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		BooleanProvider.PACKET_CODEC, ModifyBlockHarvestablePower::getAllow,
-		PacketCodecs.INTEGER, ModifyBlockHarvestablePower::getPriority,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockHarvestablePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		BooleanProvider.STREAM_CODEC, ModifyBlockHarvestablePower::getAllow,
+		ByteBufCodecs.INT, ModifyBlockHarvestablePower::getPriority,
 		ModifyBlockHarvestablePower::new
 	);
 
@@ -59,16 +58,16 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getAllow().validate(reporter.makeChild(".allow"));
+		getAllow().validate(reporter.forChild(".allow"));
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestablePower power) {
 			super(holder, power);
@@ -87,18 +86,18 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	public static boolean modify(Context context, BooleanSupplier defaultValue) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance.class);
 
 		return modify(context, instances, defaultValue);
 
 	}
 
-	public static boolean modify(Context context, InstanceCollection<Instance> instances, BooleanSupplier defaultValue) {
+	public static boolean modify(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> instances, BooleanSupplier defaultValue) {
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -119,14 +118,14 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	}
 
-	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+	public static Context createContext(Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 		return PowerTypes.MODIFY_BLOCK_HARVESTABLE.contextBuilder()
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
-			.add(NeoApoliContextParameters.THIS_ENTITY, player)
-			.add(NeoApoliContextParameters.ENTITY_POS, player.getPos())
-			.build(player.getWorld());
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
+			.add(NeoApoliContextKeys.THIS_ENTITY, player)
+			.add(NeoApoliContextKeys.ENTITY_POS, player.position())
+			.build(player.level());
 	}
 
 }

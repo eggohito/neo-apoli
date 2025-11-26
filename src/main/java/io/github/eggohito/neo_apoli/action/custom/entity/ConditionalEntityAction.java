@@ -6,16 +6,17 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
 public record ConditionalEntityAction(EntityCondition condition, EntityAction ifAction, Optional<EntityAction> elseAction) implements EntityAction, ConditionalMetaAction<EntityCondition, EntityAction> {
 
-	public static final MapCodec<ConditionalEntityAction> CODEC = MapCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.codec(EntityCondition.CODEC, EntityAction.CODEC, ConditionalEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, ConditionalEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.packetCodec(EntityCondition.PACKET_CODEC, EntityAction.PACKET_CODEC, ConditionalEntityAction::new));
+	public static final MapCodec<ConditionalEntityAction> CODEC = MapCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, ConditionalEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.createStreamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ConditionalEntityAction::new));
+
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.CONDITIONAL;

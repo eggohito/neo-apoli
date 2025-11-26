@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceItemAction(Identifier value) implements ItemAction, ReferenceMetaAction<ItemAction> {
+public record ReferenceItemAction(ResourceLocation value) implements ItemAction, ReferenceMetaAction<ItemAction> {
 
-	public static final MapCodec<ReferenceItemAction> CODEC = ReferenceMetaAction.codec(ReferenceItemAction::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceItemAction> PACKET_CODEC = ReferenceMetaAction.packetCodec(ReferenceItemAction::new);
+	public static final MapCodec<ReferenceItemAction> CODEC = ReferenceMetaAction.createCodec(ReferenceItemAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemAction> STREAM_CODEC = ReferenceMetaAction.createStreamCodec(ReferenceItemAction::new);
 
 	@Override
 	public Pair<Class<ItemAction>, String> classAndName() {

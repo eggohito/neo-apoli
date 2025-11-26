@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.AttributeModifying;
@@ -14,10 +14,10 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.AttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -30,11 +30,11 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeLegacyConditionalPower::getTickRate))
 		.apply(instance, ModifyAttributeLegacyConditionalPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyAttributeLegacyConditionalPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		NeoApoliPacketCodecs.ATTRIBUTE_MODIFIERS, AttributeModifying::getModifiers,
-		BooleanProvider.PACKET_CODEC, AttributeModifying::getSendUpdate,
-		NumberProvider.PACKET_CODEC, ModifyAttributeLegacyConditionalPower::getTickRate,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributeLegacyConditionalPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		NeoApoliStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifying::getModifiers,
+		BooleanProvider.STREAM_CODEC, AttributeModifying::getSendUpdate,
+		NumberProvider.STREAM_CODEC, ModifyAttributeLegacyConditionalPower::getTickRate,
 		ModifyAttributeLegacyConditionalPower::new
 	);
 
@@ -52,7 +52,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 
 	@Override
 	public AttributeModifying.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyAttributeLegacyConditionalPower.Instance(holder, this);
 	}
 
 	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyConditionalPower> {
@@ -83,7 +83,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 
 			else {
 
-				int ticks = holder.age % tickRate;
+				int ticks = holder.tickCount % tickRate;
 				if (this.isActive(context)) {
 
 					if (startTicks == null) {

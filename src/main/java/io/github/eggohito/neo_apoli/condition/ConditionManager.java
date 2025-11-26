@@ -10,9 +10,9 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.integration.DependencyManager;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeConditionsS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
+import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
@@ -21,16 +21,16 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.SinglePreparationResourceReloader;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
@@ -44,9 +44,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SinglePreparationResourceReloader<Map<Identifier, JsonResourceReloader.Entry>> implements JsonResourceReloader {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonReloadListener.Entry>> implements JsonReloadListener {
 
-	private static final String DIRECTORY = RegistryKeys.getPath(NeoApoliRegistryKeys.CONDITION);
+	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
 
 	private static final Gson GSON = new GsonBuilder()
@@ -54,30 +54,30 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		.setPrettyPrinting()
 		.create();
 
-	public static final Identifier ID = NeoApoli.id("manager/conditions");
-	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
+	public static final ResourceLocation ID = NeoApoli.id("manager/conditions");
+	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
 
-	private static final Object2ObjectOpenHashMap<Identifier, Condition> BY_ID = new Object2ObjectOpenHashMap<>();
-	private static final IdentityHashMap<Condition, Identifier> BY_CONDITION = new IdentityHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, Condition> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final IdentityHashMap<Condition, ResourceLocation> BY_CONDITION = new IdentityHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
-	ConditionManager(RegistryWrapper.WrapperLookup wrapperLookup) {
-		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
+	ConditionManager(HolderLookup.Provider wrapperLookup) {
+		this.ops = wrapperLookup.createSerializationContext(JsonOps.INSTANCE);
 	}
 
 	@Override
-	protected Map<Identifier, Entry> prepare(ResourceManager manager, Profiler profiler) {
+	protected Map<ResourceLocation, Entry> prepare(ResourceManager manager, ProfilerFiller profiler) {
 
-		Map<Identifier, Entry> prepared = new Object2ObjectOpenHashMap<>();
-		manager.findResources(DIRECTORY, this::supportsJsonFormat).forEach((fileId, resource) -> {
+		Map<ResourceLocation, Entry> prepared = new Object2ObjectOpenHashMap<>();
+		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
-			String packId = resource.getPackId();
-			Identifier resourceId = this.trimExtension(fileId, DIRECTORY);
+			String packId = resource.sourcePackId();
+			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
 
-			try (BufferedReader resourceReader = resource.getReader()) {
+			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getJsonFormat(fileId)));
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 				switch (jsonElement) {
@@ -115,7 +115,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	@Override
-	protected void apply(Map<Identifier, Entry> prepared, ResourceManager manager, Profiler profiler) {
+	protected void apply(Map<ResourceLocation, Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
@@ -129,19 +129,19 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	@Override
-	public Identifier getFabricId() {
+	public ResourceLocation getFabricId() {
 		return ID;
 	}
 
 	@Override
-	public Collection<Identifier> getFabricDependencies() {
+	public Collection<ResourceLocation> getFabricDependencies() {
 		return DEPENDENCIES;
 	}
 
 	@ApiStatus.Internal
-	public static void sendSyncPayload(ServerPlayerEntity receiver) {
+	public static void sendSyncPayload(ServerPlayer receiver) {
 
-		if (!receiver.server.isRemote()) {
+		if (!receiver.server.isPublished()) {
 			return;
 		}
 
@@ -167,28 +167,28 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 
 	}
 
-	private static void register(Identifier id, Condition condition) {
+	private static void register(ResourceLocation id, Condition condition) {
 		BY_ID.put(id, condition);
 		BY_CONDITION.put(condition, id);
 	}
 
-	public static DataResult<Condition> getAsResult(Identifier id) {
+	public static DataResult<Condition> getAsResult(ResourceLocation id) {
 		return contains(id)
 			? DataResult.success(BY_ID.get(id))
 			: DataResult.error(() -> "Condition with ID \"" + id + "\" does not exist!");
 	}
 
-	public static Condition get(Identifier id) {
+	public static Condition get(ResourceLocation id) {
 		return getAsResult(id).getOrThrow();
 	}
 
-	public static DataResult<Identifier> getIdAsResult(Condition condition) {
+	public static DataResult<ResourceLocation> getIdAsResult(Condition condition) {
 		return containsId(condition)
 			? DataResult.success(BY_CONDITION.get(condition))
 			: DataResult.error(() -> condition + " doesn't correspond to any identifiers!");
 	}
 
-	public static Identifier getId(Condition condition) {
+	public static ResourceLocation getId(Condition condition) {
 		return getIdAsResult(condition).getOrThrow();
 	}
 
@@ -196,11 +196,11 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 		return BY_ID.values().stream();
 	}
 
-	public static Stream<Identifier> ids() {
+	public static Stream<ResourceLocation> ids() {
 		return BY_ID.keySet().stream();
 	}
 
-	public static boolean contains(Identifier id) {
+	public static boolean contains(ResourceLocation id) {
 		return BY_ID.containsKey(id);
 	}
 
@@ -217,7 +217,7 @@ public final class ConditionManager extends SinglePreparationResourceReloader<Ma
 	}
 
 	static {
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 	}
 

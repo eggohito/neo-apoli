@@ -6,18 +6,15 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
-
 import java.util.function.Function;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 public interface ReferenceMetaCondition<C extends Condition> extends MetaCondition { ;
 
-	Identifier value();
+	ResourceLocation value();
 
 	Pair<Class<C>, String> classAndName();
 
@@ -35,7 +32,7 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 						}
 
 						else {
-							context.getReporter().makeChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was tested recursively!");
+							context.getReporter().forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was tested recursively!");
 						}
 
 					}
@@ -53,17 +50,17 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		if (reporter.isInStack(this.value())) {
-			reporter.makeChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
+			reporter.forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
 		}
 
 		else {
 			ConditionManager.getAsResult(this.value())
 				.flatMap(this::checkAndCast)
-				.ifSuccess(condition -> condition.validate(reporter.makeChild("{" + this.value() + "}", this.value())))
-				.ifError(error -> reporter.makeChild(".value").report(error.message()));
+				.ifSuccess(condition -> condition.validate(reporter.forChild("{" + this.value() + "}", this.value())))
+				.ifError(error -> reporter.forChild(".value").report(error.message()));
 		}
 
 	}
@@ -83,15 +80,15 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 
 	}
 
-	static <C extends Condition, M extends ReferenceMetaCondition<C>> MapCodec<M> codec(Function<Identifier, M> constructor) {
+	static <C extends Condition, M extends ReferenceMetaCondition<C>> MapCodec<M> createCodec(Function<ResourceLocation, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Identifier.CODEC.fieldOf("value").forGetter(ReferenceMetaCondition::value)
+			ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceMetaCondition::value)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, M extends ReferenceMetaCondition<C>> PacketCodec<RegistryByteBuf, M> packetCodec(Function<Identifier, M> constructor) {
-		return PacketCodec.tuple(
-			Identifier.PACKET_CODEC, ReferenceMetaCondition::value,
+	static <C extends Condition, M extends ReferenceMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<ResourceLocation, M> constructor) {
+		return StreamCodec.composite(
+			ResourceLocation.STREAM_CODEC, ReferenceMetaCondition::value,
 			constructor
 		);
 	}

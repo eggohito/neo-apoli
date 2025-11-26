@@ -10,19 +10,18 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,10 +36,10 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::getPriority))
 		.apply(instance, ModifyBlockSelectablePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyBlockSelectablePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		BooleanProvider.PACKET_CODEC, ModifyBlockSelectablePower::getAllow,
-		PacketCodecs.INTEGER, ModifyBlockSelectablePower::getPriority,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockSelectablePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		BooleanProvider.STREAM_CODEC, ModifyBlockSelectablePower::getAllow,
+		ByteBufCodecs.INT, ModifyBlockSelectablePower::getPriority,
 		ModifyBlockSelectablePower::new
 	);
 
@@ -60,13 +59,13 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getAllow().validate(reporter.makeChild(".allow"));
+		getAllow().validate(reporter.forChild(".allow"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockSelectablePower> {
@@ -83,18 +82,18 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	public static VoxelShape modify(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance.class);
 
 		return modify(context, instances, defaultValue);
 
 	}
 
-	public static VoxelShape modify(Context context, InstanceCollection<Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
+	public static VoxelShape modify(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -106,7 +105,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 					}
 
 					else {
-						return VoxelShapes.empty();
+						return Shapes.empty();
 					}
 
 				}
@@ -125,12 +124,12 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	public static Context createContext(@NotNull Entity entity, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 		return PowerTypes.MODIFY_BLOCK_SELECTABLE.contextBuilder()
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
-			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
-			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
-			.build(entity.getWorld());
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
+			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
+			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
+			.build(entity.level());
 	}
 
 }

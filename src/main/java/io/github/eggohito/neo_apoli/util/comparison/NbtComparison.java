@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Objects;
 
@@ -19,9 +19,9 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 		NbtProvider.CODEC.fieldOf("second").forGetter(NbtComparison::second)
 	).apply(instance, NbtComparison::new));
 
-	public static final PacketCodec<RegistryByteBuf, NbtComparison> PACKET_CODEC = PacketCodec.tuple(
-		NbtProvider.PACKET_CODEC, NbtComparison::first,
-		NbtProvider.PACKET_CODEC, NbtComparison::second,
+	public static final StreamCodec<RegistryFriendlyByteBuf, NbtComparison> STREAM_CODEC = StreamCodec.composite(
+		NbtProvider.STREAM_CODEC, NbtComparison::first,
+		NbtProvider.STREAM_CODEC, NbtComparison::second,
 		NbtComparison::new
 	);
 
@@ -34,10 +34,10 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 	public boolean compare(Context context) {
 
 		Context firstContext = context.makeChild(".first");
-		NbtElement first = first().next(firstContext);
+		Tag first = first().next(firstContext);
 
 		Context secondContext = context.makeChild(".second");
-		NbtElement second = second().next(secondContext);
+		Tag second = second().next(secondContext);
 
 		return !firstContext.hasErrors()
 			&& !secondContext.hasErrors()
@@ -46,12 +46,12 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		Comparison.super.validate(reporter);
 
-		first().validate(reporter.makeChild(".first"));
-		second().validate(reporter.makeChild(".second"));
+		first().validate(reporter.forChild(".first"));
+		second().validate(reporter.forChild(".second"));
 
 	}
 

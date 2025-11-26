@@ -5,14 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceKeyCondition(Identifier value) implements KeyCondition, ReferenceMetaCondition<KeyCondition> {
+public record ReferenceKeyCondition(ResourceLocation value) implements KeyCondition, ReferenceMetaCondition<KeyCondition> {
 
-	public static final MapCodec<ReferenceKeyCondition> CODEC = ReferenceMetaCondition.codec(ReferenceKeyCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceKeyCondition> PACKET_CODEC = ReferenceMetaCondition.packetCodec(ReferenceKeyCondition::new);
+	public static final MapCodec<ReferenceKeyCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceKeyCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {

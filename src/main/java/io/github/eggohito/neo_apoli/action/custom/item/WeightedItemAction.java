@@ -5,17 +5,17 @@ import io.github.eggohito.neo_apoli.action.custom.meta.WeightedMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.collection.WeightedList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
-public record WeightedItemAction(WeightedList<ItemAction> entries) implements ItemAction, WeightedMetaAction<ItemAction> {
+public record WeightedItemAction(ShufflingList<ItemAction> entries) implements ItemAction, WeightedMetaAction<ItemAction> {
 
-	public static final MapCodec<WeightedItemAction> CODEC = MapCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> WeightedMetaAction.codec(ItemAction.CODEC, WeightedItemAction::new));
-	public static final PacketCodec<RegistryByteBuf, WeightedItemAction> PACKET_CODEC = PacketCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> WeightedMetaAction.packetCodec(ItemAction.PACKET_CODEC, WeightedItemAction::new));
+	public static final MapCodec<WeightedItemAction> CODEC = MapCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> WeightedMetaAction.createCodec(ItemAction.CODEC, WeightedItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedItemAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> WeightedMetaAction.createStreamCodec(ItemAction.STREAM_CODEC, WeightedItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {

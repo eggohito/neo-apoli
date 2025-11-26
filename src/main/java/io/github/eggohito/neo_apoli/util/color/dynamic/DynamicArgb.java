@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
 
 public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvider green, NumberProvider blue) implements DynamicColor {
 
@@ -19,11 +19,11 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 		NumberProvider.clamped(0.0F, 1.0F).fieldOf("blue").forGetter(DynamicArgb::blue)
 	).apply(instance, DynamicArgb::new));
 
-	public static final PacketCodec<RegistryByteBuf, DynamicArgb> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicArgb::alpha,
-		NumberProvider.PACKET_CODEC, DynamicArgb::red,
-		NumberProvider.PACKET_CODEC, DynamicArgb::green,
-		NumberProvider.PACKET_CODEC, DynamicArgb::blue,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicArgb> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, DynamicArgb::alpha,
+		NumberProvider.STREAM_CODEC, DynamicArgb::red,
+		NumberProvider.STREAM_CODEC, DynamicArgb::green,
+		NumberProvider.STREAM_CODEC, DynamicArgb::blue,
 		DynamicArgb::new
 	);
 
@@ -34,15 +34,15 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 
 	@Override
 	public int getValue(Context context) {
-		return ColorHelper.fromFloats(alpha(context), red(context), green(context), blue(context));
+		return ARGB.colorFromFloat(alpha(context), red(context), green(context), blue(context));
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
-		alpha().validate(reporter.makeChild(".alpha"));
-		red().validate(reporter.makeChild(".red"));
-		green().validate(reporter.makeChild(".green"));
-		blue().validate(reporter.makeChild(".blue"));
+	public void validate(ProblemReporter reporter) {
+		alpha().validate(reporter.forChild(".alpha"));
+		red().validate(reporter.forChild(".red"));
+		green().validate(reporter.forChild(".green"));
+		blue().validate(reporter.forChild(".blue"));
 	}
 
 	public float alpha(Context context) {

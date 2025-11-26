@@ -6,10 +6,10 @@ import io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,7 +21,7 @@ import java.util.Optional;
 
 public abstract class ModifyGlowingSelfPowerMixin {
 
-	@Mixin(MinecraftClient.class)
+	@Mixin(Minecraft.class)
 	public static abstract class GlowingProxy {
 
 		@Shadow public abstract @Nullable Entity getCameraEntity();
@@ -41,7 +41,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 
 		}
 
-		@ModifyExpressionValue(method = "hasOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isGlowing()Z"))
+		@ModifyExpressionValue(method = "shouldEntityAppearGlowing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isCurrentlyGlowing()Z"))
 		private boolean neo_apoli$applyProxy(boolean original, Entity entity) {
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(entity);
@@ -66,7 +66,7 @@ public abstract class ModifyGlowingSelfPowerMixin {
 
 			Context context = Optional.ofNullable(this.neo_apoli$glowingContext)
 				.flatMap(reference -> Optional.ofNullable(reference.get()))
-				.orElseGet(() -> ModifyGlowingSelfPower.createContext(MinecraftClient.getInstance().getCameraEntity(), entity));
+				.orElseGet(() -> ModifyGlowingSelfPower.createContext(Minecraft.getInstance().getCameraEntity(), entity));
 
 			this.neo_apoli$glowingContext = new WeakReference<>(context);
 			return context;
@@ -75,16 +75,16 @@ public abstract class ModifyGlowingSelfPowerMixin {
 
 		@Shadow
 		@Nullable
-		public abstract Team getScoreboardTeam();
+		public abstract PlayerTeam getTeam();
 
-		@ModifyReturnValue(method = "getTeamColorValue", at = @At("RETURN"))
+		@ModifyReturnValue(method = "getTeamColor", at = @At("RETURN"))
 		private int neo_apoli$modifyColor(int original) {
 
 			Entity renderedEntity = (Entity) (Object) this;
-			AbstractTeam team = this.getScoreboardTeam();
+			Team team = this.getTeam();
 
 			boolean hasTeamColor = team != null
-				&& team.getColor().getColorValue() != null;
+				&& team.getColor().getColor() != null;
 
 			Context context = this.neo_apoli$getOrCreateGlowingContext(renderedEntity);
 			int color = ModifyGlowingSelfPower.modifyColor(context, hasTeamColor, original);

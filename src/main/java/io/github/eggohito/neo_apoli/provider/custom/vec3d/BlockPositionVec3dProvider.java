@@ -3,14 +3,14 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3d;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -18,7 +18,7 @@ import java.util.Set;
 public record BlockPositionVec3dProvider() implements Vec3dProvider {
 
 	public static final MapCodec<BlockPositionVec3dProvider> CODEC = MapCodec.unit(BlockPositionVec3dProvider::new);
-	public static final PacketCodec<RegistryByteBuf, BlockPositionVec3dProvider> PACKET_CODEC = PacketCodecUtil.unit(BlockPositionVec3dProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockPositionVec3dProvider> STREAM_CODEC = StreamCodecUtil.unit(BlockPositionVec3dProvider::new);
 
 	@Override
 	public Vec3dProviderType<?> getType() {
@@ -26,15 +26,15 @@ public record BlockPositionVec3dProvider() implements Vec3dProvider {
 	}
 
 	@Override
-	public @NotNull Vec3d next(Context context) {
-		return context.optional(NeoApoliContextParameters.BLOCK_POS)
-			.map(BlockPos::toCenterPos)
-			.orElse(Vec3d.ZERO);
+	public @NotNull Vec3 next(Context context) {
+		return context.optional(NeoApoliContextKeys.BLOCK_POS)
+			.map(BlockPos::getCenter)
+			.orElse(Vec3.ZERO);
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 }

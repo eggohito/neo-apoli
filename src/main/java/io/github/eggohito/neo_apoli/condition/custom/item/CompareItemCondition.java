@@ -5,14 +5,13 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
-import lombok.Data;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record CompareItemCondition(Comparison comparison) implements ItemCondition, CompareMetaCondition {
 
-	public static final MapCodec<CompareItemCondition> CODEC = CompareMetaCondition.codec(CompareItemCondition::new);
-	public static final PacketCodec<RegistryByteBuf, CompareItemCondition> PACKET_CODEC = CompareMetaCondition.packetCodec(CompareItemCondition::new);
+	public static final MapCodec<CompareItemCondition> CODEC = CompareMetaCondition.createCodec(CompareItemCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareItemCondition> STREAM_CODEC = CompareMetaCondition.createStreamCodec(CompareItemCondition::new);
 
 	@Override
 	public ItemConditionType<?> getType() {

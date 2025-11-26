@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvide
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record ConditionalNumberProvider(Condition condition, NumberProvider ifValue, NumberProvider elseValue) implements NumberProvider, ConditionalValueProvider<NumberProvider, Number> {
 
-	public static final MapCodec<ConditionalNumberProvider> CODEC = MapCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.codec(NumberProvider.CODEC, ConditionalNumberProvider::new));
-	public static final PacketCodec<RegistryByteBuf, ConditionalNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.packetCodec(NumberProvider.PACKET_CODEC, ConditionalNumberProvider::new));
+	public static final MapCodec<ConditionalNumberProvider> CODEC = MapCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.createCodec(NumberProvider.CODEC, ConditionalNumberProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.createStreamCodec(NumberProvider.STREAM_CODEC, ConditionalNumberProvider::new));
 
 	@Override
 	public NumberProviderType<?> getType() {

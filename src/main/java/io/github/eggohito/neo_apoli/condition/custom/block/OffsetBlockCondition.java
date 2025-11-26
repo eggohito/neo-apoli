@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
@@ -26,9 +26,9 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3dProvider offse
 		Vec3dProvider.CODEC.fieldOf("offset").forGetter(OffsetBlockCondition::offset)
 	).apply(instance, OffsetBlockCondition::new)));
 
-	public static final PacketCodec<RegistryByteBuf, OffsetBlockCondition> PACKET_CODEC = PacketCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, OffsetBlockCondition::condition,
-		Vec3dProvider.PACKET_CODEC, OffsetBlockCondition::offset,
+	public static final StreamCodec<RegistryFriendlyByteBuf, OffsetBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, OffsetBlockCondition::condition,
+		Vec3dProvider.STREAM_CODEC, OffsetBlockCondition::offset,
 		OffsetBlockCondition::new
 	));
 
@@ -45,42 +45,42 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3dProvider offse
 		}
 
 		Context offsetContext = context.makeChild(".offset");
-		Vec3d offset = offset().next(offsetContext);
+		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;
 		}
 
-		World world = context.getWorld();
-		BlockPos offsetBlockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.BLOCK_POS)
-			.toCenterPos()
+		Level world = context.getWorld();
+		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
+			.getCenter()
 			.add(offset));
 
-		if (!world.isChunkLoaded(offsetBlockPos)) {
+		if (!world.hasChunkAt(offsetBlockPos)) {
 			return false;
 		}
 
 		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.add(NeoApoliContextParameters.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
+			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetBlockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		BlockCondition.super.validate(reporter);
 
-		condition().validate(reporter.makeChild(".condition"));
-		offset().validate(reporter.makeChild(".offset"));
+		condition().validate(reporter.forChild(".condition"));
+		offset().validate(reporter.forChild(".offset"));
 
 	}
 

@@ -7,10 +7,10 @@ public class NeoApoliArgumentTypes {
 
 	public static void registerAll() {
 
-		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("power"), PowerArgumentType.class, new PowerArgumentType.Serializer());
+		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("power"), PowerArgumentType.class, new PowerArgumentType.Info());
 
-		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("action"), ActionArgumentType.class, new ActionArgumentType.Serializer());
-		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("condition"), ConditionArgumentType.class, new ConditionArgumentType.Serializer());
+		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("action"), ActionArgumentType.class, new ActionArgumentType.Info());
+		ArgumentTypeRegistry.registerArgumentType(NeoApoli.id("condition"), ConditionArgumentType.class, new ConditionArgumentType.Info());
 
 	}
 

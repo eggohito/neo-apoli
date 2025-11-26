@@ -5,16 +5,16 @@ import io.github.eggohito.neo_apoli.action.custom.meta.SequenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
 public record SequenceBiEntityAction(List<BiEntityAction> actions) implements BiEntityAction, SequenceMetaAction<BiEntityAction> {
 
-	public static final MapCodec<SequenceBiEntityAction> CODEC = MapCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.codec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, SequenceBiEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.packetCodec(BiEntityAction.PACKET_CODEC, SequenceBiEntityAction::new));
+	public static final MapCodec<SequenceBiEntityAction> CODEC = MapCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.createCodec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.createStreamCodec(BiEntityAction.STREAM_CODEC, SequenceBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {

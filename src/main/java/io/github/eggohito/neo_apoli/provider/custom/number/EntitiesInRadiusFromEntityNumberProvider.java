@@ -8,15 +8,15 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -30,11 +30,11 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromEntityNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromEntityNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, EntitiesInRadiusFromEntityNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		BiEntityCondition.PACKET_CODEC, EntitiesInRadiusFromEntityNumberProvider::biEntityCondition,
-		EntityTarget.PACKET_CODEC, EntitiesInRadiusFromEntityNumberProvider::actor,
-		Shape.PACKET_CODEC, EntitiesInRadiusFromEntityNumberProvider::shape,
-		NumberProvider.PACKET_CODEC, EntitiesInRadiusFromEntityNumberProvider::radius,
+	public static final StreamCodec<RegistryFriendlyByteBuf, EntitiesInRadiusFromEntityNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		BiEntityCondition.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::biEntityCondition,
+		EntityTarget.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::actor,
+		Shape.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::shape,
+		NumberProvider.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::radius,
 		EntitiesInRadiusFromEntityNumberProvider::new
 	));
 
@@ -46,7 +46,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	@Override
 	public @NotNull Number next(Context context) {
 
-		World world = context.getWorld();
+		Level world = context.getWorld();
 		Entity actor = context.nullable(actor().getParameter());
 
 		if (actor == null) {
@@ -60,15 +60,15 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 			return 0;
 		}
 
-		Vec3d pos = actor.getPos();
+		Vec3 pos = actor.position();
 		int matches = 0;
 
 		for (Entity target : shape().getEntities(world, pos, radius)) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
-				.add(NeoApoliContextParameters.ACTOR, actor)
-				.add(NeoApoliContextParameters.TARGET, target));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+				.add(NeoApoliContextKeys.ACTOR, actor)
+				.add(NeoApoliContextKeys.TARGET, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				matches++;
@@ -81,19 +81,19 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(actor().getParameter());
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 		biEntityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY))
-			.makeChild(".bientity_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+			.forChild(".bientity_condition"));
 
-		radius().validate(reporter.makeChild(".radius"));
+		radius().validate(reporter.forChild(".radius"));
 
 	}
 

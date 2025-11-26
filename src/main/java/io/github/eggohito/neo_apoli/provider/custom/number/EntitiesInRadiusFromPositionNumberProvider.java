@@ -8,13 +8,13 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityCondition, Vec3dProvider position, Shape shape, NumberProvider radius) implements NumberProvider {
@@ -26,11 +26,11 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromPositionNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromPositionNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, EntitiesInRadiusFromPositionNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(EntitiesInRadiusFromPositionNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		EntityCondition.PACKET_CODEC, EntitiesInRadiusFromPositionNumberProvider::entityCondition,
-		Vec3dProvider.PACKET_CODEC, EntitiesInRadiusFromPositionNumberProvider::position,
-		Shape.PACKET_CODEC, EntitiesInRadiusFromPositionNumberProvider::shape,
-		NumberProvider.PACKET_CODEC, EntitiesInRadiusFromPositionNumberProvider::radius,
+	public static final StreamCodec<RegistryFriendlyByteBuf, EntitiesInRadiusFromPositionNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntitiesInRadiusFromPositionNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		EntityCondition.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::entityCondition,
+		Vec3dProvider.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::position,
+		Shape.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::shape,
+		NumberProvider.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::radius,
 		EntitiesInRadiusFromPositionNumberProvider::new
 	));
 
@@ -42,11 +42,11 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	@Override
 	public @NotNull Number next(Context context) {
 
-		World world = context.getWorld();
+		Level world = context.getWorld();
 		int matches = 0;
 
 		Context positionContext = context.makeChild(".position");
-		Vec3d position = position().next(positionContext);
+		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return matches;
@@ -62,8 +62,8 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 		for (var target : shape().getEntities(world, position, radius)) {
 
 			Context entityContext = ContextImpl.of(context, builder -> builder
-				.add(NeoApoliContextParameters.THIS_ENTITY, target)
-				.add(NeoApoliContextParameters.ENTITY_POS, target.getPos()));
+				.add(NeoApoliContextKeys.THIS_ENTITY, target)
+				.add(NeoApoliContextKeys.ENTITY_POS, target.position()));
 
 			if (entityCondition().test(entityContext.makeChild(".entity_condition"))) {
 				matches++;
@@ -76,15 +76,15 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 		entityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ENTITY))
-			.makeChild(".entity_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ENTITY))
+			.forChild(".entity_condition"));
 
-		position().validate(reporter.makeChild(".position"));
-		radius().validate(reporter.makeChild(".radius"));
+		position().validate(reporter.forChild(".position"));
+		radius().validate(reporter.forChild(".radius"));
 
 	}
 

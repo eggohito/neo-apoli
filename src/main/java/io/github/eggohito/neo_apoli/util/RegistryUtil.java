@@ -7,47 +7,47 @@ import io.github.eggohito.neo_apoli.mixin.access.RegistryAccessor;
 import io.github.eggohito.neo_apoli.util.alias.IdentifierAlias;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryInfo;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistrationInfo;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.ExtraCodecs;
 
 import java.util.Objects;
 import java.util.function.Function;
 
 public final class RegistryUtil {
 
-	public static <T> Codec<RegistryEntry.Reference<T>> createAliasedReferenceCodec(RegistryFixedAlias<T> registryAlias) {
+	public static <T> Codec<Holder.Reference<T>> createAliasedReferenceCodec(RegistryFixedAlias<T> registryAlias) {
 
 		Registry<T> registry = registryAlias.getRegistry();
-		Codec<RegistryEntry.Reference<T>> codec = Identifier.CODEC.comapFlatMap(registryAlias::resolve, reference -> reference.registryKey().getValue());
+		Codec<Holder.Reference<T>> codec = ResourceLocation.CODEC.comapFlatMap(registryAlias::resolve, reference -> reference.key().location());
 
-		return Codecs.withLifecycle(
+		return ExtraCodecs.overrideLifecycle(
 			codec,
-			entry -> registry.getEntryInfo(entry.registryKey())
-				.map(RegistryEntryInfo::lifecycle)
+			entry -> registry.registrationInfo(entry.key())
+				.map(RegistrationInfo::lifecycle)
 				.orElseGet(Lifecycle::experimental)
 		);
 
 	}
 
 	@SuppressWarnings("ReferenceToMixin")
-	public static <T> Codec<RegistryEntry<T>> createAliasedEntryCodec(RegistryFixedAlias<T> aliases) {
+	public static <T> Codec<Holder<T>> createAliasedEntryCodec(RegistryFixedAlias<T> aliases) {
 		return createAliasedReferenceCodec(aliases).flatComapMap(
 			Function.identity(),
-			entry -> ((RegistryAccessor) aliases.getRegistry()).callValidateReference(entry)
+			entry -> ((RegistryAccessor) aliases.getRegistry()).callSafeCastToReference(entry)
 		);
 	}
 
 	@SuppressWarnings("ReferenceToMixin")
 	public static <T> Codec<T> createAliasedCodec(RegistryFixedAlias<T> aliases) {
 		return createAliasedReferenceCodec(aliases).flatComapMap(
-			RegistryEntry.Reference::value,
-			value -> ((RegistryAccessor) aliases.getRegistry()).callValidateReference(aliases.getRegistry().getEntry(value))
+			Holder.Reference::value,
+			value -> ((RegistryAccessor) aliases.getRegistry()).callSafeCastToReference(aliases.getRegistry().wrapAsHolder(value))
 		);
 	}
 
@@ -57,31 +57,31 @@ public final class RegistryUtil {
 	@Deprecated
 	public static <T> Codec<T> createAliasedCodec(Registry<T> registry, IdentifierAlias aliases) {
 
-		Codec<RegistryEntry.Reference<T>> entryCodec = Identifier.CODEC.comapFlatMap(
-			id -> registry.getEntry(aliases.resolve(id, registry::containsId))
+		Codec<Holder.Reference<T>> entryCodec = ResourceLocation.CODEC.comapFlatMap(
+			id -> registry.get(aliases.resolve(id, registry::containsKey))
 				.map(DataResult::success)
-				.orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + registry.getKey() + ": " + id)),
-			entry -> entry.registryKey().getValue()
+				.orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + registry.key() + ": " + id)),
+			entry -> entry.key().location()
 		);
 
-		Codec<RegistryEntry.Reference<T>> lifecycledEntryCodec = Codecs.withLifecycle(
+		Codec<Holder.Reference<T>> lifecycledEntryCodec = ExtraCodecs.overrideLifecycle(
 			entryCodec,
-			entry -> registry.getEntryInfo(entry.registryKey())
-				.map(RegistryEntryInfo::lifecycle)
+			entry -> registry.registrationInfo(entry.key())
+				.map(RegistrationInfo::lifecycle)
 				.orElse(Lifecycle.experimental())
 		);
 
 		return lifecycledEntryCodec.flatComapMap(
-			RegistryEntry.Reference::value,
-			t -> registry.getEntry(t) instanceof RegistryEntry.Reference<T> reference
+			Holder.Reference::value,
+			t -> registry.wrapAsHolder(t) instanceof Holder.Reference<T> reference
 				? DataResult.success(reference)
-				: DataResult.error(() -> "Unregistered holder in " + registry.getKey() + ": " + registry.getEntry(t))
+				: DataResult.error(() -> "Unregistered holder in " + registry.key() + ": " + registry.wrapAsHolder(t))
 		);
 
 	}
 
-	public static <T> Identifier getId(Registry<T> registry, T obj) {
-		return Objects.requireNonNull(registry.getId(obj));
+	public static <T> ResourceLocation getId(Registry<T> registry, T obj) {
+		return Objects.requireNonNull(registry.getKey(obj));
 	}
 
 	public static <T> String getIdNamespace(Registry<T> registry, T obj) {
@@ -92,10 +92,10 @@ public final class RegistryUtil {
 		return getId(registry, obj).getPath();
 	}
 
-	public static <T> void validateTag(ContextAware.ErrorReporter reporter, TagKey<T> tag) {
+	public static <T> void validateTag(ContextAware.ProblemReporter reporter, TagKey<T> tag) {
 
-		RegistryKey<? extends Registry<T>> registryRef = tag.registryRef();
-		RegistryWrapper.WrapperLookup wrapperLookup = reporter.getWrapperLookup().orElse(null);
+		ResourceKey<? extends Registry<T>> registryRef = tag.registry();
+		HolderLookup.Provider wrapperLookup = reporter.getHolderProvider().orElse(null);
 
 		if (wrapperLookup == null) {
 			reporter.report("Couldn't access registry " + registryRef + "!");
@@ -103,15 +103,15 @@ public final class RegistryUtil {
 
 		else {
 
-			RegistryWrapper.Impl<T> registryWrapper = wrapperLookup
-				.getOptional(tag.registryRef())
+			HolderLookup.RegistryLookup<T> registryWrapper = wrapperLookup
+				.lookup(tag.registry())
 				.orElse(null);
 
 			if (registryWrapper == null) {
 				reporter.report("Couldn't find registry \"" + registryRef + "\"!");
 			}
 
-			else if (registryWrapper.getOptional(tag).isEmpty()) {
+			else if (registryWrapper.get(tag).isEmpty()) {
 				reporter.report(tag + " doesn't exist!");
 			}
 

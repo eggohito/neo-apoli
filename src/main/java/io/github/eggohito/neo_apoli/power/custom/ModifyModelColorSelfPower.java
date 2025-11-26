@@ -8,14 +8,13 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +29,9 @@ public class ModifyModelColorSelfPower extends Power {
 		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::getColor))
 		.apply(instance, ModifyModelColorSelfPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyModelColorSelfPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Color.PACKET_CODEC, ModifyModelColorSelfPower::getColor,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorSelfPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Color.STREAM_CODEC, ModifyModelColorSelfPower::getColor,
 		ModifyModelColorSelfPower::new
 	);
 
@@ -50,13 +49,13 @@ public class ModifyModelColorSelfPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getColor().validate(reporter.makeChild(".color"));
+		getColor().validate(reporter.forChild(".color"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelColorSelfPower> {
@@ -71,14 +70,14 @@ public class ModifyModelColorSelfPower extends Power {
 
 	}
 
-	public static int modify(Context context, List<Instance> instances, int original) {
+	public static int modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower.Instance> instances, int original) {
 
-		Entity viewer = context.nullable(NeoApoliContextParameters.ACTOR);
+		Entity viewer = context.nullable(NeoApoliContextKeys.ACTOR);
 		int color = original;
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -101,11 +100,11 @@ public class ModifyModelColorSelfPower extends Power {
 
 	public static Context createContext(@NotNull Entity renderedEntity, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_MODEL_COLOR_SELF.contextBuilder()
-			.addNullable(NeoApoliContextParameters.ACTOR, viewer)
-			.add(NeoApoliContextParameters.TARGET, renderedEntity)
-			.add(NeoApoliContextParameters.THIS_ENTITY, renderedEntity)
-			.add(NeoApoliContextParameters.ENTITY_POS, renderedEntity.getPos())
-			.build(renderedEntity.getWorld());
+			.addNullable(NeoApoliContextKeys.ACTOR, viewer)
+			.add(NeoApoliContextKeys.TARGET, renderedEntity)
+			.add(NeoApoliContextKeys.THIS_ENTITY, renderedEntity)
+			.add(NeoApoliContextKeys.ENTITY_POS, renderedEntity.position())
+			.build(renderedEntity.level());
 	}
 
 }

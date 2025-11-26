@@ -8,22 +8,22 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.recipe.PowerRecipeFinder;
+import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.recipebook.AbstractCraftingRecipeBookWidget;
-import net.minecraft.client.gui.screen.recipebook.AnimatedResultButton;
-import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
-import net.minecraft.client.gui.screen.recipebook.RecipeResultCollection;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.NetworkRecipeId;
-import net.minecraft.recipe.RecipeDisplayEntry;
-import net.minecraft.recipe.RecipeFinder;
-import net.minecraft.screen.AbstractCraftingScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.recipebook.CraftingRecipeBookComponent;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.gui.screens.recipebook.RecipeButton;
+import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -34,7 +34,7 @@ import java.util.Objects;
 
 public abstract class CraftingRecipePowerMixin {
 
-	@Mixin(MinecraftClient.class)
+	@Mixin(Minecraft.class)
 	public static class PowerRecipeDisplayCache implements PowerRecipeDisplayHolder {
 
 		@Unique
@@ -57,15 +57,15 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(RecipeResultCollection.class)
-	public static abstract class RecipeResultCollectionFilter {
+	@Mixin(RecipeCollection.class)
+	public static abstract class RecipeCollectionFilter {
 
-		@ModifyExpressionValue(method = "populateRecipes", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
+		@ModifyExpressionValue(method = "selectRecipes", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
 		private boolean test(boolean original, @Local RecipeDisplayEntry currentDisplayEntry) {
 
 			if (original) {
 
-				MinecraftClient client = MinecraftClient.getInstance();
+				Minecraft client = Minecraft.getInstance();
 				Map<RecipeDisplayEntry, PowerReference> referencesByDisplayEntry = ((PowerRecipeDisplayHolder) client).neo_apoli$getReferencesByDisplayEntry();
 
 				for (Map.Entry<RecipeDisplayEntry, PowerReference> mapEntry : referencesByDisplayEntry.entrySet()) {
@@ -91,43 +91,43 @@ public abstract class CraftingRecipePowerMixin {
 
 	}
 
-	@Mixin(AbstractCraftingRecipeBookWidget.class)
-	public static abstract class CraftingRecipeBookWidgetProxy extends RecipeBookWidget<AbstractCraftingScreenHandler> {
+	@Mixin(CraftingRecipeBookComponent.class)
+	public static abstract class CraftingRecipeBookComponentProxy extends RecipeBookComponent<AbstractCraftingMenu> {
 
 		@Mutable
 		@Shadow
 		@Final
-		private static List<Tab> TABS;
+		private static List<TabInfo> TABS;
 
-		private CraftingRecipeBookWidgetProxy(AbstractCraftingScreenHandler craftingScreenHandler, List<Tab> tabs) {
+		private CraftingRecipeBookComponentProxy(AbstractCraftingMenu craftingScreenHandler, List<TabInfo> tabs) {
 			super(craftingScreenHandler, tabs);
 		}
 
-		@ModifyArg(method = "populateRecipes", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/recipebook/RecipeResultCollection;populateRecipes(Lnet/minecraft/recipe/RecipeFinder;Ljava/util/function/Predicate;)V"))
-		private RecipeFinder overrideRecipeFinder(RecipeFinder original) {
-			return new PowerRecipeFinder(this.client.player, original, ((PowerRecipeDisplayHolder) this.client));
+		@ModifyArg(method = "selectMatchingRecipes", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/recipebook/RecipeCollection;selectRecipes(Lnet/minecraft/world/entity/player/StackedItemContents;Ljava/util/function/Predicate;)V"))
+		private StackedItemContents overrideRecipeFinder(StackedItemContents original) {
+			return new PowerStackedItemContents(this.minecraft.player, original, ((PowerRecipeDisplayHolder) this.minecraft));
 		}
 
 		//	Adds a new tab to the recipe book used for storing recipes added by powers
 		static {
-			TABS = ImmutableList.<Tab>builder()
+			TABS = ImmutableList.<TabInfo>builder()
 				.addAll(TABS)
-				.add(new Tab(Items.COMMAND_BLOCK, NeoApoliRecipeBookCategories.POWER_CRAFTING_RECIPE))
+				.add(new TabInfo(Items.COMMAND_BLOCK, NeoApoliRecipeBookCategories.POWER_CRAFTING_RECIPE))
 				.build();
 		}
 
 	}
 
-	@Mixin(AnimatedResultButton.class)
+	@Mixin(RecipeButton.class)
 	public static abstract class CustomPowerRecipeTooltip {
 
 		@Shadow
-		public abstract NetworkRecipeId getCurrentId();
+		public abstract RecipeDisplayId getCurrentRecipe();
 
-		@ModifyReturnValue(method = "getTooltip", at = @At("RETURN"))
-		private List<Text> appendPowerRecipeTooltip(List<Text> original) {
+		@ModifyReturnValue(method = "getTooltipText", at = @At("RETURN"))
+		private List<Component> appendPowerRecipeTooltip(List<Component> original) {
 
-			Map<RecipeDisplayEntry, PowerReference> referencesByDisplayEntry = ((PowerRecipeDisplayHolder) MinecraftClient.getInstance()).neo_apoli$getReferencesByDisplayEntry();
+			Map<RecipeDisplayEntry, PowerReference> referencesByDisplayEntry = ((PowerRecipeDisplayHolder) Minecraft.getInstance()).neo_apoli$getReferencesByDisplayEntry();
 			PowerEntry<?> entry = null;
 
 			for (Map.Entry<RecipeDisplayEntry, PowerReference> mapEntry : referencesByDisplayEntry.entrySet()) {
@@ -135,7 +135,7 @@ public abstract class CraftingRecipePowerMixin {
 				RecipeDisplayEntry displayEntry = mapEntry.getKey();
 				PowerReference powerReference = mapEntry.getValue();
 
-				if (Objects.equals(displayEntry.id(), this.getCurrentId()) && PowerManager.contains(powerReference)) {
+				if (Objects.equals(displayEntry.id(), this.getCurrentRecipe()) && PowerManager.contains(powerReference)) {
 					entry = PowerManager.getEntry(powerReference);
 					break;
 				}
@@ -145,16 +145,16 @@ public abstract class CraftingRecipePowerMixin {
 			if (entry != null) {
 
 				PowerEntry<?> finalEntry = entry;
-				boolean hasPower = NeoApoliEntityComponents.POWERS.maybeGet(MinecraftClient.getInstance().player)
+				boolean hasPower = NeoApoliEntityComponents.POWERS.maybeGet(Minecraft.getInstance().player)
 					.stream()
 					.anyMatch(powersComponent -> powersComponent.hasInstance(finalEntry.reference()));
 
-				Formatting formatting = hasPower
-					? Formatting.GREEN
-					: Formatting.RED;
+				ChatFormatting formatting = hasPower
+					? ChatFormatting.GREEN
+					: ChatFormatting.RED;
 
-				original.add(Text.empty());
-				original.add(Text.literal("").append(Text.literal("Requires power: ").formatted(formatting)).append(finalEntry.name()));
+				original.add(Component.empty());
+				original.add(Component.literal("").append(Component.literal("Requires power: ").withStyle(formatting)).append(finalEntry.name()));
 
 			}
 

@@ -18,12 +18,12 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Objects;
@@ -48,7 +48,7 @@ public class MultiplePower extends Power {
 
 	});
 
-	public static final Identifier ID = NeoApoli.id("multiple");
+	public static final ResourceLocation ID = NeoApoli.id("multiple");
 
 	public static final MapCodec<ImmutableSet<PowerEntry<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
 
@@ -138,17 +138,17 @@ public class MultiplePower extends Power {
 
 	};
 
-	public static final PacketCodec<RegistryByteBuf, ImmutableSet<PowerEntry<?>>> SUB_POWERS_PACKET_CODEC = new PacketCodec<>() {
+	public static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerEntry<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
 
 		@Override
-		public ImmutableSet<PowerEntry<?>> decode(RegistryByteBuf buf) {
+		public ImmutableSet<PowerEntry<?>> decode(RegistryFriendlyByteBuf buf) {
 
 			ImmutableSet.Builder<PowerEntry<?>> entries = ImmutableSet.builder();
 			int size = buf.readVarInt();
 
 			for (int i = 0; i < size; i++) {
 
-				PowerEntry<?> entry = PowerEntry.PACKET_CODEC.decode(buf);
+				PowerEntry<?> entry = PowerEntry.STREAM_CODEC.decode(buf);
 
 				if (entry.subPower()) {
 					entries.add(entry);
@@ -165,12 +165,12 @@ public class MultiplePower extends Power {
 		}
 
 		@Override
-		public void encode(RegistryByteBuf buf, ImmutableSet<PowerEntry<?>> entries) {
+		public void encode(RegistryFriendlyByteBuf buf, ImmutableSet<PowerEntry<?>> entries) {
 
 			buf.writeVarInt(entries.size());
 
 			for (var entry : entries) {
-				PowerEntry.PACKET_CODEC.encode(buf, entry);
+				PowerEntry.STREAM_CODEC.encode(buf, entry);
 			}
 
 		}
@@ -182,7 +182,7 @@ public class MultiplePower extends Power {
 		MultiplePower::getSubPowers
 	);
 
-	public static final PacketCodec<RegistryByteBuf, MultiplePower> PACKET_CODEC = SUB_POWERS_PACKET_CODEC.xmap(
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = SUB_POWERS_STREAM_CODEC.map(
 		MultiplePower::new,
 		MultiplePower::getSubPowers
 	);
@@ -214,7 +214,7 @@ public class MultiplePower extends Power {
 	 * 	</ul>
 	 */
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(Identifier id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
+	public static void preProcessSubPowers(ResourceLocation id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
 
 		JsonObject powerJson = entry.element();
 		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
@@ -252,7 +252,7 @@ public class MultiplePower extends Power {
 			return DataResult.error(() -> "Empty sub-power names are not allowed!");
 		}
 
-		else if (Identifier.isPathValid(name)) {
+		else if (ResourceLocation.isValidPath(name)) {
 			return DataResult.success(name);
 		}
 

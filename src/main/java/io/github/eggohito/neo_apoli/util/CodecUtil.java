@@ -6,11 +6,11 @@ import com.google.common.collect.ImmutableBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.dynamic.Codecs;
-import net.minecraft.util.function.ValueLists;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import net.minecraft.util.ByIdMap;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.StringRepresentable;
 
 import java.util.Locale;
 import java.util.function.*;
@@ -68,18 +68,18 @@ public class CodecUtil {
 	}
 
 	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass) {
-		return enumType(enumClass, ValueLists.OutOfBoundsHandling.CLAMP);
+		return enumType(enumClass, ByIdMap.OutOfBoundsStrategy.CLAMP);
 	}
 
-	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass, ValueLists.OutOfBoundsHandling oobHandler) {
+	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass, ByIdMap.OutOfBoundsStrategy oobHandler) {
 
 		E[] enumConstants = enumClass.getEnumConstants();
 
 		ToIntFunction<E> toOrdinal = Enum::ordinal;
-		IntFunction<E> fromOrdinal = ValueLists.createIndexToValueFunction(toOrdinal, enumConstants, oobHandler);
+		IntFunction<E> fromOrdinal = ByIdMap.continuous(toOrdinal, enumConstants, oobHandler);
 
-		Function<E, String> toString = enumConstant -> (enumConstant instanceof StringIdentifiable stringIdentifiable
-			? stringIdentifiable.asString()
+		Function<E, String> toString = enumConstant -> (enumConstant instanceof StringRepresentable stringIdentifiable
+			? stringIdentifiable.getSerializedName()
 			: enumConstant.name()).toLowerCase(Locale.ROOT);
 		Function<String, E> fromString = name -> {
 
@@ -87,8 +87,8 @@ public class CodecUtil {
 
 				boolean matches = enumConstant.name().equalsIgnoreCase(name);
 
-				if (!matches && enumConstant instanceof StringIdentifiable stringIdentifiable) {
-					matches = stringIdentifiable.asString().equalsIgnoreCase(name);
+				if (!matches && enumConstant instanceof StringRepresentable stringIdentifiable) {
+					matches = stringIdentifiable.getSerializedName().equalsIgnoreCase(name);
 				}
 
 				if (matches) {
@@ -101,24 +101,24 @@ public class CodecUtil {
 
 		};
 
-		return Codecs.orCompressed(
+		return ExtraCodecs.orCompressed(
 			Codec.stringResolver(toString, fromString),
-			Codecs.rawIdChecked(toOrdinal, fromOrdinal, -1)
+			ExtraCodecs.idResolverCodec(toOrdinal, fromOrdinal, -1)
 		);
 
 	}
 
-	public static <T> Codec<TypedContextParameter<T>> createParameterCodec(String name, Class<T> typeClass) {
-		return NeoApoliContextParameters.CODEC.comapFlatMap(
+	public static <T> Codec<TypedContextKey<T>> createParameterCodec(String name, Class<T> typeClass) {
+		return NeoApoliContextKeys.CODEC.comapFlatMap(
 			parameter -> {
 
 				if (typeClass.isAssignableFrom(parameter.getTypeClass())) {
 					//noinspection unchecked
-					return DataResult.success((TypedContextParameter<T>) parameter);
+					return DataResult.success((TypedContextKey<T>) parameter);
 				}
 
 				else {
-					return DataResult.error(() -> "Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.getId() + "\"");
+					return DataResult.error(() -> "Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.name() + "\"");
 				}
 
 			},

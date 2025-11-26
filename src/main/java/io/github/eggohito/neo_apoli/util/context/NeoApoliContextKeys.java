@@ -1,0 +1,83 @@
+package io.github.eggohito.neo_apoli.util.context;
+
+import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.Vec3DContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockEntityContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockPosContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockStateContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.entity.EntityContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.item.ItemStackContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.item.StackReferenceContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.number.FloatContextKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.function.Function;
+
+public final class NeoApoliContextKeys {
+
+	public static final RegistryFixedAlias<TypedContextKey<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.TYPED_CONTEXT_KEY);
+	public static final Codec<TypedContextKey<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.TYPED_CONTEXT_KEY);
+
+	//	Usually used in bi-entity contexts
+	public static final TypedContextKey<Entity> ACTOR = registerInternal("actor", EntityContextKey::new);
+	public static final TypedContextKey<Entity> TARGET = registerInternal("target", EntityContextKey::new);
+
+	//	Usually used in block contexts
+	public static final TypedContextKey<BlockPos> BLOCK_POS = registerInternal("block_pos", BlockPosContextKey::new);
+	public static final TypedContextKey<BlockState> BLOCK_STATE = registerInternal("block_state", BlockStateContextKey::new);
+	public static final TypedContextKey<BlockEntity> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityContextKey::new);
+	public static final TypedContextKey<Direction> DIRECTION = registerInternal("direction", id -> new TypedContextKey<>(id, Direction.class));
+
+	//	Usually used in damage contexts
+	public static final TypedContextKey<DamageSource> DAMAGE_SOURCE = registerInternal("damage_source", id -> new TypedContextKey<>(id, DamageSource.class));
+	public static final TypedContextKey<Float> DAMAGE_AMOUNT = registerInternal("damage_amount", FloatContextKey::new);
+	public static final TypedContextKey<Entity> DAMAGING_ENTITY = registerInternal("damaging_entity", EntityContextKey::new);
+	public static final TypedContextKey<Entity> DIRECT_DAMAGING_ENTITY = registerInternal("direct_damaging_entity", EntityContextKey::new);
+
+	//	Usually used in entity contexts
+	public static final TypedContextKey<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextKey::new);
+	public static final TypedContextKey<Vec3> ENTITY_POS = registerInternal("entity_pos", Vec3DContextKey::new);
+
+	//	Usually used in item contexts
+	public static final TypedContextKey<SlotAccess> STACK_REFERENCE = registerInternal("stack_reference", StackReferenceContextKey::new);
+	public static final TypedContextKey<ItemStack> ITEM_STACK = registerInternal("item_stack", ItemStackContextKey::new);
+
+	//	Can be used generally
+	public static final TypedContextKey<PowerReference> POWER_REFERENCE = registerInternal("power_reference", id -> new TypedContextKey<>(id, PowerReference.class));
+	public static final TypedContextKey<InteractionHand> HAND = registerInternal("hand", id -> new TypedContextKey<>(id, InteractionHand.class));
+
+	public static void init() {
+
+	}
+
+	private static <T, P extends TypedContextKey<T>> TypedContextKey<T> registerInternal(String path, Function<ResourceLocation, P> parameter) {
+		return register(parameter.apply(NeoApoli.id(path)));
+	}
+
+	public static <T, P extends TypedContextKey<T>> TypedContextKey<T> register(P parameter) {
+		return Registry.register(NeoApoliRegistries.TYPED_CONTEXT_KEY, parameter.name(), parameter);
+	}
+
+}

@@ -7,22 +7,23 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.State;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements BlockAction {
+public record
+ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements BlockAction {
 
 	private static final MapCodec<StringProvider> PROPERTY_CODEC = StringProvider.CODEC.fieldOf("property");
 	private static final MapCodec<Optional<StringProvider>> VALUE_CODEC = StringProvider.CODEC.optionalFieldOf("value");
@@ -65,10 +66,10 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 
 	};
 
-	public static final PacketCodec<RegistryByteBuf, ModifyBlockStatePropertyBlockAction> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, ModifyBlockStatePropertyBlockAction::property,
-		PacketCodecs.optional(StringProvider.PACKET_CODEC), ModifyBlockStatePropertyBlockAction::value,
-		PacketCodecs.optional(BooleanProvider.PACKET_CODEC), ModifyBlockStatePropertyBlockAction::cycle,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockStatePropertyBlockAction> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, ModifyBlockStatePropertyBlockAction::property,
+		ByteBufCodecs.optional(StringProvider.STREAM_CODEC), ModifyBlockStatePropertyBlockAction::value,
+		ByteBufCodecs.optional(BooleanProvider.STREAM_CODEC), ModifyBlockStatePropertyBlockAction::cycle,
 		ModifyBlockStatePropertyBlockAction::new
 	);
 
@@ -91,8 +92,8 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 			return;
 		}
 
-		BlockState blockState = context.required(NeoApoliContextParameters.BLOCK_STATE);
-		Property<?> property = blockState.getBlock().getStateManager().getProperty(propertyName);
+		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
+		Property<?> property = blockState.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property != null) {
 
@@ -102,7 +103,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 			if (!cycleContext.hasErrors()) {
 
 				if (cycle.orElse(false)) {
-					context.getWorld().setBlockState(context.required(NeoApoliContextParameters.BLOCK_POS), blockState.cycle(property));
+					context.getWorld().setBlockAndUpdate(context.required(NeoApoliContextKeys.BLOCK_POS), blockState.cycle(property));
 				}
 
 				else {
@@ -114,33 +115,33 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		}
 
 		else {
-			context.getReporter().report("Block \"" + RegistryUtil.getId(Registries.BLOCK, blockState.getBlock()) + "\" does not have a state property with the name \"" + propertyName + "\"!");
+			context.getReporter().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" does not have a state property with the name \"" + propertyName + "\"!");
 		}
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_STATE, NeoApoliContextParameters.BLOCK_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_STATE, NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		BlockAction.super.validate(reporter);
-		property().validate(reporter.makeChild(".property"));
-		value().ifPresent(value -> value.validate(reporter.makeChild(".value")));
-		cycle().ifPresent(cycle -> cycle.validate(reporter.makeChild(".cycle")));
+		property().validate(reporter.forChild(".property"));
+		value().ifPresent(value -> value.validate(reporter.forChild(".value")));
+		cycle().ifPresent(cycle -> cycle.validate(reporter.forChild(".cycle")));
 	}
 
-	private <T extends Comparable<T>> void setValue(ServerContext context, State<?, ?> state, Property<T> property) {
+	private <T extends Comparable<T>> void setValue(ServerContext context, StateHolder<?, ?> state, Property<T> property) {
 
 		ServerContext valueContext = context.makeChild(".value");
 		Optional<T> value = value()
 			.map(provider -> provider.next(valueContext))
-			.flatMap(property::parse);
+			.flatMap(property::getValue);
 
 		if (!valueContext.hasErrors() && value.isPresent()) {
-			state.with(property, value.get());
+			state.setValue(property, value.get());
 		}
 
 	}

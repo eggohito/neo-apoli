@@ -3,13 +3,13 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.item.FuelRegistry;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.block.entity.FuelValues;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
 public record FuelAmountNumberProvider() implements NumberProvider {
 
 	public static final MapCodec<FuelAmountNumberProvider> CODEC = MapCodec.unit(FuelAmountNumberProvider::new);
-	public static final PacketCodec<RegistryByteBuf, FuelAmountNumberProvider> PACKET_CODEC = PacketCodecUtil.unit(FuelAmountNumberProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, FuelAmountNumberProvider> STREAM_CODEC = StreamCodecUtil.unit(FuelAmountNumberProvider::new);
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -26,15 +26,15 @@ public record FuelAmountNumberProvider() implements NumberProvider {
 
 	@Override
 	public @NotNull Number next(Context context) {
-		FuelRegistry fuelRegistry = context.getWorld().getFuelRegistry();
-		return context.optional(NeoApoliContextParameters.ITEM_STACK)
-			.map(fuelRegistry::getFuelTicks)
+		FuelValues fuelRegistry = context.getWorld().fuelValues();
+		return context.optional(NeoApoliContextKeys.ITEM_STACK)
+			.map(fuelRegistry::burnDuration)
 			.orElse(0);
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ITEM_STACK);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ITEM_STACK);
 	}
 
 }

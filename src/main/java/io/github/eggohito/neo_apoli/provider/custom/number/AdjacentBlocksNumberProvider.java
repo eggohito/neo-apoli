@@ -7,11 +7,11 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3dProvider position) implements NumberProvider {
@@ -21,9 +21,9 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 		Vec3dProvider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
 	).apply(instance, AdjacentBlocksNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, AdjacentBlocksNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, AdjacentBlocksNumberProvider::adjacentBlockCondition,
-		Vec3dProvider.PACKET_CODEC, AdjacentBlocksNumberProvider::position,
+	public static final StreamCodec<RegistryFriendlyByteBuf, AdjacentBlocksNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, AdjacentBlocksNumberProvider::adjacentBlockCondition,
+		Vec3dProvider.STREAM_CODEC, AdjacentBlocksNumberProvider::position,
 		AdjacentBlocksNumberProvider::new
 	);
 
@@ -35,11 +35,11 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	@Override
 	public @NotNull Number next(Context context) {
 
-		World world = context.getWorld();
+		Level world = context.getWorld();
 		long matches = 0;
 
 		Context positionContext = context.makeChild(".position");
-		BlockPos blockPos = BlockPos.ofFloored(position().next(positionContext));
+		BlockPos blockPos = BlockPos.containing(position().next(positionContext));
 
 		if (positionContext.hasErrors()) {
 			return matches;
@@ -47,17 +47,17 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 
 		for (Direction direction : Direction.values()) {
 
-			BlockPos offsetPos = blockPos.offset(direction);
+			BlockPos offsetPos = blockPos.relative(direction);
 
-			if (!world.isChunkLoaded(offsetPos)) {
+			if (!world.hasChunkAt(offsetPos)) {
 				continue;
 			}
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-				.add(NeoApoliContextParameters.BLOCK_POS, offsetPos)
-				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(offsetPos))
-				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+				.add(NeoApoliContextKeys.BLOCK_POS, offsetPos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetPos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
 
 			if (adjacentBlockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -70,14 +70,14 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 		adjacentBlockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_condition"));
 
-		position().validate(reporter.makeChild(".position"));
+		position().validate(reporter.forChild(".position"));
 
 	}
 

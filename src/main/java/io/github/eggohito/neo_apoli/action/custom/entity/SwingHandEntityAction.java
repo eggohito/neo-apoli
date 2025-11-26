@@ -5,26 +5,26 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Hand;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Optional;
 
-public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction {
+public record SwingHandEntityAction(Optional<InteractionHand> hand) implements EntityAction {
 
 	public static final MapCodec<SwingHandEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliCodecs.HAND.optionalFieldOf("hand").forGetter(SwingHandEntityAction::hand))
 		.apply(instance, SwingHandEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, SwingHandEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(NeoApoliPacketCodecs.HAND), SwingHandEntityAction::hand,
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwingHandEntityAction> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(NeoApoliStreamCodecs.HAND), SwingHandEntityAction::hand,
 		SwingHandEntityAction::new
 	);
 
@@ -35,10 +35,10 @@ public record SwingHandEntityAction(Optional<Hand> hand) implements EntityAction
 
 	@Override
 	public void execute(Context context) {
-		context.optional(NeoApoliContextParameters.THIS_ENTITY)
+		context.optional(NeoApoliContextKeys.THIS_ENTITY)
 			.filter(LivingEntity.class::isInstance)
 			.map(LivingEntity.class::cast)
-			.ifPresent(livingEntity -> livingEntity.swingHand(hand().orElseGet(livingEntity::getActiveHand), livingEntity instanceof ServerPlayerEntity));
+			.ifPresent(livingEntity -> livingEntity.swing(hand().orElseGet(livingEntity::getUsedItemHand), livingEntity instanceof ServerPlayer));
 	}
 
 }

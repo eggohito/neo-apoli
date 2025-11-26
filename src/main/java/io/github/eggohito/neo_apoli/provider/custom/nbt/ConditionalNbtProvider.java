@@ -6,18 +6,18 @@ import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvide
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, NbtProvider elseValue) implements NbtProvider, ConditionalValueProvider<NbtProvider, NbtElement> {
+public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, NbtProvider elseValue) implements NbtProvider, ConditionalValueProvider<NbtProvider, Tag> {
 
-	public static final MapCodec<ConditionalNbtProvider> CODEC = MapCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.codec(NbtProvider.CODEC, ConditionalNbtProvider::new));
-	public static final PacketCodec<RegistryByteBuf, ConditionalNbtProvider> PACKET_CODEC = PacketCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.packetCodec(NbtProvider.PACKET_CODEC, ConditionalNbtProvider::new));
+	public static final MapCodec<ConditionalNbtProvider> CODEC = MapCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.createCodec(NbtProvider.CODEC, ConditionalNbtProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.createStreamCodec(NbtProvider.STREAM_CODEC, ConditionalNbtProvider::new));
 
 	@Override
 	public NbtProviderType<?> getType() {
@@ -25,8 +25,8 @@ public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, N
 	}
 
 	@Override
-	public @NotNull NbtElement next(Context context) {
-		return internalNextOrElse(context, NbtCompound::new);
+	public @NotNull Tag next(Context context) {
+		return internalNextOrElse(context, CompoundTag::new);
 	}
 
 }

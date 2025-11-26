@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.recipe.book;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import net.minecraft.recipe.book.RecipeBookCategory;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 
 import java.util.Locale;
 
@@ -27,8 +27,8 @@ public class NeoApoliRecipeBookCategories {
 		});
 	}
 
-	public static <C extends RecipeBookCategory> C register(Identifier id, C category) {
-		return Registry.register(Registries.RECIPE_BOOK_CATEGORY, id, category);
+	public static <C extends RecipeBookCategory> C register(ResourceLocation id, C category) {
+		return Registry.register(BuiltInRegistries.RECIPE_BOOK_CATEGORY, id, category);
 	}
 
 }

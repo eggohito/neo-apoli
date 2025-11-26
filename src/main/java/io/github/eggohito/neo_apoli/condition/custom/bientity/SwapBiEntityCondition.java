@@ -5,12 +5,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEntityCondition {
 
@@ -18,8 +18,8 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 		BiEntityCondition.CODEC.fieldOf("condition").forGetter(SwapBiEntityCondition::condition)
 	).apply(instance, SwapBiEntityCondition::new)));
 
-	public static final PacketCodec<RegistryByteBuf, SwapBiEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(SwapBiEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
-		BiEntityCondition.PACKET_CODEC, SwapBiEntityCondition::condition,
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwapBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(SwapBiEntityCondition.class.getSimpleName(), () -> StreamCodec.composite(
+		BiEntityCondition.STREAM_CODEC, SwapBiEntityCondition::condition,
 		SwapBiEntityCondition::new
 	));
 
@@ -32,16 +32,16 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	public boolean test(Context context) {
 
 		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(NeoApoliContextParameters.TARGET))
-			.addNullable(NeoApoliContextParameters.TARGET, context.nullable(NeoApoliContextParameters.ACTOR)));
+			.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(NeoApoliContextKeys.TARGET))
+			.addNullable(NeoApoliContextKeys.TARGET, context.nullable(NeoApoliContextKeys.ACTOR)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
-		condition().validate(reporter.makeChild(".condition"));
+	public void validate(ProblemReporter reporter) {
+		condition().validate(reporter.forChild(".condition"));
 	}
 
 }

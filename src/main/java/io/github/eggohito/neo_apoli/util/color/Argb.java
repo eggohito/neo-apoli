@@ -6,11 +6,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 
 public record Argb(float alpha, float red, float green, float blue) implements Color {
 
@@ -21,21 +21,21 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 		Codec.floatRange(0.0F, 1.0F).fieldOf("blue").forGetter(Argb::blue)
 	).apply(instance, Argb::new));
 
-	public static final PacketCodec<RegistryByteBuf, Argb> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.FLOAT, Argb::alpha,
-		PacketCodecs.FLOAT, Argb::red,
-		PacketCodecs.FLOAT, Argb::green,
-		PacketCodecs.FLOAT, Argb::blue,
+	public static final StreamCodec<RegistryFriendlyByteBuf, Argb> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.FLOAT, Argb::alpha,
+		ByteBufCodecs.FLOAT, Argb::red,
+		ByteBufCodecs.FLOAT, Argb::green,
+		ByteBufCodecs.FLOAT, Argb::blue,
 		Argb::new
 	);
 
 	public static final Argb DEFAULT = new Argb(1.0F, 1.0F, 1.0F, 1.0F);
 
 	public Argb {
-		alpha = MathHelper.clamp(alpha, 0.0F, 1.0F);
-		red = MathHelper.clamp(red, 0.0F, 1.0F);
-		green = MathHelper.clamp(green, 0.0F, 1.0F);
-		blue = MathHelper.clamp(blue, 0.0F, 1.0F);
+		alpha = Mth.clamp(alpha, 0.0F, 1.0F);
+		red = Mth.clamp(red, 0.0F, 1.0F);
+		green = Mth.clamp(green, 0.0F, 1.0F);
+		blue = Mth.clamp(blue, 0.0F, 1.0F);
 	}
 
 	public Argb(int argb) {
@@ -54,7 +54,7 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 
 	@Override
 	public int getValue(Context context) {
-		return ColorHelper.fromFloats(alpha(), red(), green(), blue());
+		return ARGB.colorFromFloat(alpha(), red(), green(), blue());
 	}
 
 	public static int getAlpha(int argb) {
@@ -62,7 +62,7 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 	}
 
 	public static float getAlphaFloat(int argb) {
-		return ColorHelper.floatFromChannel(getAlpha(argb));
+		return ARGB.from8BitChannel(getAlpha(argb));
 	}
 
 	public static int getRed(int argb) {
@@ -70,7 +70,7 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 	}
 
 	public static float getRedFloat(int argb) {
-		return ColorHelper.floatFromChannel(getRed(argb));
+		return ARGB.from8BitChannel(getRed(argb));
 	}
 
 	public static int getGreen(int argb) {
@@ -78,7 +78,7 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 	}
 
 	public static float getGreenFloat(int argb) {
-		return ColorHelper.floatFromChannel(getGreen(argb));
+		return ARGB.from8BitChannel(getGreen(argb));
 	}
 
 	public static int getBlue(int argb) {
@@ -86,7 +86,7 @@ public record Argb(float alpha, float red, float green, float blue) implements C
 	}
 
 	public static float getBlueFloat(int argb) {
-		return ColorHelper.floatFromChannel(getBlue(argb));
+		return ARGB.from8BitChannel(getBlue(argb));
 	}
 
 }

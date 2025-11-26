@@ -5,11 +5,11 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record NothingItemAction() implements ItemAction, NothingMetaAction {
 
@@ -17,7 +17,7 @@ public record NothingItemAction() implements ItemAction, NothingMetaAction {
 
 	public static final MapCodec<NothingItemAction> CODEC = MapCodec.unit(NothingItemAction::new);
 
-	public static final PacketCodec<RegistryByteBuf, NothingItemAction> PACKET_CODEC = PacketCodecUtil.unit(NothingItemAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, NothingItemAction> STREAM_CODEC = StreamCodecUtil.unit(NothingItemAction::new);
 
 	@Override
 	public ItemActionType<?> getType() {

@@ -3,12 +3,12 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -23,9 +23,9 @@ public interface MultiNumberProvider extends NumberProvider {
 	List<NumberProvider> numbers();
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 		NumberProvider.super.validate(reporter);
-		this.iterate((index, number) -> number.validate(reporter.makeChild(".numbers[" + index + "]")));
+		this.iterate((index, number) -> number.validate(reporter.forChild(".numbers[" + index + "]")));
 	}
 
 	default <N extends Number> N iterateAndProcess(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> processor, N initialValue) {
@@ -73,9 +73,9 @@ public interface MultiNumberProvider extends NumberProvider {
 		).apply(instance, constructor)));
 	}
 
-	static <M extends MultiNumberProvider> PacketCodec<RegistryByteBuf, M> packetCodec(Function<List<NumberProvider>, M> constructor) {
-		return PacketCodecUtil.lazy(() -> PacketCodec.tuple(
-			PacketCodecs.collection(ObjectArrayList::new, NumberProvider.PACKET_CODEC), MultiNumberProvider::numbers,
+	static <M extends MultiNumberProvider> StreamCodec<RegistryFriendlyByteBuf, M> packetCodec(Function<List<NumberProvider>, M> constructor) {
+		return StreamCodecUtil.lazy(() -> StreamCodec.composite(
+			ByteBufCodecs.collection(ObjectArrayList::new, NumberProvider.STREAM_CODEC), MultiNumberProvider::numbers,
 			constructor
 		));
 	}

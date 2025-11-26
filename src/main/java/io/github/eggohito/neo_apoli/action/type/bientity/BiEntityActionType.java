@@ -8,11 +8,11 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
-public record BiEntityActionType<A extends BiEntityAction>(MapCodec<A> mapCodec, PacketCodec<RegistryByteBuf, A> packetCodec) implements ActionType<A> {
+public record BiEntityActionType<A extends BiEntityAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> packetCodec) implements ActionType<A> {
 
 	public static final String PREFIX = "bientity/";
 
@@ -20,6 +20,6 @@ public record BiEntityActionType<A extends BiEntityAction>(MapCodec<A> mapCodec,
 
 	public static final Codec<BiEntityActionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 
-	public static final PacketCodec<RegistryByteBuf, BiEntityActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.BIENTITY_ACTION_TYPE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, BiEntityActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.BIENTITY_ACTION_TYPE);
 
 }

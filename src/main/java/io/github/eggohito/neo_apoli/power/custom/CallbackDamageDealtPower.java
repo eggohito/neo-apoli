@@ -11,13 +11,13 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -30,10 +30,10 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::getPriority))
 		.apply(instance, CallbackDamageDealtPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CallbackDamageDealtPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, CallbackDamageDealtPower::getOnHitAction,
-		PacketCodecs.INTEGER, CallbackDamageDealtPower::getPriority,
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackDamageDealtPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Action.STREAM_CODEC, CallbackDamageDealtPower::getOnHitAction,
+		ByteBufCodecs.INT, CallbackDamageDealtPower::getPriority,
 		CallbackDamageDealtPower::new
 	);
 
@@ -53,13 +53,13 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getOnHitAction().validate(reporter.makeChild(".on_hit_action"));
+		getOnHitAction().validate(reporter.forChild(".on_hit_action"));
 	}
 
 	public static class Instance extends Power.Instance<CallbackDamageDealtPower> {
@@ -76,18 +76,18 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	public static void execute(Context context) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance.class);
 
 		execute(context, instances);
 
 	}
 
-	public static void execute(Context context, InstanceCollection<Instance> instances) {
+	public static void execute(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance> instances) {
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -108,15 +108,15 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	public static Context createContext(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
 		return PowerTypes.CALLBACK_DAMAGE_DEALT.contextBuilder()
-			.add(NeoApoliContextParameters.ACTOR, actor)
-			.add(NeoApoliContextParameters.TARGET, target)
-			.add(NeoApoliContextParameters.DAMAGE_SOURCE, damageSource)
-			.add(NeoApoliContextParameters.DAMAGE_AMOUNT, damageAmount)
-			.addNullable(NeoApoliContextParameters.DAMAGING_ENTITY, damageSource.getAttacker())
-			.addNullable(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY, damageSource.getSource())
-			.add(NeoApoliContextParameters.THIS_ENTITY, actor)
-			.add(NeoApoliContextParameters.ENTITY_POS, actor.getPos())
-			.build(actor.getWorld());
+			.add(NeoApoliContextKeys.ACTOR, actor)
+			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.DAMAGE_SOURCE, damageSource)
+			.add(NeoApoliContextKeys.DAMAGE_AMOUNT, damageAmount)
+			.addNullable(NeoApoliContextKeys.DAMAGING_ENTITY, damageSource.getEntity())
+			.addNullable(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY, damageSource.getDirectEntity())
+			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
+			.add(NeoApoliContextKeys.ENTITY_POS, actor.position())
+			.build(actor.level());
 	}
 
 }

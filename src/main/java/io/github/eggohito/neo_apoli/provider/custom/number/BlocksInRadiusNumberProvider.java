@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dProvider position, Shape shape, NumberProvider radius) implements NumberProvider {
@@ -26,11 +26,11 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dP
 		NumberProvider.CODEC.fieldOf("radius").forGetter(BlocksInRadiusNumberProvider::radius)
 	).apply(instance, BlocksInRadiusNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, BlocksInRadiusNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, BlocksInRadiusNumberProvider::blockCondition,
-		Vec3dProvider.PACKET_CODEC, BlocksInRadiusNumberProvider::position,
-		Shape.PACKET_CODEC, BlocksInRadiusNumberProvider::shape,
-		NumberProvider.PACKET_CODEC, BlocksInRadiusNumberProvider::radius,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksInRadiusNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, BlocksInRadiusNumberProvider::blockCondition,
+		Vec3dProvider.STREAM_CODEC, BlocksInRadiusNumberProvider::position,
+		Shape.STREAM_CODEC, BlocksInRadiusNumberProvider::shape,
+		NumberProvider.STREAM_CODEC, BlocksInRadiusNumberProvider::radius,
 		BlocksInRadiusNumberProvider::new
 	));
 
@@ -42,11 +42,11 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dP
 	@Override
 	public @NotNull Number next(Context context) {
 
-		World world = context.getWorld();
+		Level world = context.getWorld();
 		int matches = 0;
 
 		Context positionContext = context.makeChild(".position");
-		Vec3d position = position().next(positionContext);
+		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return matches;
@@ -59,17 +59,17 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dP
 			return matches;
 		}
 
-		for (var blockPos : shape().getBlockPositions(BlockPos.ofFloored(position), radius)) {
+		for (var blockPos : shape().getBlockPositions(BlockPos.containing(position), radius)) {
 
-			if (!world.isChunkLoaded(blockPos)) {
+			if (!world.hasChunkAt(blockPos)) {
 				continue;
 			}
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-				.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+				.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -81,15 +81,15 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dP
 
 	}
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_condition"));
 
-		position().validate(reporter.makeChild(".position"));
-		radius().validate(reporter.makeChild(".radius"));
+		position().validate(reporter.forChild(".position"));
+		radius().validate(reporter.forChild(".radius"));
 
 	}
 

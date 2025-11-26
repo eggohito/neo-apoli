@@ -3,17 +3,17 @@ package io.github.eggohito.neo_apoli.condition.custom.item;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 
 public record IsEmptyItemCondition() implements ItemCondition {
 
 	public static final MapCodec<IsEmptyItemCondition> CODEC = MapCodec.unit(IsEmptyItemCondition::new);
-	public static final PacketCodec<RegistryByteBuf, IsEmptyItemCondition> PACKET_CODEC = PacketCodecUtil.unit(IsEmptyItemCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsEmptyItemCondition> STREAM_CODEC = StreamCodecUtil.unit(IsEmptyItemCondition::new);
 
 	@Override
 	public ItemConditionType<?> getType() {
@@ -22,7 +22,7 @@ public record IsEmptyItemCondition() implements ItemCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextParameters.ITEM_STACK)
+		return context.optional(NeoApoliContextKeys.ITEM_STACK)
 			.stream()
 			.anyMatch(ItemStack::isEmpty);
 	}

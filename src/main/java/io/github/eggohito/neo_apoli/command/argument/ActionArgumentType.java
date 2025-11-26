@@ -6,74 +6,65 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import lombok.AllArgsConstructor;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.serialize.ArgumentSerializer;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.concurrent.CompletableFuture;
 
 public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 
-	protected ActionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, boolean allowInlineDefinitions) {
+	protected ActionArgumentType(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
 		super(wrapperLookup, ActionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestIdentifiers(ActionManager.ids(), builder);
+		return SharedSuggestionProvider.suggestResource(ActionManager.ids(), builder);
 	}
 
-	public static ActionArgumentType inlineAction(CommandRegistryAccess registryAccess) {
+	public static ActionArgumentType inlineAction(CommandBuildContext registryAccess) {
 		return new ActionArgumentType(registryAccess, true);
 	}
 
-	public static ActionArgumentType action(CommandRegistryAccess registryAccess) {
+	public static ActionArgumentType action(CommandBuildContext registryAccess) {
 		return new ActionArgumentType(registryAccess, false);
 	}
 
-	public static Action getAction(CommandContext<ServerCommandSource> context, String argumentName) {
+	public static Action getAction(CommandContext<CommandSourceStack> context, String argumentName) {
 		return context.getArgument(argumentName, Action.class);
 	}
 
-	public final static class Serializer implements ArgumentSerializer<ActionArgumentType, Serializer.Properties> {
+	public record Info() implements ArgumentTypeInfo<ActionArgumentType, Info.Template> {
 
 		@Override
-		public void writePacket(Properties properties, PacketByteBuf buf) {
-			buf.writeBoolean(properties.allowInlineDefinitions);
+		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
+			buf.writeBoolean(template.allowInlineDefinitions());
 		}
 
 		@Override
-		public Properties fromPacket(PacketByteBuf buf) {
-			return new Properties(buf.readBoolean());
+		public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+			return new Template(this, buf.readBoolean());
 		}
 
 		@Override
-		public void writeJson(Properties properties, JsonObject json) {
-			json.addProperty("allow_inline_definitions", properties.allowInlineDefinitions);
+		public void serializeToJson(Template template, JsonObject jsonObject) {
+			jsonObject.addProperty("allow_inline_definitions", template.allowInlineDefinitions());
 		}
 
 		@Override
-		public Properties getArgumentTypeProperties(ActionArgumentType argumentType) {
-			return new Properties(argumentType.codec.allowInlineDefinitions());
+		public Template unpack(ActionArgumentType argumentType) {
+			return new Template(this, argumentType.codec.allowInlineDefinitions());
 		}
 
-		@AllArgsConstructor
-		public final class Properties implements ArgumentTypeProperties<ActionArgumentType> {
-
-			private final boolean allowInlineDefinitions;
+		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ActionArgumentType> {
 
 			@Override
-			public ActionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return new ActionArgumentType(registryAccess, allowInlineDefinitions);
-			}
-
-			@Override
-			public ArgumentSerializer<ActionArgumentType, ?> getSerializer() {
-				return Serializer.this;
+			public ActionArgumentType instantiate(CommandBuildContext commandBuildContext) {
+				return new ActionArgumentType(commandBuildContext, allowInlineDefinitions());
 			}
 
 		}

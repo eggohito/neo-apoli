@@ -6,17 +6,17 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
 public record ExecuteOnEntityEntityAction(EntityAction action, EntityTarget entity) implements EntityAction, ExecuteOnEntityMetaAction {
 
-	public static final MapCodec<ExecuteOnEntityEntityAction> CODEC = MapCodecUtil.lazy(ExecuteOnEntityEntityAction.class.getSimpleName(), () -> ExecuteOnEntityMetaAction.codec(ExecuteOnEntityEntityAction::new));
-	public static final PacketCodec<RegistryByteBuf, ExecuteOnEntityEntityAction> PACKET_CODEC = PacketCodecUtil.lazy(ExecuteOnEntityEntityAction.class.getSimpleName(), () -> ExecuteOnEntityMetaAction.packetCodec(ExecuteOnEntityEntityAction::new));
+	public static final MapCodec<ExecuteOnEntityEntityAction> CODEC = MapCodecUtil.lazy(ExecuteOnEntityEntityAction.class.getSimpleName(), () -> ExecuteOnEntityMetaAction.createCodec(ExecuteOnEntityEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteOnEntityEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ExecuteOnEntityEntityAction.class.getSimpleName(), () -> ExecuteOnEntityMetaAction.createStreamCodec(ExecuteOnEntityEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
@@ -24,7 +24,7 @@ public record ExecuteOnEntityEntityAction(EntityAction action, EntityTarget enti
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return ExecuteOnEntityMetaAction.super.getRequiredParameters();
 	}
 

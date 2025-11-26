@@ -7,9 +7,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Function;
 
@@ -17,7 +17,7 @@ public interface ReferenceMetaAction<A extends Action> extends MetaAction {
 
 	Pair<Class<A>, String> classAndName();
 
-	Identifier value();
+	ResourceLocation value();
 
 	@Override
 	default void execute(Context context) {
@@ -34,7 +34,7 @@ public interface ReferenceMetaAction<A extends Action> extends MetaAction {
 						}
 
 						else {
-							context.getReporter().makeChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was executed recursively!");
+							context.getReporter().forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was executed recursively!");
 						}
 
 					}
@@ -49,17 +49,17 @@ public interface ReferenceMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		if (reporter.isInStack(this.value())) {
-			reporter.makeChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
+			reporter.forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
 		}
 
 		else {
 			ActionManager.getAsResult(this.value())
 				.flatMap(this::checkAndCast)
-				.ifSuccess(condition -> condition.validate(reporter.makeChild("{" + this.value() + "}", this.value())))
-				.ifError(error -> reporter.makeChild(".value").report(error.message()));
+				.ifSuccess(condition -> condition.validate(reporter.forChild("{" + this.value() + "}", this.value())))
+				.ifError(error -> reporter.forChild(".value").report(error.message()));
 		}
 
 	}
@@ -79,15 +79,15 @@ public interface ReferenceMetaAction<A extends Action> extends MetaAction {
 
 	}
 
-	static <A extends Action, M extends ReferenceMetaAction<A>> MapCodec<M> codec(Function<Identifier, M> constructor) {
+	static <A extends Action, M extends ReferenceMetaAction<A>> MapCodec<M> createCodec(Function<ResourceLocation, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Identifier.CODEC.fieldOf("value").forGetter(ReferenceMetaAction::value)
+			ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceMetaAction::value)
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends ReferenceMetaAction<A>> PacketCodec<RegistryByteBuf, M> packetCodec(Function<Identifier, M> constructor) {
-		return PacketCodec.tuple(
-			Identifier.PACKET_CODEC, ReferenceMetaAction::value,
+	static <A extends Action, M extends ReferenceMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<ResourceLocation, M> constructor) {
+		return StreamCodec.composite(
+			ResourceLocation.STREAM_CODEC, ReferenceMetaAction::value,
 			constructor
 		);
 	}

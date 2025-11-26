@@ -6,10 +6,10 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
@@ -17,14 +17,14 @@ public interface EntityAction extends Action {
 
 	Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(EntityActionType.CODEC.dispatch(EntityAction::getType, EntityActionType::mapCodec), codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions), NothingEntityAction.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, EntityAction> PACKET_CODEC = EntityActionType.PACKET_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, EntityAction> STREAM_CODEC = EntityActionType.STREAM_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
 
 	@Override
 	EntityActionType<?> getType();
 
 	@Override
-	default Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.THIS_ENTITY);
+	default Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.THIS_ENTITY);
 	}
 
 	@Override

@@ -4,17 +4,17 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.MountEntityS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.MountEntityS2CPacket;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 
 import java.util.Collection;
 
@@ -24,8 +24,8 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 		BooleanProvider.CODEC.optionalFieldOf("force", new ConstantBooleanProvider(false)).forGetter(MountBiEntityAction::force)
 	).apply(instance, MountBiEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, MountBiEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		BooleanProvider.PACKET_CODEC, MountBiEntityAction::force,
+	public static final StreamCodec<RegistryFriendlyByteBuf, MountBiEntityAction> STREAM_CODEC = StreamCodec.composite(
+		BooleanProvider.STREAM_CODEC, MountBiEntityAction::force,
 		MountBiEntityAction::new
 	);
 
@@ -37,12 +37,12 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 	@Override
 	public void execute(Context context) {
 
-		if (context.getWorld().isClient() || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (context.getWorld().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextParameters.ACTOR);
-		Entity target = context.nullable(NeoApoliContextParameters.TARGET);
+		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR);
+		Entity target = context.nullable(NeoApoliContextKeys.TARGET);
 
 		if (actor == null || target == null) {
 			return;
@@ -54,7 +54,7 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 		if (!forceContext.hasErrors() && actor.startRiding(target, force)) {
 
 			MountEntityS2CPacket packet = new MountEntityS2CPacket(actor, target, force);
-			Collection<ServerPlayerEntity> trackingPlayers = MiscUtil.getTrackingPlayers(target);
+			Collection<ServerPlayer> trackingPlayers = MiscUtil.getTrackingPlayers(target);
 
 			for (var trackingPlayer : trackingPlayers) {
 				ServerPlayNetworking.send(trackingPlayer, packet);

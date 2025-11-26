@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import org.jetbrains.annotations.NotNull;
 
 public class RecipeUtil {
@@ -34,7 +34,7 @@ public class RecipeUtil {
 	}
 
 	private static <R> DataResult<R> createInternalOnlyError(RecipeSerializer<?> serializer) {
-		return DataResult.error(() -> "Recipe type \"" + RegistryUtil.getId(Registries.RECIPE_SERIALIZER, serializer) + "\" is for internal use only!");
+		return DataResult.error(() -> "Recipe type \"" + RegistryUtil.getId(BuiltInRegistries.RECIPE_SERIALIZER, serializer) + "\" is for internal use only!");
 	}
 
 }

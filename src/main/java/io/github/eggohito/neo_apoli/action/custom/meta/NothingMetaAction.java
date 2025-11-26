@@ -14,7 +14,7 @@ public interface NothingMetaAction extends MetaAction {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 	}
 

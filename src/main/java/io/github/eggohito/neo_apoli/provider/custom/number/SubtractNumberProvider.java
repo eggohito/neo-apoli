@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
 public record SubtractNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
 	public static final MapCodec<SubtractNumberProvider> CODEC = MultiNumberProvider.codec(SubtractNumberProvider::new);
-	public static final PacketCodec<RegistryByteBuf, SubtractNumberProvider> PACKET_CODEC = MultiNumberProvider.packetCodec(SubtractNumberProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SubtractNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(SubtractNumberProvider::new);
 
 	@Override
 	public NumberProviderType<?> getType() {

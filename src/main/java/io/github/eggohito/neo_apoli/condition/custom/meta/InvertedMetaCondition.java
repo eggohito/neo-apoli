@@ -4,13 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.function.Function;
 
@@ -24,18 +20,18 @@ public interface InvertedMetaCondition<C extends Condition> extends MetaConditio
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
-		condition().validate(reporter.makeChild(".condition"));
+	default void validate(ProblemReporter reporter) {
+		condition().validate(reporter.forChild(".condition"));
 	}
 
-	static <C extends Condition, M extends InvertedMetaCondition<C>> MapCodec<M> codec(Codec<C> conditionCodec, Function<C, M> constructor) {
+	static <C extends Condition, M extends InvertedMetaCondition<C>> MapCodec<M> createCodec(Codec<C> conditionCodec, Function<C, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			conditionCodec.fieldOf("condition").forGetter(InvertedMetaCondition::condition)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, M extends InvertedMetaCondition<C>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, C> conditionCodec, Function<C, M> constructor) {
-		return PacketCodec.tuple(
+	static <C extends Condition, M extends InvertedMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<C, M> constructor) {
+		return StreamCodec.composite(
 			conditionCodec, InvertedMetaCondition::condition,
 			constructor
 		);

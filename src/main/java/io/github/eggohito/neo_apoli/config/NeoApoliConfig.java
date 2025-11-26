@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.core.HolderLookup;
 
 public record NeoApoliConfig(Command command) {
 
@@ -20,7 +20,7 @@ public record NeoApoliConfig(Command command) {
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 
-			RegistryWrapper.WrapperLookup wrapperLookup = server.getRegistryManager();
+			HolderLookup.Provider wrapperLookup = server.registryAccess();
 			if (NeoApoli.loadConfig(wrapperLookup)) {
 				return;
 			}
@@ -33,7 +33,7 @@ public record NeoApoliConfig(Command command) {
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, manager, success) -> {
 
 			if (success) {
-				NeoApoli.loadConfig(server.getRegistryManager());
+				NeoApoli.loadConfig(server.registryAccess());
 			}
 
 		});

@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.util.color.Hsv;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberProvider value, NumberProvider alpha) implements DynamicColor {
 
@@ -19,11 +19,11 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicHsv::alpha)
 	).apply(instance, DynamicHsv::new));
 
-	public static final PacketCodec<RegistryByteBuf, DynamicHsv> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicHsv::hue,
-		NumberProvider.PACKET_CODEC, DynamicHsv::saturation,
-		NumberProvider.PACKET_CODEC, DynamicHsv::value,
-		NumberProvider.PACKET_CODEC, DynamicHsv::alpha,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicHsv> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, DynamicHsv::hue,
+		NumberProvider.STREAM_CODEC, DynamicHsv::saturation,
+		NumberProvider.STREAM_CODEC, DynamicHsv::value,
+		NumberProvider.STREAM_CODEC, DynamicHsv::alpha,
 		DynamicHsv::new
 	);
 
@@ -38,11 +38,11 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
-		hue().validate(reporter.makeChild(".hue"));
-		saturation().validate(reporter.makeChild(".saturation"));
-		value().validate(reporter.makeChild(".value"));
-		alpha().validate(reporter.makeChild(".alpha"));
+	public void validate(ProblemReporter reporter) {
+		hue().validate(reporter.forChild(".hue"));
+		saturation().validate(reporter.forChild(".saturation"));
+		value().validate(reporter.forChild(".value"));
+		alpha().validate(reporter.forChild(".alpha"));
 	}
 
 	public float hue(Context context) {

@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record DistanceBetweenPositionsNumberProvider(Vec3dProvider first, Vec3dProvider second) implements NumberProvider {
@@ -18,9 +18,9 @@ public record DistanceBetweenPositionsNumberProvider(Vec3dProvider first, Vec3dP
 		Vec3dProvider.CODEC.fieldOf("second").forGetter(DistanceBetweenPositionsNumberProvider::second)
 	).apply(instance, DistanceBetweenPositionsNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, DistanceBetweenPositionsNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		Vec3dProvider.PACKET_CODEC, DistanceBetweenPositionsNumberProvider::first,
-		Vec3dProvider.PACKET_CODEC, DistanceBetweenPositionsNumberProvider::second,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DistanceBetweenPositionsNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		Vec3dProvider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::first,
+		Vec3dProvider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::second,
 		DistanceBetweenPositionsNumberProvider::new
 	);
 
@@ -33,14 +33,14 @@ public record DistanceBetweenPositionsNumberProvider(Vec3dProvider first, Vec3dP
 	public @NotNull Number next(Context context) {
 
 		Context firstContext = context.makeChild(".first");
-		Vec3d first = first().next(firstContext);
+		Vec3 first = first().next(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return 0.0d;
 		}
 
 		Context secondContext = context.makeChild(".second");
-		Vec3d second = second().next(secondContext);
+		Vec3 second = second().next(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return 0.0d;
@@ -51,12 +51,12 @@ public record DistanceBetweenPositionsNumberProvider(Vec3dProvider first, Vec3dP
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 
-		first().validate(reporter.makeChild(".first"));
-		second().validate(reporter.makeChild(".second"));
+		first().validate(reporter.forChild(".first"));
+		second().validate(reporter.forChild(".second"));
 
 	}
 

@@ -6,14 +6,14 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Vec3d;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
@@ -24,9 +24,9 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 		Vec3dProvider.CODEC.fieldOf("offset").forGetter(OffsetEntityCondition::offset)
 	).apply(instance, OffsetEntityCondition::new)));
 
-	public static final PacketCodec<RegistryByteBuf, OffsetEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> PacketCodec.tuple(
-		EntityCondition.PACKET_CODEC, OffsetEntityCondition::condition,
-		Vec3dProvider.PACKET_CODEC, OffsetEntityCondition::offset,
+	public static final StreamCodec<RegistryFriendlyByteBuf, OffsetEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> StreamCodec.composite(
+		EntityCondition.STREAM_CODEC, OffsetEntityCondition::condition,
+		Vec3dProvider.STREAM_CODEC, OffsetEntityCondition::offset,
 		OffsetEntityCondition::new
 	));
 
@@ -43,31 +43,31 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 		}
 
 		Context offsetContext = context.makeChild(".offset");
-		Vec3d offset = offset().next(offsetContext);
+		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;
 		}
 
-		Vec3d offsetPos = context.required(NeoApoliContextParameters.ENTITY_POS).add(offset);
-		Context conditionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextParameters.ENTITY_POS, offsetPos));
+		Vec3 offsetPos = context.required(NeoApoliContextKeys.ENTITY_POS).add(offset);
+		Context conditionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.ENTITY_POS, offsetPos));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ENTITY_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ENTITY_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		EntityCondition.super.validate(reporter);
 
-		condition().validate(reporter.makeChild(".condition"));
-		offset().validate(reporter.makeChild(".offset"));
+		condition().validate(reporter.forChild(".condition"));
+		offset().validate(reporter.forChild(".offset"));
 
 	}
 

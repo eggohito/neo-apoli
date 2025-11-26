@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record DynamicVec3dProvider(NumberProvider x, NumberProvider y, NumberProvider z) implements Vec3dProvider {
@@ -19,10 +19,10 @@ public record DynamicVec3dProvider(NumberProvider x, NumberProvider y, NumberPro
 		NumberProvider.CODEC.fieldOf("z").forGetter(DynamicVec3dProvider::z)
 	).apply(instance, DynamicVec3dProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, DynamicVec3dProvider> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicVec3dProvider::x,
-		NumberProvider.PACKET_CODEC, DynamicVec3dProvider::y,
-		NumberProvider.PACKET_CODEC, DynamicVec3dProvider::z,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicVec3dProvider> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, DynamicVec3dProvider::x,
+		NumberProvider.STREAM_CODEC, DynamicVec3dProvider::y,
+		NumberProvider.STREAM_CODEC, DynamicVec3dProvider::z,
 		DynamicVec3dProvider::new
 	);
 
@@ -32,8 +32,8 @@ public record DynamicVec3dProvider(NumberProvider x, NumberProvider y, NumberPro
 	}
 
 	@Override
-	public @NotNull Vec3d next(Context context) {
-		return new Vec3d(
+	public @NotNull Vec3 next(Context context) {
+		return new Vec3(
 			x().nextDouble(context.makeChild(".x")),
 			y().nextDouble(context.makeChild(".y")),
 			z().nextDouble(context.makeChild(".z"))
@@ -41,13 +41,13 @@ public record DynamicVec3dProvider(NumberProvider x, NumberProvider y, NumberPro
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		Vec3dProvider.super.validate(reporter);
 
-		x().validate(reporter.makeChild(".x"));
-		y().validate(reporter.makeChild(".y"));
-		z().validate(reporter.makeChild(".z"));
+		x().validate(reporter.forChild(".x"));
+		y().validate(reporter.forChild(".y"));
+		z().validate(reporter.forChild(".z"));
 
 	}
 

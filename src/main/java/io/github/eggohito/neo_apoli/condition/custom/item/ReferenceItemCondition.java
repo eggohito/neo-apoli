@@ -5,15 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
-import lombok.Data;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceItemCondition(Identifier value) implements ItemCondition, ReferenceMetaCondition<ItemCondition> {
+public record ReferenceItemCondition(ResourceLocation value) implements ItemCondition, ReferenceMetaCondition<ItemCondition> {
 
-	public static final MapCodec<ReferenceItemCondition> CODEC = ReferenceMetaCondition.codec(ReferenceItemCondition::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceItemCondition> PACKET_CODEC = ReferenceMetaCondition.packetCodec(ReferenceItemCondition::new);
+	public static final MapCodec<ReferenceItemCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceItemCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceItemCondition::new);
 
 	@Override
 	public Pair<Class<ItemCondition>, String> classAndName() {

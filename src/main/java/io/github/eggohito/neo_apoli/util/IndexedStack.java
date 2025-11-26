@@ -5,13 +5,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.inventory.SlotRange;
-import net.minecraft.inventory.SlotRanges;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.inventory.SlotRange;
+import net.minecraft.world.inventory.SlotRanges;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,16 +25,16 @@ public record IndexedStack(ItemStack stack, Optional<SlotRange> slotRange) {
 
 	public static final Codec<List<IndexedStack>> LIST_CODEC = CODEC.codec().listOf(1, Integer.MAX_VALUE);
 
-	public static final PacketCodec<RegistryByteBuf, IndexedStack> PACKET_CODEC = PacketCodec.tuple(
-		ItemStack.OPTIONAL_PACKET_CODEC, IndexedStack::stack,
-		PacketCodecs.optional(PacketCodecs.STRING.xmap(SlotRanges::fromName, StringIdentifiable::asString)), IndexedStack::slotRange,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IndexedStack> STREAM_CODEC = StreamCodec.composite(
+		ItemStack.OPTIONAL_STREAM_CODEC, IndexedStack::stack,
+		ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8.map(SlotRanges::nameToIds, StringRepresentable::getSerializedName)), IndexedStack::slotRange,
 		IndexedStack::new
 	);
 
-	public static final PacketCodec<RegistryByteBuf, List<IndexedStack>> LIST_PACKET_CODEC = PacketCodecs.collection(ObjectArrayList::new, PACKET_CODEC);
+	public static final StreamCodec<RegistryFriendlyByteBuf, List<IndexedStack>> LIST_STREAM_CODEC = ByteBufCodecs.collection(ObjectArrayList::new, STREAM_CODEC);
 
 	public Optional<IntList> slotIds() {
-		return slotRange().map(SlotRange::getSlotIds);
+		return slotRange().map(SlotRange::slots);
 	}
 
 }

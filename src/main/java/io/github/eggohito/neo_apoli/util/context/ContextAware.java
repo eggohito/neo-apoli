@@ -4,11 +4,11 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
 import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import lombok.Getter;
-import net.minecraft.loot.context.LootContextTypes;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.context.ContextType;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -18,78 +18,78 @@ import java.util.stream.Collectors;
 
 public interface ContextAware {
 
-	default Set<ContextParameter<?>> getRequiredParameters() {
+	default Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of();
 	}
 
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 		reporter.validate(this);
 	}
 
-	class ErrorReporter implements net.minecraft.util.ErrorReporter {
+	class ProblemReporter implements net.minecraft.util.ProblemReporter {
 
-		private final ErrorReporter parent;
+		private final ProblemReporter parent;
 
 		@Getter
-		private final Optional<RegistryWrapper.WrapperLookup> wrapperLookup;
+		private final Optional<HolderLookup.Provider> holderProvider;
 		@Getter
-		private final ContextType contextType;
+		private final ContextKeySet keySet;
 
 		private final Multimap<String, String> errors;
-		private final Set<ContextKey> referenceStack;
+		private final Set<ReferenceKey> referenceStack;
 
 		@Getter
 		private final String path;
 		private final Supplier<String> fullPathSupplier;
 
-		protected ErrorReporter(ErrorReporter parent, Optional<RegistryWrapper.WrapperLookup> wrapperLookup, ContextType contextType, Multimap<String, String> errors, Set<ContextKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
+		protected ProblemReporter(ProblemReporter parent, Optional<HolderLookup.Provider> holderProvider, ContextKeySet keySet, Multimap<String, String> errors, Set<ReferenceKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
 			this.parent = parent;
-			this.wrapperLookup = wrapperLookup;
-			this.contextType = contextType;
+			this.holderProvider = holderProvider;
+			this.keySet = keySet;
 			this.errors = errors;
 			this.referenceStack = referenceStack;
 			this.path = path;
 			this.fullPathSupplier = Suppliers.memoize(fullPathSupplier::get);
 		}
 
-		public ErrorReporter(ContextType contextType, String path) {
-			this(null, Optional.empty(), contextType, HashMultimap.create(), Set.of(), path, () -> path);
+		public ProblemReporter(ContextKeySet keySet, String path) {
+			this(null, Optional.empty(), keySet, HashMultimap.create(), Set.of(), path, () -> path);
 		}
 
-		public ErrorReporter(String path) {
-			this(LootContextTypes.EMPTY, path);
+		public ProblemReporter(String path) {
+			this(LootContextParamSets.EMPTY, path);
 		}
 
-		public ErrorReporter(ContextType contextType) {
-			this(contextType, "");
+		public ProblemReporter(ContextKeySet keySet) {
+			this(keySet, "");
 		}
 
-		public ErrorReporter() {
-			this(LootContextTypes.EMPTY);
+		public ProblemReporter() {
+			this(LootContextParamSets.EMPTY);
 		}
 
 		@Override
-		public ErrorReporter makeChild(String path) {
-			return new ErrorReporter(this, this.wrapperLookup, this.contextType, this.errors, this.referenceStack, path, () -> appendPath(path));
+		public ProblemReporter forChild(String path) {
+			return new ProblemReporter(this, this.holderProvider, this.keySet, this.errors, this.referenceStack, path, () -> appendPath(path));
 		}
 
-		public ErrorReporter makeChild(String path, ContextKey key) {
+		public ProblemReporter forChild(String path, ReferenceKey key) {
 
-			Set<ContextKey> referenceStack = ImmutableSet.<ContextKey>builder()
+			Set<ReferenceKey> referenceStack = ImmutableSet.<ReferenceKey>builder()
 				.addAll(this.referenceStack)
 				.add(key)
 				.build();
 
-			return new ErrorReporter(this, this.wrapperLookup, this.contextType, this.errors, referenceStack, path, () -> appendPath(path));
+			return new ProblemReporter(this, this.holderProvider, this.keySet, this.errors, referenceStack, path, () -> appendPath(path));
 
 		}
 
-		public ErrorReporter withContextType(ContextType contextType) {
-			return new ErrorReporter(this.parent, this.wrapperLookup, contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
+		public ProblemReporter withKeySet(ContextKeySet contextType) {
+			return new ProblemReporter(this.parent, this.holderProvider, contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
-		public ErrorReporter withWrapperLookup(@NotNull RegistryWrapper.WrapperLookup wrapperLookup) {
-			return new ErrorReporter(this.parent, Optional.of(wrapperLookup), this.contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
+		public ProblemReporter withHolderProvider(@NotNull HolderLookup.Provider wrapperLookup) {
+			return new ProblemReporter(this.parent, Optional.of(wrapperLookup), this.keySet, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
 		@Override
@@ -133,14 +133,14 @@ public interface ContextAware {
 		}
 
 		public boolean hasWrapperLookup() {
-			return wrapperLookup.isPresent();
+			return holderProvider.isPresent();
 		}
 
 		public String getFullPath() {
 			return fullPathSupplier.get();
 		}
 
-		public ErrorReporter getParent() {
+		public ProblemReporter getParent() {
 
 			if (this.hasParent()) {
 				return parent;
@@ -156,7 +156,7 @@ public interface ContextAware {
 			return parent != null;
 		}
 
-		public ErrorReporter getRoot() {
+		public ProblemReporter getRoot() {
 
 			if (this.parent == null) {
 				return this;
@@ -172,7 +172,7 @@ public interface ContextAware {
 			return this.parent == null;
 		}
 
-		public boolean isInStack(ContextKey key) {
+		public boolean isInStack(ReferenceKey key) {
 			return referenceStack.contains(key);
 		}
 
@@ -186,10 +186,10 @@ public interface ContextAware {
 
 		public void validate(ContextAware contextAware) {
 
-			Set<ContextParameter<?>> missingParameters = Sets.difference(contextAware.getRequiredParameters(), contextType.getAllowed());
+			Set<ContextKey<?>> missingParameters = Sets.difference(contextAware.getRequiredParameters(), keySet.allowed());
 
 			if (!missingParameters.isEmpty()) {
-				this.report("Parameters [" + missingParameters.stream().map(ContextParameter::getId).map(Identifier::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + (contextAware instanceof StringDisplayable stringDisplayable ? stringDisplayable.asDisplayString(false) : contextAware) + "!");
+				this.report("Parameters [" + missingParameters.stream().map(ContextKey::name).map(ResourceLocation::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + (contextAware instanceof StringDisplayable stringDisplayable ? stringDisplayable.asDisplayString(false) : contextAware) + "!");
 			}
 
 		}

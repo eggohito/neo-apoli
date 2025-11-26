@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.action.custom.meta;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
@@ -15,25 +15,25 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.*;
 import lombok.AllArgsConstructor;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.explosion.Explosion;
-import net.minecraft.world.explosion.ExplosionBehavior;
-import net.minecraft.world.explosion.ExplosionImpl;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.game.ClientboundExplodePacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.ExplosionDamageCalculator;
+import net.minecraft.world.level.ServerExplosion;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 import java.util.Set;
@@ -55,12 +55,12 @@ public interface ExplodeMetaAction extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
 		Context positionContext = context.makeChild(".position");
-		Vec3d position = position().next(positionContext);
+		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return;
@@ -81,85 +81,85 @@ public interface ExplodeMetaAction extends MetaAction {
 		}
 
 		Entity actor = context.nullable(actor().getParameter());
-		Behavior behavior = new Behavior(this, context);
+		DamageCalculator damageCalculator = new DamageCalculator(this, context);
 
-		ExplosionImpl explosion = new ExplosionImpl(serverWorld, actor, Explosion.createDamageSource(serverWorld, actor), behavior, position, power, createFire, property().destructionType());
+		ServerExplosion explosion = new ServerExplosion(serverWorld, actor, Explosion.getDefaultDamageSource(serverWorld, actor), damageCalculator, position, power, createFire, property().destructionType());
 		explosion.explode();
 
-		ParticleEffect particle = display().getParticleOrDefault(explosion);
+		ParticleOptions particle = display().getParticleOrDefault(explosion);
 
-		for (var player : serverWorld.getPlayers()) {
+		for (var player : serverWorld.players()) {
 
-			if (player.squaredDistanceTo(position) >= 4096.0) {
+			if (player.distanceToSqr(position) >= 4096.0) {
 				continue;
 			}
 
-			Optional<Vec3d> knockback = Optional.ofNullable(explosion.getKnockbackByPlayer().get(player));
-			player.networkHandler.sendPacket(new ExplosionS2CPacket(position, knockback, particle, display().sound()));
+			Optional<Vec3> knockback = Optional.ofNullable(explosion.getHitPlayers().get(player));
+			player.connection.send(new ClientboundExplodePacket(position, knockback, particle, display().sound()));
 
 		}
 
 	}
 
 	@Override
-	default Set<ContextParameter<?>> getRequiredParameters() {
+	default Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(actor().getParameter());
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		MetaAction.super.validate(reporter);
 
 		damageableBiEntityCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BIENTITY))
-			.makeChild(".damageable_bientity_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+			.forChild(".damageable_bientity_condition"));
 		destructibleBlockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".destructible_block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".destructible_block_condition"));
 
 		property().validate(reporter);
 
 	}
 
 	@AllArgsConstructor
-	class Behavior extends ExplosionBehavior {
+	class DamageCalculator extends ExplosionDamageCalculator {
 
 		private final ExplodeMetaAction action;
 		private final Context context;
 
 		@Override
-		public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power) {
+		public boolean shouldBlockExplode(Explosion explosion, BlockGetter world, BlockPos pos, BlockState state, float power) {
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-				.add(NeoApoliContextParameters.BLOCK_POS, pos)
-				.add(NeoApoliContextParameters.BLOCK_STATE, state)
-				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(pos)));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+				.add(NeoApoliContextKeys.BLOCK_POS, pos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, state)
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(pos)));
 
 			return action.destructibleBlockCondition().test(blockContext.makeChild(".destructible_block_condition"));
 
 		}
 
 		@Override
-		public boolean shouldDamage(Explosion explosion, Entity entity) {
+		public boolean shouldDamageEntity(Explosion explosion, Entity entity) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
-				.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
-				.addNullable(NeoApoliContextParameters.TARGET, entity));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextKeys.TARGET, entity));
 
 			return action.damageableBiEntityCondition().test(biEntityContext.makeChild(".damageable_bientity_condition"));
 
 		}
 
 		@Override
-		public float getKnockbackModifier(Entity entity) {
+		public float getKnockbackMultiplier(Entity entity) {
 
 			Context knockbackModifierContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BIENTITY))
-				.addNullable(NeoApoliContextParameters.ACTOR, context.nullable(action.actor().getParameter()))
-				.addNullable(NeoApoliContextParameters.TARGET, entity));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextKeys.TARGET, entity));
 
 			return action.property().knockbackMultiplier().nextFloat(knockbackModifierContext.makeChild(".knockback_multiplier"));
 
@@ -167,7 +167,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 	}
 
-	record Property(Explosion.DestructionType destructionType, NumberProvider power, NumberProvider knockbackMultiplier, BooleanProvider createFire) implements ContextAware {
+	record Property(Explosion.BlockInteraction destructionType, NumberProvider power, NumberProvider knockbackMultiplier, BooleanProvider createFire) implements ContextAware {
 
 		public static final MapCodec<Property> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			NeoApoliCodecs.DESTRUCTION_TYPE.fieldOf("destruction_type").forGetter(Property::destructionType),
@@ -176,41 +176,41 @@ public interface ExplodeMetaAction extends MetaAction {
 			BooleanProvider.CODEC.optionalFieldOf("create_fire", new ConstantBooleanProvider(true)).forGetter(Property::createFire)
 		).apply(instance, Property::new));
 
-		public static final PacketCodec<RegistryByteBuf, Property> PACKET_CODEC = PacketCodec.tuple(
-			NeoApoliPacketCodecs.DESTRUCTION_TYPE, Property::destructionType,
-			NumberProvider.PACKET_CODEC, Property::power,
-			NumberProvider.PACKET_CODEC, Property::knockbackMultiplier,
-			BooleanProvider.PACKET_CODEC, Property::createFire,
+		public static final StreamCodec<RegistryFriendlyByteBuf, Property> STREAM_CODEC = StreamCodec.composite(
+			NeoApoliStreamCodecs.DESTRUCTION_TYPE, Property::destructionType,
+			NumberProvider.STREAM_CODEC, Property::power,
+			NumberProvider.STREAM_CODEC, Property::knockbackMultiplier,
+			BooleanProvider.STREAM_CODEC, Property::createFire,
 			Property::new
 		);
 
 		@Override
-		public void validate(ErrorReporter reporter) {
+		public void validate(ProblemReporter reporter) {
 
 			ContextAware.super.validate(reporter);
 
-			power().validate(reporter.makeChild(".power"));
-			knockbackMultiplier().validate(reporter.makeChild(".knockback_multiplier"));
-			createFire().validate(reporter.makeChild(".create_fire"));
+			power().validate(reporter.forChild(".power"));
+			knockbackMultiplier().validate(reporter.forChild(".knockback_multiplier"));
+			createFire().validate(reporter.forChild(".create_fire"));
 
 		}
 
 	}
 
-	record Display(RegistryEntry<SoundEvent> sound, Optional<ParticleEffect> particle) {
+	record Display(Holder<SoundEvent> sound, Optional<ParticleOptions> particle) {
 
 		public static final MapCodec<Display> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			SoundEvent.ENTRY_CODEC.optionalFieldOf("sound", SoundEvents.ENTITY_GENERIC_EXPLODE).forGetter(Display::sound),
+			SoundEvent.CODEC.optionalFieldOf("sound", SoundEvents.GENERIC_EXPLODE).forGetter(Display::sound),
 			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("particle").forGetter(Display::particle)
 		).apply(instance, Display::new));
 
-		public static final PacketCodec<RegistryByteBuf, Display> PACKET_CODEC = PacketCodec.tuple(
-			SoundEvent.ENTRY_PACKET_CODEC, Display::sound,
-			PacketCodecs.optional(NeoApoliParticleTypes.EFFECT_PACKET_CODEC), Display::particle,
+		public static final StreamCodec<RegistryFriendlyByteBuf, Display> STREAM_CODEC = StreamCodec.composite(
+			SoundEvent.STREAM_CODEC, Display::sound,
+			ByteBufCodecs.optional(NeoApoliParticleTypes.EFFECT_STREAM_CODEC), Display::particle,
 			Display::new
 		);
 
-		public ParticleEffect getParticleOrDefault(ExplosionImpl explosion) {
+		public ParticleOptions getParticleOrDefault(ServerExplosion explosion) {
 
 			if (particle().isPresent()) {
 				return particle().get();

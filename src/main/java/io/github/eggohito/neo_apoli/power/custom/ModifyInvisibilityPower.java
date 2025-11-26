@@ -11,14 +11,13 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +34,11 @@ public class ModifyInvisibilityPower extends Power {
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
 		.apply(instance, ModifyInvisibilityPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyInvisibilityPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Condition.PACKET_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
-		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderArmor,
-		BooleanProvider.PACKET_CODEC, ModifyInvisibilityPower::getRenderOutline,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyInvisibilityPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Condition.STREAM_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
+		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::getRenderArmor,
+		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::getRenderOutline,
 		ModifyInvisibilityPower::new
 	);
 
@@ -61,15 +60,15 @@ public class ModifyInvisibilityPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		super.validate(reporter);
-		getInvisibleToCondition().validate(reporter.makeChild(".invisible_to_condition"));
-		getRenderArmor().validate(reporter.makeChild(".render_armor"));
-		getRenderOutline().validate(reporter.makeChild(".render_outline"));
+		getInvisibleToCondition().validate(reporter.forChild(".invisible_to_condition"));
+		getRenderArmor().validate(reporter.forChild(".render_armor"));
+		getRenderOutline().validate(reporter.forChild(".render_outline"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
@@ -95,14 +94,14 @@ public class ModifyInvisibilityPower extends Power {
 
 	}
 
-	public static boolean doesApply(Context context, BiPredicate<Instance, Context> tester) {
+	public static boolean doesApply(Context context, BiPredicate<io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance, Context> tester) {
 
-		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
+		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
+		List<io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance> instances = PowersComponent.getInstances(entity, io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance.class);
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -125,11 +124,11 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static Context createContext(@NotNull Entity target, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_INVISIBILITY.contextBuilder()
-			.addNullable(NeoApoliContextParameters.ACTOR, viewer)
-			.add(NeoApoliContextParameters.TARGET, target)
-			.add(NeoApoliContextParameters.THIS_ENTITY, target)
-			.add(NeoApoliContextParameters.ENTITY_POS, target.getPos())
-			.build(target.getWorld());
+			.addNullable(NeoApoliContextKeys.ACTOR, viewer)
+			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.THIS_ENTITY, target)
+			.add(NeoApoliContextKeys.ENTITY_POS, target.position())
+			.build(target.level());
 	}
 
 }

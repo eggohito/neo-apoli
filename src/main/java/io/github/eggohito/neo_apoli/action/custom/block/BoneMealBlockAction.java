@@ -7,17 +7,17 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BoneMealItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.BoneMealItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.state.BlockState;
 
 public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockAction {
 
@@ -25,8 +25,8 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 		.group(BooleanProvider.CODEC.optionalFieldOf("show_effects", new ConstantBooleanProvider(true)).forGetter(BoneMealBlockAction::showEffects))
 		.apply(instance, BoneMealBlockAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, BoneMealBlockAction> PACKET_CODEC = PacketCodec.tuple(
-		BooleanProvider.PACKET_CODEC, BoneMealBlockAction::showEffects,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BoneMealBlockAction> STREAM_CODEC = StreamCodec.composite(
+		BooleanProvider.STREAM_CODEC, BoneMealBlockAction::showEffects,
 		BoneMealBlockAction::new
 	);
 
@@ -38,23 +38,23 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	@Override
 	public void serverExecute(ServerContext context) {
 
-		if (!context.hasParameter(NeoApoliContextParameters.BLOCK_POS)) {
+		if (!context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
 			return;
 		}
 
-		ServerWorld world = context.getWorld();
-		BlockPos blockPos = context.required(NeoApoliContextParameters.BLOCK_POS);
+		ServerLevel world = context.getWorld();
+		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
 
-		if (BoneMealItem.useOnFertilizable(ItemStack.EMPTY, world, blockPos)) {
+		if (BoneMealItem.growCrop(ItemStack.EMPTY, world, blockPos)) {
 			this.showEffects(context, blockPos);
 		}
 
-		else if (context.hasParameter(NeoApoliContextParameters.DIRECTION)) {
+		else if (context.hasParameter(NeoApoliContextKeys.DIRECTION)) {
 
-			Direction direction = context.required(NeoApoliContextParameters.DIRECTION);
+			Direction direction = context.required(NeoApoliContextKeys.DIRECTION);
 			BlockState blockState = world.getBlockState(blockPos);
 
-			if (blockState.isSideSolidFullSquare(world, blockPos, direction) && BoneMealItem.useOnGround(ItemStack.EMPTY, world, blockPos.offset(direction), direction)) {
+			if (blockState.isFaceSturdy(world, blockPos, direction) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, world, blockPos.relative(direction), direction)) {
 				this.showEffects(context, blockPos);
 			}
 
@@ -63,9 +63,9 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		BlockAction.super.validate(reporter);
-		showEffects().validate(reporter.makeChild(".show_effects"));
+		showEffects().validate(reporter.forChild(".show_effects"));
 	}
 
 	private void showEffects(ServerContext context, BlockPos blockPos) {
@@ -74,7 +74,7 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 		boolean showEffects = showEffects().next(showEffectsContext);
 
 		if (!showEffectsContext.hasErrors() && showEffects) {
-			context.getWorld().syncWorldEvent(WorldEvents.BONE_MEAL_USED, blockPos, 15);
+			context.getWorld().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
 		}
 
 	}

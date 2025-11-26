@@ -4,20 +4,20 @@ import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Iterator;
 import java.util.Map;
 
 public class JsonTextFormatter {
 
-	private static final Formatting NAME_COLOR = Formatting.AQUA;
-	private static final Formatting STRING_COLOR = Formatting.GREEN;
-	private static final Formatting NUMBER_COLOR = Formatting.GOLD;
-	private static final Formatting BOOLEAN_COLOR = Formatting.BLUE;
-	private static final Formatting TYPE_SUFFIX_COLOR = Formatting.RED;
+	private static final ChatFormatting NAME_COLOR = ChatFormatting.AQUA;
+	private static final ChatFormatting STRING_COLOR = ChatFormatting.GREEN;
+	private static final ChatFormatting NUMBER_COLOR = ChatFormatting.GOLD;
+	private static final ChatFormatting BOOLEAN_COLOR = ChatFormatting.BLUE;
+	private static final ChatFormatting TYPE_SUFFIX_COLOR = ChatFormatting.RED;
 
 	private final String indent;
 	private final boolean root;
@@ -38,26 +38,26 @@ public class JsonTextFormatter {
 		this(' ', size);
 	}
 
-	public static Text format(JsonElement jsonElement, char ch, int indent) {
+	public static Component format(JsonElement jsonElement, char ch, int indent) {
 		return new JsonTextFormatter(ch, indent).apply(jsonElement);
 	}
 
-	public static Text format(JsonElement jsonElement, int indent) {
+	public static Component format(JsonElement jsonElement, int indent) {
 		return new JsonTextFormatter(indent).apply(jsonElement);
 	}
 
-	public Text apply(JsonElement jsonElement) {
+	public Component apply(JsonElement jsonElement) {
 		return this.applyInternal(jsonElement)
 			.mapError(error -> "Error trying to format JSON element " + jsonElement + " into text: " + error)
 			.resultOrPartial(NeoApoli.LOGGER::warn)
-			.orElse(Text.empty());
+			.orElse(Component.empty());
 	}
 
-	protected final DataResult<Text> applyInternal(JsonElement jsonElement) {
+	protected final DataResult<Component> applyInternal(JsonElement jsonElement) {
 
 		try {
 
-			Text text = switch (jsonElement) {
+			Component text = switch (jsonElement) {
 				case JsonArray jsonArray ->
 					this.visitArray(jsonArray);
 				case JsonObject jsonObject ->
@@ -82,13 +82,13 @@ public class JsonTextFormatter {
 
 	}
 
-	public Text visitArray(JsonArray jsonArray) {
+	public Component visitArray(JsonArray jsonArray) {
 
 		if (jsonArray.isEmpty()) {
-			return Text.literal("[]");
+			return Component.literal("[]");
 		}
 
-		MutableText result = Text.literal("[");
+		MutableComponent result = Component.literal("[");
 		if (!indent.isEmpty()) {
 			result.append("\n");
 		}
@@ -97,7 +97,7 @@ public class JsonTextFormatter {
 		while (iterator.hasNext()) {
 
 			JsonElement jsonElement = iterator.next();
-			DataResult<Text> jsonText = new JsonTextFormatter(indent, offset + 1, false).applyInternal(jsonElement).ifSuccess(text -> result
+			DataResult<Component> jsonText = new JsonTextFormatter(indent, offset + 1, false).applyInternal(jsonElement).ifSuccess(text -> result
 				.append(Strings.repeat(indent, offset))
 				.append(text));
 
@@ -119,13 +119,13 @@ public class JsonTextFormatter {
 
 	}
 
-	public Text visitObject(JsonObject jsonObject) {
+	public Component visitObject(JsonObject jsonObject) {
 
 		if (jsonObject.isEmpty()) {
-			return Text.literal("{}");
+			return Component.literal("{}");
 		}
 
-		MutableText result = Text.literal("{");
+		MutableComponent result = Component.literal("{");
 		if (!indent.isEmpty()) {
 			result.append("\n");
 		}
@@ -135,8 +135,8 @@ public class JsonTextFormatter {
 
 			Map.Entry<String, JsonElement> entry = iterator.next();
 
-			Text name = Text.literal(entry.getKey()).formatted(NAME_COLOR);
-			DataResult<Text> value = new JsonTextFormatter(indent, offset + 1, false).applyInternal(entry.getValue()).ifSuccess(text -> result
+			Component name = Component.literal(entry.getKey()).withStyle(NAME_COLOR);
+			DataResult<Component> value = new JsonTextFormatter(indent, offset + 1, false).applyInternal(entry.getValue()).ifSuccess(text -> result
 				.append(Strings.repeat(indent, offset))
 				.append(name).append(": ").append(text));
 
@@ -158,20 +158,20 @@ public class JsonTextFormatter {
 
 	}
 
-	public Text visitPrimitive(JsonPrimitive jsonPrimitive) {
+	public Component visitPrimitive(JsonPrimitive jsonPrimitive) {
 
 		if (jsonPrimitive.isBoolean()) {
-			return Text.literal(String.valueOf(jsonPrimitive.getAsBoolean())).formatted(BOOLEAN_COLOR);
+			return Component.literal(String.valueOf(jsonPrimitive.getAsBoolean())).withStyle(BOOLEAN_COLOR);
 		}
 
 		else if (jsonPrimitive.isString()) {
-			return Text.literal("\"" + jsonPrimitive.getAsString() + "\"").formatted(STRING_COLOR);
+			return Component.literal("\"" + jsonPrimitive.getAsString() + "\"").withStyle(STRING_COLOR);
 		}
 
 		else if (jsonPrimitive.isNumber()) {
 
 			Number number = jsonPrimitive.getAsNumber();
-			MutableText numberText = Text.empty().formatted(NUMBER_COLOR);
+			MutableComponent numberText = Component.empty().withStyle(NUMBER_COLOR);
 
 			return numberText.append(switch (number) {
 				case Long ignored ->
@@ -196,8 +196,8 @@ public class JsonTextFormatter {
 
 	}
 
-	private static Text numberAsText(Number number, String suffix) {
-		return Text.literal(number.toString()).append(Text.literal(suffix).formatted(TYPE_SUFFIX_COLOR));
+	private static Component numberAsText(Number number, String suffix) {
+		return Component.literal(number.toString()).append(Component.literal(suffix).withStyle(TYPE_SUFFIX_COLOR));
 	}
 
 }

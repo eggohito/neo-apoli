@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.State;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.context.ContextParameter;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,9 +26,9 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 		StringProvider.CODEC.fieldOf("value").forGetter(BlockStatePropertyBlockCondition::value)
 	).apply(instance, BlockStatePropertyBlockCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, BlockStatePropertyBlockCondition> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, BlockStatePropertyBlockCondition::property,
-		StringProvider.PACKET_CODEC, BlockStatePropertyBlockCondition::value,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockStatePropertyBlockCondition> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, BlockStatePropertyBlockCondition::property,
+		StringProvider.STREAM_CODEC, BlockStatePropertyBlockCondition::value,
 		BlockStatePropertyBlockCondition::new
 	);
 
@@ -40,7 +40,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	@Override
 	public boolean test(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextParameters.BLOCK_STATE)) {
+		if (!context.hasParameter(NeoApoliContextKeys.BLOCK_STATE)) {
 			return false;
 		}
 
@@ -51,11 +51,11 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 			return false;
 		}
 
-		BlockState blockState = context.required(NeoApoliContextParameters.BLOCK_STATE);
-		Property<?> property = blockState.getBlock().getStateManager().getProperty(propertyName);
+		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
+		Property<?> property = blockState.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
-			propertyContext.getReporter().report("Block \"" + RegistryUtil.getId(Registries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
+			propertyContext.getReporter().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
 		}
 
 		return property != null
@@ -64,21 +64,21 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_STATE);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_STATE);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		BlockCondition.super.validate(reporter);
 
-		property().validate(reporter.makeChild(".property"));
-		value().validate(reporter.makeChild(".value"));
+		property().validate(reporter.forChild(".property"));
+		value().validate(reporter.forChild(".value"));
 
 	}
 
-	private <T extends Comparable<T>> boolean testProperty(Context context, State<?, ?> state, Property<T> property) {
+	private <T extends Comparable<T>> boolean testProperty(Context context, StateHolder<?, ?> state, Property<T> property) {
 
 		Context valueContext = context.makeChild(".value");
 		String unparsedValue = this.value().next(valueContext);
@@ -87,8 +87,8 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 			return false;
 		}
 
-		T currentValue = state.get(property);
-		Optional<T> parsedValue = property.parse(unparsedValue);
+		T currentValue = state.getValue(property);
+		Optional<T> parsedValue = property.getValue(unparsedValue);
 
 		return parsedValue.isPresent()
 			&& parsedValue.get().compareTo(currentValue) == 0;

@@ -1,13 +1,12 @@
-accessWidener v2 named
-
-extendable method net/minecraft/text/TranslatableTextContent updateTranslations ()V
-accessible field net/minecraft/text/TranslatableTextContent languageCache Lnet/minecraft/util/Language;
-accessible field net/minecraft/text/TranslatableTextContent translations Ljava/util/List;
-accessible method net/minecraft/util/ErrorReporter$Impl <init> (Lcom/google/common/collect/Multimap;Ljava/util/function/Supplier;)V
-accessible class net/minecraft/command/DataCommandStorage$PersistentState
-accessible class net/minecraft/server/MinecraftServer$ResourceManagerHolder
-accessible class net/minecraft/server/command/ExecuteCommand$Condition
-accessible method net/minecraft/util/math/ColorHelper floatFromChannel (I)F
-accessible class net/minecraft/registry/tag/TagGroupLoader$TagDependencies
-mutable field net/minecraft/recipe/RecipeFinder recipeMatcher Lnet/minecraft/recipe/RecipeMatcher;
-accessible field net/minecraft/recipe/RecipeFinder recipeMatcher Lnet/minecraft/recipe/RecipeMatcher;
+accessWidener	v2	named
+extendable	method	net/minecraft/network/chat/contents/TranslatableContents	decompose	()V
+accessible	field	net/minecraft/network/chat/contents/TranslatableContents	decomposedWith	Lnet/minecraft/locale/Language;
+accessible	field	net/minecraft/network/chat/contents/TranslatableContents	decomposedParts	Ljava/util/List;
+accessible	method	net/minecraft/util/ProblemReporter$Collector	<init>	(Lcom/google/common/collect/Multimap;Ljava/util/function/Supplier;)V
+accessible	class	net/minecraft/world/level/storage/CommandStorage$Container
+accessible	class	net/minecraft/server/MinecraftServer$ReloadableResources
+accessible	class	net/minecraft/server/commands/ExecuteCommand$CommandPredicate
+accessible	method	net/minecraft/util/ARGB	from8BitChannel	(I)F
+accessible	class	net/minecraft/tags/TagLoader$SortingEntry
+mutable	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;
+accessible	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;

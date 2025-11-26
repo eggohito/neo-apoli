@@ -5,16 +5,16 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record ConstantBiEntityCondition(boolean value) implements BiEntityCondition, ConstantMetaCondition {
 
-	public static final Codec<ConstantBiEntityCondition> INLINE_CODEC = ConstantMetaCondition.inlineCodec(ConstantBiEntityCondition::new);
+	public static final Codec<ConstantBiEntityCondition> INLINE_CODEC = ConstantMetaCondition.createInlineCodec(ConstantBiEntityCondition::new);
 
-	public static final MapCodec<ConstantBiEntityCondition> CODEC = ConstantMetaCondition.codec(ConstantBiEntityCondition::new);
+	public static final MapCodec<ConstantBiEntityCondition> CODEC = ConstantMetaCondition.createCodec(ConstantBiEntityCondition::new);
 
-	public static final PacketCodec<RegistryByteBuf, ConstantBiEntityCondition> PACKET_CODEC = ConstantMetaCondition.packetCodec(ConstantBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBiEntityCondition> STREAM_CODEC = ConstantMetaCondition.createStreamCodec(ConstantBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {

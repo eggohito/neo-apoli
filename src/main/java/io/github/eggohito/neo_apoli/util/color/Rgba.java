@@ -6,12 +6,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.ColorCode;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.ColorRGBA;
+import net.minecraft.util.Mth;
 
 public record Rgba(float red, float green, float blue, float alpha) implements Color {
 
@@ -22,24 +22,24 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 		Codec.floatRange(0.0F, 1.0F).fieldOf("alpha").forGetter(Rgba::alpha)
 	).apply(instance, Rgba::new));
 
-	public static final PacketCodec<RegistryByteBuf, Rgba> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.FLOAT, Rgba::red,
-		PacketCodecs.FLOAT, Rgba::green,
-		PacketCodecs.FLOAT, Rgba::blue,
-		PacketCodecs.FLOAT, Rgba::alpha,
+	public static final StreamCodec<RegistryFriendlyByteBuf, Rgba> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.FLOAT, Rgba::red,
+		ByteBufCodecs.FLOAT, Rgba::green,
+		ByteBufCodecs.FLOAT, Rgba::blue,
+		ByteBufCodecs.FLOAT, Rgba::alpha,
 		Rgba::new
 	);
 
-	public static final Codec<Rgba> STRING_CODEC = ColorCode.CODEC.xmap(Rgba::new, Rgba::toColorCode);
+	public static final Codec<Rgba> STRING_CODEC = ColorRGBA.CODEC.xmap(Rgba::new, Rgba::toColorCode);
 
 	public Rgba {
-		red = MathHelper.clamp(red, 0.0F, 1.0F);
-		green = MathHelper.clamp(green, 0.0F, 1.0F);
-		blue = MathHelper.clamp(blue, 0.0F, 1.0F);
-		alpha = MathHelper.clamp(alpha, 0.0F, 1.0F);
+		red = Mth.clamp(red, 0.0F, 1.0F);
+		green = Mth.clamp(green, 0.0F, 1.0F);
+		blue = Mth.clamp(blue, 0.0F, 1.0F);
+		alpha = Mth.clamp(alpha, 0.0F, 1.0F);
 	}
 
-	public Rgba(ColorCode colorCode) {
+	public Rgba(ColorRGBA colorCode) {
 		this(colorCode.rgba());
 	}
 
@@ -62,15 +62,15 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 		return this.internalGet(); //	No need to use the context in this case, since this class doesn't use any number providers
 	}
 
-	private ColorCode toColorCode() {
-		return new ColorCode(this.internalGet());
+	private ColorRGBA toColorCode() {
+		return new ColorRGBA(this.internalGet());
 	}
 
 	private int internalGet() {
-		return ColorHelper.channelFromFloat(red()) << 24
-			| ColorHelper.channelFromFloat(green()) << 16
-			| ColorHelper.channelFromFloat(blue()) << 8
-			| ColorHelper.channelFromFloat(alpha());
+		return ARGB.as8BitChannel(red()) << 24
+			| ARGB.as8BitChannel(green()) << 16
+			| ARGB.as8BitChannel(blue()) << 8
+			| ARGB.as8BitChannel(alpha());
 	}
 
 	public static int getRed(int rgba) {
@@ -78,7 +78,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getRedFloat(int rgba) {
-		return ColorHelper.channelFromFloat(getRed(rgba));
+		return ARGB.as8BitChannel(getRed(rgba));
 	}
 
 	public static int getGreen(int rgba) {
@@ -86,7 +86,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getGreenFloat(int rgba) {
-		return ColorHelper.channelFromFloat(getGreen(rgba));
+		return ARGB.as8BitChannel(getGreen(rgba));
 	}
 
 	public static int getBlue(int rgba) {
@@ -94,7 +94,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getBlueFloat(int rgba) {
-		return ColorHelper.channelFromFloat(getBlue(rgba));
+		return ARGB.as8BitChannel(getBlue(rgba));
 	}
 
 	public static int getAlpha(int rgba) {
@@ -102,7 +102,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getAlphaFloat(int rgba) {
-		return ColorHelper.channelFromFloat(getAlpha(rgba));
+		return ARGB.as8BitChannel(getAlpha(rgba));
 	}
 
 }

@@ -4,17 +4,17 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
+import io.github.eggohito.neo_apoli.keybinding.KeyState;
+import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -27,9 +27,9 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(3)).forGetter(IsSimultaneouslyPressedKeyCondition::buffer)
 	).apply(instance, IsSimultaneouslyPressedKeyCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsSimultaneouslyPressedKeyCondition> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.collection(ObjectArrayList::new, StringProvider.PACKET_CODEC), IsSimultaneouslyPressedKeyCondition::ids,
-		NumberProvider.PACKET_CODEC, IsSimultaneouslyPressedKeyCondition::buffer,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsSimultaneouslyPressedKeyCondition> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.collection(ObjectArrayList::new, StringProvider.STREAM_CODEC), IsSimultaneouslyPressedKeyCondition::ids,
+		NumberProvider.STREAM_CODEC, IsSimultaneouslyPressedKeyCondition::buffer,
 		IsSimultaneouslyPressedKeyCondition::new
 	);
 
@@ -52,7 +52,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			return false;
 		}
 
-		UUID uuid = context.required(NeoApoliContextParameters.THIS_ENTITY).getUuid();
+		UUID uuid = context.required(NeoApoliContextKeys.THIS_ENTITY).getUUID();
 		ListIterator<StringProvider> iterator = ids().listIterator();
 
 		long previousPressedTime = Long.MIN_VALUE;
@@ -66,9 +66,9 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			Context idContext = context.makeChild(".ids[" + index + "]");
 			String id = idProvider.next(idContext);
 
-			if (!idContext.hasErrors() && KeyBindingStateHolder.getState(uuid, id).isPresent()) {
+			if (!idContext.hasErrors() && KeyStateManager.getState(uuid, id).isPresent()) {
 
-				KeyBindingState state = KeyBindingStateHolder.getState(uuid, id).orElseThrow();
+				KeyState state = KeyStateManager.getState(uuid, id).orElseThrow();
 				long currentPressedTime = state.pressedTime();
 
 				if (state.pressed()) {
@@ -96,7 +96,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		KeyCondition.super.validate(reporter);
 		ListIterator<StringProvider> iterator = ids().listIterator();
@@ -106,11 +106,11 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			int index = iterator.nextIndex();
 			StringProvider idProvider = iterator.next();
 
-			idProvider.validate(reporter.makeChild(".ids[" + index + "]"));
+			idProvider.validate(reporter.forChild(".ids[" + index + "]"));
 
 		}
 
-		buffer().validate(reporter.makeChild(".buffer"));
+		buffer().validate(reporter.forChild(".buffer"));
 
 	}
 

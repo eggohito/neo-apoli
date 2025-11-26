@@ -8,8 +8,8 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.text.DecimalFormat;
 import java.util.function.Supplier;
@@ -23,11 +23,11 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 		NumberProvider.CODEC.optionalFieldOf("decimals", new ConstantNumberProvider(0)).forGetter(NumberComparison::decimals)
 	).apply(instance, NumberComparison::new));
 
-	public static final PacketCodec<RegistryByteBuf, NumberComparison> PACKET_CODEC = PacketCodec.tuple(
-		Comparator.PACKET_CODEC, NumberComparison::comparator,
-		NumberProvider.PACKET_CODEC, NumberComparison::first,
-		NumberProvider.PACKET_CODEC, NumberComparison::second,
-		NumberProvider.PACKET_CODEC, NumberComparison::decimals,
+	public static final StreamCodec<RegistryFriendlyByteBuf, NumberComparison> STREAM_CODEC = StreamCodec.composite(
+		Comparator.STREAM_CODEC, NumberComparison::comparator,
+		NumberProvider.STREAM_CODEC, NumberComparison::first,
+		NumberProvider.STREAM_CODEC, NumberComparison::second,
+		NumberProvider.STREAM_CODEC, NumberComparison::decimals,
 		NumberComparison::new
 	);
 
@@ -59,13 +59,13 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		Comparison.super.validate(reporter);
 
-		first().validate(reporter.makeChild(".first"));
-		second().validate(reporter.makeChild(".second"));
-		decimals().validate(reporter.makeChild(".decimals"));
+		first().validate(reporter.forChild(".first"));
+		second().validate(reporter.forChild(".second"));
+		decimals().validate(reporter.forChild(".decimals"));
 
 	}
 

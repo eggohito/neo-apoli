@@ -7,9 +7,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
@@ -40,19 +40,19 @@ public interface LoopMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		MetaAction.super.validate(reporter);
 
-		beforeAction().ifPresent(beforeAction -> beforeAction.validate(reporter.makeChild(".before_action")));
-		afterAction().ifPresent(afterAction -> afterAction.validate(reporter.makeChild(".after_action")));
+		beforeAction().ifPresent(beforeAction -> beforeAction.validate(reporter.forChild(".before_action")));
+		afterAction().ifPresent(afterAction -> afterAction.validate(reporter.forChild(".after_action")));
 
-		iterations().validate(reporter.makeChild(".iterations"));
-		action().validate(reporter.makeChild(".action"));
+		iterations().validate(reporter.forChild(".iterations"));
+		action().validate(reporter.forChild(".action"));
 
 	}
 
-	static <A extends Action, M extends LoopMetaAction<A>> MapCodec<M> codec(Codec<A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
+	static <A extends Action, M extends LoopMetaAction<A>> MapCodec<M> createCodec(Codec<A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.optionalFieldOf("before_action").forGetter(LoopMetaAction::beforeAction),
 			actionCodec.optionalFieldOf("after_action").forGetter(LoopMetaAction::afterAction),
@@ -61,12 +61,12 @@ public interface LoopMetaAction<A extends Action> extends MetaAction {
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends LoopMetaAction<A>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
-		PacketCodec<RegistryByteBuf, Optional<A>> optionalCodec = PacketCodecs.optional(actionCodec);
-		return PacketCodec.tuple(
+	static <A extends Action, M extends LoopMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
+		StreamCodec<RegistryFriendlyByteBuf, Optional<A>> optionalCodec = ByteBufCodecs.optional(actionCodec);
+		return StreamCodec.composite(
 			optionalCodec, LoopMetaAction::beforeAction,
 			optionalCodec, LoopMetaAction::afterAction,
-			NumberProvider.PACKET_CODEC, LoopMetaAction::iterations,
+			NumberProvider.STREAM_CODEC, LoopMetaAction::iterations,
 			actionCodec, LoopMetaAction::action,
 			constructor
 		);

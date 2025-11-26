@@ -11,14 +11,14 @@ import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.StackReference;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -29,9 +29,9 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 		IndexedStack.LIST_CODEC.fieldOf("stacks").forGetter(GiveItemsEntityAction::stacks)
 	).apply(instance, GiveItemsEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, GiveItemsEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		ItemAction.PACKET_CODEC, GiveItemsEntityAction::itemAction,
-		IndexedStack.LIST_PACKET_CODEC, GiveItemsEntityAction::stacks,
+	public static final StreamCodec<RegistryFriendlyByteBuf, GiveItemsEntityAction> STREAM_CODEC = StreamCodec.composite(
+		ItemAction.STREAM_CODEC, GiveItemsEntityAction::itemAction,
+		IndexedStack.LIST_STREAM_CODEC, GiveItemsEntityAction::stacks,
 		GiveItemsEntityAction::new
 	);
 
@@ -43,43 +43,43 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	@Override
 	public void execute(Context context) {
 
-		World world = context.getWorld();
-		Entity entity = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
+		Level world = context.getWorld();
+		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 
-		if (!(world instanceof ServerWorld serverWorld) || entity == null) {
+		if (!(world instanceof ServerLevel serverWorld) || entity == null) {
 			return;
 		}
 
 		loopingStacks:
 		for (var indexedStack : stacks()) {
 
-			StackReference stackReference = InventoryUtil.createStackReference(indexedStack.stack());
+			SlotAccess stackReference = InventoryUtil.createSingletonSlot(indexedStack.stack());
 			ServerContext itemContext = new ServerContext.Builder(context)
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.ITEM))
-				.add(NeoApoliContextParameters.STACK_REFERENCE, stackReference)
-				.add(NeoApoliContextParameters.ITEM_STACK, stackReference.get())
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
+				.add(NeoApoliContextKeys.STACK_REFERENCE, stackReference)
+				.add(NeoApoliContextKeys.ITEM_STACK, stackReference.get())
 				.build(serverWorld);
 
 			itemAction().execute(itemContext.makeChild(".item_action"));
 
 			ItemStack stack = stackReference.get();
-			IntList slots = indexedStack.slotIds().orElseGet(IntArrayList::new);
+			IntList slotIds = indexedStack.slotIds().orElseGet(IntArrayList::new);
 
-			for (var slot : slots) {
+			for (var slotId : slotIds) {
 
-				StackReference slotReference = entity.getStackReference(slot);
-				ItemStack slotStack = slotReference.get();
+				SlotAccess slot = entity.getSlot(slotId);
+				ItemStack slotStack = slot.get();
 
-				if (slotStack.isEmpty() && slotReference.set(stack)) {
+				if (slotStack.isEmpty() && slot.set(stack)) {
 					continue loopingStacks;
 				}
 
-				else if (ItemStack.areEqual(slotStack, stack) && slotStack.getCount() < slotStack.getMaxCount()) {
+				else if (ItemStack.matches(slotStack, stack) && slotStack.getCount() < slotStack.getMaxStackSize()) {
 
-					int amountToGive = Math.min(slotStack.getMaxCount() - slotStack.getCount(), stack.getCount());
+					int amountToGive = Math.min(slotStack.getMaxStackSize() - slotStack.getCount(), stack.getCount());
 
-					slotStack.increment(amountToGive);
-					stack.decrement(amountToGive);
+					slotStack.grow(amountToGive);
+					stack.shrink(amountToGive);
 
 					if (stack.isEmpty()) {
 						continue loopingStacks;
@@ -89,8 +89,8 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 
 			}
 
-			if (entity instanceof PlayerEntity player) {
-				player.getInventory().offerOrDrop(stack);
+			if (entity instanceof Player player) {
+				player.getInventory().placeItemBackInInventory(stack);
 			}
 
 			else {
@@ -102,11 +102,11 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityAction.super.validate(reporter);
 		itemAction().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ITEM))
-			.makeChild(".item_action"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ITEM))
+			.forChild(".item_action"));
 	}
 
 }

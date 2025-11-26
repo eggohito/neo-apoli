@@ -4,7 +4,7 @@ import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
@@ -12,9 +12,9 @@ import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -27,7 +27,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 	Codec<Modifier> CODEC = ModifierTypes.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
 
-	PacketCodec<RegistryByteBuf, Modifier> PACKET_CODEC = ModifierTypes.PACKET_CODEC.dispatch(Modifier::getType, ModifierType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierTypes.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::packetCodec);
 
 	@Override
 	default int compareTo(@NotNull Modifier that) {
@@ -165,12 +165,12 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 	}
 
-	enum Phase implements StringIdentifiable {
+	enum Phase implements StringRepresentable {
 
 		BASE {
 
 			@Override
-			public String asString() {
+			public String getSerializedName() {
 				return "base";
 			}
 
@@ -179,7 +179,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 		TOTAL {
 
 			@Override
-			public String asString() {
+			public String getSerializedName() {
 				return "total";
 			}
 
@@ -187,7 +187,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 		public static final Codec<Phase> CODEC = CodecUtil.enumType(Phase.class);
 
-		public static final PacketCodec<ByteBuf, Phase> PACKET_CODEC = PacketCodecUtil.enumType(Phase.class);
+		public static final StreamCodec<ByteBuf, Phase> STREAM_CODEC = StreamCodecUtil.enumType(Phase.class);
 
 	}
 

@@ -5,14 +5,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceEntityAction(Identifier value) implements EntityAction, ReferenceMetaAction<EntityAction> {
+public record ReferenceEntityAction(ResourceLocation value) implements EntityAction, ReferenceMetaAction<EntityAction> {
 
-	public static final MapCodec<ReferenceEntityAction> CODEC = ReferenceMetaAction.codec(ReferenceEntityAction::new);
-	public static final PacketCodec<RegistryByteBuf, ReferenceEntityAction> PACKET_CODEC = ReferenceMetaAction.packetCodec(ReferenceEntityAction::new);
+	public static final MapCodec<ReferenceEntityAction> CODEC = ReferenceMetaAction.createCodec(ReferenceEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = ReferenceMetaAction.createStreamCodec(ReferenceEntityAction::new);
 
 	@Override
 	public Pair<Class<EntityAction>, String> classAndName() {

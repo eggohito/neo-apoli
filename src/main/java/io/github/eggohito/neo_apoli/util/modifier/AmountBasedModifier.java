@@ -6,9 +6,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 public interface AmountBasedModifier extends Modifier {
 
@@ -21,9 +21,9 @@ public interface AmountBasedModifier extends Modifier {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 		Modifier.super.validate(reporter);
-		amount().validate(reporter.makeChild(".amount"));
+		amount().validate(reporter.forChild(".amount"));
 	}
 
 	NumberProvider amount();
@@ -37,11 +37,11 @@ public interface AmountBasedModifier extends Modifier {
 			.apply(instance, constructor));
 	}
 
-	static <M extends AmountBasedModifier> PacketCodec<RegistryByteBuf, M> createValueBasedPacketCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
-		return PacketCodec.tuple(
-			Phase.PACKET_CODEC, AmountBasedModifier::phase,
-			PacketCodecs.INTEGER, AmountBasedModifier::order,
-			NumberProvider.PACKET_CODEC, AmountBasedModifier::amount,
+	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> createValueBasedPacketCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
+		return StreamCodec.composite(
+			Phase.STREAM_CODEC, AmountBasedModifier::phase,
+			ByteBufCodecs.INT, AmountBasedModifier::order,
+			NumberProvider.STREAM_CODEC, AmountBasedModifier::amount,
 			constructor
 		);
 	}

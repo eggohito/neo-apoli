@@ -6,12 +6,12 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record TranslateBoxProvider(BoxProvider box, Vec3dProvider translation) implements BoxProvider {
@@ -21,9 +21,9 @@ public record TranslateBoxProvider(BoxProvider box, Vec3dProvider translation) i
 		Vec3dProvider.CODEC.fieldOf("translation").forGetter(TranslateBoxProvider::translation)
 	).apply(instance, TranslateBoxProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, TranslateBoxProvider> PACKET_CODEC = PacketCodecUtil.lazy(TranslateBoxProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		BoxProvider.PACKET_CODEC, TranslateBoxProvider::box,
-		Vec3dProvider.PACKET_CODEC, TranslateBoxProvider::translation,
+	public static final StreamCodec<RegistryFriendlyByteBuf, TranslateBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(TranslateBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		BoxProvider.STREAM_CODEC, TranslateBoxProvider::box,
+		Vec3dProvider.STREAM_CODEC, TranslateBoxProvider::translation,
 		TranslateBoxProvider::new
 	));
 
@@ -33,22 +33,22 @@ public record TranslateBoxProvider(BoxProvider box, Vec3dProvider translation) i
 	}
 
 	@Override
-	public @NotNull Box next(Context context) {
+	public @NotNull AABB next(Context context) {
 
-		Box box = box().next(context.makeChild(".box"));
-		Vec3d translation = translation().next(context.makeChild(".translation"));
+		AABB box = box().next(context.makeChild(".box"));
+		Vec3 translation = translation().next(context.makeChild(".translation"));
 
-		return new Box(translation.subtract(box.getMinPos()), translation.add(box.getMaxPos()));
+		return new AABB(translation.subtract(box.getMinPosition()), translation.add(box.getMaxPosition()));
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		BoxProvider.super.validate(reporter);
 
-		box().validate(reporter.makeChild(".box"));
-		translation().validate(reporter.makeChild(".translation"));
+		box().validate(reporter.forChild(".box"));
+		translation().validate(reporter.forChild(".translation"));
 
 	}
 

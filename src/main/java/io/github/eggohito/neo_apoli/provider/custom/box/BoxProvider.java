@@ -7,16 +7,16 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Box;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
-public interface BoxProvider extends ValueProvider<Box> {
+public interface BoxProvider extends ValueProvider<AABB> {
 
 	Codec<BoxProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BoxProviderType.CODEC.dispatch(BoxProvider::getType, BoxProviderType::mapCodec), ConstantBoxProvider.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, BoxProvider> PACKET_CODEC = BoxProviderType.PACKET_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BoxProvider> STREAM_CODEC = BoxProviderType.STREAM_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
 
 	@Override
 	BoxProviderType<?> getType();
@@ -26,8 +26,8 @@ public interface BoxProvider extends ValueProvider<Box> {
 		return "Box provider with type \"" + RegistryUtil.getId(NeoApoliRegistries.BOX_PROVIDER_TYPE, this.getType()) + "\"";
 	}
 
-	default ShapeContext getShapeContext(Context context) {
-		return ShapeContext.absent();
+	default CollisionContext getShapeContext(Context context) {
+		return CollisionContext.empty();
 	}
 
 }

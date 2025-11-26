@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.component;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;

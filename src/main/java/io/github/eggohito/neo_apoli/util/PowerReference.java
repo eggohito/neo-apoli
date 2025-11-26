@@ -6,36 +6,36 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.util.context.ContextKey;
+import io.github.eggohito.neo_apoli.util.context.ReferenceKey;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.util.Util;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.Util;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
-public sealed interface PowerReference extends ContextKey, StringDisplayable permits PowerReference.Power, PowerReference.SubPower {
+public sealed interface PowerReference extends ReferenceKey, StringDisplayable permits PowerReference.Power, PowerReference.SubPower {
 
 	Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::ofValidated, PowerReference::toString);
 
-	PacketCodec<ByteBuf, PowerReference> PACKET_CODEC = PacketCodecs.STRING.xmap(PowerReference::of, PowerReference::toString);
+	StreamCodec<ByteBuf, PowerReference> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerReference::of, PowerReference::toString);
 
 	String createTranslationKey();
 
 	boolean subPower();
 
-	static PowerReference.Power ofPower(Identifier id) {
+	static PowerReference.Power ofPower(ResourceLocation id) {
 		return new Power(id);
 	}
 
-	static PowerReference.SubPower ofSubPower(Identifier parentId, String value) {
+	static PowerReference.SubPower ofSubPower(ResourceLocation parentId, String value) {
 		return new SubPower(parentId, value);
 	}
 
 	static PowerReference of(String value) {
-		return ofValidated(value).getOrThrow(InvalidIdentifierException::new);
+		return ofValidated(value).getOrThrow(ResourceLocationException::new);
 	}
 
 	static DataResult<PowerReference> ofValidated(String value) {
@@ -85,7 +85,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 					return ofSubPower(IdentifierUtil.nonEmptySplit(parent), name);
 				}
 
-				catch (InvalidIdentifierException iie) {
+				catch (ResourceLocationException iie) {
 					throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
 				}
 
@@ -99,7 +99,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 				return ofPower(IdentifierUtil.nonEmptySplit(value));
 			}
 
-			catch (InvalidIdentifierException iie) {
+			catch (ResourceLocationException iie) {
 				throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
 			}
 
@@ -109,10 +109,10 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 
 	static boolean isValidChar(char ch) {
 		return ch == SubPower.SEPARATOR
-			|| Identifier.isCharValid(ch);
+			|| ResourceLocation.isAllowedInResourceLocation(ch);
 	}
 
-	record Power(Identifier id) implements PowerReference {
+	record Power(ResourceLocation id) implements PowerReference {
 
 		@Override
 		public String toString() {
@@ -126,7 +126,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 
 		@Override
 		public String createTranslationKey() {
-			return Util.createTranslationKey("power", id());
+			return Util.makeDescriptionId("power", id());
 		}
 
 		@Override
@@ -158,7 +158,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 
 	}
 
-	record SubPower(Identifier parentId, String name) implements PowerReference {
+	record SubPower(ResourceLocation parentId, String name) implements PowerReference {
 
 		public static final char SEPARATOR = '@';
 
@@ -178,7 +178,7 @@ public sealed interface PowerReference extends ContextKey, StringDisplayable per
 
 		@Override
 		public String createTranslationKey() {
-			return Util.createTranslationKey("power", parentId()) + SEPARATOR + name();
+			return Util.makeDescriptionId("power", parentId()) + SEPARATOR + name();
 		}
 
 		@Override

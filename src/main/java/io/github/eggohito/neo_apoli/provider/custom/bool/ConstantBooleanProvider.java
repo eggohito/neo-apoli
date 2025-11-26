@@ -6,9 +6,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record ConstantBooleanProvider(boolean value) implements BooleanProvider {
@@ -22,8 +22,8 @@ public record ConstantBooleanProvider(boolean value) implements BooleanProvider 
 		ConstantBooleanProvider::value
 	);
 
-	public static final PacketCodec<RegistryByteBuf, ConstantBooleanProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.BOOLEAN, ConstantBooleanProvider::value,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBooleanProvider> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.BOOL, ConstantBooleanProvider::value,
 		ConstantBooleanProvider::new
 	);
 

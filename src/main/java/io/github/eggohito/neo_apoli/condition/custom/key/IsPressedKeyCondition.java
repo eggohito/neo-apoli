@@ -4,14 +4,14 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
+import io.github.eggohito.neo_apoli.keybinding.KeyState;
+import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 
 public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 
@@ -19,8 +19,8 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 		StringProvider.CODEC.fieldOf("id").forGetter(IsPressedKeyCondition::id)
 	).apply(instance, IsPressedKeyCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsPressedKeyCondition> PACKET_CODEC = PacketCodec.tuple(
-		StringProvider.PACKET_CODEC, IsPressedKeyCondition::id,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsPressedKeyCondition> STREAM_CODEC = StreamCodec.composite(
+		StringProvider.STREAM_CODEC, IsPressedKeyCondition::id,
 		IsPressedKeyCondition::new
 	);
 
@@ -43,18 +43,18 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 			return false;
 		}
 
-		return context.optional(NeoApoliContextParameters.THIS_ENTITY)
-			.map(Entity::getUuid)
-			.flatMap(uuid -> KeyBindingStateHolder.getState(uuid, id))
-			.map(KeyBindingState::pressed)
+		return context.optional(NeoApoliContextKeys.THIS_ENTITY)
+			.map(Entity::getUUID)
+			.flatMap(uuid -> KeyStateManager.getState(uuid, id))
+			.map(KeyState::pressed)
 			.orElse(false);
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		KeyCondition.super.validate(reporter);
-		id().validate(reporter.makeChild(".id"));
+		id().validate(reporter.forChild(".id"));
 	}
 
 }

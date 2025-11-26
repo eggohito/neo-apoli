@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.server.network.ServerPlayerEntity;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -56,9 +56,9 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 
 	};
 
-	public static final PacketCodec<RegistryByteBuf, AddExperienceEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(NumberProvider.PACKET_CODEC), AddExperienceEntityAction::points,
-		PacketCodecs.optional(NumberProvider.PACKET_CODEC), AddExperienceEntityAction::levels,
+	public static final StreamCodec<RegistryFriendlyByteBuf, AddExperienceEntityAction> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), AddExperienceEntityAction::points,
+		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), AddExperienceEntityAction::levels,
 		AddExperienceEntityAction::new
 	);
 
@@ -70,7 +70,7 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.nullable(NeoApoliContextParameters.THIS_ENTITY) instanceof ServerPlayerEntity serverPlayer)) {
+		if (!(context.nullable(NeoApoliContextKeys.THIS_ENTITY) instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
 
@@ -78,23 +78,23 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 		this.points()
 			.map(provider -> provider.nextInt(pointsContext))
 			.filter(Predicate.not(points -> pointsContext.hasErrors()))
-			.ifPresent(serverPlayer::addExperience);
+			.ifPresent(serverPlayer::giveExperiencePoints);
 
 		Context levelsContext = context.makeChild(".levels");
 		this.levels()
 			.map(provider -> provider.nextInt(levelsContext))
 			.filter(Predicate.not(levels -> levelsContext.hasErrors()))
-			.ifPresent(serverPlayer::addExperienceLevels);
+			.ifPresent(serverPlayer::giveExperienceLevels);
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		EntityAction.super.validate(reporter);
 
-		points().ifPresent(points -> points.validate(reporter.makeChild(".points")));
-		levels().ifPresent(levels -> levels.validate(reporter.makeChild(".levels")));
+		points().ifPresent(points -> points.validate(reporter.forChild(".points")));
+		levels().ifPresent(levels -> levels.validate(reporter.forChild(".levels")));
 
 	}
 

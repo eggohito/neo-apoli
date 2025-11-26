@@ -8,14 +8,14 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
@@ -26,9 +26,9 @@ public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implem
 		Vec3dProvider.CODEC.fieldOf("offset").forGetter(OffsetBlockAction::offset)
 	).apply(instance, OffsetBlockAction::new)));
 
-	public static final PacketCodec<RegistryByteBuf, OffsetBlockAction> PACKET_CODEC = PacketCodec.tuple(
-		BlockAction.PACKET_CODEC, OffsetBlockAction::action,
-		Vec3dProvider.PACKET_CODEC, OffsetBlockAction::offset,
+	public static final StreamCodec<RegistryFriendlyByteBuf, OffsetBlockAction> STREAM_CODEC = StreamCodec.composite(
+		BlockAction.STREAM_CODEC, OffsetBlockAction::action,
+		Vec3dProvider.STREAM_CODEC, OffsetBlockAction::offset,
 		OffsetBlockAction::new
 	);
 
@@ -45,42 +45,42 @@ public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implem
 		}
 
 		Context offsetContext = context.makeChild(".offset");
-		Vec3d offset = offset().next(offsetContext);
+		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return;
 		}
 
-		World world = context.getWorld();
-		BlockPos offsetBlockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.BLOCK_POS)
-			.toCenterPos()
+		Level world = context.getWorld();
+		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
+			.getCenter()
 			.add(offset));
 
-		if (!world.isChunkLoaded(offsetBlockPos)) {
+		if (!world.hasChunkAt(offsetBlockPos)) {
 			return;
 		}
 
 		Context actionContext = ContextImpl.of(context, builder -> builder
-			.add(NeoApoliContextParameters.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
+			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetBlockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
 
 		action().execute(actionContext.makeChild(".action"));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		BlockAction.super.validate(reporter);
 
-		action().validate(reporter.makeChild(".action"));
-		offset().validate(reporter.makeChild(".offset"));
+		action().validate(reporter.forChild(".action"));
+		offset().validate(reporter.forChild(".offset"));
 
 	}
 

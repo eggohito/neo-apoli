@@ -6,13 +6,13 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaConditio
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record TestEntityBiEntityCondition(EntityCondition condition, EntityTarget entity) implements BiEntityCondition, TestEntityMetaCondition {
 
-	public static final MapCodec<TestEntityBiEntityCondition> CODEC = TestEntityMetaCondition.codec(TestEntityBiEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, TestEntityBiEntityCondition> PACKET_CODEC = TestEntityMetaCondition.packetCodec(TestEntityBiEntityCondition::new);
+	public static final MapCodec<TestEntityBiEntityCondition> CODEC = TestEntityMetaCondition.createCodec(TestEntityBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestEntityBiEntityCondition> STREAM_CODEC = TestEntityMetaCondition.createStreamCodec(TestEntityBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {

@@ -7,8 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.Supplier;
@@ -42,17 +42,17 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		ValueProvider.super.validate(reporter);
-		condition().validate(reporter.makeChild(".condition"));
+		condition().validate(reporter.forChild(".condition"));
 
-		ifValue().validate(reporter.makeChild(".if_value"));
-		elseValue().validate(reporter.makeChild(".else_value"));
+		ifValue().validate(reporter.forChild(".if_value"));
+		elseValue().validate(reporter.forChild(".else_value"));
 
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> MapCodec<M> codec(Codec<P> providerCodec, Function3<Condition, P, P, M> constructor) {
+	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> MapCodec<M> createCodec(Codec<P> providerCodec, Function3<Condition, P, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Condition.CODEC.fieldOf("condition").forGetter(ConditionalValueProvider::condition),
 			providerCodec.fieldOf("if_value").forGetter(ConditionalValueProvider::ifValue),
@@ -60,9 +60,9 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 		).apply(instance, constructor));
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, P> providerCodec, Function3<Condition, P, P, M> constructor) {
-		return PacketCodec.tuple(
-			Condition.PACKET_CODEC, ConditionalValueProvider::condition,
+	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, Function3<Condition, P, P, M> constructor) {
+		return StreamCodec.composite(
+			Condition.STREAM_CODEC, ConditionalValueProvider::condition,
 			providerCodec, ConditionalValueProvider::ifValue,
 			providerCodec, ConditionalValueProvider::elseValue,
 			constructor

@@ -6,10 +6,10 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ModifyModelShakingPower extends Power {
 
 	public static final MapCodec<ModifyModelShakingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyModelShakingPower::new));
-	public static final PacketCodec<RegistryByteBuf, ModifyModelShakingPower> PACKET_CODEC = PacketCodec.tuple(PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition, ModifyModelShakingPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelShakingPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, ModifyModelShakingPower::new);
 
 	public ModifyModelShakingPower(Optional<Condition> activeCondition) {
 		super(activeCondition);
@@ -30,7 +30,7 @@ public class ModifyModelShakingPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyModelShakingPower.Instance(holder, this);
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelShakingPower> {

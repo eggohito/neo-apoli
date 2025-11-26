@@ -1,0 +1,148 @@
+package io.github.eggohito.neo_apoli.codec;
+
+import com.google.gson.internal.LazilyParsedNumber;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.util.*;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.commands.arguments.NbtPathArgument;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+public class NeoApoliStreamCodecs {
+
+	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> MUTABLE_IDENTIFIER_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ResourceLocation.STREAM_CODEC);
+
+	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = StreamCodecUtil.nonEmptyCollection(MUTABLE_IDENTIFIER_SET);
+
+	public static final StreamCodec<ByteBuf, InteractionHand> HAND = HandProperty.STREAM_CODEC.map(HandProperty::get, HandProperty::fromHand);
+
+	public static final StreamCodec<ByteBuf, List<InteractionHand>> HANDS = ByteBufCodecs.collection(ObjectArrayList::new, HAND);
+
+	public static final StreamCodec<ByteBuf, EnumSet<InteractionHand>> HAND_SET = HANDS.map(EnumSet::copyOf, ObjectArrayList::new);
+
+	public static final StreamCodec<FriendlyByteBuf, Number> NUMBER = new StreamCodec<>() {
+
+		@Override
+		public Number decode(FriendlyByteBuf buf) {
+			byte type = buf.readByte();
+			return switch (type) {
+				case 0 ->
+					buf.readByte();
+				case 1 ->
+					buf.readDouble();
+				case 2 ->
+					buf.readFloat();
+				case 3 ->
+					buf.readInt();
+				case 4 ->
+					buf.readLong();
+				case 5 ->
+					buf.readShort();
+				case 6 ->
+					new LazilyParsedNumber(buf.readUtf());
+				default ->
+					throw new IllegalArgumentException("Unsupported number type: " + type);
+			};
+		}
+
+		@Override
+		public void encode(FriendlyByteBuf buf, Number value) {
+			switch (value) {
+				case Byte b -> {
+					buf.writeByte(0);
+					buf.writeByte(b);
+				}
+				case Double d -> {
+					buf.writeByte(1);
+					buf.writeDouble(d);
+				}
+				case Float f -> {
+					buf.writeByte(2);
+					buf.writeFloat(f);
+				}
+				case Integer i -> {
+					buf.writeByte(3);
+					buf.writeInt(i);
+				}
+				case Long l -> {
+					buf.writeByte(4);
+					buf.writeLong(l);
+				}
+				case Short s -> {
+					buf.writeByte(5);
+					buf.writeShort(s);
+				}
+				case LazilyParsedNumber n -> {
+					buf.writeByte(6);
+					buf.writeUtf(n.toString());
+				}
+				default ->
+					throw new IllegalArgumentException("Unsupported number: " + value);
+			}
+		}
+
+	};
+
+	public static final StreamCodec<ByteBuf, NbtPathArgument.NbtPath> NBT_PATH = ByteBufCodecs.fromCodecTrusted(NbtPathArgument.NbtPath.CODEC);
+
+	public static final StreamCodec<ByteBuf, LightLayer> LIGHT_TYPE = StreamCodecUtil.enumType(LightLayer.class);
+
+	public static final StreamCodec<ByteBuf, List<Direction>> DIRECTIONS = ByteBufCodecs.collection(ObjectArrayList::new, Direction.STREAM_CODEC);
+
+	public static final StreamCodec<ByteBuf, EnumSet<Direction>> DIRECTION_SET = DIRECTIONS.map(EnumSet::copyOf, ObjectArrayList::new);
+
+	public static final StreamCodec<ByteBuf, Direction.Axis> AXIS = StreamCodecUtil.enumType(Direction.Axis.class);
+
+	public static final StreamCodec<ByteBuf, Explosion.BlockInteraction> DESTRUCTION_TYPE = StreamCodecUtil.enumType(Explosion.BlockInteraction.class);
+
+	public static final StreamCodec<FriendlyByteBuf, InteractionResult> ACTION_RESULT = StreamCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockState> BLOCK_STATE = ByteBufCodecs.fromCodecWithRegistriesTrusted(BlockState.CODEC);
+
+	public static final StreamCodec<ByteBuf, TagKey<EntityType<?>>> ENTITY_TYPE_TAG = TagKey.streamCodec(Registries.ENTITY_TYPE);
+
+	public static final StreamCodec<ByteBuf, Set<TagKey<EntityType<?>>>> ENTITY_TYPE_TAG_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ENTITY_TYPE_TAG);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, List<AttributeModifier>> ATTRIBUTE_MODIFIERS = ByteBufCodecs.collection(ObjectArrayList::new, AttributeModifier.STREAM_CODEC);
+
+	public static final StreamCodec<ByteBuf, Dynamic<?>> PASSTHROUGH = ByteBufCodecs.fromCodec(Codec.PASSTHROUGH);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, Dynamic<?>> REGISTRY_PASSTHROUGH = ByteBufCodecs.fromCodecWithRegistriesTrusted(Codec.PASSTHROUGH);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, CraftingRecipe> CRAFTING_RECIPE = Recipe.STREAM_CODEC.map(
+		recipe -> RecipeUtil.validateCraftingRecipe(recipe).getOrThrow(),
+		Function.identity()
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, RecipeHolder<CraftingRecipe>> CRAFTING_RECIPE_ENTRY = RecipeHolder.STREAM_CODEC.map(
+		recipeEntry -> new RecipeHolder<>(recipeEntry.id(), RecipeUtil.validateCraftingRecipe(recipeEntry.value()).getOrThrow()),
+		Function.identity()
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_PARAMETER = StreamCodecUtil.createParameterCodec("number", Number.class);
+
+}

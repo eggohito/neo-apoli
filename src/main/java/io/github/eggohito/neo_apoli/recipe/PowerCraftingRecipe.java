@@ -3,25 +3,19 @@ package io.github.eggohito.neo_apoli.recipe;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.IngredientPlacement;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.book.RecipeBookCategory;
-import net.minecraft.recipe.display.RecipeDisplay;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.world.World;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +23,7 @@ import java.util.Objects;
 public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe delegate) implements CraftingRecipe {
 
 	@Override
-	public boolean matches(CraftingRecipeInput input, World world) {
+	public boolean matches(CraftingInput input, Level world) {
 
 		if (!(input instanceof PowerCraftingInventory powerCraftingInventory)) {
 			return false;
@@ -41,7 +35,7 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 			.filter(CraftingRecipePower.Instance.class::isInstance)
 			.map(CraftingRecipePower.Instance.class::cast)
 			.map(CraftingRecipePower.Instance::getRecipeEntry)
-			.map(RecipeEntry::value)
+			.map(RecipeHolder::value)
 			.orElse(null);
 
 		return Objects.equals(delegate(), powerDefinedRecipe)
@@ -50,8 +44,8 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	}
 
 	@Override
-	public ItemStack craft(CraftingRecipeInput input, RegistryWrapper.WrapperLookup registries) {
-		return delegate().craft(input, registries);
+	public ItemStack assemble(CraftingInput recipeInput, HolderLookup.Provider provider) {
+		return delegate().assemble(recipeInput, provider);
 	}
 
 	@Override
@@ -60,23 +54,23 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	}
 
 	@Override
-	public IngredientPlacement getIngredientPlacement() {
-		return delegate().getIngredientPlacement();
+	public PlacementInfo placementInfo() {
+		return delegate().placementInfo();
 	}
 
 	@Override
-	public CraftingRecipeCategory getCategory() {
-		return delegate().getCategory();
+	public CraftingBookCategory category() {
+		return delegate().category();
 	}
 
 	@Override
-	public RecipeBookCategory getRecipeBookCategory() {
+	public RecipeBookCategory recipeBookCategory() {
 		return NeoApoliRecipeBookCategories.POWER_CRAFTING_RECIPE;
 	}
 
 	@Override
-	public boolean isIgnoredInRecipeBook() {
-		return delegate().isIgnoredInRecipeBook();
+	public boolean isSpecial() {
+		return delegate().isSpecial();
 	}
 
 	@Override
@@ -85,8 +79,8 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	}
 
 	@Override
-	public List<RecipeDisplay> getDisplays() {
-		return delegate().getDisplays();
+	public List<RecipeDisplay> display() {
+		return delegate().display();
 	}
 
 	public static class Serializer implements RecipeSerializer<PowerCraftingRecipe> {
@@ -96,9 +90,9 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 			NeoApoliMapCodecs.CRAFTING_RECIPE.codec().fieldOf("recipe").forGetter(PowerCraftingRecipe::delegate)
 		).apply(instance, PowerCraftingRecipe::new));
 
-		public static final PacketCodec<RegistryByteBuf, PowerCraftingRecipe> PACKET_CODEC = PacketCodec.tuple(
-			PowerReference.PACKET_CODEC, PowerCraftingRecipe::powerReference,
-			NeoApoliPacketCodecs.CRAFTING_RECIPE, PowerCraftingRecipe::delegate,
+		public static final StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> STREAM_CODEC = StreamCodec.composite(
+			PowerReference.STREAM_CODEC, PowerCraftingRecipe::powerReference,
+			NeoApoliStreamCodecs.CRAFTING_RECIPE, PowerCraftingRecipe::delegate,
 			PowerCraftingRecipe::new
 		);
 
@@ -108,8 +102,8 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 		}
 
 		@Override
-		public PacketCodec<RegistryByteBuf, PowerCraftingRecipe> packetCodec() {
-			return PACKET_CODEC;
+		public StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> streamCodec() {
+			return STREAM_CODEC;
 		}
 
 	}

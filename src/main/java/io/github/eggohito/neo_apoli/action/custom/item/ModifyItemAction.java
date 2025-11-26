@@ -5,34 +5,35 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.inventory.StackReference;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.context.LootContextTypes;
-import net.minecraft.loot.context.LootWorldContext;
-import net.minecraft.loot.function.LootFunction;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.function.Consumers;
 
 import java.util.Optional;
 
-public record ModifyItemAction(EntityTarget entity, RegistryKey<LootFunction> modifier) implements ItemAction {
+public record ModifyItemAction(EntityTarget entity, ResourceKey<LootItemFunction> modifier) implements ItemAction {
 
 	public static final MapCodec<ModifyItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityTarget.CODEC.optionalFieldOf("entity", EntityTarget.THIS).forGetter(ModifyItemAction::entity),
-		RegistryKey.createCodec(RegistryKeys.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier)
+		ResourceKey.codec(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier)
 	).apply(instance, ModifyItemAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyItemAction> PACKET_CODEC = PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, ModifyItemAction::entity,
-		RegistryKey.createPacketCodec(RegistryKeys.ITEM_MODIFIER), ModifyItemAction::modifier,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemAction> STREAM_CODEC = StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, ModifyItemAction::entity,
+		ResourceKey.streamCodec(Registries.ITEM_MODIFIER), ModifyItemAction::modifier,
 		ModifyItemAction::new
 	);
 
@@ -48,43 +49,43 @@ public record ModifyItemAction(EntityTarget entity, RegistryKey<LootFunction> mo
 			return;
 		}
 
-		StackReference stackReference = context.required(NeoApoliContextParameters.STACK_REFERENCE);
+		SlotAccess stackReference = context.required(NeoApoliContextKeys.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
-		LootFunction modifier = context.getServer().getReloadableRegistries().createRegistryLookup()
-			.getEntryOrThrow(this.modifier())
+		LootItemFunction modifier = context.getServer().reloadableRegistries().lookup()
+			.getOrThrow(this.modifier())
 			.value();
 
-		LootWorldContext lootWorldContext = new LootWorldContext.Builder(context.getWorld())
-			.add(LootContextParameters.ORIGIN, context.optional(NeoApoliContextParameters.ENTITY_POS).orElse(Vec3d.ZERO))
-			.addOptional(LootContextParameters.THIS_ENTITY, context.nullable(entity().getParameter()))
-			.build(LootContextTypes.COMMAND);
+		LootParams lootWorldContext = new LootParams.Builder(context.getWorld())
+			.withParameter(LootContextParams.ORIGIN, context.optional(NeoApoliContextKeys.ENTITY_POS).orElse(Vec3.ZERO))
+			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.nullable(entity().getParameter()))
+			.create(LootContextParamSets.COMMAND);
 
-		LootContext lootContext = new LootContext.Builder(lootWorldContext).build(Optional.empty());
-		lootContext.markActive(LootContext.itemModifier(modifier));
+		LootContext lootContext = new LootContext.Builder(lootWorldContext).create(Optional.empty());
+		lootContext.pushVisitedElement(LootContext.createVisitedEntry(modifier));
 
 		ItemStack newStack = modifier.apply(stack.copy(), lootContext);
-		newStack.capCount(newStack.getMaxCount());
+		newStack.limitSize(newStack.getMaxStackSize());
 
 		stackReference.set(newStack);
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		ItemAction.super.validate(reporter);
-		Optional<RegistryEntryLookup<LootFunction>> modifierRegistry = reporter
-			.getWrapperLookup()
-			.flatMap(wrapperLookup -> wrapperLookup.getOptional(this.modifier().getRegistryRef()));
+		Optional<HolderLookup.RegistryLookup<LootItemFunction>> itemModifierLookup = reporter
+			.getHolderProvider()
+			.flatMap(provider -> provider.lookup(this.modifier().registryKey()));
 
-		modifierRegistry.ifPresentOrElse(
-			lookup -> lookup.getOptional(this.modifier()).ifPresentOrElse(
-				reference -> {},
-				() -> reporter.report("Item modifier \"" + this.modifier().getValue() + "\" does not exist!")
-			),
-			() -> reporter.report("Couldn't properly validate whether item modifier \"" + this.modifier().getValue() + "\" exists!")
-		);
+		if (itemModifierLookup.isEmpty()) {
+			reporter.report("Couldn't properly validate whether item modifier with ID \"" + this.modifier().location() + "\" exists!");
+		}
+
+		else {
+			itemModifierLookup.get().get(this.modifier()).ifPresentOrElse(Consumers.nop(), () -> reporter.report("Unknown item modifier with ID \"" + this.modifier().location() + "\"!"));
+		}
 
 	}
 

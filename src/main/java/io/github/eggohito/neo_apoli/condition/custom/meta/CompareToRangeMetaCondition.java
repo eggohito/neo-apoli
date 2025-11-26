@@ -3,13 +3,11 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 import com.google.common.collect.Streams;
 import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -55,16 +53,16 @@ public interface CompareToRangeMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
-		value().validate(reporter.makeChild(".value"));
+		value().validate(reporter.forChild(".value"));
 
-		min().ifPresent(min -> min.validate(reporter.makeChild(".min")));
-		max().ifPresent(max -> max.validate(reporter.makeChild(".max")));
+		min().ifPresent(min -> min.validate(reporter.forChild(".min")));
+		max().ifPresent(max -> max.validate(reporter.forChild(".max")));
 
 	}
 
-	static <M extends CompareToRangeMetaCondition> MapCodec<M> codec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
+	static <M extends CompareToRangeMetaCondition> MapCodec<M> createCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
 		return new MapCodec<>() {
 
 			private static final MapCodec<NumberProvider> VALUE_CODEC = NumberProvider.CODEC.fieldOf("value");
@@ -107,11 +105,11 @@ public interface CompareToRangeMetaCondition extends MetaCondition {
 		};
 	}
 
-	static <M extends CompareToRangeMetaCondition> PacketCodec<RegistryByteBuf, M> packetCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
-		return PacketCodec.tuple(
-			NumberProvider.PACKET_CODEC, CompareToRangeMetaCondition::value,
-			PacketCodecs.optional(NumberProvider.PACKET_CODEC), CompareToRangeMetaCondition::min,
-			PacketCodecs.optional(NumberProvider.PACKET_CODEC), CompareToRangeMetaCondition::max,
+	static <M extends CompareToRangeMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
+		return StreamCodec.composite(
+			NumberProvider.STREAM_CODEC, CompareToRangeMetaCondition::value,
+			ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), CompareToRangeMetaCondition::min,
+			ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), CompareToRangeMetaCondition::max,
 			constructor
 		);
 	}

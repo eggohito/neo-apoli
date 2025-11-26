@@ -1,41 +1,41 @@
 package io.github.eggohito.neo_apoli.util;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.pattern.CachedBlockPosition;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
-public class SavedBlockPosition extends CachedBlockPosition {
+public class SavedBlockPosition extends BlockInWorld {
 
 	private final BlockState blockState;
 	private final BlockEntity blockEntity;
 
-	public SavedBlockPosition(WorldView worldView, BlockPos blockPos, BiFunction<WorldView, BlockPos, BlockState> blockStateGetter, BiFunction<WorldView, BlockPos, BlockEntity> blockEntityGetter) {
+	public SavedBlockPosition(LevelReader worldView, BlockPos blockPos, BiFunction<LevelReader, BlockPos, BlockState> blockStateGetter, BiFunction<LevelReader, BlockPos, BlockEntity> blockEntityGetter) {
 		super(worldView, blockPos, false);
 		this.blockState = blockStateGetter.apply(worldView, blockPos);
 		this.blockEntity = blockEntityGetter.apply(worldView, blockPos);
 	}
 
-	public SavedBlockPosition(WorldView worldView, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {
+	public SavedBlockPosition(LevelReader worldView, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {
 		this(worldView, blockPos, (world, pos) -> blockState, (world, pos) -> blockEntity);
 	}
 
-	public SavedBlockPosition(WorldView worldView, BlockPos blockPos, boolean forceload) {
-		this(worldView, blockPos, (world, pos) -> forceload || world.isChunkLoaded(pos) ? world.getBlockState(pos) : null, (world, pos) -> forceload || world.isChunkLoaded(pos) ? world.getBlockEntity(pos) : null);
+	public SavedBlockPosition(LevelReader worldView, BlockPos blockPos, boolean forceload) {
+		this(worldView, blockPos, (world, pos) -> forceload || world.hasChunkAt(pos) ? world.getBlockState(pos) : null, (world, pos) -> forceload || world.hasChunkAt(pos) ? world.getBlockEntity(pos) : null);
 	}
 
 	@Override
-	public BlockState getBlockState() {
+	public BlockState getState() {
 		return blockState;
 	}
 
 	@Nullable
 	@Override
-	public BlockEntity getBlockEntity() {
+	public BlockEntity getEntity() {
 		return blockEntity;
 	}
 

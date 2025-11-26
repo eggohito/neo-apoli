@@ -5,11 +5,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
@@ -20,10 +20,10 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		NumberProvider.CODEC.fieldOf("max").forGetter(ClampedNumberProvider::max)
 	).apply(instance, ClampedNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, ClampedNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, ClampedNumberProvider::value,
-		NumberProvider.PACKET_CODEC, ClampedNumberProvider::min,
-		NumberProvider.PACKET_CODEC, ClampedNumberProvider::max,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClampedNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, ClampedNumberProvider::value,
+		NumberProvider.STREAM_CODEC, ClampedNumberProvider::min,
+		NumberProvider.STREAM_CODEC, ClampedNumberProvider::max,
 		ClampedNumberProvider::new
 	));
 
@@ -49,19 +49,19 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		}
 
 		else {
-			return MathHelper.clamp(value, min, max);
+			return Mth.clamp(value, min, max);
 		}
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 
-		value().validate(reporter.makeChild(".value"));
-		min().validate(reporter.makeChild(".min"));
-		max().validate(reporter.makeChild(".max"));
+		value().validate(reporter.forChild(".value"));
+		min().validate(reporter.forChild(".min"));
+		max().validate(reporter.forChild(".max"));
 
 	}
 

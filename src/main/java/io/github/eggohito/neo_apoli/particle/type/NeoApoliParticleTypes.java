@@ -6,28 +6,27 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleType;
-import net.minecraft.particle.SimpleParticleType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import java.util.function.Function;
 
 public final class NeoApoliParticleTypes {
 
-	public static final RegistryFixedAlias<ParticleType<?>> ALIASES = RegistryFixedAlias.of(Registries.PARTICLE_TYPE);
+	public static final RegistryFixedAlias<ParticleType<?>> ALIASES = RegistryFixedAlias.of(BuiltInRegistries.PARTICLE_TYPE);
 
 	public static final Codec<ParticleType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
-	public static final PacketCodec<RegistryByteBuf, ParticleType<?>> PACKET_CODEC = PacketCodecs.registryValue(RegistryKeys.PARTICLE_TYPE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleType<?>> STREAM_CODEC = ByteBufCodecs.registry(Registries.PARTICLE_TYPE);
 
-	public static final Codec<ParticleEffect> EFFECT_CODEC = CODEC.dispatch(ParticleEffect::getType, ParticleType::getCodec);
-	public static final PacketCodec<RegistryByteBuf, ParticleEffect> EFFECT_PACKET_CODEC = PACKET_CODEC.dispatch(ParticleEffect::getType, ParticleType::getPacketCodec);
+	public static final Codec<ParticleOptions> EFFECT_CODEC = CODEC.dispatch(ParticleOptions::getType, ParticleType::codec);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleOptions> EFFECT_STREAM_CODEC = STREAM_CODEC.dispatch(ParticleOptions::getType, ParticleType::streamCodec);
 
 	public static final SimpleParticleType NOTHING = registerInternal("nothing", false);
 
@@ -39,24 +38,24 @@ public final class NeoApoliParticleTypes {
 		return register(NeoApoli.id(name), alwaysShow);
 	}
 
-	public static SimpleParticleType register(Identifier id, boolean alwaysShow) {
-		return Registry.register(Registries.PARTICLE_TYPE, id, FabricParticleTypes.simple(alwaysShow));
+	public static SimpleParticleType register(ResourceLocation id, boolean alwaysShow) {
+		return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, FabricParticleTypes.simple(alwaysShow));
 	}
 
-	private static <P extends ParticleEffect> ParticleType<P> registerInternal(String name, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, PacketCodec<? super RegistryByteBuf, P>> packetCodecGetter) {
+	private static <P extends ParticleOptions> ParticleType<P> registerInternal(String name, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> packetCodecGetter) {
 		return register(NeoApoli.id(name), alwaysShow, codecGetter, packetCodecGetter);
 	}
 
-	public static <P extends ParticleEffect> ParticleType<P> register(Identifier id, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, PacketCodec<? super RegistryByteBuf, P>> packetCodecGetter) {
-		return Registry.register(Registries.PARTICLE_TYPE, id, new ParticleType<P>(alwaysShow) {
+	public static <P extends ParticleOptions> ParticleType<P> register(ResourceLocation id, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> packetCodecGetter) {
+		return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, new ParticleType<P>(alwaysShow) {
 
 			@Override
-			public MapCodec<P> getCodec() {
+			public MapCodec<P> codec() {
 				return codecGetter.apply(this);
 			}
 
 			@Override
-			public PacketCodec<? super RegistryByteBuf, P> getPacketCodec() {
+			public StreamCodec<? super RegistryFriendlyByteBuf, P> streamCodec() {
 				return packetCodecGetter.apply(this);
 			}
 

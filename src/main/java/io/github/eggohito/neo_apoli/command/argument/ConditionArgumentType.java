@@ -6,74 +6,65 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import lombok.AllArgsConstructor;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.serialize.ArgumentSerializer;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.concurrent.CompletableFuture;
 
 public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 
-	protected ConditionArgumentType(RegistryWrapper.WrapperLookup wrapperLookup, boolean allowInlineDefinitions) {
+	protected ConditionArgumentType(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
 		super(wrapperLookup, ConditionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return CommandSource.suggestIdentifiers(ConditionManager.ids(), builder);
+		return SharedSuggestionProvider.suggestResource(ConditionManager.ids(), builder);
 	}
 
-	public static ConditionArgumentType inlineCondition(CommandRegistryAccess registryAccess) {
+	public static ConditionArgumentType inlineCondition(CommandBuildContext registryAccess) {
 		return new ConditionArgumentType(registryAccess, true);
 	}
 
-	public static ConditionArgumentType condition(CommandRegistryAccess registryAccess) {
+	public static ConditionArgumentType condition(CommandBuildContext registryAccess) {
 		return new ConditionArgumentType(registryAccess, false);
 	}
 
-	public static Condition getCondition(CommandContext<ServerCommandSource> context, String argumentName) {
+	public static Condition getCondition(CommandContext<CommandSourceStack> context, String argumentName) {
 		return context.getArgument(argumentName, Condition.class);
 	}
 
-	public final static class Serializer implements ArgumentSerializer<ConditionArgumentType, Serializer.Properties> {
+	public record Info() implements ArgumentTypeInfo<ConditionArgumentType, Info.Template> {
 
 		@Override
-		public void writePacket(Properties properties, PacketByteBuf buf) {
-			buf.writeBoolean(properties.allowInlineDefinitions);
+		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
+			buf.writeBoolean(template.allowInlineDefinitions());
 		}
 
 		@Override
-		public Properties fromPacket(PacketByteBuf buf) {
-			return new Properties(buf.readBoolean());
+		public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+			return new Template(this, buf.readBoolean());
 		}
 
 		@Override
-		public void writeJson(Properties properties, JsonObject json) {
-			json.addProperty("allow_inline_definitions", properties.allowInlineDefinitions);
+		public void serializeToJson(Template template, JsonObject jsonObject) {
+			jsonObject.addProperty("allow_inline_definitions", template.allowInlineDefinitions());
 		}
 
 		@Override
-		public Properties getArgumentTypeProperties(ConditionArgumentType argumentType) {
-			return new Properties(argumentType.codec.allowInlineDefinitions());
+		public Template unpack(ConditionArgumentType argumentType) {
+			return new Template(this, argumentType.codec.allowInlineDefinitions());
 		}
 
-		@AllArgsConstructor
-		public final class Properties implements ArgumentTypeProperties<ConditionArgumentType> {
-
-			private final boolean allowInlineDefinitions;
+		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ConditionArgumentType> {
 
 			@Override
-			public ConditionArgumentType createType(CommandRegistryAccess registryAccess) {
-				return new ConditionArgumentType(registryAccess, allowInlineDefinitions);
-			}
-
-			@Override
-			public ArgumentSerializer<ConditionArgumentType, ?> getSerializer() {
-				return Serializer.this;
+			public ConditionArgumentType instantiate(CommandBuildContext commandBuildContext) {
+				return new ConditionArgumentType(commandBuildContext, allowInlineDefinitions());
 			}
 
 		}

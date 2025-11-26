@@ -4,28 +4,28 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.screen.ScreenHandlerFactory;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.MenuConstructor;
 
 //	TODO: Finish the implementation of dynamic containers -eggohito
-public record DynamicContainerType(TextAlignment textAlignment, Identifier texture, int columns, int rows) implements ContainerType {
+public record DynamicContainerType(TextAlignment textAlignment, ResourceLocation texture, int columns, int rows) implements ContainerType {
 
 	public static final MapCodec<DynamicContainerType> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		TextAlignment.CODEC.optionalFieldOf("title_alignment", TextAlignment.CENTER).forGetter(DynamicContainerType::textAlignment),
-		Identifier.CODEC.fieldOf("texture").forGetter(DynamicContainerType::texture),
-		Codecs.rangedInt(1, Integer.MAX_VALUE).fieldOf("columns").forGetter(DynamicContainerType::columns),
-		Codecs.rangedInt(1, Integer.MAX_VALUE).fieldOf("rows").forGetter(DynamicContainerType::rows)
+		ResourceLocation.CODEC.fieldOf("texture").forGetter(DynamicContainerType::texture),
+		ExtraCodecs.intRange(1, Integer.MAX_VALUE).fieldOf("columns").forGetter(DynamicContainerType::columns),
+		ExtraCodecs.intRange(1, Integer.MAX_VALUE).fieldOf("rows").forGetter(DynamicContainerType::rows)
 	).apply(instance, DynamicContainerType::new));
 
-	public static final PacketCodec<ByteBuf, DynamicContainerType> PACKET_CODEC = PacketCodec.tuple(
-		TextAlignment.PACKET_CODEC, DynamicContainerType::textAlignment,
-		Identifier.PACKET_CODEC, DynamicContainerType::texture,
-		PacketCodecs.INTEGER, DynamicContainerType::columns,
-		PacketCodecs.INTEGER, DynamicContainerType::rows,
+	public static final StreamCodec<ByteBuf, DynamicContainerType> STREAM_CODEC = StreamCodec.composite(
+		TextAlignment.STREAM_CODEC, DynamicContainerType::textAlignment,
+		ResourceLocation.STREAM_CODEC, DynamicContainerType::texture,
+		ByteBufCodecs.INT, DynamicContainerType::columns,
+		ByteBufCodecs.INT, DynamicContainerType::rows,
 		DynamicContainerType::new
 	);
 
@@ -34,7 +34,7 @@ public record DynamicContainerType(TextAlignment textAlignment, Identifier textu
 	}
 
 	@Override
-	public ScreenHandlerFactory create(Inventory inventory) {
+	public MenuConstructor create(Container inventory) {
 		throw new UnsupportedOperationException("Dynamic container types are currently not supported!");
 	}
 

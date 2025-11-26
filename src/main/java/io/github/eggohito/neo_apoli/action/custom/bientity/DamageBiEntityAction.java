@@ -6,25 +6,25 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.Holder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.Entity;
 
-public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberProvider amount) implements BiEntityAction {
+public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider amount) implements BiEntityAction {
 
 	public static final MapCodec<DamageBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		DamageType.ENTRY_CODEC.fieldOf("damage_type").forGetter(DamageBiEntityAction::damageType),
+		DamageType.CODEC.fieldOf("damage_type").forGetter(DamageBiEntityAction::damageType),
 		NumberProvider.CODEC.fieldOf("amount").forGetter(DamageBiEntityAction::amount)
 	).apply(instance, DamageBiEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, DamageBiEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		DamageType.ENTRY_PACKET_CODEC, DamageBiEntityAction::damageType,
-		NumberProvider.PACKET_CODEC, DamageBiEntityAction::amount,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DamageBiEntityAction> STREAM_CODEC = StreamCodec.composite(
+		DamageType.STREAM_CODEC, DamageBiEntityAction::damageType,
+		NumberProvider.STREAM_CODEC, DamageBiEntityAction::amount,
 		DamageBiEntityAction::new
 	);
 
@@ -36,7 +36,7 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getWorld() instanceof ServerWorld serverWorld)) {
+		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
@@ -47,19 +47,19 @@ public record DamageBiEntityAction(RegistryEntry<DamageType> damageType, NumberP
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextParameters.ACTOR);
-		Entity target = context.nullable(NeoApoliContextParameters.TARGET);
+		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR);
+		Entity target = context.nullable(NeoApoliContextKeys.TARGET);
 
 		if (actor != null && target != null) {
-			target.damage(serverWorld, new DamageSource(this.damageType(), actor), amount);
+			target.hurtServer(serverWorld, new DamageSource(this.damageType(), actor), amount);
 		}
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		BiEntityAction.super.validate(reporter);
-		amount().validate(reporter.makeChild(".amount"));
+		amount().validate(reporter.forChild(".amount"));
 	}
 
 }

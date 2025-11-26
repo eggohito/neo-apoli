@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record TestEntityCondition(EntityCondition condition, EntityTarget entity) implements TestEntityMetaCondition {
 
-	public static final MapCodec<TestEntityCondition> CODEC = MapCodecUtil.lazy(TestEntityCondition.class.getSimpleName(), () -> TestEntityMetaCondition.codec(TestEntityCondition::new));
-	public static final PacketCodec<RegistryByteBuf, TestEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(TestEntityCondition.class.getSimpleName(), () -> TestEntityMetaCondition.packetCodec(TestEntityCondition::new));
+	public static final MapCodec<TestEntityCondition> CODEC = MapCodecUtil.lazy(TestEntityCondition.class.getSimpleName(), () -> TestEntityMetaCondition.createCodec(TestEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(TestEntityCondition.class.getSimpleName(), () -> TestEntityMetaCondition.createStreamCodec(TestEntityCondition::new));
 
 	@Override
 	public ConditionType<?> getType() {

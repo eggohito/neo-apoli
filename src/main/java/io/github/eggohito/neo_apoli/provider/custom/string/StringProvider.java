@@ -6,14 +6,14 @@ import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public interface StringProvider extends ValueProvider<String> {
 
 	Codec<StringProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(StringProviderType.CODEC.dispatch(StringProvider::getType, StringProviderType::mapCodec), ConstantStringProvider.INLINE_CODEC));
 
-	PacketCodec<RegistryByteBuf, StringProvider> PACKET_CODEC = StringProviderType.PACKET_CODEC.dispatch(StringProvider::getType, StringProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, StringProvider> STREAM_CODEC = StringProviderType.STREAM_CODEC.dispatch(StringProvider::getType, StringProviderType::packetCodec);
 
 	@Override
 	StringProviderType<?> getType();

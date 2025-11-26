@@ -14,12 +14,12 @@ import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
-import io.github.eggohito.neo_apoli.duck.DataCommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingStateHolder;
-import io.github.eggohito.neo_apoli.networking.NeoApoliC2SNetworkHandler;
-import io.github.eggohito.neo_apoli.networking.packet.NeoApoliPackets;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.ClearLogsS2CPacket;
+import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
+import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
+import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
+import io.github.eggohito.neo_apoli.network.packet.s2c.ClearLogsS2CPacket;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -29,8 +29,8 @@ import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
@@ -40,11 +40,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.JsonWriter;
@@ -83,7 +83,7 @@ public class NeoApoli implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 
 			var rootNode = dispatcher.getRoot();
-			var baseNode = CommandManager.literal("neo-apoli").build();
+			var baseNode = Commands.literal("neo-apoli").build();
 
 			ActionCommand.register(registryAccess, rootNode);
 			ActionCommand.register(registryAccess, baseNode);
@@ -126,26 +126,26 @@ public class NeoApoli implements ModInitializer {
 		PowerIntegrations.registerAll();
 		NeoApoliConfig.init();
 
-		NeoApoliContextParameters.init();
-		NeoApoliContextTypes.init();
+		NeoApoliContextKeys.init();
+		NeoApoliContextKeySets.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((DataCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 
-		ServerTickEvents.END_SERVER_TICK.register(KeyBindingStateHolder::startTrackingServer);
-		ServerPlayConnectionEvents.DISCONNECT.register(KeyBindingStateHolder::stopTrackingServer);
+		ServerTickEvents.END_SERVER_TICK.register(KeyStateManager::startTrackingServer);
+		ServerPlayConnectionEvents.DISCONNECT.register(KeyStateManager::stopTrackingServer);
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
 			LOGS.clear();
-			server.getPlayerManager().getPlayerList().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, ClearLogsS2CPacket.INSTANCE));
+			server.getPlayerList().getPlayers().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, ClearLogsS2CPacket.INSTANCE));
 		});
 
 	}
 
-	public static Identifier id(String path) {
-		return Identifier.of(MOD_NAMESPACE, path);
+	public static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_NAMESPACE, path);
 	}
 
 	public static NeoApoliConfig getConfig() {
@@ -154,10 +154,10 @@ public class NeoApoli implements ModInitializer {
 
 	public static boolean serverSide() {
 		return server != null
-			&& server.isOnThread();
+			&& server.isSameThread();
 	}
 
-	public static void saveConfig(RegistryWrapper.WrapperLookup wrapperLookup, NeoApoliConfig config) {
+	public static void saveConfig(HolderLookup.Provider wrapperLookup, NeoApoliConfig config) {
 
 		try {
 
@@ -168,7 +168,7 @@ public class NeoApoli implements ModInitializer {
 			try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
 
 				GsonWriter gsonWriter = new GsonWriter(JsonWriter.json5(writer));
-				JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(wrapperLookup.getOps(JsonOps.INSTANCE), config).getOrThrow(JsonParseException::new);
+				JsonElement jsonElement = NeoApoliConfig.CODEC.encodeStart(wrapperLookup.createSerializationContext(JsonOps.INSTANCE), config).getOrThrow(JsonParseException::new);
 
 				GSON.toJson(jsonElement, gsonWriter);
 
@@ -184,7 +184,7 @@ public class NeoApoli implements ModInitializer {
 
 	}
 
-	public static boolean loadConfig(RegistryWrapper.WrapperLookup wrapperLookup) {
+	public static boolean loadConfig(HolderLookup.Provider wrapperLookup) {
 
 		try {
 
@@ -194,7 +194,7 @@ public class NeoApoli implements ModInitializer {
 			BufferedReader reader = new BufferedReader(new FileReader(configFile));
 
 			GsonReader gsonReader = new GsonReader(JsonReader.json5(reader));
-			config = NeoApoliConfig.CODEC.parse(wrapperLookup.getOps(JsonOps.INSTANCE), GSON.fromJson(gsonReader, JsonElement.class)).getOrThrow(JsonParseException::new);
+			config = NeoApoliConfig.CODEC.parse(wrapperLookup.createSerializationContext(JsonOps.INSTANCE), GSON.fromJson(gsonReader, JsonElement.class)).getOrThrow(JsonParseException::new);
 
 			LOGGER.info("Loaded {}'s config!", MOD_NAMESPACE);
 			return true;
@@ -208,14 +208,14 @@ public class NeoApoli implements ModInitializer {
 
 	}
 
-	public static CommandOutput validateCommandOutput(CommandOutput commandOutput) {
+	public static CommandSource validateCommandOutput(CommandSource commandOutput) {
 
 		if (getConfig().command().showOutput()) {
 			return commandOutput;
 		}
 
 		else {
-			return CommandOutput.DUMMY;
+			return CommandSource.NULL;
 		}
 
 	}

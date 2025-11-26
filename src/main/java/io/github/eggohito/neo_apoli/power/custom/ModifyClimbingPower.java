@@ -13,16 +13,15 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -37,10 +36,10 @@ public class ModifyClimbingPower extends Power {
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyClimbingPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Condition.PACKET_CODEC, ModifyClimbingPower::getHoldingCondition,
-		BooleanProvider.PACKET_CODEC, ModifyClimbingPower::getAllowHolding,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyClimbingPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Condition.STREAM_CODEC, ModifyClimbingPower::getHoldingCondition,
+		BooleanProvider.STREAM_CODEC, ModifyClimbingPower::getAllowHolding,
 		ModifyClimbingPower::new
 	);
 
@@ -60,16 +59,16 @@ public class ModifyClimbingPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		super.validate(reporter);
 
-		getHoldingCondition().validate(reporter.makeChild(".holding_condition"));
-		getAllowHolding().validate(reporter.makeChild(".allow_holding"));
+		getHoldingCondition().validate(reporter.forChild(".holding_condition"));
+		getAllowHolding().validate(reporter.forChild(".allow_holding"));
 
 	}
 
@@ -87,20 +86,20 @@ public class ModifyClimbingPower extends Power {
 
 	}
 
-	public static boolean modify(Context context, BiPredicate<Instance, Context> tester) {
+	public static boolean modify(Context context, BiPredicate<io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance, Context> tester) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		List<io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance.class);
 
 		return modify(context, instances, tester);
 
 	}
 
-	public static boolean modify(Context context, List<Instance> instances, BiPredicate<Instance, Context> tester) {
+	public static boolean modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance> instances, BiPredicate<io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower.Instance, Context> tester) {
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -123,15 +122,15 @@ public class ModifyClimbingPower extends Power {
 
 	public static Context createContext(Entity entity) {
 
-		World world = entity.getWorld();
-		BlockPos blockPos = entity.getBlockPos();
+		Level world = entity.level();
+		BlockPos blockPos = entity.blockPosition();
 
 		return PowerTypes.MODIFY_CLIMBING.contextBuilder()
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, entity.getBlockStateAtPos())
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.add(NeoApoliContextParameters.THIS_ENTITY, entity)
-			.add(NeoApoliContextParameters.ENTITY_POS, entity.getPos())
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, entity.getInBlockState())
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
+			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
 			.build(world);
 
 	}

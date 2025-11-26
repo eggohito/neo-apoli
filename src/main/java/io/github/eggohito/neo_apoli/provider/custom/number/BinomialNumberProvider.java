@@ -5,11 +5,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
 public record BinomialNumberProvider(NumberProvider attempts, NumberProvider probability) implements NumberProvider {
@@ -19,9 +19,9 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 		NumberProvider.CODEC.fieldOf("probability").forGetter(BinomialNumberProvider::probability)
 	).apply(instance, BinomialNumberProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, BinomialNumberProvider> PACKET_CODEC = PacketCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, BinomialNumberProvider::attempts,
-		NumberProvider.PACKET_CODEC, BinomialNumberProvider::probability,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BinomialNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, BinomialNumberProvider::attempts,
+		NumberProvider.STREAM_CODEC, BinomialNumberProvider::probability,
 		BinomialNumberProvider::new
 	));
 
@@ -33,7 +33,7 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Random random = context.getWorld().getRandom();
+		RandomSource random = context.getWorld().getRandom();
 		long result = 0;
 
 		Context attemptsContext = context.makeChild(".attempts");
@@ -55,12 +55,12 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 
-		attempts().validate(reporter.makeChild(".attempts"));
-		probability().validate(reporter.makeChild(".probability"));
+		attempts().validate(reporter.forChild(".attempts"));
+		probability().validate(reporter.forChild(".probability"));
 
 	}
 

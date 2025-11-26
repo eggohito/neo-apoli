@@ -6,12 +6,12 @@ import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -23,8 +23,8 @@ public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
 		EntityTarget.CODEC.fieldOf("source").forGetter(EntityNbtProvider::source)
 	).apply(instance, EntityNbtProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, EntityNbtProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, EntityNbtProvider::source,
+	public static final StreamCodec<RegistryFriendlyByteBuf, EntityNbtProvider> STREAM_CODEC = StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, EntityNbtProvider::source,
 		EntityNbtProvider::new
 	);
 
@@ -34,23 +34,23 @@ public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull NbtElement next(Context context) {
+	public @NotNull Tag next(Context context) {
 
-		ContextParameter<Entity> parameter = source().getParameter();
+		ContextKey<Entity> parameter = source().getParameter();
 		Optional<Entity> optEntity = context.optional(parameter);
 
 		if (optEntity.isEmpty()) {
-			context.getReporter().report("Couldn't get and provide NBT of entity from '" + parameter.getId() + "' parameter, as it doesn't exist!");
+			context.getReporter().report("Couldn't get and provide NBT of entity from '" + parameter.name() + "' parameter, as it doesn't exist!");
 		}
 
 		return optEntity
-			.map(entity -> entity.writeNbt(new NbtCompound()))
-			.orElseGet(NbtCompound::new);
+			.map(entity -> entity.saveWithoutId(new CompoundTag()))
+			.orElseGet(CompoundTag::new);
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(source().getParameter());
 	}
 

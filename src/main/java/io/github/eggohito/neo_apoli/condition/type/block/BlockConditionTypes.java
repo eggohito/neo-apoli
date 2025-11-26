@@ -5,38 +5,38 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.block.*;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 public class BlockConditionTypes extends ConditionTypes {
 
-	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.STREAM_CODEC);
 
-	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<HasBlockEntityBlockCondition> HAS_BLOCK_ENTITY = registerInternal("has_block_entity", HasBlockEntityBlockCondition.CODEC, HasBlockEntityBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<IsInTagBlockCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagBlockCondition.CODEC, IsInTagBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<IsOfBlockCondition> IS_OF = registerInternal("is_of", IsOfBlockCondition.CODEC, IsOfBlockCondition.PACKET_CODEC);
-	public static final BlockConditionType<IsReplaceableBlockCondition> IS_REPLACEABLE = registerInternal("is_replaceable", IsReplaceableBlockCondition.CODEC, IsReplaceableBlockCondition.PACKET_CODEC);
+	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<HasBlockEntityBlockCondition> HAS_BLOCK_ENTITY = registerInternal("has_block_entity", HasBlockEntityBlockCondition.CODEC, HasBlockEntityBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<IsInTagBlockCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagBlockCondition.CODEC, IsInTagBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<IsOfBlockCondition> IS_OF = registerInternal("is_of", IsOfBlockCondition.CODEC, IsOfBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<IsReplaceableBlockCondition> IS_REPLACEABLE = registerInternal("is_replaceable", IsReplaceableBlockCondition.CODEC, IsReplaceableBlockCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 
 	}
 
-	private static <C extends BlockCondition> BlockConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {
+	private static <C extends BlockCondition> BlockConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
 		return register(NeoApoli.id(path), mapCodec, packetCodec);
 	}
 
-	public static <C extends BlockCondition> BlockConditionType<C> register(Identifier id, MapCodec<C> mapCodec, PacketCodec<RegistryByteBuf, C> packetCodec) {
-		return ConditionTypes.register(id.withPrefixedPath(BlockConditionType.PREFIX), Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, id, new BlockConditionType<>(mapCodec, packetCodec)));
+	public static <C extends BlockCondition> BlockConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
+		return ConditionTypes.register(id.withPrefix(BlockConditionType.PREFIX), Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, id, new BlockConditionType<>(mapCodec, packetCodec)));
 	}
 
 }

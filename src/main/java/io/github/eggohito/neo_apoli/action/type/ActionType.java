@@ -7,9 +7,9 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 public interface ActionType<A extends Action> {
 
@@ -17,10 +17,10 @@ public interface ActionType<A extends Action> {
 
 	Codec<ActionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 
-	PacketCodec<RegistryByteBuf, ActionType<?>> PACKET_CODEC = PacketCodecs.registryValue(NeoApoliRegistryKeys.ACTION_TYPE);
+	StreamCodec<RegistryFriendlyByteBuf, ActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.ACTION_TYPE);
 
 	MapCodec<A> mapCodec();
 
-	PacketCodec<RegistryByteBuf, A> packetCodec();
+	StreamCodec<RegistryFriendlyByteBuf, A> packetCodec();
 
 }

@@ -8,26 +8,26 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerDataS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
-import net.minecraft.util.context.ContextParameter;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -43,11 +43,11 @@ public abstract class Power implements ContextAware {
 
 	public static final String TYPE_KEY = "type";
 
-	public static final MapCodec<Power> BASE_MAP_CODEC = PowerType.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final MapCodec<Power> MAP_CODEC = PowerType.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
 
-	public static final Codec<Power> BASE_CODEC = BASE_MAP_CODEC.codec();
+	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 
-	public static final PacketCodec<RegistryByteBuf, Power> BASE_PACKET_CODEC = PowerType.PACKET_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = PowerType.STREAM_CODEC.dispatch(Power::getType, PowerType::packetCodec);
 
 	private final Optional<Condition> activeCondition;
 
@@ -85,49 +85,49 @@ public abstract class Power implements ContextAware {
 		}
 
 		@Override
-		public Set<ContextParameter<?>> getRequiredParameters() {
+		public Set<ContextKey<?>> getRequiredParameters() {
 			return power.getRequiredParameters();
 		}
 
 		@Override
-		public void validate(ErrorReporter reporter) {
+		public void validate(ProblemReporter reporter) {
 			power.validate(reporter);
 		}
 
 		public final ContextImpl.Builder createHolderContextBuilder() {
 			return power.getType().contextBuilder()
 				.withReporter(this.createReporter())
-				.add(NeoApoliContextParameters.THIS_ENTITY, holder)
-				.add(NeoApoliContextParameters.ENTITY_POS, holder.getPos());
+				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
+				.add(NeoApoliContextKeys.ENTITY_POS, holder.position());
 		}
 
 		public final Context createHolderContext() {
-			return createHolderContextBuilder().build(holder.getWorld());
+			return createHolderContextBuilder().build(holder.level());
 		}
 
-		public final ErrorReporter createReporter() {
-			return new ErrorReporter("{\"" + PowerManager.getReference(power) + "\"}").withContextType(power.getType().contextType());
+		public final ProblemReporter createReporter() {
+			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().contextType());
 		}
 
 		public final void syncData() {
 
 			DataResult<PowerReference> referenceResult = PowerManager.getReferenceAsResult(this.getPower());
-			RegistryOps<NbtElement> nbtOps = holder.getWorld().getRegistryManager().getOps(NbtOps.INSTANCE);
+			RegistryOps<Tag> nbtOps = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 			switch (referenceResult) {
-				case DataResult.Success<PowerReference> referenceSuccess when !holder.getWorld().isClient()	-> {
+				case DataResult.Success<PowerReference> referenceSuccess when !holder.level().isClientSide()	-> {
 
 					switch (this.encodeData(nbtOps)) {
-						case DataResult.Success<NbtElement> dataSuccess -> {
+						case DataResult.Success<Tag> dataSuccess -> {
 
 							SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(holder.getId(), referenceSuccess.value(), new Dynamic<>(nbtOps, dataSuccess.value()));
 
-							for (ServerPlayerEntity trackingPlayer: MiscUtil.getTrackingPlayers(holder)) {
+							for (ServerPlayer trackingPlayer: MiscUtil.getTrackingPlayers(holder)) {
 								ServerPlayNetworking.send(trackingPlayer, packet);
 							}
 
 						}
-						case DataResult.Error<NbtElement> dataError ->
+						case DataResult.Error<Tag> dataError ->
 							NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", referenceSuccess.value().asDisplayString(false), holder.getName().getString(), dataError.message());
 					}
 

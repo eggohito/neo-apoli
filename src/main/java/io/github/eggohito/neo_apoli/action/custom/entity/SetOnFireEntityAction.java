@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record SetOnFireEntityAction(NumberProvider ticks) implements EntityAction {
 
@@ -16,8 +16,8 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 		.group(NumberProvider.CODEC.fieldOf("ticks").forGetter(SetOnFireEntityAction::ticks))
 		.apply(instance, SetOnFireEntityAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, SetOnFireEntityAction> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, SetOnFireEntityAction::ticks,
+	public static final StreamCodec<RegistryFriendlyByteBuf, SetOnFireEntityAction> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, SetOnFireEntityAction::ticks,
 		SetOnFireEntityAction::new
 	);
 
@@ -37,15 +37,15 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 		int ticks = ticks().nextInt(ticksContext);
 
 		if (!ticksContext.hasErrors() && ticks > 0) {
-			context.required(NeoApoliContextParameters.THIS_ENTITY).setOnFireForTicks(ticks);
+			context.required(NeoApoliContextKeys.THIS_ENTITY).igniteForTicks(ticks);
 		}
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityAction.super.validate(reporter);
-		ticks().validate(reporter.makeChild(".ticks"));
+		ticks().validate(reporter.forChild(".ticks"));
 	}
 
 }

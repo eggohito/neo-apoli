@@ -5,13 +5,13 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.modifier.AmountBasedModifier;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record MultiplyAdditiveModifier(Phase phase, int order, NumberProvider amount) implements AmountBasedModifier {
 
 	public static final MapCodec<MultiplyAdditiveModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyAdditiveModifier::new, 1000);
-	public static final PacketCodec<RegistryByteBuf, MultiplyAdditiveModifier> PACKET_CODEC = AmountBasedModifier.createValueBasedPacketCodec(MultiplyAdditiveModifier::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyAdditiveModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedPacketCodec(MultiplyAdditiveModifier::new);
 
 	@Override
 	public ModifierType<?> getType() {

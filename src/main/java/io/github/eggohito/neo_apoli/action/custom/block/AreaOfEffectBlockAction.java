@@ -9,13 +9,13 @@ import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockConditio
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
@@ -28,11 +28,11 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 		NumberProvider.CODEC.fieldOf("radius").forGetter(AreaOfEffectBlockAction::radius)
 	).apply(instance, AreaOfEffectBlockAction::new)));
 
-	public static final PacketCodec<RegistryByteBuf, AreaOfEffectBlockAction> PACKET_CODEC = PacketCodec.tuple(
-		BlockAction.PACKET_CODEC, AreaOfEffectBlockAction::blockAction,
-		BlockCondition.PACKET_CODEC, AreaOfEffectBlockAction::blockCondition,
-		Shape.PACKET_CODEC, AreaOfEffectBlockAction::shape,
-		NumberProvider.PACKET_CODEC, AreaOfEffectBlockAction::radius,
+	public static final StreamCodec<RegistryFriendlyByteBuf, AreaOfEffectBlockAction> STREAM_CODEC = StreamCodec.composite(
+		BlockAction.STREAM_CODEC, AreaOfEffectBlockAction::blockAction,
+		BlockCondition.STREAM_CODEC, AreaOfEffectBlockAction::blockCondition,
+		Shape.STREAM_CODEC, AreaOfEffectBlockAction::shape,
+		NumberProvider.STREAM_CODEC, AreaOfEffectBlockAction::radius,
 		AreaOfEffectBlockAction::new
 	);
 
@@ -44,8 +44,8 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	@Override
 	public void serverExecute(ServerContext context) {
 
-		ServerWorld world = context.getWorld();
-		BlockPos originBlockPos = context.nullable(NeoApoliContextParameters.BLOCK_POS);
+		ServerLevel world = context.getWorld();
+		BlockPos originBlockPos = context.nullable(NeoApoliContextKeys.BLOCK_POS);
 
 		if (originBlockPos == null) {
 			return;
@@ -60,14 +60,14 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 
 		for (BlockPos blockPos : shape().getBlockPositions(originBlockPos, radius)) {
 
-			if (!world.isChunkLoaded(blockPos)) {
+			if (!world.hasChunkAt(blockPos)) {
 				continue;
 			}
 
 			ServerContext blockContext = new ServerContext.Builder(context)
-				.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos))
+				.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 				.build(world);
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
@@ -79,16 +79,16 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.BLOCK_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		BlockAction.super.validate(reporter);
-		blockAction().validate(reporter.makeChild(".block_action"));
-		blockCondition().validate(reporter.makeChild(".block_condition"));
-		radius().validate(reporter.makeChild(".radius"));
+		blockAction().validate(reporter.forChild(".block_action"));
+		blockCondition().validate(reporter.forChild(".block_condition"));
+		radius().validate(reporter.forChild(".radius"));
 	}
 
 }

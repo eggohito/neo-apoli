@@ -5,14 +5,14 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.InvertedMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedEntityCondition(EntityCondition condition) implements EntityCondition, InvertedMetaCondition<EntityCondition> {
 
-	public static final MapCodec<InvertedEntityCondition> CODEC = MapCodecUtil.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.codec(EntityCondition.CODEC, InvertedEntityCondition::new));
-	public static final PacketCodec<RegistryByteBuf, InvertedEntityCondition> PACKET_CODEC = PacketCodecUtil.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.packetCodec(EntityCondition.PACKET_CODEC, InvertedEntityCondition::new));
+	public static final MapCodec<InvertedEntityCondition> CODEC = MapCodecUtil.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.createCodec(EntityCondition.CODEC, InvertedEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.createStreamCodec(EntityCondition.STREAM_CODEC, InvertedEntityCondition::new));
 
 	@Override
 	public EntityConditionType<?> getType() {

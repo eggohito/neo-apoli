@@ -12,10 +12,10 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.integration.DependencyManager;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionTagsS2CPacket;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizeActionsS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionTagsS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
+import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
@@ -24,17 +24,17 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.TagGroupLoader;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.profiler.Profilers;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
@@ -47,10 +47,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
-public final class ActionManager implements JsonResourceReloader {
+public final class ActionManager implements JsonReloadListener {
 
-	private static final String TAG_DIRECTORY = RegistryKeys.getTagPath(NeoApoliRegistryKeys.ACTION);
-	private static final String DIRECTORY = RegistryKeys.getPath(NeoApoliRegistryKeys.ACTION);
+	private static final String TAG_DIRECTORY = Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION);
+	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.ACTION);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
 	private static final Gson GSON = new GsonBuilder()
@@ -58,35 +58,35 @@ public final class ActionManager implements JsonResourceReloader {
 		.setPrettyPrinting()
 		.create();
 
-	public static final Identifier ID = NeoApoli.id("manager/actions");
-	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
+	public static final ResourceLocation ID = NeoApoli.id("manager/actions");
+	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
 
-	private static final Object2ObjectOpenHashMap<Identifier, Action> BY_ID = new Object2ObjectOpenHashMap<>();
-	private static final IdentityHashMap<Action, Identifier> BY_ACTION = new IdentityHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, Action> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final IdentityHashMap<Action, ResourceLocation> BY_ACTION = new IdentityHashMap<>();
 
-	private static final TagGroupLoader<Action> TAG_LOADER = new TagGroupLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
-	private static final Object2ObjectOpenHashMap<Identifier, List<Action>> TAGS = new Object2ObjectOpenHashMap<>();
+	private static final TagLoader<Action> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
+	private static final Object2ObjectOpenHashMap<ResourceLocation, List<Action>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
-	ActionManager(RegistryWrapper.WrapperLookup wrapperLookup) {
-		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
+	ActionManager(HolderLookup.Provider wrapperLookup) {
+		this.ops = wrapperLookup.createSerializationContext(JsonOps.INSTANCE);
 	}
 
 	@Override
-	public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<Identifier, List<TagGroupLoader.TrackedEntry>>> preparedTagsFuture = CompletableFuture
-			.supplyAsync(() -> prepareTags(manager, Profilers.get()), prepareExecutor);
-		CompletableFuture<Map<Identifier, Entry>> preparedElementsFuture = CompletableFuture
-			.supplyAsync(() -> prepareElements(manager, Profilers.get()), prepareExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
+			.supplyAsync(() -> prepareTags(manager, Profiler.get()), prepareExecutor);
+		CompletableFuture<Map<ResourceLocation, Entry>> preparedElementsFuture = CompletableFuture
+			.supplyAsync(() -> prepareElements(manager, Profiler.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
-			.thenCompose(synchronizer::whenPrepared)
+			.thenCompose(synchronizer::wait)
 			.thenAcceptAsync(
 				pair -> {
-					applyTags(pair.getFirst(), manager, Profilers.get());
-					applyElements(pair.getSecond(), manager, Profilers.get());
+					applyTags(pair.getFirst(), manager, Profiler.get());
+					applyElements(pair.getSecond(), manager, Profiler.get());
 				},
 				applyExecutor
 			);
@@ -94,30 +94,30 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	@Override
-	public Identifier getFabricId() {
+	public ResourceLocation getFabricId() {
 		return ID;
 	}
 
 	@Override
-	public Collection<Identifier> getFabricDependencies() {
+	public Collection<ResourceLocation> getFabricDependencies() {
 		return DEPENDENCIES;
 	}
 
-	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> prepareTags(ResourceManager manager, Profiler ignoredProfiler) {
-		return TAG_LOADER.loadTags(manager);
+	private Map<ResourceLocation, List<TagLoader.EntryWithSource>> prepareTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+		return TAG_LOADER.load(manager);
 	}
 
-	private Map<Identifier, Entry> prepareElements(ResourceManager manager, Profiler ignoredProfiler) {
+	private Map<ResourceLocation, Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<Identifier, Entry> prepared = new Object2ObjectOpenHashMap<>();
-		manager.findResources(DIRECTORY, this::supportsJsonFormat).forEach((fileId, resource) -> {
+		Map<ResourceLocation, Entry> prepared = new Object2ObjectOpenHashMap<>();
+		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
-			String packId = resource.getPackId();
-			Identifier resourceId = this.trimExtension(fileId, DIRECTORY);
+			String packId = resource.sourcePackId();
+			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
 
-			try (BufferedReader resourceReader = resource.getReader()) {
+			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getJsonFormat(fileId)));
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 				switch (jsonElement) {
@@ -154,19 +154,19 @@ public final class ActionManager implements JsonResourceReloader {
 
 	}
 
-	private void applyTags(Map<Identifier, List<TagGroupLoader.TrackedEntry>> prepared, ResourceManager ignoredManager, Profiler ignoredProfiler) {
+	private void applyTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
 
 		LOGGER.info("Parsing action tags from data packs...");
 		TAGS.clear();
 
-		TAGS.putAll(TAG_LOADER.buildGroup(prepared));
+		TAGS.putAll(TAG_LOADER.build(prepared));
 		LOGGER.info("Finished parsing action tags from data packs. Parsed {} action tag(s)", TAGS.size());
 
 		TAGS.trim();
 
 	}
 
-	private void applyElements(Map<Identifier, Entry> prepared, ResourceManager ignoredManager, Profiler ignoredProfiler) {
+	private void applyElements(Map<ResourceLocation, Entry> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
 		BY_ID.clear();
@@ -180,9 +180,9 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	@ApiStatus.Internal
-	public static void sendSyncPayload(ServerPlayerEntity receiver) {
+	public static void sendSyncPayload(ServerPlayer receiver) {
 
-		if (!receiver.server.isRemote()) {
+		if (!receiver.server.isPublished()) {
 			return;
 		}
 
@@ -208,9 +208,9 @@ public final class ActionManager implements JsonResourceReloader {
 	}
 
 	@ApiStatus.Internal
-	public static void sendTagSyncPayload(ServerPlayerEntity receiver) {
+	public static void sendTagSyncPayload(ServerPlayer receiver) {
 
-		if (!receiver.server.isRemote()) {
+		if (!receiver.server.isPublished()) {
 			return;
 		}
 
@@ -233,28 +233,28 @@ public final class ActionManager implements JsonResourceReloader {
 
 	}
 
-	private static void register(Identifier id, Action action) {
+	private static void register(ResourceLocation id, Action action) {
 		BY_ID.put(id, action);
 		BY_ACTION.put(action, id);
 	}
 
-	public static DataResult<Action> getAsResult(Identifier id) {
+	public static DataResult<Action> getAsResult(ResourceLocation id) {
 		return contains(id)
 			? DataResult.success(BY_ID.get(id))
 			: DataResult.error(() -> "Action with ID \"" + id + "\" does not exist!");
 	}
 
-	public static Action get(Identifier id) {
+	public static Action get(ResourceLocation id) {
 		return getAsResult(id).getOrThrow();
 	}
 
-	public static DataResult<Identifier> getIdAsResult(Action action) {
+	public static DataResult<ResourceLocation> getIdAsResult(Action action) {
 		return containsId(action)
 			? DataResult.success(BY_ACTION.get(action))
 			: DataResult.error(() -> action + " doesn't correspond to any identifiers!");
 	}
 
-	public static Identifier getId(Action action) {
+	public static ResourceLocation getId(Action action) {
 		return getIdAsResult(action).getOrThrow();
 	}
 
@@ -262,11 +262,11 @@ public final class ActionManager implements JsonResourceReloader {
 		return BY_ID.values().stream();
 	}
 
-	public static Stream<Identifier> ids() {
+	public static Stream<ResourceLocation> ids() {
 		return BY_ID.keySet().stream();
 	}
 
-	public static boolean contains(Identifier id) {
+	public static boolean contains(ResourceLocation id) {
 		return BY_ID.containsKey(id);
 	}
 
@@ -284,7 +284,7 @@ public final class ActionManager implements JsonResourceReloader {
 
 	static {
 
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ActionManager::new);
 		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);

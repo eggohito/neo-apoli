@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.integration;
 import com.google.common.collect.ImmutableSet;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class DependencyManager {
 
@@ -41,7 +41,7 @@ public class DependencyManager {
 	);
 
 	public interface Impl {
-		void add(ImmutableSet.Builder<Identifier> dependencies);
+		void add(ImmutableSet.Builder<ResourceLocation> dependencies);
 	}
 
 }

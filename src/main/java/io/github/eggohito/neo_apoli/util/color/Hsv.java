@@ -6,11 +6,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 
 public record Hsv(float hue, float saturation, float value, float alpha) implements Color {
 
@@ -21,19 +21,19 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 		Codec.floatRange(0.0F, 1.0F).fieldOf("alpha").forGetter(Hsv::alpha)
 	).apply(instance, Hsv::new));
 
-	public static final PacketCodec<RegistryByteBuf, Hsv> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.FLOAT, Hsv::hue,
-		PacketCodecs.FLOAT, Hsv::saturation,
-		PacketCodecs.FLOAT, Hsv::value,
-		PacketCodecs.FLOAT, Hsv::alpha,
+	public static final StreamCodec<RegistryFriendlyByteBuf, Hsv> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.FLOAT, Hsv::hue,
+		ByteBufCodecs.FLOAT, Hsv::saturation,
+		ByteBufCodecs.FLOAT, Hsv::value,
+		ByteBufCodecs.FLOAT, Hsv::alpha,
 		Hsv::new
 	);
 
 	public Hsv {
-		hue = MathHelper.clamp(hue, 0.0F, 360.0F);
-		saturation = MathHelper.clamp(saturation, 0.0F, 1.0F);
-		value = MathHelper.clamp(value, 0.0F, 1.0F);
-		alpha = MathHelper.clamp(alpha, 0.0F, 1.0F);
+		hue = Mth.clamp(hue, 0.0F, 360.0F);
+		saturation = Mth.clamp(saturation, 0.0F, 1.0F);
+		value = Mth.clamp(value, 0.0F, 1.0F);
+		alpha = Mth.clamp(alpha, 0.0F, 1.0F);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 			}
 		}
 
-		return ColorHelper.fromFloats(alpha(), red, green, blue);
+		return ARGB.colorFromFloat(alpha(), red, green, blue);
 
 	}
 

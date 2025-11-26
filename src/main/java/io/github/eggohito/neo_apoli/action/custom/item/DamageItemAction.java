@@ -10,13 +10,13 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.inventory.StackReference;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.item.ItemStack;
 
 public record DamageItemAction(EntityTarget entity, NumberProvider amount, BooleanProvider ignoreUnbreaking) implements ItemAction {
 
@@ -26,10 +26,10 @@ public record DamageItemAction(EntityTarget entity, NumberProvider amount, Boole
 		BooleanProvider.CODEC.optionalFieldOf("ignore_unbreaking", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreUnbreaking)
 	).apply(instance, DamageItemAction::new));
 
-	public static final PacketCodec<RegistryByteBuf, DamageItemAction> PACKET_CODEC = PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, DamageItemAction::entity,
-		NumberProvider.PACKET_CODEC, DamageItemAction::amount,
-		BooleanProvider.PACKET_CODEC, DamageItemAction::ignoreUnbreaking,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DamageItemAction> STREAM_CODEC = StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, DamageItemAction::entity,
+		NumberProvider.STREAM_CODEC, DamageItemAction::amount,
+		BooleanProvider.STREAM_CODEC, DamageItemAction::ignoreUnbreaking,
 		DamageItemAction::new
 	);
 
@@ -45,7 +45,7 @@ public record DamageItemAction(EntityTarget entity, NumberProvider amount, Boole
 			return;
 		}
 
-		StackReference stackReference = context.required(NeoApoliContextParameters.STACK_REFERENCE);
+		SlotAccess stackReference = context.required(NeoApoliContextKeys.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
 		Context amountContext = context.makeChild(".amount");
@@ -61,23 +61,23 @@ public record DamageItemAction(EntityTarget entity, NumberProvider amount, Boole
 				if (ignoreUnbreaking) {
 
 					if (amount >= stack.getMaxDamage()) {
-						stack.decrement(1);
+						stack.shrink(1);
 					}
 
 					else {
-						stack.setDamage(stack.getDamage() + amount);
+						stack.setDamageValue(stack.getDamageValue() + amount);
 					}
 
 				}
 
 				else {
 
-					ServerPlayerEntity itemHolder = context.optional(entity().getParameter())
-						.filter(ServerPlayerEntity.class::isInstance)
-						.map(ServerPlayerEntity.class::cast)
+					ServerPlayer itemHolder = context.optional(entity().getParameter())
+						.filter(ServerPlayer.class::isInstance)
+						.map(ServerPlayer.class::cast)
 						.orElse(null);
 
-					stack.damage(amount, context.getWorld(), itemHolder, item -> {});
+					stack.hurtAndBreak(amount, context.getWorld(), itemHolder, item -> {});
 
 				}
 
@@ -88,12 +88,12 @@ public record DamageItemAction(EntityTarget entity, NumberProvider amount, Boole
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		ItemAction.super.validate(reporter);
 
-		amount().validate(reporter.makeChild(".amount"));
-		ignoreUnbreaking().validate(reporter.makeChild(".ignore_unbreaking"));
+		amount().validate(reporter.forChild(".amount"));
+		ignoreUnbreaking().validate(reporter.forChild(".ignore_unbreaking"));
 
 	}
 

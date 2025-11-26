@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
-import io.github.eggohito.neo_apoli.keybinding.KeyBindingState;
+import io.github.eggohito.neo_apoli.keybinding.KeyState;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -16,13 +16,13 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryOps;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.Unit;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -37,12 +37,12 @@ public class TogglePower extends Power {
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
 		.apply(instance, TogglePower::new));
 
-	public static final PacketCodec<RegistryByteBuf, TogglePower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, TogglePower::getAction,
-		KeyCondition.PACKET_CODEC, TogglePower::getKeyCondition,
-		BooleanProvider.PACKET_CODEC, TogglePower::getRetainState,
-		BooleanProvider.PACKET_CODEC, TogglePower::getActiveByDefault,
+	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Action.STREAM_CODEC, TogglePower::getAction,
+		KeyCondition.STREAM_CODEC, TogglePower::getKeyCondition,
+		BooleanProvider.STREAM_CODEC, TogglePower::getRetainState,
+		BooleanProvider.STREAM_CODEC, TogglePower::getActiveByDefault,
 		TogglePower::new
 	);
 
@@ -67,7 +67,7 @@ public class TogglePower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.TogglePower.Instance(holder, this);
 	}
 
 	public static class Instance extends Power.Instance<TogglePower> {
@@ -120,7 +120,7 @@ public class TogglePower extends Power {
 
 		public void toggle(Context context) {
 
-			if (!holder.getWorld().isClient()) {
+			if (!holder.level().isClientSide()) {
 
 				this.toggled = !toggled;
 				this.syncData();
@@ -133,9 +133,9 @@ public class TogglePower extends Power {
 
 	}
 
-	public static void onKeyBindingPressed(PlayerEntity player, KeyBindingState ignoredState) {
+	public static void onKeyBindingPressed(Player player, KeyState ignoredState) {
 
-		for (var instance : PowersComponent.getInstances(player, Instance.class)) {
+		for (var instance : PowersComponent.getInstances(player, io.github.eggohito.neo_apoli.power.custom.TogglePower.Instance.class)) {
 
 			Context instanceContext = instance.createHolderContext();
 

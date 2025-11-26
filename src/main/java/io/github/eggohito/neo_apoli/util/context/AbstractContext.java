@@ -3,22 +3,22 @@ package io.github.eggohito.neo_apoli.util.context;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import net.minecraft.util.context.ContextParameterMap;
-import net.minecraft.world.World;
+import net.minecraft.util.context.ContextMap;
+import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
 @Getter
 public abstract class AbstractContext<C extends Context> implements Context {
 
-	private final ContextParameterMap parameters;
-	private final World world;
+	private final ContextMap parameters;
+	private final Level world;
 
 	private ImmutableSet<ContextAware> activeEntries;
-	private ContextAware.ErrorReporter reporter;
+	private ContextAware.ProblemReporter reporter;
 
-	protected AbstractContext(ContextParameterMap.Builder parameters, Set<ContextAware> activeEntries, World world, ContextAware.ErrorReporter reporter) {
-		this.parameters = parameters.build(reporter.getContextType());
+	protected AbstractContext(ContextMap.Builder parameters, Set<ContextAware> activeEntries, Level world, ContextAware.ProblemReporter reporter) {
+		this.parameters = parameters.create(reporter.getKeySet());
 		this.activeEntries = ImmutableSet.copyOf(activeEntries);
 		this.world = world;
 		this.reporter = reporter;
@@ -26,13 +26,13 @@ public abstract class AbstractContext<C extends Context> implements Context {
 
 	@Override
 	public C makeChild(String path) {
-		this.reporter = reporter.makeChild(path);
+		this.reporter = reporter.forChild(path);
 		return getThis();
 	}
 
 	@Override
-	public C makeChild(String path, ContextKey key) {
-		this.reporter = reporter.makeChild(path, key);
+	public C makeChild(String path, ReferenceKey key) {
+		this.reporter = reporter.forChild(path, key);
 		return getThis();
 	}
 

@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
 
 public final class PowerReloadEvents {
 
@@ -31,12 +31,12 @@ public final class PowerReloadEvents {
 
 	@FunctionalInterface
 	public interface Before {
-		void beforeReload(ResourceManager manager, Profiler profiler);
+		void beforeReload(ResourceManager manager, ProfilerFiller profiler);
 	}
 
 	@FunctionalInterface
 	public interface After {
-		void afterReload(ResourceManager manager, Profiler profiler);
+		void afterReload(ResourceManager manager, ProfilerFiller profiler);
 	}
 
 }

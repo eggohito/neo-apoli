@@ -6,18 +6,18 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
 public record ChoiceItemAction(List<Case<ItemCondition, ItemAction>> cases, ItemAction defaultAction) implements ItemAction, ChoiceMetaAction<ItemCondition, ItemAction> {
 
-	public static final MapCodec<ChoiceItemAction> CODEC = MapCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> ChoiceMetaAction.codec(ItemCondition.CODEC, ItemAction.CODEC, ChoiceItemAction::new));
-	public static final PacketCodec<RegistryByteBuf, ChoiceItemAction> PACKET_CODEC = PacketCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> ChoiceMetaAction.packetCodec(ItemCondition.PACKET_CODEC, ItemAction.PACKET_CODEC, ChoiceItemAction::new));
+	public static final MapCodec<ChoiceItemAction> CODEC = MapCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> ChoiceMetaAction.createCodec(ItemCondition.CODEC, ItemAction.CODEC, ChoiceItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> ChoiceMetaAction.createStreamCodec(ItemCondition.STREAM_CODEC, ItemAction.STREAM_CODEC, ChoiceItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {

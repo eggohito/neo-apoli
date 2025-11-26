@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
@@ -20,8 +20,8 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 		.group(BlockCondition.CODEC.fieldOf("block_condition").forGetter(IsInBlockEntityCondition::condition))
 		.apply(instance, IsInBlockEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsInBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, IsInBlockEntityCondition::condition,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsInBlockEntityCondition> STREAM_CODEC = StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, IsInBlockEntityCondition::condition,
 		IsInBlockEntityCondition::new
 	);
 
@@ -37,34 +37,34 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 			return false;
 		}
 
-		World world = context.getWorld();
-		BlockPos blockPos = BlockPos.ofFloored(context.required(NeoApoliContextParameters.ENTITY_POS));
+		Level world = context.getWorld();
+		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.ENTITY_POS));
 
-		if (!world.isChunkLoaded(blockPos)) {
+		if (!world.hasChunkAt(blockPos)) {
 			return false;
 		}
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
-			.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 		return condition().test(blockContext.makeChild(".block_condition"));
 
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParameters.ENTITY_POS);
+	public Set<ContextKey<?>> getRequiredParameters() {
+		return Set.of(NeoApoliContextKeys.ENTITY_POS);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		condition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_condition"));
 	}
 
 }

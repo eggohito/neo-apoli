@@ -1,18 +1,18 @@
 package io.github.eggohito.neo_apoli.util.container_type;
 
-import net.minecraft.inventory.Inventory;
-import net.minecraft.screen.ScreenHandlerFactory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.MenuConstructor;
 
 public record PresetContainerType(int columns, int rows, PresetFactory presetFactory) implements ContainerType {
 
 	@Override
-	public ScreenHandlerFactory create(Inventory inventory) {
+	public MenuConstructor create(Container inventory) {
 		return presetFactory().create(inventory, this.columns(), this.rows());
 	}
 
 	@FunctionalInterface
 	public interface PresetFactory {
-		ScreenHandlerFactory create(Inventory inventory, int columns, int rows);
+		MenuConstructor create(Container inventory, int columns, int rows);
 	}
 
 }

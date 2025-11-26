@@ -8,9 +8,9 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -51,7 +51,7 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		MetaAction.super.validate(reporter);
 		ListIterator<Case<C, A>> listIterator = cases().listIterator();
@@ -61,24 +61,24 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 			int index = listIterator.nextIndex();
 			Case<C, A> aCase = listIterator.next();
 
-			aCase.validate(reporter.makeChild(".cases[" + index + "]"));
+			aCase.validate(reporter.forChild(".cases[" + index + "]"));
 
 		}
 
-		defaultAction().validate(reporter.makeChild(".default"));
+		defaultAction().validate(reporter.forChild(".default"));
 
 	}
 
-	static <C extends Condition, A extends Action, M extends ChoiceMetaAction<C, A>> MapCodec<M> codec(Codec<C> conditionCodec, Codec<A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
+	static <C extends Condition, A extends Action, M extends ChoiceMetaAction<C, A>> MapCodec<M> createCodec(Codec<C> conditionCodec, Codec<A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Case.codec(conditionCodec, actionCodec).listOf().fieldOf("cases").forGetter(ChoiceMetaAction::cases),
+			Case.createCodec(conditionCodec, actionCodec).listOf().fieldOf("cases").forGetter(ChoiceMetaAction::cases),
 			actionCodec.fieldOf("default").forGetter(ChoiceMetaAction::defaultAction)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, A extends Action, M extends ChoiceMetaAction<C, A>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, C> conditionCodec, PacketCodec<RegistryByteBuf, A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
-		return PacketCodec.tuple(
-			PacketCodecs.collection(ObjectArrayList::new, Case.packetCodec(conditionCodec, actionCodec)), ChoiceMetaAction::cases,
+	static <C extends Condition, A extends Action, M extends ChoiceMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
+		return StreamCodec.composite(
+			ByteBufCodecs.collection(ObjectArrayList::new, Case.createStreamCodec(conditionCodec, actionCodec)), ChoiceMetaAction::cases,
 			actionCodec, ChoiceMetaAction::defaultAction,
 			constructor
 		);
@@ -87,24 +87,24 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 	record Case<C extends Condition, A extends Action>(C condition, A action) implements ContextAware {
 
 		@Override
-		public void validate(ErrorReporter reporter) {
+		public void validate(ProblemReporter reporter) {
 
 			ContextAware.super.validate(reporter);
 
-			condition().validate(reporter.makeChild(".condition"));
-			action().validate(reporter.makeChild(".action"));
+			condition().validate(reporter.forChild(".condition"));
+			action().validate(reporter.forChild(".action"));
 
 		}
 
-		public static <C extends Condition, A extends Action> Codec<Case<C, A>> codec(Codec<C> conditionCodec, Codec<A> actionCodec) {
+		public static <C extends Condition, A extends Action> Codec<Case<C, A>> createCodec(Codec<C> conditionCodec, Codec<A> actionCodec) {
 			return RecordCodecBuilder.create(instance -> instance.group(
 				conditionCodec.fieldOf("condition").forGetter(Case::condition),
 				actionCodec.fieldOf("action").forGetter( Case::action)
 			).apply(instance, Case::new));
 		}
 
-		public static <C extends Condition, A extends Action> PacketCodec<RegistryByteBuf, Case<C, A>> packetCodec(PacketCodec<RegistryByteBuf, C> conditionCodec, PacketCodec<RegistryByteBuf, A> actionCodec) {
-			return PacketCodec.tuple(
+		public static <C extends Condition, A extends Action> StreamCodec<RegistryFriendlyByteBuf, Case<C, A>> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec) {
+			return StreamCodec.composite(
 				conditionCodec, Case::condition,
 				actionCodec, Case::action,
 				Case::new

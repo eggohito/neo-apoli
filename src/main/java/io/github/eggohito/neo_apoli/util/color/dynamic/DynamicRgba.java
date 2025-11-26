@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvider blue, NumberProvider alpha) implements DynamicColor {
 
@@ -19,11 +19,11 @@ public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvid
 		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicRgba::alpha)
 	).apply(instance, DynamicRgba::new));
 
-	public static final PacketCodec<RegistryByteBuf, DynamicRgba> PACKET_CODEC = PacketCodec.tuple(
-		NumberProvider.PACKET_CODEC, DynamicRgba::red,
-		NumberProvider.PACKET_CODEC, DynamicRgba::green,
-		NumberProvider.PACKET_CODEC, DynamicRgba::blue,
-		NumberProvider.PACKET_CODEC, DynamicRgba::alpha,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicRgba> STREAM_CODEC = StreamCodec.composite(
+		NumberProvider.STREAM_CODEC, DynamicRgba::red,
+		NumberProvider.STREAM_CODEC, DynamicRgba::green,
+		NumberProvider.STREAM_CODEC, DynamicRgba::blue,
+		NumberProvider.STREAM_CODEC, DynamicRgba::alpha,
 		DynamicRgba::new
 	);
 
@@ -33,11 +33,11 @@ public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvid
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
-		red().validate(reporter.makeChild(".red"));
-		green().validate(reporter.makeChild(".green"));
-		blue().validate(reporter.makeChild(".blue"));
-		alpha().validate(reporter.makeChild(".alpha"));
+	public void validate(ProblemReporter reporter) {
+		red().validate(reporter.forChild(".red"));
+		green().validate(reporter.forChild(".green"));
+		blue().validate(reporter.forChild(".blue"));
+		alpha().validate(reporter.forChild(".alpha"));
 	}
 
 	@Override

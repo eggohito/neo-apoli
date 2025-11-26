@@ -5,13 +5,13 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record CompareKeyCondition(Comparison comparison) implements KeyCondition, CompareMetaCondition {
 
-	public static final MapCodec<CompareKeyCondition> CODEC = CompareMetaCondition.codec(CompareKeyCondition::new);
-	public static final PacketCodec<RegistryByteBuf, CompareKeyCondition> PACKET_CODEC = CompareMetaCondition.packetCodec(CompareKeyCondition::new);
+	public static final MapCodec<CompareKeyCondition> CODEC = CompareMetaCondition.createCodec(CompareKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareKeyCondition> STREAM_CODEC = CompareMetaCondition.createStreamCodec(CompareKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {

@@ -12,14 +12,13 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,10 +32,10 @@ public class ModifyGlowingOtherPower extends Power {
 		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingOtherPower::getColor))
 		.apply(instance, ModifyGlowingOtherPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyGlowingOtherPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		BooleanProvider.PACKET_CODEC, ModifyGlowingOtherPower::getUseTeamColor,
-		Color.PACKET_CODEC, ModifyGlowingOtherPower::getColor,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyGlowingOtherPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		BooleanProvider.STREAM_CODEC, ModifyGlowingOtherPower::getUseTeamColor,
+		Color.STREAM_CODEC, ModifyGlowingOtherPower::getColor,
 		ModifyGlowingOtherPower::new
 	);
 
@@ -56,16 +55,16 @@ public class ModifyGlowingOtherPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		super.validate(reporter);
 
-		getUseTeamColor().validate(reporter.makeChild(".use_team_color"));
-		getColor().validate(reporter.makeChild(".color"));
+		getUseTeamColor().validate(reporter.forChild(".use_team_color"));
+		getColor().validate(reporter.forChild(".color"));
 
 	}
 
@@ -92,12 +91,12 @@ public class ModifyGlowingOtherPower extends Power {
 
 	public static boolean modifyOutlineVisibility(Context context) {
 
-		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
+		List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance.class);
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -120,20 +119,20 @@ public class ModifyGlowingOtherPower extends Power {
 
 	public static int modifyColor(Context context, boolean hasTeamColor, int original) {
 
-		Entity holder = context.nullable(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
+		List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance.class);
 
 		return modifyColor(context, instances, hasTeamColor, original);
 
 	}
 
-	public static int modifyColor(Context context, List<Instance> instances, boolean hasTeamColor, int original) {
+	public static int modifyColor(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingOtherPower.Instance> instances, boolean hasTeamColor, int original) {
 
 		int color = original;
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -156,11 +155,11 @@ public class ModifyGlowingOtherPower extends Power {
 
 	public static Context createContext(Entity actor, Entity target) {
 		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
-			.add(NeoApoliContextParameters.ACTOR, actor)
-			.add(NeoApoliContextParameters.TARGET, target)
-			.add(NeoApoliContextParameters.THIS_ENTITY, actor)
-			.add(NeoApoliContextParameters.ENTITY_POS, actor.getPos())
-			.build(target.getWorld());
+			.add(NeoApoliContextKeys.ACTOR, actor)
+			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
+			.add(NeoApoliContextKeys.ENTITY_POS, actor.position())
+			.build(target.level());
 	}
 
 }

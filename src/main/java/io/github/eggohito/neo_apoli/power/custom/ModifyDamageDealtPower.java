@@ -11,16 +11,16 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -35,10 +35,10 @@ public class ModifyDamageDealtPower extends Power {
 		.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(ModifyDamageDealtPower::getModifiers))
 		.apply(instance, ModifyDamageDealtPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, ModifyDamageDealtPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, ModifyDamageDealtPower::getOnModifyAction,
-		PacketCodecs.collection(ObjectArrayList::new, Modifier.PACKET_CODEC), ModifyDamageDealtPower::getModifiers,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageDealtPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Action.STREAM_CODEC, ModifyDamageDealtPower::getOnModifyAction,
+		ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), ModifyDamageDealtPower::getModifiers,
 		ModifyDamageDealtPower::new
 	);
 
@@ -58,14 +58,14 @@ public class ModifyDamageDealtPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		super.validate(reporter);
-		getOnModifyAction().validate(reporter.makeChild(".on_modify_action"));
+		getOnModifyAction().validate(reporter.forChild(".on_modify_action"));
 
 		ListIterator<Modifier> listIterator = getModifiers().listIterator();
 
@@ -74,7 +74,7 @@ public class ModifyDamageDealtPower extends Power {
 			int index = listIterator.nextIndex();
 			Modifier modifier = listIterator.next();
 
-			modifier.validate(reporter.makeChild(".modifiers[" + index + "]"));
+			modifier.validate(reporter.forChild(".modifiers[" + index + "]"));
 
 		}
 
@@ -98,19 +98,19 @@ public class ModifyDamageDealtPower extends Power {
 
 	public static float modify(Context context, float baseValue) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		List<io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance.class);
 
 		return modify(context, instances, baseValue);
 
 	}
 
-	public static float modify(Context context, List<Instance> instances, float baseValue) {
+	public static float modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance> instances, float baseValue) {
 
 		List<Pair<Modifier, Context>> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -145,15 +145,15 @@ public class ModifyDamageDealtPower extends Power {
 
 	public static Context createContext(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
 		return PowerTypes.MODIFY_DAMAGE_DEALT.contextBuilder()
-			.add(NeoApoliContextParameters.ACTOR, actor)
-			.add(NeoApoliContextParameters.TARGET, target)
-			.add(NeoApoliContextParameters.DAMAGE_SOURCE, damageSource)
-			.add(NeoApoliContextParameters.DAMAGE_AMOUNT, damageAmount)
-			.addNullable(NeoApoliContextParameters.DAMAGING_ENTITY, damageSource.getAttacker())
-			.addNullable(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY, damageSource.getSource())
-			.add(NeoApoliContextParameters.THIS_ENTITY, actor)
-			.add(NeoApoliContextParameters.ENTITY_POS, actor.getPos())
-			.build(actor.getWorld());
+			.add(NeoApoliContextKeys.ACTOR, actor)
+			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.DAMAGE_SOURCE, damageSource)
+			.add(NeoApoliContextKeys.DAMAGE_AMOUNT, damageAmount)
+			.addNullable(NeoApoliContextKeys.DAMAGING_ENTITY, damageSource.getEntity())
+			.addNullable(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY, damageSource.getDirectEntity())
+			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
+			.add(NeoApoliContextKeys.ENTITY_POS, actor.position())
+			.build(actor.level());
 	}
 
 }

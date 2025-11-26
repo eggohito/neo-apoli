@@ -12,19 +12,18 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.Getter;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,11 +38,11 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
 		.apply(instance, CallbackBlockBreakPower::new));
 
-	public static final PacketCodec<RegistryByteBuf, CallbackBlockBreakPower> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.optional(Condition.PACKET_CODEC), Power::getActiveCondition,
-		Action.PACKET_CODEC, CallbackBlockBreakPower::getOnBreakAction,
-		BooleanProvider.PACKET_CODEC, CallbackBlockBreakPower::getOnlyWhenHarvested,
-		PacketCodecs.INTEGER, CallbackBlockBreakPower::getPriority,
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackBlockBreakPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
+		Action.STREAM_CODEC, CallbackBlockBreakPower::getOnBreakAction,
+		BooleanProvider.STREAM_CODEC, CallbackBlockBreakPower::getOnlyWhenHarvested,
+		ByteBufCodecs.INT, CallbackBlockBreakPower::getPriority,
 		CallbackBlockBreakPower::new
 	);
 
@@ -65,16 +64,16 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance(holder, this);
 	}
 
 	@Override
-	public void validate(ContextAware.ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		super.validate(reporter);
 
-		getOnBreakAction().validate(reporter.makeChild(".on_break_action"));
-		getOnlyWhenHarvested().validate(reporter.makeChild(".only_when_harvested"));
+		getOnBreakAction().validate(reporter.forChild(".on_break_action"));
+		getOnlyWhenHarvested().validate(reporter.forChild(".only_when_harvested"));
 
 	}
 
@@ -97,18 +96,18 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	public static void execute(Context context, boolean harvested) {
 
-		Entity holder = context.required(NeoApoliContextParameters.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance.class);
 
 		execute(context, instances, harvested);
 
 	}
 
-	public static void execute(Context context, InstanceCollection<Instance> instances, boolean harvested) {
+	public static void execute(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance> instances, boolean harvested) {
 
 		for (var instance : instances) {
 
-			ErrorReporter reporter = instance.createReporter();
+			ProblemReporter reporter = instance.createReporter();
 			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
 
 			try {
@@ -127,15 +126,15 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	}
 
-	public static Context createContext(PlayerEntity player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
+	public static Context createContext(Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
 		return PowerTypes.CALLBACK_BLOCK_BREAK.contextBuilder()
-			.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-			.add(NeoApoliContextParameters.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, blockEntity)
-			.addNullable(NeoApoliContextParameters.DIRECTION, direction)
-			.add(NeoApoliContextParameters.THIS_ENTITY, player)
-			.add(NeoApoliContextParameters.ENTITY_POS, player.getPos())
-			.build(player.getWorld());
+			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
+			.addNullable(NeoApoliContextKeys.DIRECTION, direction)
+			.add(NeoApoliContextKeys.THIS_ENTITY, player)
+			.add(NeoApoliContextKeys.ENTITY_POS, player.position())
+			.build(player.level());
 	}
 
 }

@@ -5,15 +5,14 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.CompareToRangeMetaCond
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-
 import java.util.Optional;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 public record CompareToRangeCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements CompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeCondition> CODEC = CompareToRangeMetaCondition.codec(CompareToRangeCondition::new);
-	public static final PacketCodec<RegistryByteBuf, CompareToRangeCondition> PACKET_CODEC = CompareToRangeMetaCondition.packetCodec(CompareToRangeCondition::new);
+	public static final MapCodec<CompareToRangeCondition> CODEC = CompareToRangeMetaCondition.createCodec(CompareToRangeCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeCondition> STREAM_CODEC = CompareToRangeMetaCondition.createStreamCodec(CompareToRangeCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

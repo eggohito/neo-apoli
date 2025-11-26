@@ -8,10 +8,10 @@ import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	}
 
 	@Override
-	default void validate(ErrorReporter reporter) {
+	default void validate(ProblemReporter reporter) {
 
 		ValueProvider.super.validate(reporter);
 		ListIterator<Case<P>> caseListIterator = cases().listIterator();
@@ -58,22 +58,22 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 			int index = caseListIterator.nextIndex();
 			Case<P> aCase = caseListIterator.next();
 
-			aCase.validate(reporter.makeChild(".cases[" + index + "]"));
+			aCase.validate(reporter.forChild(".cases[" + index + "]"));
 
 		}
 
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> MapCodec<M> codec(Codec<P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
+	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> MapCodec<M> createCodec(Codec<P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Codecs.nonEmptyList(Case.codec(providerCodec).listOf()).fieldOf("cases").forGetter(ChoiceValueProvider::cases),
+			ExtraCodecs.nonEmptyList(Case.createCodec(providerCodec).listOf()).fieldOf("cases").forGetter(ChoiceValueProvider::cases),
 			providerCodec.fieldOf("default").forGetter(ChoiceValueProvider::defaultValue)
 		).apply(instance, constructor));
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> PacketCodec<RegistryByteBuf, M> packetCodec(PacketCodec<RegistryByteBuf, P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
-		return PacketCodec.tuple(
-			PacketCodecs.collection(ObjectArrayList::new, Case.packetCodec(providerCodec)), ChoiceValueProvider::cases,
+	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
+		return StreamCodec.composite(
+			ByteBufCodecs.collection(ObjectArrayList::new, Case.createStreamCodec(providerCodec)), ChoiceValueProvider::cases,
 			providerCodec, ChoiceValueProvider::defaultValue,
 			constructor
 		);
@@ -82,25 +82,25 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	record Case<P extends ValueProvider<?>>(Condition condition, P value) implements ContextAware {
 
 		@Override
-		public void validate(ErrorReporter reporter) {
+		public void validate(ProblemReporter reporter) {
 
 			ContextAware.super.validate(reporter);
 
-			condition().validate(reporter.makeChild(".condition"));
-			value().validate(reporter.makeChild(".value"));
+			condition().validate(reporter.forChild(".condition"));
+			value().validate(reporter.forChild(".value"));
 
 		}
 
-		public static <P extends ValueProvider<?>> Codec<Case<P>> codec(Codec<P> codec) {
+		public static <P extends ValueProvider<?>> Codec<Case<P>> createCodec(Codec<P> codec) {
 			return RecordCodecBuilder.create(instance -> instance.group(
 				Condition.CODEC.fieldOf("condition").forGetter(Case::condition),
 				codec.fieldOf("value").forGetter(Case::value)
 			).apply(instance, Case::new));
 		}
 
-		public static <P extends ValueProvider<?>> PacketCodec<RegistryByteBuf, Case<P>> packetCodec(PacketCodec<RegistryByteBuf, P> codec) {
-			return PacketCodec.tuple(
-				Condition.PACKET_CODEC, Case::condition,
+		public static <P extends ValueProvider<?>> StreamCodec<RegistryFriendlyByteBuf, Case<P>> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, P> codec) {
+			return StreamCodec.composite(
+				Condition.STREAM_CODEC, Case::condition,
 				codec, Case::value,
 				Case::new
 			);

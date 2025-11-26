@@ -7,11 +7,11 @@ import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockConditio
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 
 public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements EntityCondition {
 
@@ -19,8 +19,8 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 		.group(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsOnBlockEntityCondition::blockCondition))
 		.apply(instance, IsOnBlockEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsOnBlockEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, IsOnBlockEntityCondition::blockCondition,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsOnBlockEntityCondition> STREAM_CODEC = StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, IsOnBlockEntityCondition::blockCondition,
 		IsOnBlockEntityCondition::new
 	);
 
@@ -36,23 +36,23 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 			return false;
 		}
 
-		World world = context.getWorld();
-		Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
+		Level world = context.getWorld();
+		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 
 		try {
 
 			if (context.markActive(this)) {
 
-				if (!entity.isOnGround()) {
+				if (!entity.onGround()) {
 					return false;
 				}
 
-				BlockPos steppingPos = entity.getSteppingPos();
+				BlockPos steppingPos = entity.getOnPos();
 				Context blockContext = ContextImpl.of(context, builder -> builder
-					.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-					.add(NeoApoliContextParameters.BLOCK_POS, steppingPos)
-					.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(steppingPos))
-					.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
+					.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+					.add(NeoApoliContextKeys.BLOCK_POS, steppingPos)
+					.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(steppingPos))
+					.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
 
 				return blockCondition().test(blockContext.makeChild(".block_condition"));
 
@@ -71,11 +71,11 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_condition"));
 	}
 
 }

@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.mixin.action.custom.entity;
 
-import io.github.eggohito.neo_apoli.networking.packet.s2c.DismountEntityS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.DismountEntityS2CPacket;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,13 +23,13 @@ public abstract class DismountEntityActionMixin {
 	@Shadow
 	public abstract int getId();
 
-	@Inject(method = "dismountVehicle", at = @At("HEAD"))
+	@Inject(method = "removeVehicle", at = @At("HEAD"))
 	private void syncDismount(CallbackInfo ci) {
 
-		if (this.getVehicle() instanceof ServerPlayerEntity) {
+		if (this.getVehicle() instanceof ServerPlayer) {
 
 			DismountEntityS2CPacket packet = new DismountEntityS2CPacket(this.getId());
-			Set<ServerPlayerEntity> trackingPlayers = MiscUtil.getTrackingPlayers((Entity) (Object) this);
+			Set<ServerPlayer> trackingPlayers = MiscUtil.getTrackingPlayers((Entity) (Object) this);
 
 			for (var trackingPlayer: trackingPlayers) {
 				ServerPlayNetworking.send(trackingPlayer, packet);

@@ -5,17 +5,17 @@ import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record ChoiceNbtProvider(List<Case<NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, ChoiceValueProvider<NbtProvider, NbtElement> {
+public record ChoiceNbtProvider(List<Case<NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, ChoiceValueProvider<NbtProvider, Tag> {
 
-	public static final MapCodec<ChoiceNbtProvider> CODEC = MapCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.codec(NbtProvider.CODEC, ChoiceNbtProvider::new));
-	public static final PacketCodec<RegistryByteBuf, ChoiceNbtProvider> PACKET_CODEC = PacketCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.packetCodec(NbtProvider.PACKET_CODEC, ChoiceNbtProvider::new));
+	public static final MapCodec<ChoiceNbtProvider> CODEC = MapCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(NbtProvider.CODEC, ChoiceNbtProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(NbtProvider.STREAM_CODEC, ChoiceNbtProvider::new));
 
 	@Override
 	public NbtProviderType<?> getType() {

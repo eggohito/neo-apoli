@@ -5,15 +5,15 @@ import io.github.eggohito.neo_apoli.condition.custom.meta.CompareToRangeMetaCond
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
 public record CompareToRangeEntityCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements EntityCondition, CompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeEntityCondition> CODEC = CompareToRangeMetaCondition.codec(CompareToRangeEntityCondition::new);
-	public static final PacketCodec<RegistryByteBuf, CompareToRangeEntityCondition> PACKET_CODEC = CompareToRangeMetaCondition.packetCodec(CompareToRangeEntityCondition::new);
+	public static final MapCodec<CompareToRangeEntityCondition> CODEC = CompareToRangeMetaCondition.createCodec(CompareToRangeEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeEntityCondition> STREAM_CODEC = CompareToRangeMetaCondition.createStreamCodec(CompareToRangeEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {

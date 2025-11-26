@@ -6,10 +6,10 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record DynamicBoxProvider(Vec3dProvider min, Vec3dProvider max) implements BoxProvider {
@@ -19,9 +19,9 @@ public record DynamicBoxProvider(Vec3dProvider min, Vec3dProvider max) implement
 		Vec3dProvider.CODEC.fieldOf("max").forGetter(DynamicBoxProvider::max)
 	).apply(instance, DynamicBoxProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, DynamicBoxProvider> PACKET_CODEC = PacketCodec.tuple(
-		Vec3dProvider.PACKET_CODEC, DynamicBoxProvider::min,
-		Vec3dProvider.PACKET_CODEC, DynamicBoxProvider::max,
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicBoxProvider> STREAM_CODEC = StreamCodec.composite(
+		Vec3dProvider.STREAM_CODEC, DynamicBoxProvider::min,
+		Vec3dProvider.STREAM_CODEC, DynamicBoxProvider::max,
 		DynamicBoxProvider::new
 	);
 
@@ -31,22 +31,22 @@ public record DynamicBoxProvider(Vec3dProvider min, Vec3dProvider max) implement
 	}
 
 	@Override
-	public @NotNull Box next(Context context) {
+	public @NotNull AABB next(Context context) {
 
-		Vec3d min = min().next(context.makeChild(".min"));
-		Vec3d max = max().next(context.makeChild(".max"));
+		Vec3 min = min().next(context.makeChild(".min"));
+		Vec3 max = max().next(context.makeChild(".max"));
 
-		return new Box(min, max);
+		return new AABB(min, max);
 
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		BoxProvider.super.validate(reporter);
 
-		min().validate(reporter.makeChild(".min"));
-		max().validate(reporter.makeChild(".max"));
+		min().validate(reporter.forChild(".min"));
+		max().validate(reporter.forChild(".max"));
 
 	}
 

@@ -14,18 +14,18 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.EntityShapeContext;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -35,12 +35,12 @@ import java.util.function.Function;
 
 public class MiscUtil {
 
-	public static ImmutableBiMap<String, ActionResult> ACTION_RESULTS = ImmutableBiMap.<String, ActionResult>builder()
-		.put("success", ActionResult.SUCCESS)
-		.put("success_server", ActionResult.SUCCESS_SERVER)
-		.put("consume", ActionResult.CONSUME)
-		.put("fail", ActionResult.FAIL)
-		.put("pass", ActionResult.PASS)
+	public static ImmutableBiMap<String, InteractionResult> ACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
+		.put("success", InteractionResult.SUCCESS)
+		.put("success_server", InteractionResult.SUCCESS_SERVER)
+		.put("consume", InteractionResult.CONSUME)
+		.put("fail", InteractionResult.FAIL)
+		.put("pass", InteractionResult.PASS)
 		.build();
 
 	public static CommandSyntaxException createCommandException(Message message) {
@@ -53,27 +53,27 @@ public class MiscUtil {
 
 	private static final MapCodec<Optional<ResourceCondition>> RESOURCE_CONDITION_MAP_CODEC = ResourceCondition.CONDITION_CODEC.optionalFieldOf(ResourceConditions.CONDITIONS_KEY);
 
-	public static <I> boolean isResourceConditionFulfilled(Identifier resourceId, I input, String directory, RegistryOps<I> ops) {
+	public static <I> boolean isResourceConditionFulfilled(ResourceLocation resourceId, I input, String directory, RegistryOps<I> ops) {
 		return ops.getMap(input).mapOrElse(mapInput -> isResourceConditionFulfilled(resourceId, mapInput, directory, ops), error -> true);
 	}
 
-	public static <I> boolean isResourceConditionFulfilled(Identifier resourceId, MapLike<I> mapInput, String directory, RegistryOps<I> ops) {
-		RegistryOps.RegistryInfoGetter infoGetter = ((RegistryOpsAccessor) ops).getRegistryInfoGetter();
+	public static <I> boolean isResourceConditionFulfilled(ResourceLocation resourceId, MapLike<I> mapInput, String directory, RegistryOps<I> ops) {
+		RegistryOps.RegistryInfoLookup infoLookup = ((RegistryOpsAccessor) ops).getLookupProvider();
 		return RESOURCE_CONDITION_MAP_CODEC.decode(ops, mapInput)
 			.ifError(error -> NeoApoli.LOGGER.error("Failed to parse resource conditions for file of type {} with ID '{}', skipping: {}", directory, resourceId, error.message()))
 			.result()
 			.flatMap(Function.identity())
-			.map(condition -> condition.test(infoGetter))
+			.map(condition -> condition.test(infoLookup))
 			.orElse(true);
 	}
 
-	public static boolean isResultPass(ActionResult result) {
-		return (result instanceof ActionResult.Success(ActionResult.SwingSource swingSource, ActionResult.ItemContext ignored) && swingSource == ActionResult.SwingSource.NONE)
-			|| result instanceof ActionResult.PassToDefaultBlockAction
-			|| result instanceof ActionResult.Pass;
+	public static boolean isResultPass(InteractionResult result) {
+		return (result instanceof InteractionResult.Success(InteractionResult.SwingSource swingSource, InteractionResult.ItemContext ignored) && swingSource == InteractionResult.SwingSource.NONE)
+			|| result instanceof InteractionResult.TryEmptyHandInteraction
+			|| result instanceof InteractionResult.Pass;
 	}
 
-	public static ActionResult overrideResult(ActionResult oldResult, ActionResult newResult) {
+	public static InteractionResult overrideResult(InteractionResult oldResult, InteractionResult newResult) {
 
 		if (isResultPass(newResult)) {
 			return oldResult;
@@ -97,11 +97,11 @@ public class MiscUtil {
 
 	}
 
-	public static Set<ServerPlayerEntity> getTrackingPlayers(Entity entity) {
+	public static Set<ServerPlayer> getTrackingPlayers(Entity entity) {
 
-		Set<ServerPlayerEntity> players = new ObjectOpenHashSet<>(PlayerLookup.tracking(entity));
+		Set<ServerPlayer> players = new ObjectOpenHashSet<>(PlayerLookup.tracking(entity));
 
-		if (entity instanceof ServerPlayerEntity selfPlayer) {
+		if (entity instanceof ServerPlayer selfPlayer) {
 			players.add(selfPlayer);
 		}
 
@@ -112,20 +112,20 @@ public class MiscUtil {
 	@Nullable
 	public static SavedBlockPosition getInWallBlock(LivingEntity entity) {
 
-		World world = entity.getWorld();
-		BlockPos.Mutable mutable = new BlockPos.Mutable();
+		Level level = entity.level();
+		BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
 		for (int i = 0; i < 8; i++) {
 
-			double d = entity.getX() + (i % 2 - 0.5F) * entity.getWidth() * 0.8F;
+			double d = entity.getX() + (i % 2 - 0.5F) * entity.getBbWidth() * 0.8F;
 			double e = entity.getEyeY() + ((i >> 1) % 2 - 0.5F) * 0.1F * entity.getScale();
-			double f = entity.getZ() + ((i >> 2) % 2 - 0.5F) * entity.getWidth() * 0.8F;
+			double f = entity.getZ() + ((i >> 2) % 2 - 0.5F) * entity.getBbWidth() * 0.8F;
 
 			mutable.set(d, e, f);
-			BlockState blockState = entity.getWorld().getBlockState(mutable);
+			BlockState blockState = level.getBlockState(mutable);
 
-			if (blockState.getRenderType() != BlockRenderType.INVISIBLE && blockState.shouldBlockVision(world, mutable)) {
-				return new SavedBlockPosition(world, mutable, blockState, world.getBlockEntity(mutable));
+			if (blockState.getRenderShape() != RenderShape.INVISIBLE && blockState.isViewBlocking(level, mutable)) {
+				return new SavedBlockPosition(level, mutable, blockState, level.getBlockEntity(mutable));
 			}
 
 		}
@@ -139,9 +139,9 @@ public class MiscUtil {
 			|| reader.peek() == ' ';
 	}
 
-	public static boolean hasEntity(ShapeContext shapeContext) {
-		return shapeContext instanceof EntityShapeContext entityShapeContext
-			&& entityShapeContext.getEntity() != null;
+	public static boolean hasEntity(CollisionContext collisionContext) {
+		return collisionContext instanceof EntityCollisionContext entityCollisionContext
+			&& entityCollisionContext.getEntity() != null;
 	}
 
 }

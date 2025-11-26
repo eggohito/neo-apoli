@@ -16,24 +16,24 @@ import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class ActionCommand {
 
-	public static void register(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> rootNode) {
+	public static void register(CommandBuildContext registryAccess, CommandNode<CommandSourceStack> rootNode) {
 
-		CommandNode<ServerCommandSource> baseNode = literal("action")
-			.requires(source -> source.hasPermissionLevel(2))
+		CommandNode<CommandSourceStack> baseNode = literal("action")
+			.requires(source -> source.hasPermission(2))
 			.build();
 
 		baseNode.addChild(DumpSubCommand.node(registryAccess));
@@ -45,7 +45,7 @@ public class ActionCommand {
 
 	static final class DumpSubCommand {
 
-		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
 			var node = literal("dump")
 				.then(argument("action", ActionArgumentType.action(registryAccess))
@@ -57,18 +57,18 @@ public class ActionCommand {
 
 		}
 
-		private static int withDefaultIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		private static int withDefaultIndent(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, 4);
 		}
 
-		private static int withSpecificIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		private static int withSpecificIndent(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, IntegerArgumentType.getInteger(commandContext, "indent"));
 		}
 
-		private static int execute(CommandContext<ServerCommandSource> commandContext, int indent) throws CommandSyntaxException {
+		private static int execute(CommandContext<CommandSourceStack> commandContext, int indent) throws CommandSyntaxException {
 
-			ServerCommandSource commandSource = commandContext.getSource();
-			RegistryOps<JsonElement> ops = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
+			CommandSourceStack commandSource = commandContext.getSource();
+			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
 			Action action = ActionArgumentType.getAction(commandContext, "action");
 
@@ -76,7 +76,7 @@ public class ActionCommand {
 				case DataResult.Success<JsonElement> success -> {
 
 					JsonElement jsonElement = success.value();
-					commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false);
+					commandSource.sendSuccess(() -> JsonTextFormatter.format(jsonElement, indent), false);
 
 					yield jsonElement.toString().length();
 
@@ -91,24 +91,24 @@ public class ActionCommand {
 
 	static final class ExecuteSubCommand {
 
-		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
-			CommandNode<ServerCommandSource> executeNode = literal("execute").build();
-			CommandNode<ServerCommandSource> withNode = literal("with").build();
-			CommandNode<ServerCommandSource> onNode = literal("on")
+			CommandNode<CommandSourceStack> executeNode = literal("execute").build();
+			CommandNode<CommandSourceStack> withNode = literal("with").build();
+			CommandNode<CommandSourceStack> onNode = literal("on")
 				.then(argument("action", ActionArgumentType.inlineAction(registryAccess))
 					.executes(ExecuteSubCommand::execute)).build();
 
-			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_PARAMETER) {
+			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
 
-				String id = parameter.getId().toString();
-				TypedContextParameter.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
+				String id = parameter.name().toString();
+				TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
 
 				if (parameterCommandBuilder == null) {
 					continue;
 				}
 
-				CommandNode<ServerCommandSource> parameterNode = literal(id).build();
+				CommandNode<CommandSourceStack> parameterNode = literal(id).build();
 				parameterCommandBuilder.addArguments(registryAccess, executeNode, parameterNode);
 
 				withNode.addChild(parameterNode);
@@ -122,9 +122,9 @@ public class ActionCommand {
 
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
-			ServerCommandSource source = commandContext.getSource();
+			CommandSourceStack source = commandContext.getSource();
 			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
 
 			Action action = ActionArgumentType.getAction(commandContext, "action");
@@ -137,26 +137,26 @@ public class ActionCommand {
 					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\", ...}"
 				);
 
-				ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(NeoApoliContextTypes.ANY, rootPath);
+				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
 				ServerContext serverContext = builder
 					.withReporter(reporter)
-					.build(source.getWorld());
+					.build(source.getLevel());
 
 				action.validate(reporter);
 
 				if (reporter.hasAnyErrors()) {
-					throw MiscUtil.createCommandException(Text.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
 				}
 
 				action.execute(serverContext);
 
 				if (reporter.hasAnyErrors()) {
-					source.sendFeedback(() -> Text.literal("").append("Warnings found when executing " + display + ": ").formatted(Formatting.YELLOW).append(reporter.getErrorsAsString()), false);
+					source.sendSuccess(() -> Component.literal("").append("Warnings found when executing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);
 					return 0;
 				}
 
 				else {
-					source.sendFeedback(() -> Text.of("Successfully executed " + display + "!"), true);
+					source.sendSuccess(() -> Component.nullToEmpty("Successfully executed " + display + "!"), true);
 					return 1;
 				}
 

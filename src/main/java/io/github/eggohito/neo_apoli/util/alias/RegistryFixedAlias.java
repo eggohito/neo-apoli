@@ -6,9 +6,9 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RegistryFixedAlias<T> {
@@ -39,7 +39,7 @@ public final class RegistryFixedAlias<T> {
 		}
 
 		catch (AliasAlreadyTakenException e) {
-			throw new AliasAlreadyTakenException(e, getRegistry().getKey());
+			throw new AliasAlreadyTakenException(e, getRegistry().key());
 		}
 
 	}
@@ -51,27 +51,27 @@ public final class RegistryFixedAlias<T> {
 		}
 
 		catch (AliasAlreadyTakenException e) {
-			throw new AliasAlreadyTakenException(e, getRegistry().getKey());
+			throw new AliasAlreadyTakenException(e, getRegistry().key());
 		}
 
 	}
 
-	public void addIdAlias(Identifier from, T to) {
+	public void addIdAlias(ResourceLocation from, T to) {
 
 		try {
 			aliases.addAlias(from, RegistryUtil.getId(getRegistry(), to));
 		}
 
 		catch (AliasAlreadyTakenException e) {
-			throw new AliasAlreadyTakenException(e, getRegistry().getKey());
+			throw new AliasAlreadyTakenException(e, getRegistry().key());
 		}
 
 	}
 
-	public DataResult<RegistryEntry.Reference<T>> resolve(Identifier id) {
-		return registry.getEntry(aliases.resolve(id, registry::containsId))
+	public DataResult<Holder.Reference<T>> resolve(ResourceLocation id) {
+		return registry.get(aliases.resolve(id, registry::containsKey))
 			.map(DataResult::success)
-			.orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + registry.getKey() + ": " + id));
+			.orElseGet(() -> DataResult.error(() -> "Unknown registry key in " + registry.key() + ": " + id));
 	}
 
 	public static <T, U extends T> RegistryFixedAlias<U> of(Registry<U> registry, RegistryFixedAlias<T> fixed, String pathPrefix, String pathSuffix) {

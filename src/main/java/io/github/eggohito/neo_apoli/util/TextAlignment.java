@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
 
 import java.util.OptionalInt;
 
-public enum TextAlignment implements StringIdentifiable {
+public enum TextAlignment implements StringRepresentable {
 
 	NONE("none", (left, right, textWidth) -> OptionalInt.empty()),
 	LEFT("left", (left, right, textWidth) -> OptionalInt.of(left - 1)),
@@ -15,7 +15,7 @@ public enum TextAlignment implements StringIdentifiable {
 	CENTER("center", (left, right, textWidth) -> OptionalInt.of((left + right - textWidth) / 2));
 
 	public static final Codec<TextAlignment> CODEC = CodecUtil.enumType(TextAlignment.class);
-	public static final PacketCodec<ByteBuf, TextAlignment> PACKET_CODEC = PacketCodecUtil.enumType(TextAlignment.class);
+	public static final StreamCodec<ByteBuf, TextAlignment> STREAM_CODEC = StreamCodecUtil.enumType(TextAlignment.class);
 
 	final String name;
 	final HorizontalPosition horizontal;
@@ -26,7 +26,7 @@ public enum TextAlignment implements StringIdentifiable {
 	}
 
 	@Override
-	public String asString() {
+	public String getSerializedName() {
 		return name;
 	}
 

@@ -4,7 +4,7 @@ import io.github.eggohito.neo_apoli.exception.AliasAlreadyTakenException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -13,11 +13,11 @@ import java.util.function.Predicate;
 public class IdentifierAlias {
 
 	@Getter(AccessLevel.PROTECTED)
-	private final Map<Identifier, Identifier> identifiers;
+	private final Map<ResourceLocation, ResourceLocation> identifiers;
 	@Getter
 	private final StringAlias namespaces, paths;
 
-	protected IdentifierAlias(Map<Identifier, Identifier> identifiers, StringAlias namespaces, StringAlias paths) {
+	protected IdentifierAlias(Map<ResourceLocation, ResourceLocation> identifiers, StringAlias namespaces, StringAlias paths) {
 		this.identifiers = identifiers;
 		this.namespaces = namespaces;
 		this.paths = paths;
@@ -27,7 +27,7 @@ public class IdentifierAlias {
 		this(new Object2ObjectOpenHashMap<>(), new StringAlias(), new StringAlias());
 	}
 
-	public void addAlias(Identifier from, Identifier to) {
+	public void addAlias(ResourceLocation from, ResourceLocation to) {
 
 		if (getIdentifiers().putIfAbsent(from, to) != null) {
 			throw new AliasAlreadyTakenException(from, to, getIdentifiers()::get);
@@ -35,11 +35,11 @@ public class IdentifierAlias {
 
 	}
 
-	public boolean hasAlias(Identifier id) {
+	public boolean hasAlias(ResourceLocation id) {
 		return getIdentifiers().containsKey(id);
 	}
 
-	public Identifier resolveAlias(Identifier id) {
+	public ResourceLocation resolveAlias(ResourceLocation id) {
 
 		if (hasAlias(id)) {
 			return getIdentifiers().get(id);
@@ -51,11 +51,11 @@ public class IdentifierAlias {
 
 	}
 
-	public Identifier resolve(Identifier id, Predicate<Identifier> until) {
+	public ResourceLocation resolve(ResourceLocation id, Predicate<ResourceLocation> until) {
 
 		for (Resolver resolver : Resolver.values()) {
 
-			Identifier aliasedId = resolver.apply(this, id);
+			ResourceLocation aliasedId = resolver.apply(this, id);
 
 			if (until.test(aliasedId)) {
 				return aliasedId;
@@ -67,12 +67,12 @@ public class IdentifierAlias {
 
 	}
 
-	private enum Resolver implements BiFunction<IdentifierAlias, Identifier, Identifier> {
+	private enum Resolver implements BiFunction<IdentifierAlias, ResourceLocation, ResourceLocation> {
 
 		NO_OP {
 
 			@Override
-			public Identifier apply(IdentifierAlias aliases, Identifier id) {
+			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
 				return id;
 			}
 
@@ -81,7 +81,7 @@ public class IdentifierAlias {
 		IDENTIFIER {
 
 			@Override
-			public Identifier apply(IdentifierAlias aliases, Identifier id) {
+			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
 				return aliases.resolveAlias(id);
 			}
 
@@ -90,8 +90,8 @@ public class IdentifierAlias {
 		NAMESPACE {
 
 			@Override
-			public Identifier apply(IdentifierAlias aliases, Identifier id) {
-				return Identifier.of(aliases.getNamespaces().resolveAlias(id.getNamespace()), id.getPath());
+			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+				return ResourceLocation.fromNamespaceAndPath(aliases.getNamespaces().resolveAlias(id.getNamespace()), id.getPath());
 			}
 
 		},
@@ -99,7 +99,7 @@ public class IdentifierAlias {
 		PATH {
 
 			@Override
-			public Identifier apply(IdentifierAlias aliases, Identifier id) {
+			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
 				return id.withPath(aliases.getPaths().resolveAlias(id.getPath()));
 			}
 
@@ -108,12 +108,12 @@ public class IdentifierAlias {
 		NAMESPACE_AND_PATH {
 
 			@Override
-			public Identifier apply(IdentifierAlias aliases, Identifier id) {
+			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
 
 				String aliasedNamespace = aliases.getNamespaces().resolveAlias(id.getNamespace());
 				String aliasedPath = aliases.getPaths().resolveAlias(id.getPath());
 
-				return Identifier.of(aliasedNamespace, aliasedPath);
+				return ResourceLocation.fromNamespaceAndPath(aliasedNamespace, aliasedPath);
 
 			}
 

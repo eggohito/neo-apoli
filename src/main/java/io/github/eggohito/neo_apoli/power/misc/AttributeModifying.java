@@ -10,10 +10,9 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.AttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public abstract class AttributeModifying extends Power {
 	}
 
 	@Override
-	public abstract Instance<?> createInstance(Entity holder);
+	public abstract io.github.eggohito.neo_apoli.power.misc.AttributeModifying.Instance<?> createInstance(Entity holder);
 
 	public static abstract class Instance<P extends AttributeModifying> extends Power.Instance<P> {
 
@@ -46,9 +45,9 @@ public abstract class AttributeModifying extends Power {
 			super(holder, power);
 		}
 
-		protected void processModifiers(Context context, BiConsumer<EntityAttributeInstance, EntityAttributeModifier> processor) {
+		protected void processModifiers(Context context, BiConsumer<AttributeInstance, net.minecraft.world.entity.ai.attributes.AttributeModifier> processor) {
 
-			if (!(holder instanceof LivingEntity livingHolder) || livingHolder.getWorld().isClient()) {
+			if (!(holder instanceof LivingEntity livingHolder) || livingHolder.level().isClientSide()) {
 				return;
 			}
 
@@ -59,8 +58,8 @@ public abstract class AttributeModifying extends Power {
 
 				for (var attributeModifier: power.getModifiers()) {
 
-					EntityAttributeInstance attributeInstance = livingHolder.getAttributeInstance(attributeModifier.attribute());
-					EntityAttributeModifier modifier = attributeModifier.modifier();
+					AttributeInstance attributeInstance = livingHolder.getAttribute(attributeModifier.attribute());
+					net.minecraft.world.entity.ai.attributes.AttributeModifier modifier = attributeModifier.modifier();
 
 					if (attributeInstance == null) {
 						continue;
@@ -83,21 +82,21 @@ public abstract class AttributeModifying extends Power {
 		}
 
 		protected void addModifiersPersistently(Context context) {
-			this.processModifiers(context, EntityAttributeInstance::overwritePersistentModifier);
+			this.processModifiers(context, AttributeInstance::addOrReplacePermanentModifier);
 		}
 
 		protected void addModifiersTemporarily(Context context) {
 			this.processModifiers(context, (attributeInstance, modifier) -> {
 
 				if (!attributeInstance.hasModifier(modifier.id())) {
-					attributeInstance.addTemporaryModifier(modifier);
+					attributeInstance.addTransientModifier(modifier);
 				}
 
 			});
 		}
 
 		protected void removeModifiers(Context context) {
-			this.processModifiers(context, EntityAttributeInstance::removeModifier);
+			this.processModifiers(context, AttributeInstance::removeModifier);
 		}
 
 	}

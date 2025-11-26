@@ -7,9 +7,9 @@ import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
 
 /**
  * 	Color is an interface used to store ARGB data in object form. Getting the ARGB data as a primitive integer also
@@ -19,7 +19,7 @@ import net.minecraft.util.math.ColorHelper;
 public interface Color extends ContextAware {
 
 	Codec<Color> CODEC = new MultiAlternativeCodec<>(createCodec("type"), Rgba.STRING_CODEC);
-	PacketCodec<RegistryByteBuf, Color> PACKET_CODEC = ColorTypes.PACKET_CODEC.dispatch(Color::getType, ColorType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorTypes.STREAM_CODEC.dispatch(Color::getType, ColorType::packetCodec);
 
 	ColorType<?> getType();
 
@@ -27,7 +27,7 @@ public interface Color extends ContextAware {
 
 	//	TODO: Add an parameter for determining how the ARGB colors are mixed
 	static int mix(int first, int second) {
-		return ColorHelper.mix(first, second);
+		return ARGB.multiply(first, second);
 	}
 
 	static Codec<Color> createCodec(String typeKey) {

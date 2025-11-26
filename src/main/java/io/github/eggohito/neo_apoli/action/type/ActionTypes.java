@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.action.type.meta.MetaActionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 
 public class ActionTypes {
 
@@ -20,7 +20,7 @@ public class ActionTypes {
 		MetaActionTypes.registerAll();
 	}
 
-	public static <A extends Action, T extends ActionType<A>> T register(Identifier id, T type) {
+	public static <A extends Action, T extends ActionType<A>> T register(ResourceLocation id, T type) {
 		return Registry.register(NeoApoliRegistries.ACTION_TYPE, id, type);
 	}
 

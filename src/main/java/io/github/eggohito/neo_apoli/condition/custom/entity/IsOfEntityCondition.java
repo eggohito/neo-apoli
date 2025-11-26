@@ -5,13 +5,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryKeys;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 
 public record IsOfEntityCondition(EntityType<?> entityType) implements EntityCondition {
 
@@ -19,8 +19,8 @@ public record IsOfEntityCondition(EntityType<?> entityType) implements EntityCon
 		.group(EntityType.CODEC.fieldOf("entity_type").forGetter(IsOfEntityCondition::entityType))
 		.apply(instance, IsOfEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsOfEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.registryValue(RegistryKeys.ENTITY_TYPE), IsOfEntityCondition::entityType,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsOfEntityCondition> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.registry(Registries.ENTITY_TYPE), IsOfEntityCondition::entityType,
 		IsOfEntityCondition::new
 	);
 
@@ -31,7 +31,7 @@ public record IsOfEntityCondition(EntityType<?> entityType) implements EntityCon
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextParameters.THIS_ENTITY)
+		return context.optional(NeoApoliContextKeys.THIS_ENTITY)
 			.stream()
 			.map(Entity::getType)
 			.anyMatch(this.entityType()::equals);

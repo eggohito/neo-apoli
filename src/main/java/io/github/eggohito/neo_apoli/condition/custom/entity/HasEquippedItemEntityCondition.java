@@ -8,22 +8,22 @@ import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
 
-public record HasEquippedItemEntityCondition(ItemCondition itemCondition, AttributeModifierSlot slot) implements EntityCondition {
+public record HasEquippedItemEntityCondition(ItemCondition itemCondition, EquipmentSlotGroup slot) implements EntityCondition {
 
 	public static final MapCodec<HasEquippedItemEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ItemCondition.CODEC.optionalFieldOf("item_condition", new InvertedItemCondition(new IsEmptyItemCondition())).forGetter(HasEquippedItemEntityCondition::itemCondition),
-		AttributeModifierSlot.CODEC.fieldOf("slot").forGetter(HasEquippedItemEntityCondition::slot)
+		EquipmentSlotGroup.CODEC.fieldOf("slot").forGetter(HasEquippedItemEntityCondition::slot)
 	).apply(instance, HasEquippedItemEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, HasEquippedItemEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		ItemCondition.PACKET_CODEC, HasEquippedItemEntityCondition::itemCondition,
-		AttributeModifierSlot.PACKET_CODEC, HasEquippedItemEntityCondition::slot,
+	public static final StreamCodec<RegistryFriendlyByteBuf, HasEquippedItemEntityCondition> STREAM_CODEC = StreamCodec.composite(
+		ItemCondition.STREAM_CODEC, HasEquippedItemEntityCondition::itemCondition,
+		EquipmentSlotGroup.STREAM_CODEC, HasEquippedItemEntityCondition::slot,
 		HasEquippedItemEntityCondition::new
 	);
 
@@ -35,15 +35,15 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Attrib
 	@Override
 	public boolean test(Context context) {
 
-		if (!(context.nullable(NeoApoliContextParameters.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
+		if (!(context.nullable(NeoApoliContextKeys.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
 			return false;
 		}
 
 		for (var equipmentSlot : EquipmentSlot.values()) {
 
 			Context itemContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.ITEM))
-				.add(NeoApoliContextParameters.ITEM_STACK, thisLiving.getEquippedStack(equipmentSlot)));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
+				.add(NeoApoliContextKeys.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot)));
 
 			if (itemCondition().test(itemContext.makeChild(".item_condition"))) {
 				return true;
@@ -56,11 +56,11 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Attrib
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityCondition.super.validate(reporter);
 		itemCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.ITEM))
-			.makeChild(".item_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ITEM))
+			.forChild(".item_condition"));
 	}
 
 }

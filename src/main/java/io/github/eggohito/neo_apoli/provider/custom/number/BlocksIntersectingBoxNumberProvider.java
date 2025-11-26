@@ -7,11 +7,11 @@ import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition, BoxProvider box) implements NumberProvider {
@@ -21,9 +21,9 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksIntersectingBoxNumberProvider::box)
 	).apply(instance, BlocksIntersectingBoxNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, BlocksIntersectingBoxNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		BlockCondition.PACKET_CODEC, BlocksIntersectingBoxNumberProvider::blockCondition,
-		BoxProvider.PACKET_CODEC, BlocksIntersectingBoxNumberProvider::box,
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksIntersectingBoxNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		BlockCondition.STREAM_CODEC, BlocksIntersectingBoxNumberProvider::blockCondition,
+		BoxProvider.STREAM_CODEC, BlocksIntersectingBoxNumberProvider::box,
 		BlocksIntersectingBoxNumberProvider::new
 	);
 
@@ -35,27 +35,27 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 	@Override
 	public @NotNull Number next(Context context) {
 
-		World world = context.getWorld();
+		Level world = context.getWorld();
 		int matches = 0;
 
 		Context boxContext = context.makeChild(".box");
-		Box box = box().next(boxContext);
+		AABB box = box().next(boxContext);
 
 		if (boxContext.hasErrors()) {
 			return matches;
 		}
 
-		for (var blockPos : BlockPos.iterate(box)) {
+		for (var blockPos : BlockPos.betweenClosed(box)) {
 
-			if (!world.isChunkLoaded(blockPos)) {
+			if (!world.hasChunkAt(blockPos)) {
 				continue;
 			}
 
 			Context blockContext = ContextImpl.of(context, builder -> builder
-				.withContextType(ContextTypeUtil.merge(context.getType(), NeoApoliContextTypes.BLOCK))
-				.add(NeoApoliContextParameters.BLOCK_POS, blockPos)
-				.add(NeoApoliContextParameters.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(NeoApoliContextParameters.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
+				.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
 
 			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
 				matches++;
@@ -68,14 +68,14 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		NumberProvider.super.validate(reporter);
 		blockCondition().validate(reporter
-			.withContextType(ContextTypeUtil.merge(reporter.getContextType(), NeoApoliContextTypes.BLOCK))
-			.makeChild(".block_condition"));
+			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.forChild(".block_condition"));
 
-		box().validate(reporter.makeChild(".box"));
+		box().validate(reporter.forChild(".box"));
 
 	}
 

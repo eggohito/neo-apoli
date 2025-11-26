@@ -5,17 +5,17 @@ import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.PacketCodecUtil;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.Box;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 
-public record ChoiceBoxProvider(List<Case<BoxProvider>> cases, BoxProvider defaultValue) implements BoxProvider, ChoiceValueProvider<BoxProvider, Box> {
+public record ChoiceBoxProvider(List<Case<BoxProvider>> cases, BoxProvider defaultValue) implements BoxProvider, ChoiceValueProvider<BoxProvider, AABB> {
 
-	public static final MapCodec<ChoiceBoxProvider> CODEC = MapCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.codec(BoxProvider.CODEC, ChoiceBoxProvider::new));
-	public static final PacketCodec<RegistryByteBuf, ChoiceBoxProvider> PACKET_CODEC = PacketCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.packetCodec(BoxProvider.PACKET_CODEC, ChoiceBoxProvider::new));
+	public static final MapCodec<ChoiceBoxProvider> CODEC = MapCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(BoxProvider.CODEC, ChoiceBoxProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(BoxProvider.STREAM_CODEC, ChoiceBoxProvider::new));
 
 	@Override
 	public BoxProviderType<?> getType() {

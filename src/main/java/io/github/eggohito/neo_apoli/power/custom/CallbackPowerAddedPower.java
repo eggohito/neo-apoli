@@ -10,9 +10,9 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.event.Level;
 
@@ -22,7 +22,7 @@ import java.util.Optional;
 public class CallbackPowerAddedPower extends SimpleCallbackPower {
 
 	public static final MapCodec<CallbackPowerAddedPower> CODEC = createSimpleCallbackCodec(CallbackPowerAddedPower::new);
-	public static final PacketCodec<RegistryByteBuf, CallbackPowerAddedPower> PACKET_CODEC = createSimpleCallbackPacketCodec(CallbackPowerAddedPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerAddedPower> STREAM_CODEC = createSimpleCallbackPacketCodec(CallbackPowerAddedPower::new);
 
 	public CallbackPowerAddedPower(Optional<Condition> activeCondition, Action action) {
 		super(activeCondition, action);
@@ -35,7 +35,7 @@ public class CallbackPowerAddedPower extends SimpleCallbackPower {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+		return new io.github.eggohito.neo_apoli.power.custom.CallbackPowerAddedPower.Instance(holder, this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPowerAddedPower> {

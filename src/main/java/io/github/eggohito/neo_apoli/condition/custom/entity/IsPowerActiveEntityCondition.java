@@ -9,10 +9,10 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextParameters;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 
 public record IsPowerActiveEntityCondition(PowerReference power) implements EntityCondition {
 
@@ -20,8 +20,8 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 		.group(PowerReference.CODEC.fieldOf("power").forGetter(IsPowerActiveEntityCondition::power))
 		.apply(instance, IsPowerActiveEntityCondition::new));
 
-	public static final PacketCodec<RegistryByteBuf, IsPowerActiveEntityCondition> PACKET_CODEC = PacketCodec.tuple(
-		PowerReference.PACKET_CODEC, IsPowerActiveEntityCondition::power,
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsPowerActiveEntityCondition> STREAM_CODEC = StreamCodec.composite(
+		PowerReference.STREAM_CODEC, IsPowerActiveEntityCondition::power,
 		IsPowerActiveEntityCondition::new
 	);
 
@@ -41,7 +41,7 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 
 			if (context.markActive(this)) {
 
-				Entity entity = context.required(NeoApoliContextParameters.THIS_ENTITY);
+				Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 				return powersComponent.hasInstance(this.power())
@@ -62,9 +62,9 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 		EntityCondition.super.validate(reporter);
-		PowerManager.getAsResult(this.power()).ifError(error -> reporter.makeChild(".power").report(error.message()));
+		PowerManager.getAsResult(this.power()).ifError(error -> reporter.forChild(".power").report(error.message()));
 	}
 
 }

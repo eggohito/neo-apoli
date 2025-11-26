@@ -37,10 +37,10 @@
 		],
 		"loom:injected_interfaces": {
 			"net/minecraft/class_2960": [
-				"io/github/eggohito/neo_apoli/util/context/ContextKey"
+				"io/github/eggohito/neo_apoli/util/context/ReferenceKey"
 			],
 			"net/minecraft/class_5321": [
-				"io/github/eggohito/neo_apoli/util/context/ContextKey"
+				"io/github/eggohito/neo_apoli/util/context/ReferenceKey"
 			]
 		}
 	},

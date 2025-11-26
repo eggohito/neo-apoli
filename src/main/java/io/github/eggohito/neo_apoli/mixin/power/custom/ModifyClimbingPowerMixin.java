@@ -5,11 +5,6 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,14 +13,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 
 @Mixin(LivingEntity.class)
 public abstract class ModifyClimbingPowerMixin extends Entity {
 
 	@Shadow
-	private Optional<BlockPos> climbingPos;
+	private Optional<BlockPos> lastClimbablePos;
 
-	protected ModifyClimbingPowerMixin(EntityType<?> type, World world) {
+	protected ModifyClimbingPowerMixin(EntityType<?> type, Level world) {
 		super(type, world);
 	}
 
@@ -44,7 +44,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 
 	}
 
-	@ModifyReturnValue(method = "isClimbing", at = @At("RETURN"))
+	@ModifyReturnValue(method = "onClimbable", at = @At("RETURN"))
 	private boolean modifyClimbing(boolean original) {
 
 		if (original) {
@@ -61,7 +61,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 			boolean result = ModifyClimbingPower.modify(context, Power.Instance::isActive);
 
 			if (result) {
-				this.climbingPos = Optional.of(this.getBlockPos());
+				this.lastClimbablePos = Optional.of(this.blockPosition());
 			}
 
 			this.neo_apoli$climbingContext.remove();
@@ -71,7 +71,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 
 	}
 
-	@ModifyReturnValue(method = "isHoldingOntoLadder", at = @At("RETURN"))
+	@ModifyReturnValue(method = "isSuppressingSlidingDownLadder", at = @At("RETURN"))
 	private boolean overrideClimbingHold(boolean original) {
 
 		List<ModifyClimbingPower.Instance> instances = PowersComponent.getInstances(this, ModifyClimbingPower.Instance.class);

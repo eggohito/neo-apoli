@@ -9,15 +9,15 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
-import io.github.eggohito.neo_apoli.integration.DataPackContentsEvents;
 import io.github.eggohito.neo_apoli.integration.DependencyManager;
-import io.github.eggohito.neo_apoli.mixin.access.ReloadableRegistriesAccessor;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowerTagsS2CPacket;
-import io.github.eggohito.neo_apoli.networking.packet.s2c.SynchronizePowersS2CPacket;
+import io.github.eggohito.neo_apoli.integration.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonResourceReloader;
+import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -31,19 +31,19 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.TagGroupLoader;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.server.DataPackContents;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.profiler.Profilers;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagKey;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
@@ -56,10 +56,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
-public final class PowerManager implements JsonResourceReloader {
+public final class PowerManager implements JsonReloadListener {
 
-	private static final String TAG_DIRECTORY = RegistryKeys.getTagPath(NeoApoliRegistryKeys.POWER);
-	private static final String DIRECTORY = RegistryKeys.getPath(NeoApoliRegistryKeys.POWER);
+	private static final String TAG_DIRECTORY = Registries.tagsDirPath(NeoApoliRegistryKeys.POWER);
+	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.POWER);
 
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
@@ -67,41 +67,41 @@ public final class PowerManager implements JsonResourceReloader {
 		.create();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
-	private static final TagGroupLoader<PowerEntry<?>> TAG_LOADER = new TagGroupLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
+	private static final TagLoader<PowerEntry<?>> TAG_LOADER = new TagLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
 
-	public static final Identifier ID = NeoApoli.id("manager/powers");
-	public static final ImmutableSet<Identifier> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
+	public static final ResourceLocation ID = NeoApoli.id("manager/powers");
+	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Map<Power, PowerReference> BY_POWER = new IdentityHashMap<>();
 
-	private static final Object2ObjectOpenHashMap<Identifier, List<TagGroupLoader.TrackedEntry>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Identifier, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, List<TagLoader.EntryWithSource>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, List<PowerEntry<?>>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
-	public PowerManager(RegistryWrapper.WrapperLookup wrapperLookup) {
-		this.ops = wrapperLookup.getOps(JsonOps.INSTANCE);
+	public PowerManager(HolderLookup.Provider wrapperLookup) {
+		this.ops = wrapperLookup.createSerializationContext(JsonOps.INSTANCE);
 	}
 
 	@Override
-	public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<Identifier, List<TagGroupLoader.TrackedEntry>>> preparedTagsFuture = CompletableFuture
-			.supplyAsync(() -> this.preparePendingTags(manager, Profilers.get()), prepareExecutor);
-		CompletableFuture<Map<PowerReference.Power, Entry>> preparedElementsFuture = CompletableFuture
-			.supplyAsync(() -> this.prepareElements(manager, Profilers.get()), prepareExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
+			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
+		CompletableFuture<Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry>> preparedElementsFuture = CompletableFuture
+			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
-			.thenCompose(synchronizer::whenPrepared)
-			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profilers.get()), applyExecutor);
+			.thenCompose(synchronizer::wait)
+			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profiler.get()), applyExecutor);
 
 	}
 
-	private Map<Identifier, List<TagGroupLoader.TrackedEntry>> preparePendingTags(ResourceManager manager, Profiler ignoredProfiler) {
+	private Map<ResourceLocation, List<TagLoader.EntryWithSource>> preparePendingTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
 		PREPARED_TAGS.clear();
-		Map<Identifier, List<TagGroupLoader.TrackedEntry>> pendingTags = TAG_LOADER.loadTags(manager);
+		Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = TAG_LOADER.load(manager);
 
 		PREPARED_TAGS.putAll(pendingTags);
 		PREPARED_TAGS.trim();
@@ -110,7 +110,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private static void applyPendingTags(DataPackContents ignored) {
+	private static void applyPendingTags(ReloadableServerResources ignored) {
 
 		if (PREPARED_TAGS.isEmpty()) {
 			return;
@@ -119,7 +119,7 @@ public final class PowerManager implements JsonResourceReloader {
 		LOGGER.info("Parsing power tags from data packs...");
 		TAGS.clear();
 
-		TAGS.putAll(TAG_LOADER.buildGroup(PREPARED_TAGS));
+		TAGS.putAll(TAG_LOADER.build(PREPARED_TAGS));
 
 		LOGGER.info("Finished parsing power tags from data packs. Parsed {} power tag(s)", TAGS.size());
 
@@ -128,17 +128,17 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, Profiler ignoredProfiler) {
+	private Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<PowerReference.Power, Entry> prepared = new Object2ObjectOpenHashMap<>();
-		manager.findResources(DIRECTORY, this::supportsJsonFormat).forEach((fileId, resource) -> {
+		Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepared = new Object2ObjectOpenHashMap<>();
+		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
-			String packName = resource.getPackId();
-			Identifier resourceId = this.trimExtension(fileId, DIRECTORY);
+			String packName = resource.sourcePackId();
+			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
 
-			try (BufferedReader resourceReader = resource.getReader()) {
+			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getJsonFormat(fileId)));
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 				if (jsonElement == null) {
@@ -149,7 +149,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops)) {
 
-						Entry entry = new Entry(packName, jsonObject);
+						io.github.eggohito.neo_apoli.power.PowerManager.Entry entry = new io.github.eggohito.neo_apoli.power.PowerManager.Entry(packName, jsonObject);
 						PowerPreparation.EVENT.invoker().prepare(resourceId, entry, DIRECTORY, ops);
 
 						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), entry) != null) {
@@ -176,7 +176,7 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	private void applyElements(Map<PowerReference.Power, Entry> prepared, ResourceManager manager, Profiler profiler) {
+	private void applyElements(Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 
@@ -208,22 +208,22 @@ public final class PowerManager implements JsonResourceReloader {
 
 	static {
 
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
 		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
-		DataPackContentsEvents.PendingTagLoadEvents.AFTER.register(ID, dataPackContents -> {
-			validate(dataPackContents);
-			applyPendingTags(dataPackContents);
+		ReloadableServerResourcesEvents.UpdatingRegistryTagsEvents.AFTER.register(ID, resources -> {
+			validate(resources);
+			applyPendingTags(resources);
 		});
 
 	}
 
 	@ApiStatus.Internal
-	public static void validate(DataPackContents dataPackContents) {
+	public static void validate(ReloadableServerResources resources) {
 
 		if (BY_REFERENCE.isEmpty()) {
 			return;
@@ -239,7 +239,7 @@ public final class PowerManager implements JsonResourceReloader {
 			PowerEntry<?> entry = entryIterator.next();
 			Power power = entry.power();
 
-			ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(power.getType().contextType(), "{" + entry.reference() + "}").withWrapperLookup(((ReloadableRegistriesAccessor.LookupAccessor) dataPackContents.getReloadableRegistries()).getRegistries());
+			ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(power.getType().contextType(), "{" + entry.reference() + "}").withHolderProvider(((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries());
 			power.validate(reporter);
 
 			if (!reporter.hasAnyErrors()) {
@@ -259,19 +259,19 @@ public final class PowerManager implements JsonResourceReloader {
 	}
 
 	@Override
-	public Identifier getFabricId() {
+	public ResourceLocation getFabricId() {
 		return ID;
 	}
 
 	@Override
-	public Collection<Identifier> getFabricDependencies() {
+	public Collection<ResourceLocation> getFabricDependencies() {
 		return DEPENDENCIES;
 	}
 
 	@ApiStatus.Internal
-	public static void sendSyncPayload(ServerPlayerEntity player) {
+	public static void sendSyncPayload(ServerPlayer player) {
 
-		if (!player.server.isRemote()) {
+		if (!player.server.isPublished()) {
 			return;
 		}
 
@@ -290,9 +290,9 @@ public final class PowerManager implements JsonResourceReloader {
 	}
 
 	@ApiStatus.Internal
-	public static void sendTagSyncPayload(ServerPlayerEntity player) {
+	public static void sendTagSyncPayload(ServerPlayer player) {
 
-		if (!player.server.isRemote()) {
+		if (!player.server.isPublished()) {
 			return;
 		}
 
@@ -327,15 +327,15 @@ public final class PowerManager implements JsonResourceReloader {
 
 	}
 
-	public static Set<Identifier> getTags() {
+	public static Set<ResourceLocation> getTags() {
 		return TAGS.keySet();
 	}
 
 	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(TagKey<PowerEntry<?>> tag) {
-		return getEntriesFromTag(tag.id());
+		return getEntriesFromTag(tag.location());
 	}
 
-	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(Identifier tagId) {
+	public static DataResult<List<PowerEntry<?>>> getEntriesFromTag(ResourceLocation tagId) {
 		return Optional.ofNullable(TAGS.get(tagId))
 			.map(DataResult::success)
 			.orElseGet(() -> DataResult.error(() -> "Unknown power tag: " + tagId));
@@ -419,7 +419,7 @@ public final class PowerManager implements JsonResourceReloader {
 		BY_REFERENCE.trim();
 	}
 
-	public record Entry(String source, JsonObject element) implements JsonResourceReloader.Entry {
+	public record Entry(String source, JsonObject element) implements JsonReloadListener.Entry {
 
 	}
 

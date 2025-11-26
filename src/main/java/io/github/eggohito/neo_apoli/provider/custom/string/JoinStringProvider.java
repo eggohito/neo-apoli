@@ -7,10 +7,10 @@ import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -19,13 +19,13 @@ import java.util.ListIterator;
 public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
 
 	public static final MapCodec<JoinStringProvider> CODEC = MapCodecUtil.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Codecs.nonEmptyList(StringProvider.CODEC.listOf()).fieldOf("strings").forGetter(JoinStringProvider::strings),
+		ExtraCodecs.nonEmptyList(StringProvider.CODEC.listOf()).fieldOf("strings").forGetter(JoinStringProvider::strings),
 		StringProvider.CODEC.fieldOf("separator").forGetter(JoinStringProvider::separator)
 	).apply(instance, JoinStringProvider::new)));
 
-	public static final PacketCodec<RegistryByteBuf, JoinStringProvider> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.collection(ObjectArrayList::new, StringProvider.PACKET_CODEC), JoinStringProvider::strings,
-		StringProvider.PACKET_CODEC, JoinStringProvider::separator,
+	public static final StreamCodec<RegistryFriendlyByteBuf, JoinStringProvider> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.collection(ObjectArrayList::new, StringProvider.STREAM_CODEC), JoinStringProvider::strings,
+		StringProvider.STREAM_CODEC, JoinStringProvider::separator,
 		JoinStringProvider::new
 	);
 
@@ -76,17 +76,17 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	}
 
 	@Override
-	public void validate(ErrorReporter reporter) {
+	public void validate(ProblemReporter reporter) {
 
 		StringProvider.super.validate(reporter);
 		ListIterator<StringProvider> listIterator = strings.listIterator();
 
 		while (listIterator.hasNext()) {
 			int index = listIterator.nextIndex();
-			listIterator.next().validate(reporter.makeChild(".strings[" + index + "]"));
+			listIterator.next().validate(reporter.forChild(".strings[" + index + "]"));
 		}
 
-		separator().validate(reporter.makeChild(".separator"));
+		separator().validate(reporter.forChild(".separator"));
 
 	}
 }

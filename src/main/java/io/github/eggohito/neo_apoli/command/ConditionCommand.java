@@ -16,24 +16,24 @@ import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextTypes;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextParameter;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class ConditionCommand {
 
-	public static void register(CommandRegistryAccess registryAccess, CommandNode<ServerCommandSource> rootNode) {
+	public static void register(CommandBuildContext registryAccess, CommandNode<CommandSourceStack> rootNode) {
 
-		CommandNode<ServerCommandSource> baseNode = literal("condition")
-			.requires(source -> source.hasPermissionLevel(2))
+		CommandNode<CommandSourceStack> baseNode = literal("condition")
+			.requires(source -> source.hasPermission(2))
 			.build();
 
 		baseNode.addChild(DumpSubCommand.node(registryAccess));
@@ -45,7 +45,7 @@ public class ConditionCommand {
 
 	static final class DumpSubCommand {
 
-		static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
 			var node = literal("dump")
 				.then(argument("condition", ConditionArgumentType.condition(registryAccess))
@@ -57,18 +57,18 @@ public class ConditionCommand {
 
 		}
 
-		static int withDefaultIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		static int withDefaultIndent(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, 4);
 		}
 
-		static int withSpecificIndent(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		static int withSpecificIndent(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 			return execute(commandContext, IntegerArgumentType.getInteger(commandContext, "indent"));
 		}
 
-		static int execute(CommandContext<ServerCommandSource> commandContext, int indent) throws CommandSyntaxException {
+		static int execute(CommandContext<CommandSourceStack> commandContext, int indent) throws CommandSyntaxException {
 
-			ServerCommandSource commandSource = commandContext.getSource();
-			RegistryOps<JsonElement> ops = commandSource.getRegistryManager().getOps(JsonOps.INSTANCE);
+			CommandSourceStack commandSource = commandContext.getSource();
+			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
 			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
 
@@ -76,7 +76,7 @@ public class ConditionCommand {
 				case DataResult.Success<JsonElement> success -> {
 
 					JsonElement jsonElement = success.value();
-					commandSource.sendFeedback(() -> JsonTextFormatter.format(jsonElement, indent), false);
+					commandSource.sendSuccess(() -> JsonTextFormatter.format(jsonElement, indent), false);
 
 					yield jsonElement.toString().length();
 
@@ -91,24 +91,24 @@ public class ConditionCommand {
 
 	public static final class TestSubCommand {
 
-		 static CommandNode<ServerCommandSource> node(CommandRegistryAccess registryAccess) {
+		 static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
-			CommandNode<ServerCommandSource> baseNode = literal("test").build();
-			CommandNode<ServerCommandSource> withNode = literal("with").build();
-			CommandNode<ServerCommandSource> onNode = literal("on")
+			CommandNode<CommandSourceStack> baseNode = literal("test").build();
+			CommandNode<CommandSourceStack> withNode = literal("with").build();
+			CommandNode<CommandSourceStack> onNode = literal("on")
 				.then(argument("condition", ConditionArgumentType.inlineCondition(registryAccess))
 					.executes(TestSubCommand::testAsInt)).build();
 
-			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_PARAMETER) {
+			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
 
-				String id = parameter.getId().toString();
-				TypedContextParameter.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
+				String id = parameter.name().toString();
+				TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
 
 				if (parameterCommandBuilder == null) {
 					continue;
 				}
 
-				CommandNode<ServerCommandSource> parameterNode = literal(id).build();
+				CommandNode<CommandSourceStack> parameterNode = literal(id).build();
 				parameterCommandBuilder.addArguments(registryAccess, baseNode, parameterNode);
 
 				withNode.addChild(parameterNode);
@@ -122,22 +122,22 @@ public class ConditionCommand {
 
 		}
 
-		 static int testAsInt(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		 static int testAsInt(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			if (test(commandContext)) {
-				commandContext.getSource().sendFeedback(() -> Text.translatable("commands.execute.conditional.pass"), false);
+				commandContext.getSource().sendSuccess(() -> Component.translatable("commands.execute.conditional.pass"), false);
 				return 1;
 			}
 
 			else {
-				throw MiscUtil.createCommandException(Text.translatable("commands.execute.conditional.fail"));
+				throw MiscUtil.createCommandException(Component.translatable("commands.execute.conditional.fail"));
 			}
 
 		}
 
-		public static boolean test(CommandContext<ServerCommandSource> commandContext) throws CommandSyntaxException {
+		public static boolean test(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
-			ServerCommandSource source = commandContext.getSource();
+			CommandSourceStack source = commandContext.getSource();
 			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
 
 			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
@@ -150,21 +150,21 @@ public class ConditionCommand {
 					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\", ...}"
 				);
 
-				ContextAware.ErrorReporter reporter = new ContextAware.ErrorReporter(NeoApoliContextTypes.ANY, rootPath);
+				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
 				ServerContext serverContext = builder
 					.withReporter(reporter)
-					.build(source.getWorld());
+					.build(source.getLevel());
 
 				condition.validate(reporter);
 
 				if (reporter.hasAnyErrors()) {
-					throw MiscUtil.createCommandException(Text.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
 				}
 
 				boolean result = condition.test(serverContext) && !reporter.hasAnyErrors();
 
 				if (reporter.hasAnyErrors()) {
-					source.sendFeedback(() -> Text.literal("").append("Warnings found when testing " + display + ": ").formatted(Formatting.YELLOW).append(reporter.getErrorsAsString()), false);
+					source.sendSuccess(() -> Component.literal("").append("Warnings found when testing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);
 				}
 
 				return result;

@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliPacketCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.duck.MovingEntity;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.context.ContextParameter;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -24,9 +24,9 @@ public record VelocityComponentNumberProvider(EntityTarget entity, Direction.Axi
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(VelocityComponentNumberProvider::axis)
 	).apply(instance, VelocityComponentNumberProvider::new));
 
-	public static final PacketCodec<RegistryByteBuf, VelocityComponentNumberProvider> PACKET_CODEC = PacketCodec.tuple(
-		EntityTarget.PACKET_CODEC, VelocityComponentNumberProvider::entity,
-		NeoApoliPacketCodecs.AXIS, VelocityComponentNumberProvider::axis,
+	public static final StreamCodec<RegistryFriendlyByteBuf, VelocityComponentNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		EntityTarget.STREAM_CODEC, VelocityComponentNumberProvider::entity,
+		NeoApoliStreamCodecs.AXIS, VelocityComponentNumberProvider::axis,
 		VelocityComponentNumberProvider::new
 	);
 
@@ -38,17 +38,17 @@ public record VelocityComponentNumberProvider(EntityTarget entity, Direction.Axi
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ContextParameter<Entity> parameter = entity().getParameter();
+		ContextKey<Entity> parameter = entity().getParameter();
 		Entity entity = context.nullable(parameter);
 
 		switch (entity) {
 			case MovingEntity movingEntity -> {
-				return movingEntity.neo_apoli$getVelocity().getComponentAlongAxis(this.axis());
+				return movingEntity.neo_apoli$getVelocity().get(this.axis());
 			}
 			case null ->
-				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" doesn't exist!");
+				context.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't exist!");
 			default ->
-				context.getReporter().report("Entity from parameter \"" + parameter.getId() + "\" is not a moving entity!");
+				context.getReporter().report("Entity from parameter \"" + parameter.name() + "\" is not a moving entity!");
 		}
 
 		return 0.0d;
@@ -56,7 +56,7 @@ public record VelocityComponentNumberProvider(EntityTarget entity, Direction.Axi
 	}
 
 	@Override
-	public Set<ContextParameter<?>> getRequiredParameters() {
+	public Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(entity().getParameter());
 	}
 
