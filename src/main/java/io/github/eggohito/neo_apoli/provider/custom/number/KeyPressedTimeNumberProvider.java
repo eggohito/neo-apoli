@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.keybinding.KeyState;
-import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
+import io.github.eggohito.neo_apoli.key.KeyState;
+import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;

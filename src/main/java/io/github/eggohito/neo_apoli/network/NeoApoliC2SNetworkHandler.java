@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.network;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
+import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.packet.c2s.RequestActionTagsC2SPacket;
 import io.github.eggohito.neo_apoli.network.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.network.packet.c2s.SynchronizeKeyStatesC2SPacket;

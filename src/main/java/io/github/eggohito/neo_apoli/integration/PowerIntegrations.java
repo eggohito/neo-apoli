@@ -20,7 +20,7 @@ public class PowerIntegrations {
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(CraftingRecipePower::sendRecipeDisplays);
 
-		KeyBindingEvents.PRESSED.register(TogglePower::onKeyBindingPressed);
+		KeyStateEvents.PRESSED.register(TogglePower::onKeyPressed);
 
 	}
 

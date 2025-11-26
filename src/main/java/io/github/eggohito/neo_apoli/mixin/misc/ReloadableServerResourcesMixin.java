@@ -12,12 +12,12 @@ public abstract class ReloadableServerResourcesMixin {
 
 	@Inject(method = "updateStaticRegistryTags", at = @At("HEAD"))
 	private void beforeLoadingRegistryTags(CallbackInfo ci) {
-		ReloadableServerResourcesEvents.UpdatingRegistryTagsEvents.BEFORE.invoker().onBeforeUpdate((ReloadableServerResources) (Object) this);
+		ReloadableServerResourcesEvents.RegistryTagUpdate.BEFORE.invoker().onBeforeUpdate((ReloadableServerResources) (Object) this);
 	}
 
 	@Inject(method = "updateStaticRegistryTags", at = @At("TAIL"))
 	private void afterLoadingRegistryTags(CallbackInfo ci) {
-		ReloadableServerResourcesEvents.UpdatingRegistryTagsEvents.AFTER.invoker().onAfterUpdate((ReloadableServerResources) (Object) this);
+		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.invoker().onAfterUpdate((ReloadableServerResources) (Object) this);
 	}
 
 }

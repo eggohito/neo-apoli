@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
-import io.github.eggohito.neo_apoli.keybinding.KeyState;
+import io.github.eggohito.neo_apoli.key.KeyState;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -133,7 +133,7 @@ public class TogglePower extends Power {
 
 	}
 
-	public static void onKeyBindingPressed(Player player, KeyState ignoredState) {
+	public static void onKeyPressed(Player player, KeyState ignoredState) {
 
 		for (var instance : PowersComponent.getInstances(player, io.github.eggohito.neo_apoli.power.custom.TogglePower.Instance.class)) {
 

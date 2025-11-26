@@ -7,10 +7,10 @@ import net.minecraft.server.ReloadableServerResources;
 public final class ReloadableServerResourcesEvents {
 
 	/**
-	 * 	Events used to inject where the pending tag loads of a data pack content is applied. Pending tag loads are applied
+	 * 	Events used to inject where the pending loading tags of data packs are applied. Pending loading tags are applied
 	 * 	after reload or after a server finishes initializing its data packs.
 	 */
-	public static final class UpdatingRegistryTagsEvents {
+	public static final class RegistryTagUpdate {
 
 		public static final Event<Before> BEFORE = EventFactory.createArrayBacked(
 			Before.class,

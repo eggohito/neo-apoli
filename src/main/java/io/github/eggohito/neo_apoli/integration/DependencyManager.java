@@ -7,8 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DependencyManager {
 
-	public static final Event<Impl> ACTIONS = EventFactory.createArrayBacked(
-		Impl.class,
+	public static final Event<Adder> ACTIONS = EventFactory.createArrayBacked(
+		Adder.class,
 		callbacks -> dependencies -> {
 
 			for (var callback : callbacks) {
@@ -18,8 +18,8 @@ public class DependencyManager {
 		}
 	);
 
-	public static final Event<Impl> CONDITIONS = EventFactory.createArrayBacked(
-		Impl.class,
+	public static final Event<Adder> CONDITIONS = EventFactory.createArrayBacked(
+		Adder.class,
 		callbacks -> dependencies -> {
 
 			for (var callback : callbacks) {
@@ -29,8 +29,8 @@ public class DependencyManager {
 		}
 	);
 
-	public static final Event<Impl> POWERS = EventFactory.createArrayBacked(
-		Impl.class,
+	public static final Event<Adder> POWERS = EventFactory.createArrayBacked(
+		Adder.class,
 		callbacks -> dependencies -> {
 
 			for (var callback : callbacks) {
@@ -40,7 +40,7 @@ public class DependencyManager {
 		}
 	);
 
-	public interface Impl {
+	public interface Adder {
 		void add(ImmutableSet.Builder<ResourceLocation> dependencies);
 	}
 

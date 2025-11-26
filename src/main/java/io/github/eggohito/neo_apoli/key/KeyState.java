@@ -1,7 +1,8 @@
-package io.github.eggohito.neo_apoli.keybinding;
+package io.github.eggohito.neo_apoli.key;
+
+import net.minecraft.util.Mth;
 
 import java.util.Objects;
-import net.minecraft.util.Mth;
 
 public record KeyState(String id, long pressedTime) {
 

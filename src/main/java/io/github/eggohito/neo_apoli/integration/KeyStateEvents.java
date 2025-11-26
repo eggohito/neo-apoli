@@ -1,11 +1,11 @@
 package io.github.eggohito.neo_apoli.integration;
 
-import io.github.eggohito.neo_apoli.keybinding.KeyState;
+import io.github.eggohito.neo_apoli.key.KeyState;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.player.Player;
 
-public class KeyBindingEvents {
+public class KeyStateEvents {
 
 	public static final Event<Runner> PRESSED = EventFactory.createArrayBacked(
 		Runner.class,

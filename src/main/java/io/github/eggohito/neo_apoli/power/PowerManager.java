@@ -215,7 +215,7 @@ public final class PowerManager implements JsonReloadListener {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
-		ReloadableServerResourcesEvents.UpdatingRegistryTagsEvents.AFTER.register(ID, resources -> {
+		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.register(ID, resources -> {
 			validate(resources);
 			applyPendingTags(resources);
 		});

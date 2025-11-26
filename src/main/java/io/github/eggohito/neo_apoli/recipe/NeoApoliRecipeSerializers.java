@@ -9,7 +9,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public class NeoApoliRecipeSerializers {
 
-	public static final PowerCraftingRecipe.Serializer POWER_CRAFTING = registerInternal("power_crafting", new PowerCraftingRecipe.Serializer());
+	public static final PowerCraftingRecipe.Serializer POWER_CRAFTING = registerInternal("power/crafting", new PowerCraftingRecipe.Serializer());
 
 	public static void registerAll() {
 

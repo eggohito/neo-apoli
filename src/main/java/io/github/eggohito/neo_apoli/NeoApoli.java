@@ -16,7 +16,7 @@ import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
+import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.network.packet.s2c.ClearLogsS2CPacket;

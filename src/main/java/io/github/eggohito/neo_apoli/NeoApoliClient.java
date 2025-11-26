@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli;
 import io.github.eggohito.neo_apoli.client.PowerIntegrationsClient;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.keybinding.KeyStateManager;
+import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliS2CNetworkHandler;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;

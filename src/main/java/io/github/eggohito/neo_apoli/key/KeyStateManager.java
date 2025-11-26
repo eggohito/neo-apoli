@@ -1,6 +1,6 @@
-package io.github.eggohito.neo_apoli.keybinding;
+package io.github.eggohito.neo_apoli.key;
 
-import io.github.eggohito.neo_apoli.integration.KeyBindingEvents;
+import io.github.eggohito.neo_apoli.integration.KeyStateEvents;
 import io.github.eggohito.neo_apoli.network.packet.c2s.SynchronizeKeyStatesC2SPacket;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -67,17 +67,17 @@ public final class KeyStateManager {
 			if (changed) {
 
 				if (pressed) {
-					KeyBindingEvents.PRESSED.invoker().run(player, state);
+					KeyStateEvents.PRESSED.invoker().run(player, state);
 				}
 
 				else {
-					KeyBindingEvents.RELEASED.invoker().run(player, state);
+					KeyStateEvents.RELEASED.invoker().run(player, state);
 				}
 
 			}
 
 			if (state.pressed()) {
-				KeyBindingEvents.HELD.invoker().run(player, state);
+				KeyStateEvents.HELD.invoker().run(player, state);
 			}
 
 		}
@@ -104,7 +104,7 @@ public final class KeyStateManager {
 			for (var state : states.values()) {
 
 				if (state.pressed()) {
-					KeyBindingEvents.HELD.invoker().run(player, state);
+					KeyStateEvents.HELD.invoker().run(player, state);
 				}
 
 			}
@@ -140,11 +140,11 @@ public final class KeyStateManager {
 				states.put(id, state);
 
 				if (pressed) {
-					KeyBindingEvents.PRESSED.invoker().run(player, state);
+					KeyStateEvents.PRESSED.invoker().run(player, state);
 				}
 
 				else {
-					KeyBindingEvents.RELEASED.invoker().run(player, state);
+					KeyStateEvents.RELEASED.invoker().run(player, state);
 				}
 
 			}
