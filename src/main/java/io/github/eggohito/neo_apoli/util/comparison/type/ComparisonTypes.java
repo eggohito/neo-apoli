@@ -5,6 +5,8 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
 import io.github.eggohito.neo_apoli.util.comparison.NbtComparison;
 import io.github.eggohito.neo_apoli.util.comparison.NumberComparison;
@@ -17,7 +19,9 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class ComparisonTypes {
 
-	public static final Codec<ComparisonType<?>> CODEC = NeoApoliRegistries.COMPARISON_TYPE.byNameCodec();
+	public static final RegistryFixedAlias<ComparisonType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.COMPARISON_TYPE);
+
+	public static final Codec<ComparisonType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ComparisonType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.COMPARISON_TYPE);
 
 	public static final ComparisonType<NbtComparison> NBT = registerInternal("nbt", NbtComparison.CODEC, NbtComparison.STREAM_CODEC);
