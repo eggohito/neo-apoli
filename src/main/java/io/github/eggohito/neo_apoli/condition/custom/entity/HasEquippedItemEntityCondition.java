@@ -45,7 +45,7 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
 				.add(NeoApoliContextKeys.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot)));
 
-			if (itemCondition().test(itemContext.makeChild(".item_condition"))) {
+			if (slot().test(equipmentSlot) && itemCondition().test(itemContext.makeChild(".item_condition"))) {
 				return true;
 			}
 
