@@ -17,7 +17,7 @@ public interface BiEntityAction extends Action {
 
 	Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionType.CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions), NothingBiEntityAction.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BiEntityAction> STREAM_CODEC = BiEntityActionType.STREAM_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BiEntityAction> STREAM_CODEC = BiEntityActionType.STREAM_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::streamCodec);
 
 	@Override
 	BiEntityActionType<?> getType();

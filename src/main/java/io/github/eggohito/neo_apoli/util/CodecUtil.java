@@ -108,7 +108,7 @@ public class CodecUtil {
 
 	}
 
-	public static <T> Codec<TypedContextKey<T>> createParameterCodec(String name, Class<T> typeClass) {
+	public static <T> Codec<TypedContextKey<T>> createContextKeyCodec(String name, Class<T> typeClass) {
 		return NeoApoliContextKeys.CODEC.comapFlatMap(
 			parameter -> {
 

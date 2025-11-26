@@ -4,14 +4,17 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -24,15 +27,15 @@ import org.apache.commons.lang3.function.Consumers;
 
 import java.util.Optional;
 
-public record ModifyItemAction(EntityTarget entity, ResourceKey<LootItemFunction> modifier) implements ItemAction {
+public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootItemFunction> modifier) implements ItemAction {
 
 	public static final MapCodec<ModifyItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityTarget.CODEC.optionalFieldOf("entity", EntityTarget.THIS).forGetter(ModifyItemAction::entity),
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.optionalFieldOf("entity", NeoApoliContextKeys.THIS_ENTITY).forGetter(ModifyItemAction::entity),
 		ResourceKey.codec(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier)
 	).apply(instance, ModifyItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemAction> STREAM_CODEC = StreamCodec.composite(
-		EntityTarget.STREAM_CODEC, ModifyItemAction::entity,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, ModifyItemAction::entity,
 		ResourceKey.streamCodec(Registries.ITEM_MODIFIER), ModifyItemAction::modifier,
 		ModifyItemAction::new
 	);
@@ -56,12 +59,12 @@ public record ModifyItemAction(EntityTarget entity, ResourceKey<LootItemFunction
 			.getOrThrow(this.modifier())
 			.value();
 
-		LootParams lootWorldContext = new LootParams.Builder(context.getWorld())
+		LootParams lootParams = new LootParams.Builder(context.getWorld())
 			.withParameter(LootContextParams.ORIGIN, context.optional(NeoApoliContextKeys.ENTITY_POS).orElse(Vec3.ZERO))
-			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.nullable(entity().getParameter()))
+			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.nullable(entity()))
 			.create(LootContextParamSets.COMMAND);
 
-		LootContext lootContext = new LootContext.Builder(lootWorldContext).create(Optional.empty());
+		LootContext lootContext = new LootContext.Builder(lootParams).create(Optional.empty());
 		lootContext.pushVisitedElement(LootContext.createVisitedEntry(modifier));
 
 		ItemStack newStack = modifier.apply(stack.copy(), lootContext);

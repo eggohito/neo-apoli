@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> packetCodec) implements ActionType<A> {
+public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> streamCodec) implements ActionType<A> {
 
 	public static final String PREFIX = "item/";
 

@@ -2,15 +2,17 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -21,18 +23,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, EntityTarget actor, Shape shape, NumberProvider radius) implements NumberProvider {
+public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, TypedContextKey<Entity> actor, Shape shape, NumberProvider radius) implements NumberProvider {
 
 	public static final MapCodec<EntitiesInRadiusFromEntityNumberProvider> CODEC = MapCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(EntitiesInRadiusFromEntityNumberProvider::biEntityCondition),
-		EntityTarget.CODEC.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
 		Shape.CODEC.fieldOf("shape").forGetter(EntitiesInRadiusFromEntityNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromEntityNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromEntityNumberProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntitiesInRadiusFromEntityNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		BiEntityCondition.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::biEntityCondition,
-		EntityTarget.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::actor,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntitiesInRadiusFromEntityNumberProvider::actor,
 		Shape.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::shape,
 		NumberProvider.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::radius,
 		EntitiesInRadiusFromEntityNumberProvider::new
@@ -47,7 +49,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	public @NotNull Number next(Context context) {
 
 		Level world = context.getWorld();
-		Entity actor = context.nullable(actor().getParameter());
+		Entity actor = context.nullable(actor());
 
 		if (actor == null) {
 			return 0;
@@ -82,7 +84,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(actor().getParameter());
+		return Set.of(actor());
 	}
 
 	@Override

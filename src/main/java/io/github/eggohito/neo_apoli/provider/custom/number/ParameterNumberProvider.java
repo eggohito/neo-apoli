@@ -20,7 +20,7 @@ import java.util.Set;
 public record ParameterNumberProvider(TypedContextKey<Number> parameter) implements NumberProvider {
 
 	public static final MapCodec<ParameterNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(NeoApoliCodecs.NUMBER_PARAMETER.fieldOf("parameter").forGetter(ParameterNumberProvider::parameter))
+		.group(NeoApoliCodecs.NUMBER_CONTEXT_KEY.fieldOf("parameter").forGetter(ParameterNumberProvider::parameter))
 		.apply(instance, ParameterNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParameterNumberProvider> STREAM_CODEC = StreamCodec.composite(

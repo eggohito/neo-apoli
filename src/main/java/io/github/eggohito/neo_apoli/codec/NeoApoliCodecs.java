@@ -24,6 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -117,6 +118,8 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Vec3> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
 
-	public static final Codec<TypedContextKey<Number>> NUMBER_PARAMETER = CodecUtil.createParameterCodec("number", Number.class);
+	public static final Codec<TypedContextKey<Number>> NUMBER_CONTEXT_KEY = CodecUtil.createContextKeyCodec("number", Number.class);
+
+	public static final Codec<TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = CodecUtil.createContextKeyCodec("entity", Entity.class);
 
 }

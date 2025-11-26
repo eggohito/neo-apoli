@@ -19,6 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
@@ -143,6 +144,8 @@ public class NeoApoliStreamCodecs {
 		Function.identity()
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_PARAMETER = StreamCodecUtil.createParameterCodec("number", Number.class);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_PARAMETER = StreamCodecUtil.createContextKeyCodec("number", Number.class);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("entity", Entity.class);
 
 }

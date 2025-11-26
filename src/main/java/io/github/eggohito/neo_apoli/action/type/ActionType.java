@@ -21,6 +21,6 @@ public interface ActionType<A extends Action> {
 
 	MapCodec<A> mapCodec();
 
-	StreamCodec<RegistryFriendlyByteBuf, A> packetCodec();
+	StreamCodec<RegistryFriendlyByteBuf, A> streamCodec();
 
 }

@@ -17,7 +17,7 @@ public interface EntityAction extends Action {
 
 	Codec<EntityAction> CODEC = Codec.recursive(EntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(EntityActionType.CODEC.dispatch(EntityAction::getType, EntityActionType::mapCodec), codec.listOf().xmap(SequenceEntityAction::new, SequenceEntityAction::actions), NothingEntityAction.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, EntityAction> STREAM_CODEC = EntityActionType.STREAM_CODEC.dispatch(EntityAction::getType, EntityActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, EntityAction> STREAM_CODEC = EntityActionType.STREAM_CODEC.dispatch(EntityAction::getType, EntityActionType::streamCodec);
 
 	@Override
 	EntityActionType<?> getType();

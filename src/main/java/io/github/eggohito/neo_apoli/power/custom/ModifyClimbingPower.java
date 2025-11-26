@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -32,7 +31,7 @@ import java.util.function.BiPredicate;
 public class ModifyClimbingPower extends Power {
 
 	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(new IsSneakingEntityCondition(), EntityTarget.THIS)).forGetter(ModifyClimbingPower::getHoldingCondition))
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(new IsSneakingEntityCondition(), NeoApoliContextKeys.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 

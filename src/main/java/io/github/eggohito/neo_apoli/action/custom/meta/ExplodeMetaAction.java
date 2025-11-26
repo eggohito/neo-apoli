@@ -12,8 +12,8 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import lombok.AllArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -46,7 +46,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 	Vec3dProvider position();
 
-	EntityTarget actor();
+	TypedContextKey<Entity> actor();
 
 	Property property();
 
@@ -80,7 +80,7 @@ public interface ExplodeMetaAction extends MetaAction {
 			return;
 		}
 
-		Entity actor = context.nullable(actor().getParameter());
+		Entity actor = context.nullable(actor());
 		DamageCalculator damageCalculator = new DamageCalculator(this, context);
 
 		ServerExplosion explosion = new ServerExplosion(serverWorld, actor, Explosion.getDefaultDamageSource(serverWorld, actor), damageCalculator, position, power, createFire, property().destructionType());
@@ -103,7 +103,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(actor().getParameter());
+		return Set.of(actor());
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor()))
 				.addNullable(NeoApoliContextKeys.TARGET, entity));
 
 			return action.damageableBiEntityCondition().test(biEntityContext.makeChild(".damageable_bientity_condition"));
@@ -158,7 +158,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 			Context knockbackModifierContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor().getParameter()))
+				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor()))
 				.addNullable(NeoApoliContextKeys.TARGET, entity));
 
 			return action.property().knockbackMultiplier().nextFloat(knockbackModifierContext.makeChild(".knockback_multiplier"));

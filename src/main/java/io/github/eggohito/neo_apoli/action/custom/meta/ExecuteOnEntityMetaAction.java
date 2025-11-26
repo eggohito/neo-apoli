@@ -3,8 +3,10 @@ package io.github.eggohito.neo_apoli.action.custom.meta;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -18,12 +20,12 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 
 	EntityAction action();
 
-	EntityTarget entity();
+	TypedContextKey<Entity> entity();
 
 	@Override
 	default void execute(Context context) {
 
-		Optional<Entity> entity = context.optional(entity().getParameter());
+		Optional<Entity> entity = context.optional(entity());
 		Context entityContext = ContextImpl.of(context, builder -> builder
 			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.addOptional(NeoApoliContextKeys.THIS_ENTITY, entity)
@@ -35,7 +37,7 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 
 	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity().getParameter());
+		return Set.of(entity());
 	}
 
 	@Override
@@ -46,17 +48,17 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 			.forChild(".action"));
 	}
 
-	static <M extends ExecuteOnEntityMetaAction> MapCodec<M> createCodec(BiFunction<EntityAction, EntityTarget, M> constructor) {
+	static <M extends ExecuteOnEntityMetaAction> MapCodec<M> createCodec(BiFunction<EntityAction, TypedContextKey<Entity>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			EntityAction.CODEC.fieldOf("action").forGetter(ExecuteOnEntityMetaAction::action),
-			EntityTarget.CODEC.fieldOf("entity").forGetter(ExecuteOnEntityMetaAction::entity)
+			NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(ExecuteOnEntityMetaAction::entity)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ExecuteOnEntityMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(BiFunction<EntityAction, EntityTarget, M> constructor) {
+	static <M extends ExecuteOnEntityMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(BiFunction<EntityAction, TypedContextKey<Entity>, M> constructor) {
 		return StreamCodec.composite(
 			EntityAction.STREAM_CODEC, ExecuteOnEntityMetaAction::action,
-			EntityTarget.STREAM_CODEC, ExecuteOnEntityMetaAction::entity,
+			NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, ExecuteOnEntityMetaAction::entity,
 			constructor
 		);
 	}

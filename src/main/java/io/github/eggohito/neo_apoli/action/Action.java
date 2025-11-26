@@ -17,7 +17,7 @@ public interface Action extends ContextAware, StringDisplayable {
 
 	Codec<Action> CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(ActionType.CODEC.dispatch(Action::getType, ActionType::mapCodec), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions), NothingAction.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, Action> STREAM_CODEC = ActionType.STREAM_CODEC.dispatch(Action::getType, ActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Action> STREAM_CODEC = ActionType.STREAM_CODEC.dispatch(Action::getType, ActionType::streamCodec);
 
 	@Override
 	default String asDisplayString() {

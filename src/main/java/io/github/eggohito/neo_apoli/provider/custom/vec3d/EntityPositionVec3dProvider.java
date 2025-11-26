@@ -2,10 +2,12 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3d;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -15,14 +17,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityPositionVec3dProvider(EntityTarget entity) implements Vec3dProvider {
+public record EntityPositionVec3dProvider(TypedContextKey<Entity> entity) implements Vec3dProvider {
 
 	public static final MapCodec<EntityPositionVec3dProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityTarget.CODEC.fieldOf("entity").forGetter(EntityPositionVec3dProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EntityPositionVec3dProvider::entity)
 	).apply(instance, EntityPositionVec3dProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityPositionVec3dProvider> STREAM_CODEC = StreamCodec.composite(
-		EntityTarget.STREAM_CODEC, EntityPositionVec3dProvider::entity,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntityPositionVec3dProvider::entity,
 		EntityPositionVec3dProvider::new
 	);
 
@@ -33,14 +35,14 @@ public record EntityPositionVec3dProvider(EntityTarget entity) implements Vec3dP
 
 	@Override
 	public @NotNull Vec3 next(Context context) {
-		return context.optional(entity().getParameter())
+		return context.optional(entity())
 			.map(Entity::position)
 			.orElse(Vec3.ZERO);
 	}
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity().getParameter());
+		return Set.of(entity());
 	}
 
 }

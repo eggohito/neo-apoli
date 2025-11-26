@@ -20,7 +20,7 @@ public interface ItemAction extends Action {
 
 	Codec<ItemAction> CODEC = Codec.recursive(ItemAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(ItemActionType.CODEC.dispatch(ItemAction::getType, ItemActionType::mapCodec), codec.listOf().xmap(SequenceItemAction::new, SequenceItemAction::actions), NothingItemAction.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, ItemAction> STREAM_CODEC = ItemActionType.STREAM_CODEC.dispatch(ItemAction::getType, ItemActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, ItemAction> STREAM_CODEC = ItemActionType.STREAM_CODEC.dispatch(ItemAction::getType, ItemActionType::streamCodec);
 
 	@Override
 	ItemActionType<?> getType();

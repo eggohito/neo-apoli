@@ -12,15 +12,15 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BiEntityActionTypes {
 
-	public static final BiEntityActionType<ChoiceBiEntityAction> CHOICE = registerInternal("choice", ChoiceBiEntityAction.CODEC, ChoiceBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<ConditionalBiEntityAction> CONDITIONAL = registerInternal("conditional", ConditionalBiEntityAction.CODEC, ConditionalBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<ExecuteOnEntityBiEntityAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityBiEntityAction.CODEC, ExecuteOnEntityBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<LoopBiEntityAction> LOOP = registerInternal("loop", LoopBiEntityAction.CODEC, LoopBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<NothingBiEntityAction> NOTHING = registerInternal("nothing", NothingBiEntityAction.CODEC, NothingBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<RandomChanceBiEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBiEntityAction.CODEC, RandomChanceBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<ReferenceBiEntityAction> REFERENCE = registerInternal("reference", ReferenceBiEntityAction.CODEC, ReferenceBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<SequenceBiEntityAction> SEQUENCE = registerInternal("sequence", SequenceBiEntityAction.CODEC, SequenceBiEntityAction.STREAM_CODEC);
-	public static final BiEntityActionType<WeightedBiEntityAction> WEIGHTED = registerInternal("weighted", WeightedBiEntityAction.CODEC, WeightedBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<ChoiceBiEntityAction> CHOICE = registerMetaInternal("choice", ChoiceBiEntityAction.CODEC, ChoiceBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<ConditionalBiEntityAction> CONDITIONAL = registerMetaInternal("conditional", ConditionalBiEntityAction.CODEC, ConditionalBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<ExecuteOnEntityBiEntityAction> EXECUTE_ON_ENTITY = registerMetaInternal("execute_on_entity", ExecuteOnEntityBiEntityAction.CODEC, ExecuteOnEntityBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<LoopBiEntityAction> LOOP = registerMetaInternal("loop", LoopBiEntityAction.CODEC, LoopBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<NothingBiEntityAction> NOTHING = registerMetaInternal("nothing", NothingBiEntityAction.CODEC, NothingBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<RandomChanceBiEntityAction> RANDOM_CHANCE = registerMetaInternal("random_chance", RandomChanceBiEntityAction.CODEC, RandomChanceBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<ReferenceBiEntityAction> REFERENCE = registerMetaInternal("reference", ReferenceBiEntityAction.CODEC, ReferenceBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<SequenceBiEntityAction> SEQUENCE = registerMetaInternal("sequence", SequenceBiEntityAction.CODEC, SequenceBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<WeightedBiEntityAction> WEIGHTED = registerMetaInternal("weighted", WeightedBiEntityAction.CODEC, WeightedBiEntityAction.STREAM_CODEC);
 
 	public static final BiEntityActionType<DamageBiEntityAction> DAMAGE = registerInternal("damage", DamageBiEntityAction.CODEC, DamageBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<MountBiEntityAction> MOUNT = registerInternal("mount", MountBiEntityAction.CODEC, MountBiEntityAction.STREAM_CODEC);
@@ -31,12 +31,21 @@ public class BiEntityActionTypes {
 
 	}
 
-	private static <C extends BiEntityAction> BiEntityActionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <C extends BiEntityAction> BiEntityActionType<C> registerMetaInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return registerMeta(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <C extends BiEntityAction> BiEntityActionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return ActionTypes.register(id.withPrefix(BiEntityActionType.PREFIX), Registry.register(NeoApoliRegistries.BIENTITY_ACTION_TYPE, id, new BiEntityActionType<>(mapCodec, packetCodec)));
+	private static <C extends BiEntityAction> BiEntityActionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
+	}
+
+	public static <C extends BiEntityAction> BiEntityActionType<C> registerMeta(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return Registry.register(NeoApoliRegistries.BIENTITY_ACTION_TYPE, id, new BiEntityActionType<>(mapCodec, streamCodec));
+	}
+
+	public static <C extends BiEntityAction> BiEntityActionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		ResourceLocation prefixedId = id.withPrefix(BiEntityActionType.PREFIX);
+		return ActionTypes.register(prefixedId, registerMeta(prefixedId, mapCodec, streamCodec));
 	}
 
 }

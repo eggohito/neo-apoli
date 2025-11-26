@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record BlockActionType<A extends BlockAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> packetCodec) implements ActionType<A> {
+public record BlockActionType<A extends BlockAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> streamCodec) implements ActionType<A> {
 
 	public static final String PREFIX = "block/";
 

@@ -20,7 +20,7 @@ public interface BlockAction extends Action {
 
 	Codec<BlockAction> CODEC = Codec.recursive(BlockAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BlockActionType.CODEC.dispatch(BlockAction::getType, BlockActionType::mapCodec), codec.listOf().xmap(SequenceBlockAction::new, SequenceBlockAction::actions), NothingBlockAction.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BlockAction> STREAM_CODEC = BlockActionType.STREAM_CODEC.dispatch(BlockAction::getType, BlockActionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BlockAction> STREAM_CODEC = BlockActionType.STREAM_CODEC.dispatch(BlockAction::getType, BlockActionType::streamCodec);
 
 	@Override
 	BlockActionType<?> getType();

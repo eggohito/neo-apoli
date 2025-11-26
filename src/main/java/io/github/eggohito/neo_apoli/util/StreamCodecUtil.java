@@ -170,7 +170,7 @@ public final class StreamCodecUtil {
 		};
 	}
 
-	public static <T> StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<T>> createParameterCodec(String name, Class<T> typeClass) {
+	public static <T> StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<T>> createContextKeyCodec(String name, Class<T> typeClass) {
 		return NeoApoliContextKeys.STREAM_CODEC.map(
 			parameter -> {
 

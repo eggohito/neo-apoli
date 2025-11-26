@@ -2,15 +2,18 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,16 +22,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record AttributeNumberProvider(Holder<Attribute> attribute, EntityTarget entity) implements NumberProvider {
+public record AttributeNumberProvider(Holder<Attribute> attribute, TypedContextKey<Entity> entity) implements NumberProvider {
 
 	public static final MapCodec<AttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Attribute.CODEC.fieldOf("attribute").forGetter(AttributeNumberProvider::attribute),
-		EntityTarget.CODEC.fieldOf("entity").forGetter(AttributeNumberProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(AttributeNumberProvider::entity)
 	).apply(instance, AttributeNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, AttributeNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		Attribute.STREAM_CODEC, AttributeNumberProvider::attribute,
-		EntityTarget.STREAM_CODEC, AttributeNumberProvider::entity,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, AttributeNumberProvider::entity,
 		AttributeNumberProvider::new
 	);
 
@@ -40,34 +43,33 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, EntityTarget 
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ContextKey<Entity> parameter = entity().getParameter();
-		Context entityContext = context.makeChild(".entity");
+		ResourceLocation entityKeyLocation = entity().name();
+		ResourceLocation attributeLocation = attribute().unwrap().map(ResourceKey::location, BuiltInRegistries.ATTRIBUTE::getKey);
 
 		try {
 
-			switch (context.nullable(parameter)) {
-				case LivingEntity livingEntity -> {
+			switch (context.nullable(entity())) {
+				case LivingEntity livingEntity when context.markActive(this) -> {
 
-					if (context.markActive(this)) {
+					if (livingEntity.getAttributes().hasAttribute(attribute())) {
+						return livingEntity.getAttributeValue(attribute());
+					}
 
-						if (livingEntity.getAttributes().hasAttribute(this.attribute())) {
-							return livingEntity.getAttributeValue(this.attribute());
-						}
-
-						else {
-							entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't have the attribute \"" + this.attribute().unwrap().map(ResourceKey::location, BuiltInRegistries.ATTRIBUTE::getKey) + "\"!");
-						}
-
+					else {
+						context.getReporter().report("Entity from parameter \"" + entityKeyLocation + "\" doesn't have the attribute \"" + attributeLocation + "\"!");
 					}
 
 				}
+				case LivingEntity ignored -> {
+					//	No-op
+				}
 				case null ->
-					entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" doesn't exist!");
+					context.getReporter().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", which doesn't exist!");
 				default ->
-					entityContext.getReporter().report("Entity from parameter \"" + parameter.name() + "\" is not an entity that can have attributes!");
+					context.getReporter().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", as it isn't an entity that can have attributes!");
 			}
 
-			return 0.0d;
+			return 0.0D;
 
 		}
 
@@ -79,7 +81,7 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, EntityTarget 
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity().getParameter());
+		return Set.of(entity());
 	}
 
 }

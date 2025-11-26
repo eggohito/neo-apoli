@@ -2,10 +2,12 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.util.EntityTarget;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -15,17 +17,16 @@ import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.Set;
 
-public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
+public record EntityNbtProvider(TypedContextKey<Entity> entity) implements NbtProvider {
 
 	public static final MapCodec<EntityNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityTarget.CODEC.fieldOf("source").forGetter(EntityNbtProvider::source)
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EntityNbtProvider::entity)
 	).apply(instance, EntityNbtProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityNbtProvider> STREAM_CODEC = StreamCodec.composite(
-		EntityTarget.STREAM_CODEC, EntityNbtProvider::source,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntityNbtProvider::entity,
 		EntityNbtProvider::new
 	);
 
@@ -37,14 +38,11 @@ public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
 	@Override
 	public @NotNull Tag next(Context context) {
 
-		ContextKey<Entity> parameter = source().getParameter();
-		Optional<Entity> optEntity = context.optional(parameter);
-
-		if (optEntity.isEmpty()) {
-			context.getReporter().report("Couldn't get and provide NBT of entity from '" + parameter.name() + "' parameter, as it doesn't exist!");
+		if (!context.hasParameter(entity())) {
+			context.getReporter().report("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");
 		}
 
-		return optEntity
+		return context.optional(entity())
 			.map(NbtPredicate::getEntityTagToCompare)
 			.orElseGet(CompoundTag::new);
 
@@ -52,7 +50,7 @@ public record EntityNbtProvider(EntityTarget source) implements NbtProvider {
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(source().getParameter());
+		return Set.of(entity());
 	}
 
 }
