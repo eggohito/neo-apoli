@@ -120,14 +120,26 @@ public class TogglePower extends Power {
 
 		public void toggle(Context context) {
 
-			if (!holder.level().isClientSide()) {
+			try {
 
-				this.toggled = !toggled;
-				this.syncData();
+				if (context.markActive(this)) {
+
+					if (!holder.level().isClientSide()) {
+
+						this.toggled = !toggled;
+						this.syncData();
+
+					}
+
+					power.getAction().execute(context.makeChild(".action"));
+
+				}
 
 			}
 
-			power.getAction().execute(context.makeChild(".action"));
+			finally {
+				context.markInActive(this);
+			}
 
 		}
 

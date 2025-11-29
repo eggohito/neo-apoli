@@ -34,6 +34,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<GiveItemsEntityAction> GIVE_ITEMS = registerInternal("give_items", GiveItemsEntityAction.CODEC, GiveItemsEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SetOnFireEntityAction> SET_ON_FIRE = registerInternal("set_on_fire", SetOnFireEntityAction.CODEC, SetOnFireEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SwingHandEntityAction> SWING_HAND = registerInternal("swing_hand", SwingHandEntityAction.CODEC, SwingHandEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ToggleEntityAction> TOGGLE = registerInternal("toggle", ToggleEntityAction.CODEC, ToggleEntityAction.STREAM_CODEC);
 
 	public static void registerAll() {
 
