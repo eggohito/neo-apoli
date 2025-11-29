@@ -33,12 +33,12 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextKeys.ENTITY_POS)) {
+		if (!context.hasParameter(NeoApoliContextKeys.THIS_POS)) {
 			return;
 		}
 
 		Level world = context.getWorld();
-		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.ENTITY_POS));
+		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.THIS_POS));
 
 		Context blockContext = ContextImpl.of(context, builder -> builder
 			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
@@ -52,7 +52,7 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.ENTITY_POS);
+		return Set.of(NeoApoliContextKeys.THIS_POS);
 	}
 
 	@Override

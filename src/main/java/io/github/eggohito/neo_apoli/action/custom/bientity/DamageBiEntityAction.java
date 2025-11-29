@@ -47,8 +47,8 @@ public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET);
+		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
+		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
 
 		if (actor != null && target != null) {
 			target.hurtServer(serverWorld, new DamageSource(this.damageType(), actor), amount);

@@ -155,10 +155,10 @@ public class ModifyGlowingOtherPower extends Power {
 
 	public static Context createContext(Entity actor, Entity target) {
 		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR, actor)
-			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
+			.add(NeoApoliContextKeys.TARGET_ENTITY, target)
 			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
-			.add(NeoApoliContextKeys.ENTITY_POS, actor.position())
+			.add(NeoApoliContextKeys.THIS_POS, actor.position())
 			.build(target.level());
 	}
 

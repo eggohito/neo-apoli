@@ -28,7 +28,7 @@ public interface TestEntityMetaCondition extends MetaCondition {
 		Optional<Entity> entity = context.optional(entity());
 		Context conditionContext = ContextImpl.of(context, builder -> builder
 			.addOptional(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.addOptional(NeoApoliContextKeys.ENTITY_POS, entity.map(Entity::position)));
+			.addOptional(NeoApoliContextKeys.THIS_POS, entity.map(Entity::position)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 

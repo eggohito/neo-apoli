@@ -32,8 +32,8 @@ public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEnt
 	public void execute(Context context) {
 
 		Context actionContext = ContextImpl.of(context, builder -> builder
-			.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(NeoApoliContextKeys.TARGET))
-			.addNullable(NeoApoliContextKeys.TARGET, context.nullable(NeoApoliContextKeys.ACTOR)));
+			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
+			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY)));
 
 		biEntityAction().execute(actionContext.makeChild(".bientity_action"));
 

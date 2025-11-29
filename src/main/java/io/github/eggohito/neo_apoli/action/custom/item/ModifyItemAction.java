@@ -61,7 +61,7 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 			.value();
 
 		LootParams lootParams = new LootParams.Builder(context.getWorld())
-			.withParameter(LootContextParams.ORIGIN, context.optional(NeoApoliContextKeys.ENTITY_POS).orElse(Vec3.ZERO))
+			.withParameter(LootContextParams.ORIGIN, context.optional(NeoApoliContextKeys.THIS_POS).orElse(Vec3.ZERO))
 			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.nullable(entity()))
 			.create(LootContextParamSets.COMMAND);
 

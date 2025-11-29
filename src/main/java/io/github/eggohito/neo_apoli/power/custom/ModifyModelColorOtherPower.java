@@ -72,7 +72,7 @@ public class ModifyModelColorOtherPower extends Power {
 
 	public static int modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyModelColorOtherPower.Instance> instances, int original) {
 
-		Entity renderedEntity = context.nullable(NeoApoliContextKeys.TARGET);
+		Entity renderedEntity = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
 		int color = original;
 
 		for (var instance : instances) {
@@ -100,10 +100,10 @@ public class ModifyModelColorOtherPower extends Power {
 
 	public static Context createContext(@NotNull Entity viewer, @Nullable Entity renderedEntity) {
 		return PowerTypes.MODIFY_MODEL_COLOR_OTHER.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR, viewer)
-			.addNullable(NeoApoliContextKeys.TARGET, renderedEntity)
+			.add(NeoApoliContextKeys.ACTOR_ENTITY, viewer)
+			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, renderedEntity)
 			.add(NeoApoliContextKeys.THIS_ENTITY, viewer)
-			.add(NeoApoliContextKeys.ENTITY_POS, viewer.position())
+			.add(NeoApoliContextKeys.THIS_POS, viewer.position())
 			.build(viewer.level());
 	}
 

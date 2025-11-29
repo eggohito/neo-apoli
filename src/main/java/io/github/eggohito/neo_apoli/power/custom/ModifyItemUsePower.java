@@ -229,7 +229,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 		return instance.createHolderContextBuilder()
 			.add(NeoApoliContextKeys.HAND, hand)
 			.add(NeoApoliContextKeys.THIS_ENTITY, user)
-			.add(NeoApoliContextKeys.ENTITY_POS, user.position())
+			.add(NeoApoliContextKeys.THIS_POS, user.position())
 			.add(NeoApoliContextKeys.STACK_REFERENCE, stackReference)
 			.add(NeoApoliContextKeys.ITEM_STACK, stackReference.get())
 			.build(user.level());

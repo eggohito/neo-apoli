@@ -32,8 +32,8 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	public boolean test(Context context) {
 
 		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(NeoApoliContextKeys.TARGET))
-			.addNullable(NeoApoliContextKeys.TARGET, context.nullable(NeoApoliContextKeys.ACTOR)));
+			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
+			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY)));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 

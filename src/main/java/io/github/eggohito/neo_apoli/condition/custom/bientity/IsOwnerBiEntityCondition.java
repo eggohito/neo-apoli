@@ -27,8 +27,8 @@ public record IsOwnerBiEntityCondition() implements BiEntityCondition {
 	@Override
 	public boolean test(Context context) {
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET);
+		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
+		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
 
 		return actor != null
 			&& this.isOwnedBy(target, actor);

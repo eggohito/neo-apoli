@@ -38,7 +38,7 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 		}
 
 		Level world = context.getWorld();
-		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.ENTITY_POS));
+		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.THIS_POS));
 
 		if (!world.hasChunkAt(blockPos)) {
 			return false;
@@ -56,7 +56,7 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.ENTITY_POS);
+		return Set.of(NeoApoliContextKeys.THIS_POS);
 	}
 
 	@Override

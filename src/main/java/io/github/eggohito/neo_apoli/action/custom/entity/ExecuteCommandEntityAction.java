@@ -47,7 +47,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		}
 
 		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		Vec3 pos = context.required(NeoApoliContextKeys.ENTITY_POS);
+		Vec3 pos = context.required(NeoApoliContextKeys.THIS_POS);
 
 		Context commandContext = context.makeChild(".command");
 		String command = command().next(commandContext);
@@ -87,7 +87,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_ENTITY, NeoApoliContextKeys.ENTITY_POS);
+		return Set.of(NeoApoliContextKeys.THIS_ENTITY, NeoApoliContextKeys.THIS_POS);
 	}
 
 }

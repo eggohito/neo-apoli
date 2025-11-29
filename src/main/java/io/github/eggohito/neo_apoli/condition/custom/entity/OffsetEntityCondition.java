@@ -49,8 +49,8 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 			return false;
 		}
 
-		Vec3 offsetPos = context.required(NeoApoliContextKeys.ENTITY_POS).add(offset);
-		Context conditionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.ENTITY_POS, offsetPos));
+		Vec3 offsetPos = context.required(NeoApoliContextKeys.THIS_POS).add(offset);
+		Context conditionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.THIS_POS, offsetPos));
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
@@ -58,7 +58,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3dProvider off
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.ENTITY_POS);
+		return Set.of(NeoApoliContextKeys.THIS_POS);
 	}
 
 	@Override

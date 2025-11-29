@@ -41,8 +41,8 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET);
+		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
+		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
 
 		if (actor == null || target == null) {
 			return;

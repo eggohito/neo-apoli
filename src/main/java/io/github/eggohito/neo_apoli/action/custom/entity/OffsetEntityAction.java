@@ -49,8 +49,8 @@ public record OffsetEntityAction(EntityAction action, Vec3dProvider offset) impl
 			return;
 		}
 
-		Vec3 offsetPos = context.required(NeoApoliContextKeys.ENTITY_POS).add(offset);
-		Context actionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.ENTITY_POS, offsetPos));
+		Vec3 offsetPos = context.required(NeoApoliContextKeys.THIS_POS).add(offset);
+		Context actionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.THIS_POS, offsetPos));
 
 		action().execute(actionContext.makeChild(".action"));
 
@@ -58,7 +58,7 @@ public record OffsetEntityAction(EntityAction action, Vec3dProvider offset) impl
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.ENTITY_POS);
+		return Set.of(NeoApoliContextKeys.THIS_POS);
 	}
 
 	@Override

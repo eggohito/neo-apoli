@@ -124,10 +124,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static Context createContext(@NotNull Entity target, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_INVISIBILITY.contextBuilder()
-			.addNullable(NeoApoliContextKeys.ACTOR, viewer)
-			.add(NeoApoliContextKeys.TARGET, target)
+			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, viewer)
+			.add(NeoApoliContextKeys.TARGET_ENTITY, target)
 			.add(NeoApoliContextKeys.THIS_ENTITY, target)
-			.add(NeoApoliContextKeys.ENTITY_POS, target.position())
+			.add(NeoApoliContextKeys.THIS_POS, target.position())
 			.build(target.level());
 	}
 

@@ -21,8 +21,8 @@ public class NeoApoliContextKeySets {
 		.build();
 
 	public static final ContextKeySet BIENTITY = new ContextKeySet.Builder()
-		.optional(NeoApoliContextKeys.ACTOR)
-		.optional(NeoApoliContextKeys.TARGET)
+		.optional(NeoApoliContextKeys.ACTOR_ENTITY)
+		.optional(NeoApoliContextKeys.TARGET_ENTITY)
 		.build();
 
 	public static final ContextKeySet BLOCK = new ContextKeySet.Builder()
@@ -49,7 +49,7 @@ public class NeoApoliContextKeySets {
 
 		}
 
-		builder.required(NeoApoliContextKeys.ENTITY_POS);
+		builder.required(NeoApoliContextKeys.THIS_POS);
 
 	}).build();
 

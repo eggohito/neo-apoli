@@ -69,8 +69,8 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.add(NeoApoliContextKeys.ACTOR, actor)
-				.add(NeoApoliContextKeys.TARGET, target));
+				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
+				.add(NeoApoliContextKeys.TARGET_ENTITY, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				matches++;

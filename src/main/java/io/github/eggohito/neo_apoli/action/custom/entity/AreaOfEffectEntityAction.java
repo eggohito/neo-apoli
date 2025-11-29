@@ -54,12 +54,12 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		for (var target : shape().getEntities(world, context.required(NeoApoliContextKeys.ENTITY_POS), radius)) {
+		for (var target : shape().getEntities(world, context.required(NeoApoliContextKeys.THIS_POS), radius)) {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.add(NeoApoliContextKeys.ACTOR, actor)
-				.add(NeoApoliContextKeys.TARGET, target));
+				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
+				.add(NeoApoliContextKeys.TARGET_ENTITY, target));
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				biEntityAction().execute(biEntityContext.makeChild(".bientity_action"));

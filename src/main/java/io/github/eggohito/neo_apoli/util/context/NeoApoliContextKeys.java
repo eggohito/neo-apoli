@@ -5,7 +5,6 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.Vec3DContextKey;
@@ -42,8 +41,8 @@ public final class NeoApoliContextKeys {
 	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.TYPED_CONTEXT_KEY);
 
 	//	Usually used in bi-entity contexts
-	public static final TypedContextKey<Entity> ACTOR = registerInternal("actor", EntityContextKey::new);
-	public static final TypedContextKey<Entity> TARGET = registerInternal("target", EntityContextKey::new);
+	public static final TypedContextKey<Entity> ACTOR_ENTITY = registerInternal("actor_entity", EntityContextKey::new);
+	public static final TypedContextKey<Entity> TARGET_ENTITY = registerInternal("target_entity", EntityContextKey::new);
 
 	//	Usually used in block contexts
 	public static final TypedContextKey<BlockPos> BLOCK_POS = registerInternal("block_pos", BlockPosContextKey::new);
@@ -59,7 +58,7 @@ public final class NeoApoliContextKeys {
 
 	//	Usually used in entity contexts
 	public static final TypedContextKey<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextKey::new);
-	public static final TypedContextKey<Vec3> ENTITY_POS = registerInternal("entity_pos", Vec3DContextKey::new);
+	public static final TypedContextKey<Vec3> THIS_POS = registerInternal("this_pos", Vec3DContextKey::new);
 
 	//	Usually used in item contexts
 	public static final TypedContextKey<SlotAccess> STACK_REFERENCE = registerInternal("stack_reference", StackReferenceContextKey::new);
@@ -70,7 +69,9 @@ public final class NeoApoliContextKeys {
 	public static final TypedContextKey<InteractionHand> HAND = registerInternal("hand", id -> new TypedContextKey<>(id, InteractionHand.class));
 
 	public static void init() {
-
+		ALIASES.addPathAlias("actor", ACTOR_ENTITY);
+		ALIASES.addPathAlias("target", TARGET_ENTITY);
+		ALIASES.addPathAlias("this", THIS_ENTITY);
 	}
 
 	private static <T, P extends TypedContextKey<T>> TypedContextKey<T> registerInternal(String path, Function<ResourceLocation, P> parameter) {

@@ -108,14 +108,14 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	public static Context createContext(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
 		return PowerTypes.CALLBACK_DAMAGE_DEALT.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR, actor)
-			.add(NeoApoliContextKeys.TARGET, target)
+			.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
+			.add(NeoApoliContextKeys.TARGET_ENTITY, target)
 			.add(NeoApoliContextKeys.DAMAGE_SOURCE, damageSource)
 			.add(NeoApoliContextKeys.DAMAGE_AMOUNT, damageAmount)
 			.addNullable(NeoApoliContextKeys.DAMAGING_ENTITY, damageSource.getEntity())
 			.addNullable(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY, damageSource.getDirectEntity())
 			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
-			.add(NeoApoliContextKeys.ENTITY_POS, actor.position())
+			.add(NeoApoliContextKeys.THIS_POS, actor.position())
 			.build(actor.level());
 	}
 

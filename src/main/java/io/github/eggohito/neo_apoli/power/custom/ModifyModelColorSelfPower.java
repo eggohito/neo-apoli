@@ -72,7 +72,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 	public static int modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower.Instance> instances, int original) {
 
-		Entity viewer = context.nullable(NeoApoliContextKeys.ACTOR);
+		Entity viewer = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
 		int color = original;
 
 		for (var instance : instances) {
@@ -100,10 +100,10 @@ public class ModifyModelColorSelfPower extends Power {
 
 	public static Context createContext(@NotNull Entity renderedEntity, @Nullable Entity viewer) {
 		return PowerTypes.MODIFY_MODEL_COLOR_SELF.contextBuilder()
-			.addNullable(NeoApoliContextKeys.ACTOR, viewer)
-			.add(NeoApoliContextKeys.TARGET, renderedEntity)
+			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, viewer)
+			.add(NeoApoliContextKeys.TARGET_ENTITY, renderedEntity)
 			.add(NeoApoliContextKeys.THIS_ENTITY, renderedEntity)
-			.add(NeoApoliContextKeys.ENTITY_POS, renderedEntity.position())
+			.add(NeoApoliContextKeys.THIS_POS, renderedEntity.position())
 			.build(renderedEntity.level());
 	}
 

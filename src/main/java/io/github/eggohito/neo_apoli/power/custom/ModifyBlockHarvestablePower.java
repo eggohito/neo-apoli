@@ -124,7 +124,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
 			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
 			.add(NeoApoliContextKeys.THIS_ENTITY, player)
-			.add(NeoApoliContextKeys.ENTITY_POS, player.position())
+			.add(NeoApoliContextKeys.THIS_POS, player.position())
 			.build(player.level());
 	}
 

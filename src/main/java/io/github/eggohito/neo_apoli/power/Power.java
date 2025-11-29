@@ -98,7 +98,7 @@ public abstract class Power implements ContextAware {
 			return power.getType().contextBuilder()
 				.withReporter(this.createReporter())
 				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
-				.add(NeoApoliContextKeys.ENTITY_POS, holder.position());
+				.add(NeoApoliContextKeys.THIS_POS, holder.position());
 		}
 
 		public final Context createHolderContext() {

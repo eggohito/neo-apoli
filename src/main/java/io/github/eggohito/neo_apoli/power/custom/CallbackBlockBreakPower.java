@@ -133,7 +133,7 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
 			.addNullable(NeoApoliContextKeys.DIRECTION, direction)
 			.add(NeoApoliContextKeys.THIS_ENTITY, player)
-			.add(NeoApoliContextKeys.ENTITY_POS, player.position())
+			.add(NeoApoliContextKeys.THIS_POS, player.position())
 			.build(player.level());
 	}
 

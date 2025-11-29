@@ -63,7 +63,7 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 
 			Context entityContext = ContextImpl.of(context, builder -> builder
 				.add(NeoApoliContextKeys.THIS_ENTITY, target)
-				.add(NeoApoliContextKeys.ENTITY_POS, target.position()));
+				.add(NeoApoliContextKeys.THIS_POS, target.position()));
 
 			if (entityCondition().test(entityContext.makeChild(".entity_condition"))) {
 				matches++;

@@ -25,9 +25,9 @@ public record TameBiEntityAction() implements BiEntityAction {
 	@Override
 	public void execute(Context context) {
 
-		if (context.nullable(NeoApoliContextKeys.ACTOR) instanceof ServerPlayer serverPlayer) {
+		if (context.nullable(NeoApoliContextKeys.ACTOR_ENTITY) instanceof ServerPlayer serverPlayer) {
 
-			switch (context.nullable(NeoApoliContextKeys.TARGET)) {
+			switch (context.nullable(NeoApoliContextKeys.TARGET_ENTITY)) {
 				case TamableAnimal tameable ->
 					tameable.tame(serverPlayer);
 				case AbstractHorse abstractHorse ->

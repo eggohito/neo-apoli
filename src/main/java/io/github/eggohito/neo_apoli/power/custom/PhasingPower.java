@@ -168,7 +168,7 @@ public class PhasingPower extends Power {
 			.add(NeoApoliContextKeys.BLOCK_STATE, savedBlock.getState())
 			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, savedBlock.getEntity())
 			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
+			.add(NeoApoliContextKeys.THIS_POS, entity.position())
 			.build(entity.level());
 	}
 

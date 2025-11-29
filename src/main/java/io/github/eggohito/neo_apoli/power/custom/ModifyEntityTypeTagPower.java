@@ -144,7 +144,7 @@ public class ModifyEntityTypeTagPower extends Power {
 	public static Context createContext(@NotNull Entity entity) {
 		return PowerTypes.MODIFY_ENTITY_TYPE_TAG.contextBuilder()
 			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
+			.add(NeoApoliContextKeys.THIS_POS, entity.position())
 			.build(entity.level());
 	}
 

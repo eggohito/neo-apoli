@@ -129,7 +129,7 @@ public class ModifyClimbingPower extends Power {
 			.add(NeoApoliContextKeys.BLOCK_STATE, entity.getInBlockState())
 			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
 			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.ENTITY_POS, entity.position())
+			.add(NeoApoliContextKeys.THIS_POS, entity.position())
 			.build(world);
 
 	}

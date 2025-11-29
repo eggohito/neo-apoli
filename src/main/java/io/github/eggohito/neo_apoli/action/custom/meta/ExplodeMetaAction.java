@@ -146,8 +146,8 @@ public interface ExplodeMetaAction extends MetaAction {
 
 			Context biEntityContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET, entity));
+				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
+				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity));
 
 			return action.damageableBiEntityCondition().test(biEntityContext.makeChild(".damageable_bientity_condition"));
 
@@ -158,8 +158,8 @@ public interface ExplodeMetaAction extends MetaAction {
 
 			Context knockbackModifierContext = ContextImpl.of(context, builder -> builder
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET, entity));
+				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
+				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity));
 
 			return action.property().knockbackMultiplier().nextFloat(knockbackModifierContext.makeChild(".knockback_multiplier"));
 

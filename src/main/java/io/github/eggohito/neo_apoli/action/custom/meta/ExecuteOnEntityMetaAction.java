@@ -29,7 +29,7 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 		Context entityContext = ContextImpl.of(context, builder -> builder
 			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.addOptional(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.addOptional(NeoApoliContextKeys.ENTITY_POS, entity.map(Entity::position)));
+			.addOptional(NeoApoliContextKeys.THIS_POS, entity.map(Entity::position)));
 
 		action().execute(entityContext.makeChild(".action"));
 
