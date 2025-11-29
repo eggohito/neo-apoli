@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionTagsS2CP
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
@@ -171,11 +172,15 @@ public final class ActionManager implements JsonReloadListener {
 		LOGGER.info("Parsing actions from data packs...");
 		BY_ID.clear();
 
-		prepared.forEach((id, entry) -> Action.CODEC.parse(ops, entry.element())
-			.ifSuccess(action -> BY_ID.put(id, action))
-			.ifError(error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
+		prepared.forEach((id, entry) -> {
+			DynamicResourceLocation.setCurrent(id);
+			Action.CODEC.parse(ops, entry.element())
+				.ifSuccess(action -> register(id, action))
+				.ifError(error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
+		});
 
 		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s)", BY_ID.size());
+		DynamicResourceLocation.setCurrent(null);
 
 	}
 

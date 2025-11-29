@@ -37,7 +37,8 @@ import java.util.function.Function;
 public final class NeoApoliContextKeys {
 
 	public static final RegistryFixedAlias<TypedContextKey<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.TYPED_CONTEXT_KEY);
-	public static final Codec<TypedContextKey<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+
+	public static final Codec<TypedContextKey<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.TYPED_CONTEXT_KEY);
 
 	//	Usually used in bi-entity contexts

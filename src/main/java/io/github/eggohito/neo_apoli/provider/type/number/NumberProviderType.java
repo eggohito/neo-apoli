@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.type.number;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,7 +16,7 @@ public record NumberProviderType<P extends NumberProvider>(MapCodec<P> mapCodec,
 
 	public static final RegistryFixedAlias<NumberProviderType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.NUMBER_PROVIDER_TYPE);
 
-	public static final Codec<NumberProviderType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final Codec<NumberProviderType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, NumberProviderType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 

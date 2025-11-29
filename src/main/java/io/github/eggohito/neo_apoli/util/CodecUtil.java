@@ -8,6 +8,10 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.ByIdMap;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
@@ -124,6 +128,27 @@ public class CodecUtil {
 			},
 			Function.identity()
 		);
+	}
+
+	public static <T> Codec<TagKey<T>> hashedTag(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+		return Codec.STRING.comapFlatMap(
+			string -> string.startsWith("#")
+				? DynamicResourceLocation.parse(string.substring(1), defaultNamespace).map(location -> TagKey.create(registryRef, location))
+				: DataResult.error(() -> "Not a tag ID: \"" + string + "\""),
+			tag -> "#" + tag.location()
+		);
+	}
+
+	public static <T> Codec<TagKey<T>> hashedTag(ResourceKey<? extends Registry<T>> registryRef) {
+		return hashedTag(registryRef, ResourceLocation.DEFAULT_NAMESPACE);
+	}
+
+	public static <T> Codec<ResourceKey<T>> resourceKey(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+		return DynamicResourceLocation.createCodec(defaultNamespace).xmap(location -> ResourceKey.create(registryRef, location), ResourceKey::location);
+	}
+
+	public static <T> Codec<ResourceKey<T>> resourceKey(ResourceKey<? extends Registry<T>> registryRef) {
+		return resourceKey(registryRef, ResourceLocation.DEFAULT_NAMESPACE);
 	}
 
 }

@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.integration.DependencyManager;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
@@ -120,11 +121,15 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
 
-		prepared.forEach((id, entry) -> Condition.CODEC.parse(ops, entry.element())
-			.ifSuccess(condition -> register(id, condition))
-			.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message())));
+		prepared.forEach((id, entry) -> {
+			DynamicResourceLocation.setCurrent(id);
+			Condition.CODEC.parse(ops, entry.element())
+				.ifSuccess(condition -> register(id, condition))
+				.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
+		});
 
 		LOGGER.info("Finished parsing conditions from data packs. Parsed {} condition(s)", BY_ID.size());
+		DynamicResourceLocation.setCurrent(null);
 
 	}
 

@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.action.type;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,7 +15,7 @@ public interface ActionType<A extends Action> {
 
 	RegistryFixedAlias<ActionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.ACTION_TYPE);
 
-	Codec<ActionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	Codec<ActionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	StreamCodec<RegistryFriendlyByteBuf, ActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.ACTION_TYPE);
 

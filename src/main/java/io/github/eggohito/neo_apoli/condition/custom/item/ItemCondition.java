@@ -17,7 +17,7 @@ public interface ItemCondition extends Condition {
 
 	Codec<ItemCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(ItemConditionType.CODEC.dispatch(ItemCondition::getType, ItemConditionType::mapCodec), ConstantItemCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, ItemCondition> STREAM_CODEC = ItemConditionType.STREAM_CODEC.dispatch(ItemCondition::getType, ItemConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, ItemCondition> STREAM_CODEC = ItemConditionType.STREAM_CODEC.dispatch(ItemCondition::getType, ItemConditionType::streamCodec);
 
 	@Override
 	ItemConditionType<?> getType();

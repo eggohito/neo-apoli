@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.util.container_type;
 
 import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,7 +17,7 @@ public interface ContainerType {
 
 	RegistryFixedAlias<ContainerType> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.CONTAINER_TYPE);
 
-	Codec<ContainerType> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	Codec<ContainerType> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	StreamCodec<RegistryFriendlyByteBuf, ContainerType> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.CONTAINER_TYPE);
 

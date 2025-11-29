@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util.container_type;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,7 +17,7 @@ public record DynamicContainerType(TextAlignment textAlignment, ResourceLocation
 
 	public static final MapCodec<DynamicContainerType> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		TextAlignment.CODEC.optionalFieldOf("title_alignment", TextAlignment.CENTER).forGetter(DynamicContainerType::textAlignment),
-		ResourceLocation.CODEC.fieldOf("texture").forGetter(DynamicContainerType::texture),
+		DynamicResourceLocation.CODEC.fieldOf("texture").forGetter(DynamicContainerType::texture),
 		ExtraCodecs.intRange(1, Integer.MAX_VALUE).fieldOf("columns").forGetter(DynamicContainerType::columns),
 		ExtraCodecs.intRange(1, Integer.MAX_VALUE).fieldOf("rows").forGetter(DynamicContainerType::rows)
 	).apply(instance, DynamicContainerType::new));

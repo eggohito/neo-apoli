@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.type.bool;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,7 +16,7 @@ public record BooleanProviderType<P extends BooleanProvider>(MapCodec<P> mapCode
 
 	public static final RegistryFixedAlias<BooleanProviderType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.BOOLEAN_PROVIDER_TYPE);
 
-	public static final Codec<BooleanProviderType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final Codec<BooleanProviderType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BooleanProviderType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.BOOLEAN_PROVIDER_TYPE);
 

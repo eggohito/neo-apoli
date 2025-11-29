@@ -17,7 +17,7 @@ public interface EntityCondition extends Condition {
 
 	Codec<EntityCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(EntityConditionType.CODEC.dispatch(EntityCondition::getType, EntityConditionType::mapCodec), ConstantEntityCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, EntityCondition> STREAM_CODEC = EntityConditionType.STREAM_CODEC.dispatch(EntityCondition::getType, EntityConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, EntityCondition> STREAM_CODEC = EntityConditionType.STREAM_CODEC.dispatch(EntityCondition::getType, EntityConditionType::streamCodec);
 
 	@Override
 	EntityConditionType<?> getType();

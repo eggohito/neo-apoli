@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeEntityTypeTagC
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
@@ -44,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ModifyEntityTypeTagPower extends Power {
 
 	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
+		.and(CodecUtil.hashedTag(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
 		.apply(instance, ModifyEntityTypeTagPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEntityTypeTagPower> STREAM_CODEC = StreamCodec.composite(

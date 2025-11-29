@@ -17,7 +17,7 @@ public interface BlockCondition extends Condition {
 
 	Codec<BlockCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BlockConditionType.CODEC.dispatch(BlockCondition::getType, BlockConditionType::mapCodec), ConstantBlockCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BlockCondition> STREAM_CODEC = BlockConditionType.STREAM_CODEC.dispatch(BlockCondition::getType, BlockConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BlockCondition> STREAM_CODEC = BlockConditionType.STREAM_CODEC.dispatch(BlockCondition::getType, BlockConditionType::streamCodec);
 
 	@Override
 	BlockConditionType<?> getType();

@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Function;
@@ -25,7 +26,7 @@ public final class ValueSuppliedElementCodec<E> implements Codec<E> {
 
 	@Override
 	public <I> DataResult<Pair<E, I>> decode(DynamicOps<I> ops, I input) {
-		return switch (ResourceLocation.CODEC.parse(ops, input)) {
+		return switch (DynamicResourceLocation.CODEC.parse(ops, input)) {
 			case DataResult.Success<ResourceLocation> success ->
 				elementGetter.apply(success.value()).map(e -> Pair.of(e, input));
 			case DataResult.Error<ResourceLocation> ignored -> {
@@ -44,7 +45,7 @@ public final class ValueSuppliedElementCodec<E> implements Codec<E> {
 
 	@Override
 	public <I> DataResult<I> encode(E value, DynamicOps<I> ops, I prefix) {
-		return idGetter.apply(value).mapOrElse(id -> ResourceLocation.CODEC.encode(id, ops, prefix), error -> elementCodec.encode(value, ops, prefix));
+		return idGetter.apply(value).mapOrElse(id -> DynamicResourceLocation.CODEC.encode(id, ops, prefix), error -> elementCodec.encode(value, ops, prefix));
 	}
 
 	public boolean allowInlineDefinitions() {

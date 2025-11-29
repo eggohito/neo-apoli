@@ -17,7 +17,7 @@ public interface BiEntityCondition extends Condition {
 
 	Codec<BiEntityCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BiEntityConditionType.CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::mapCodec), ConstantBiEntityCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BiEntityCondition> STREAM_CODEC = BiEntityConditionType.STREAM_CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BiEntityCondition> STREAM_CODEC = BiEntityConditionType.STREAM_CODEC.dispatch(BiEntityCondition::getType, BiEntityConditionType::streamCodec);
 
 	@Override
 	BiEntityConditionType<?> getType();

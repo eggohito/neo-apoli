@@ -1,12 +1,8 @@
 package io.github.eggohito.neo_apoli.util.color.type;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.color.Hsv;
@@ -16,16 +12,10 @@ import io.github.eggohito.neo_apoli.util.color.dynamic.DynamicHsv;
 import io.github.eggohito.neo_apoli.util.color.dynamic.DynamicRgba;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
 public final class ColorTypes {
-
-	public static final RegistryFixedAlias<ColorType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.COLOR_TYPE);
-
-	public static final Codec<ColorType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ColorType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.COLOR_TYPE);
 
 	public static final ColorType<Argb> ARGB = registerInternal("argb", Argb.CODEC, Argb.STREAM_CODEC);
 	public static final ColorType<Hsv> HSV = registerInternal("hsv", Hsv.CODEC, Hsv.STREAM_CODEC);

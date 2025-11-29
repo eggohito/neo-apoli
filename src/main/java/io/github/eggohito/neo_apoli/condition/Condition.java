@@ -16,7 +16,7 @@ public interface Condition extends ContextAware, StringDisplayable {
 
 	Codec<Condition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(ConditionType.CODEC.dispatch(Condition::getType, ConditionType::mapCodec), ConstantCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, Condition> STREAM_CODEC = ConditionType.STREAM_CODEC.dispatch(Condition::getType, ConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Condition> STREAM_CODEC = ConditionType.STREAM_CODEC.dispatch(Condition::getType, ConditionType::streamCodec);
 
 	@Override
 	default String asDisplayString() {

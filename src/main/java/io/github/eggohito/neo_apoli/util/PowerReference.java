@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
@@ -82,7 +83,11 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 			else {
 
 				try {
-					return ofSubPower(IdentifierUtil.nonEmptySplit(parent), name);
+
+					Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(parent);
+
+					return ofSubPower(ResourceLocationUtil.nonEmptyOf(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()), name);
+
 				}
 
 				catch (ResourceLocationException iie) {
@@ -96,7 +101,11 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 		else {
 
 			try {
-				return ofPower(IdentifierUtil.nonEmptySplit(value));
+
+				Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(value);
+
+				return ofPower(ResourceLocationUtil.nonEmptyOf(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()));
+
 			}
 
 			catch (ResourceLocationException iie) {

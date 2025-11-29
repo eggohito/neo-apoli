@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.action.type.block;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.custom.block.BlockAction;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,9 +16,9 @@ public record BlockActionType<A extends BlockAction>(MapCodec<A> mapCodec, Strea
 
 	public static final String PREFIX = "block/";
 
-	public static final RegistryFixedAlias<BlockActionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.BLOCK_ACTION_TYPE, ActionType.ALIASES, PREFIX, "");
+	public static final RegistryFixedAlias<BlockActionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.BLOCK_ACTION_TYPE, ActionType.ALIASES);
 
-	public static final Codec<BlockActionType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final Codec<BlockActionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.BLOCK_ACTION_TYPE);
 

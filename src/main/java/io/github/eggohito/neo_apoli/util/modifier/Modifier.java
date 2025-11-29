@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
-import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -25,9 +24,9 @@ import java.util.function.IntFunction;
 
 public interface Modifier extends ContextAware, Comparable<Modifier> {
 
-	Codec<Modifier> CODEC = ModifierTypes.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
+	Codec<Modifier> CODEC = ModifierType.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
 
-	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierTypes.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierType.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::packetCodec);
 
 	@Override
 	default int compareTo(@NotNull Modifier that) {

@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.power.type;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,7 +17,7 @@ public record PowerType<P extends Power>(ContextKeySet contextType, MapCodec<P> 
 
 	public static final RegistryFixedAlias<PowerType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.POWER_TYPE);
 
-	public static final Codec<PowerType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final Codec<PowerType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.POWER_TYPE);
 

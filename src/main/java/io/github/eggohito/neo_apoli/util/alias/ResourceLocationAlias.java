@@ -10,20 +10,20 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-public class IdentifierAlias {
+public class ResourceLocationAlias {
 
 	@Getter(AccessLevel.PROTECTED)
 	private final Map<ResourceLocation, ResourceLocation> identifiers;
 	@Getter
 	private final StringAlias namespaces, paths;
 
-	protected IdentifierAlias(Map<ResourceLocation, ResourceLocation> identifiers, StringAlias namespaces, StringAlias paths) {
+	protected ResourceLocationAlias(Map<ResourceLocation, ResourceLocation> identifiers, StringAlias namespaces, StringAlias paths) {
 		this.identifiers = identifiers;
 		this.namespaces = namespaces;
 		this.paths = paths;
 	}
 
-	public IdentifierAlias() {
+	public ResourceLocationAlias() {
 		this(new Object2ObjectOpenHashMap<>(), new StringAlias(), new StringAlias());
 	}
 
@@ -67,12 +67,12 @@ public class IdentifierAlias {
 
 	}
 
-	private enum Resolver implements BiFunction<IdentifierAlias, ResourceLocation, ResourceLocation> {
+	private enum Resolver implements BiFunction<ResourceLocationAlias, ResourceLocation, ResourceLocation> {
 
 		NO_OP {
 
 			@Override
-			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 				return id;
 			}
 
@@ -81,7 +81,7 @@ public class IdentifierAlias {
 		IDENTIFIER {
 
 			@Override
-			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 				return aliases.resolveAlias(id);
 			}
 
@@ -90,7 +90,7 @@ public class IdentifierAlias {
 		NAMESPACE {
 
 			@Override
-			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 				return ResourceLocation.fromNamespaceAndPath(aliases.getNamespaces().resolveAlias(id.getNamespace()), id.getPath());
 			}
 
@@ -99,7 +99,7 @@ public class IdentifierAlias {
 		PATH {
 
 			@Override
-			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 				return id.withPath(aliases.getPaths().resolveAlias(id.getPath()));
 			}
 
@@ -108,7 +108,7 @@ public class IdentifierAlias {
 		NAMESPACE_AND_PATH {
 
 			@Override
-			public ResourceLocation apply(IdentifierAlias aliases, ResourceLocation id) {
+			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 
 				String aliasedNamespace = aliases.getNamespaces().resolveAlias(id.getNamespace());
 				String aliasedPath = aliases.getPaths().resolveAlias(id.getPath());

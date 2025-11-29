@@ -17,7 +17,7 @@ public interface DamageCondition extends Condition {
 
 	Codec<DamageCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(DamageConditionType.CODEC.dispatch(DamageCondition::getType, DamageConditionType::mapCodec), ConstantDamageCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, DamageCondition> STREAM_CODEC = DamageConditionType.STREAM_CODEC.dispatch(DamageCondition::getType, DamageConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, DamageCondition> STREAM_CODEC = DamageConditionType.STREAM_CODEC.dispatch(DamageCondition::getType, DamageConditionType::streamCodec);
 
 	@Override
 	DamageConditionType<?> getType();

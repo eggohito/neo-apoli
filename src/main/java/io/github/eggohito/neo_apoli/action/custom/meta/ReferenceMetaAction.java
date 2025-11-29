@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -81,7 +82,7 @@ public interface ReferenceMetaAction<A extends Action> extends MetaAction {
 
 	static <A extends Action, M extends ReferenceMetaAction<A>> MapCodec<M> createCodec(Function<ResourceLocation, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceMetaAction::value)
+			DynamicResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceMetaAction::value)
 		).apply(instance, constructor));
 	}
 

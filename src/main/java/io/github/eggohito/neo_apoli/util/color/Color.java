@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
-import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,7 +18,7 @@ import net.minecraft.util.ARGB;
 public interface Color extends ContextAware {
 
 	Codec<Color> CODEC = new MultiAlternativeCodec<>(createCodec("type"), Rgba.STRING_CODEC);
-	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorTypes.STREAM_CODEC.dispatch(Color::getType, ColorType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorType.STREAM_CODEC.dispatch(Color::getType, ColorType::packetCodec);
 
 	ColorType<?> getType();
 
@@ -35,7 +34,7 @@ public interface Color extends ContextAware {
 	}
 
 	static MapCodec<Color> createMapCodec(String typeKey) {
-		return ColorTypes.CODEC.dispatchMap(typeKey, Color::getType, ColorType::mapCodec);
+		return ColorType.CODEC.dispatchMap(typeKey, Color::getType, ColorType::mapCodec);
 	}
 
 }

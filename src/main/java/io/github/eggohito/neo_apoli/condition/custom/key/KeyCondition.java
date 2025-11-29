@@ -17,7 +17,7 @@ public interface KeyCondition extends Condition {
 
 	Codec<KeyCondition> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(KeyConditionType.CODEC.dispatch(KeyCondition::getType, KeyConditionType::mapCodec), ConstantKeyCondition.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, KeyCondition> STREAM_CODEC = KeyConditionType.STREAM_CODEC.dispatch(KeyCondition::getType, KeyConditionType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, KeyCondition> STREAM_CODEC = KeyConditionType.STREAM_CODEC.dispatch(KeyCondition::getType, KeyConditionType::streamCodec);
 
 	@Override
 	KeyConditionType<?> getType();

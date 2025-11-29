@@ -18,6 +18,7 @@ import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -89,7 +90,7 @@ public final class PowerManager implements JsonReloadListener {
 
 		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
 			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
-		CompletableFuture<Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<PowerReference.Power, Entry>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
@@ -128,9 +129,9 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepared = new Object2ObjectOpenHashMap<>();
+		Map<PowerReference.Power, Entry> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packName = resource.sourcePackId();
@@ -149,7 +150,7 @@ public final class PowerManager implements JsonReloadListener {
 
 					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops)) {
 
-						io.github.eggohito.neo_apoli.power.PowerManager.Entry entry = new io.github.eggohito.neo_apoli.power.PowerManager.Entry(packName, jsonObject);
+						Entry entry = new Entry(packName, jsonObject);
 						PowerPreparation.EVENT.invoker().prepare(resourceId, entry, DIRECTORY, ops);
 
 						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), entry) != null) {
@@ -176,7 +177,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private void applyElements(Map<PowerReference.Power, io.github.eggohito.neo_apoli.power.PowerManager.Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	private void applyElements(Map<PowerReference.Power, Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 
@@ -188,6 +189,7 @@ public final class PowerManager implements JsonReloadListener {
 			JsonObject element = jsonEntry.element();
 			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 
+			DynamicResourceLocation.setCurrent(powerReference.id());
 			PowerEntry.CODEC.compressedDecode(ops, element)
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference, jsonEntry.source(), error.message()));
@@ -198,6 +200,7 @@ public final class PowerManager implements JsonReloadListener {
 		endLoading();
 
 		PowerReloadEvents.AFTER.invoker().afterReload(manager, profiler);
+		DynamicResourceLocation.setCurrent(null);
 
 	}
 

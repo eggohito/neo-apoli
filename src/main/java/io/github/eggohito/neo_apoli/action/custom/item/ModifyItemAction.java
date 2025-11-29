@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
@@ -31,7 +32,7 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 
 	public static final MapCodec<ModifyItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.ENTITY_CONTEXT_KEY.optionalFieldOf("entity", NeoApoliContextKeys.THIS_ENTITY).forGetter(ModifyItemAction::entity),
-		ResourceKey.codec(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier)
+		CodecUtil.resourceKey(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier)
 	).apply(instance, ModifyItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemAction> STREAM_CODEC = StreamCodec.composite(

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.particle.type;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.core.Registry;
@@ -16,13 +15,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+
 import java.util.function.Function;
 
 public final class NeoApoliParticleTypes {
 
 	public static final RegistryFixedAlias<ParticleType<?>> ALIASES = RegistryFixedAlias.of(BuiltInRegistries.PARTICLE_TYPE);
 
-	public static final Codec<ParticleType<?>> CODEC = RegistryUtil.createAliasedCodec(ALIASES);
+	public static final Codec<ParticleType<?>> CODEC = ALIASES.createCodec();
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleType<?>> STREAM_CODEC = ByteBufCodecs.registry(Registries.PARTICLE_TYPE);
 
 	public static final Codec<ParticleOptions> EFFECT_CODEC = CODEC.dispatch(ParticleOptions::getType, ParticleType::codec);

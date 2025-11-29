@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -16,7 +17,7 @@ import net.minecraft.world.level.block.Block;
 public record IsInTagBlockCondition(TagKey<Block> tag) implements BlockCondition {
 
 	public static final MapCodec<IsInTagBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TagKey.hashedCodec(Registries.BLOCK).fieldOf("tag").forGetter(IsInTagBlockCondition::tag)
+		CodecUtil.hashedTag(Registries.BLOCK).fieldOf("tag").forGetter(IsInTagBlockCondition::tag)
 	).apply(instance, IsInTagBlockCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsInTagBlockCondition> STREAM_CODEC = StreamCodec.composite(
