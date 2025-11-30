@@ -54,7 +54,7 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 	static PowerReference parse(StringReader reader) throws CommandSyntaxException {
 
 		int startIndex = reader.getCursor();
-		while (reader.canRead() && isValidChar(reader.peek())) {
+		while (reader.canRead() && isAllowed(reader.peek())) {
 			reader.skip();
 		}
 
@@ -85,8 +85,9 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 				try {
 
 					Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(parent);
+					ResourceLocation parentId = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
 
-					return ofSubPower(ResourceLocationUtil.nonEmptyOf(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()), name);
+					return ofSubPower(ResourceLocationUtil.nonEmpty(parentId), name);
 
 				}
 
@@ -103,8 +104,9 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 			try {
 
 				Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(value);
+				ResourceLocation id = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
 
-				return ofPower(ResourceLocationUtil.nonEmptyOf(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()));
+				return ofPower(ResourceLocationUtil.nonEmpty(id));
 
 			}
 
@@ -116,9 +118,9 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 
 	}
 
-	static boolean isValidChar(char ch) {
+	static boolean isAllowed(char ch) {
 		return ch == SubPower.SEPARATOR
-			|| ResourceLocation.isAllowedInResourceLocation(ch);
+			|| DynamicResourceLocation.isAllowed(ch);
 	}
 
 	record Power(ResourceLocation id) implements PowerReference {

@@ -87,6 +87,11 @@ public final class DynamicResourceLocation {
 
 	}
 
+	public static boolean isAllowed(char ch) {
+		return ch == '*'
+			|| ResourceLocation.isAllowedInResourceLocation(ch);
+	}
+
 	public static DataResult<ResourceLocation> parse(String input) {
 		return parse(input, ResourceLocation.DEFAULT_NAMESPACE);
 	}

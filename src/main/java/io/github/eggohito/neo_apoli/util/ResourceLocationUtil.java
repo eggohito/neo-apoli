@@ -5,14 +5,14 @@ import net.minecraft.resources.ResourceLocation;
 
 public class ResourceLocationUtil {
 
-	public static ResourceLocation nonEmptyOf(String namespace, String path) {
+	public static ResourceLocation nonEmpty(ResourceLocation id) {
 
-		if (namespace.isEmpty() || path.isEmpty()) {
-			throw new ResourceLocationException("Disallowed empty " + (namespace.isEmpty() ? "namespace" : "path") + " in resource location \"" + namespace + ":" + path + "\"");
+		if (id.getNamespace().isEmpty() || id.getPath().isEmpty()) {
+			throw new ResourceLocationException("Disallowed empty " + (id.getNamespace().isEmpty() ? "namespace" : "path") + " in resource location \"" + id + "\"");
 		}
 
 		else {
-			return ResourceLocation.fromNamespaceAndPath(namespace, path);
+			return id;
 		}
 
 	}
