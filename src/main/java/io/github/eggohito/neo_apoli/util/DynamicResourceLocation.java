@@ -8,8 +8,6 @@ import lombok.Setter;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.Objects;
-
 public final class DynamicResourceLocation {
 
 	public static final Codec<ResourceLocation> CODEC = createCodec(ResourceLocation.DEFAULT_NAMESPACE);
@@ -41,7 +39,7 @@ public final class DynamicResourceLocation {
 		return split(input, ResourceLocation.DEFAULT_NAMESPACE);
 	}
 
-	public static ResourceLocation replace(String namespace, String path) {
+	public static ResourceLocation of(String namespace, String path) {
 
 		if (namespace.contains("*")) {
 
@@ -77,7 +75,7 @@ public final class DynamicResourceLocation {
 
 			Pair<String, String> namespaceAndPath = split(input, defaultNamespace);
 
-			return DataResult.success(replace(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()));
+			return DataResult.success(of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond()));
 
 		}
 
@@ -97,9 +95,7 @@ public final class DynamicResourceLocation {
 	}
 
 	public static Codec<ResourceLocation> createCodec(String defaultNamespace) {
-		return Objects.equals(ResourceLocation.DEFAULT_NAMESPACE, defaultNamespace)
-			? CODEC
-			: Codec.STRING.comapFlatMap(input -> parse(input, defaultNamespace), ResourceLocation::toString);
+		return Codec.STRING.comapFlatMap(input -> parse(input, defaultNamespace), ResourceLocation::toString);
 	}
 
 }
