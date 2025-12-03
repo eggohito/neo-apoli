@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
-import io.github.eggohito.neo_apoli.gui.type.GuiElementType;
+import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
@@ -58,7 +58,7 @@ public class NeoApoliRegistries {
 	public static final Registry<ContainerType> CONTAINER_TYPE = create(NeoApoliRegistryKeys.CONTAINER_TYPE);
 	public static final Registry<ModifierType<?>> MODIFIER_TYPE = create(NeoApoliRegistryKeys.MODIFIER_TYPE);
 	public static final Registry<ColorType<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
-	public static final Registry<GuiElementType<?>> GUI_ELEMENT_TYPE = create(NeoApoliRegistryKeys.GUI_ELEMENT_TYPE);
+	public static final Registry<HudElementType<?>> HUD_ELEMENT_TYPE = create(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
 
 	public static final Registry<TypedContextKey<?>> TYPED_CONTEXT_KEY = create(NeoApoliRegistryKeys.TYPED_CONTEXT_KEY);
 

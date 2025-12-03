@@ -24,7 +24,7 @@ import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
-import io.github.eggohito.neo_apoli.gui.type.GuiElementType;
+import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
@@ -84,7 +84,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<ContainerType>> CONTAINER_TYPE = create("container_type");
 	public static final ResourceKey<Registry<ModifierType<?>>> MODIFIER_TYPE = create("modifier_type");
 	public static final ResourceKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
-	public static final ResourceKey<Registry<GuiElementType<?>>> GUI_ELEMENT_TYPE = create("gui_element_type");
+	public static final ResourceKey<Registry<HudElementType<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");
 
 	public static final ResourceKey<Registry<TypedContextKey<?>>> TYPED_CONTEXT_KEY = create("typed_context_key");
 

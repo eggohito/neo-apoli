@@ -1,7 +1,8 @@
-package io.github.eggohito.neo_apoli.client.gui.renderer;
+package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
-import io.github.eggohito.neo_apoli.gui.GuiElement;
-import io.github.eggohito.neo_apoli.gui.custom.BarGuiElement;
+import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.hud.custom.BarHudElement;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.client.DeltaTracker;
@@ -12,19 +13,23 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public record BarGuiElementRenderer() implements GuiElementRenderer {
+public record BarHudElementRenderer() implements HudElementRenderer {
 
-	private static GuiElement.Position anchorPos;
+	private static final int BAR_WIDTH = 72;
+	private static final int BAR_HEIGHT = 8;
+	private static final int ICON_SIZE = 8;
+
+	private static HudElement.Position anchorPos;
 
 	@Override
-	public void start(Context context, GuiElement element, GuiGraphics graphics, DeltaTracker delta) {
+	public void start(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof BarGuiElement barGuiElement)) {
+		if (!(element instanceof BarHudElement barGuiElement)) {
 			return;
 		}
 
-		BarGuiElement.Properties properties = barGuiElement.properties();
-		BarGuiElement.SpriteLocation spriteLocation = properties.spriteLocation();
+		BarHudElement.Properties properties = barGuiElement.properties();
+		BarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
 
 		if (!properties.shouldRender().next(context.makeChild(".should_render"))) {
 			return;
@@ -38,17 +43,17 @@ public record BarGuiElementRenderer() implements GuiElementRenderer {
 		int y = anchorPos.getY() + spriteLocation.y().nextInt(context.makeChild(".y"));
 
 		//	Draw the background texture of the bar
-		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BarGuiElement.BAR_WIDTH, BarGuiElement.BAR_HEIGHT);
+		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);
 
 		//	Draw the fill portion of the bar
-		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BarGuiElement.BAR_WIDTH, BarGuiElement.BAR_HEIGHT, 0, 0, x, y - 2, (int) (barGuiElement.getFill(context) * BarGuiElement.BAR_WIDTH), BarGuiElement.BAR_HEIGHT);
+		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BAR_WIDTH, BAR_HEIGHT, 0, 0, x, y - 2, (int) (barGuiElement.getFill(context) * BAR_WIDTH), BAR_HEIGHT);
 
 		//	Draw the icon of the bar
-		graphics.blitSprite(RenderType::guiTextured, spriteLocation.icon(), x - BarGuiElement.ICON_SIZE - 2, y - 2, BarGuiElement.ICON_SIZE, BarGuiElement.ICON_SIZE);
+		graphics.blitSprite(RenderType::guiTextured, spriteLocation.icon(), x - ICON_SIZE - 2, y - 2, ICON_SIZE, ICON_SIZE);
 
 		//	Shift the Y anchor position upwards by the height of the rendered bar if a bar sprite is within the anchor space
-		if (((x + BarGuiElement.BAR_WIDTH) >= anchorPos.getX() && x <= (anchorPos.getX() + BarGuiElement.BAR_WIDTH)) && ((y + BarGuiElement.BAR_HEIGHT >= anchorPos.getY()) && y <= (anchorPos.getY() + BarGuiElement.BAR_HEIGHT))) {
-			anchorPos.setY(anchorPos.getY() - BarGuiElement.BAR_HEIGHT);
+		if (((x + BAR_WIDTH) >= anchorPos.getX() && x <= (anchorPos.getX() + BAR_WIDTH)) && ((y + BAR_HEIGHT >= anchorPos.getY()) && y <= (anchorPos.getY() + BAR_HEIGHT))) {
+			anchorPos.setY(anchorPos.getY() - BAR_HEIGHT);
 		}
 
 	}
@@ -58,7 +63,7 @@ public record BarGuiElementRenderer() implements GuiElementRenderer {
 		anchorPos = null;
 	}
 
-	private static void init(Context context, GuiElement ignoredElement, GuiGraphics graphics, DeltaTracker ignoredDelta) {
+	private void init(Context context, HudElement ignoredElement, GuiGraphics graphics, DeltaTracker ignoredDelta) {
 
 		Entity viewer = context.required(NeoApoliContextKeys.THIS_ENTITY);
 		int yOffset = 49;
@@ -78,7 +83,7 @@ public record BarGuiElementRenderer() implements GuiElementRenderer {
 
 		}
 
-		anchorPos = new GuiElement.Position();
+		anchorPos = new HudElement.Position();
 
 		anchorPos.setX((graphics.guiWidth() / 2) + 20);
 		anchorPos.setY(graphics.guiHeight() - yOffset);

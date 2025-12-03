@@ -1,11 +1,11 @@
-package io.github.eggohito.neo_apoli.gui.custom;
+package io.github.eggohito.neo_apoli.hud.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.gui.GuiElement;
-import io.github.eggohito.neo_apoli.gui.type.GuiElementType;
-import io.github.eggohito.neo_apoli.gui.type.GuiElementTypes;
+import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.hud.type.HudElementType;
+import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
@@ -18,39 +18,26 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public record BarGuiElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements GuiElement, ContextAware {
+public record BarHudElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements HudElement, ContextAware {
 
-	public static final int BAR_WIDTH = 72;
-	public static final int BAR_HEIGHT = 8;
-	public static final int ICON_SIZE = 8;
+	public static final MapCodec<BarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Properties.CODEC.forGetter(BarHudElement::properties),
+		NumberProvider.CODEC.fieldOf("min").forGetter(BarHudElement::min),
+		NumberProvider.CODEC.fieldOf("max").forGetter(BarHudElement::max),
+		NumberProvider.CODEC.fieldOf("value").forGetter(BarHudElement::value)
+	).apply(instance, BarHudElement::new));
 
-	private static final MapCodec<NumberProvider> ZERO_NUMBER = MapCodec.unit(new ConstantNumberProvider(0));
-
-	public static final MapCodec<BarGuiElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Properties.CODEC.forGetter(BarGuiElement::properties),
-		NumberProvider.CODEC.fieldOf("min").forGetter(BarGuiElement::min),
-		NumberProvider.CODEC.fieldOf("max").forGetter(BarGuiElement::max),
-		NumberProvider.CODEC.fieldOf("value").forGetter(BarGuiElement::value)
-	).apply(instance, BarGuiElement::new));
-
-	public static final MapCodec<BarGuiElement> INTEGRATING_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Properties.CODEC.forGetter(BarGuiElement::properties),
-		ZERO_NUMBER.forGetter(BarGuiElement::min),
-		ZERO_NUMBER.forGetter(BarGuiElement::max),
-		ZERO_NUMBER.forGetter(BarGuiElement::value)
-	).apply(instance, BarGuiElement::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, BarGuiElement> STREAM_CODEC = StreamCodec.composite(
-		Properties.STREAM_CODEC, BarGuiElement::properties,
-		NumberProvider.STREAM_CODEC, BarGuiElement::min,
-		NumberProvider.STREAM_CODEC, BarGuiElement::max,
-		NumberProvider.STREAM_CODEC, BarGuiElement::value,
-		BarGuiElement::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, BarHudElement> STREAM_CODEC = StreamCodec.composite(
+		Properties.STREAM_CODEC, BarHudElement::properties,
+		NumberProvider.STREAM_CODEC, BarHudElement::min,
+		NumberProvider.STREAM_CODEC, BarHudElement::max,
+		NumberProvider.STREAM_CODEC, BarHudElement::value,
+		BarHudElement::new
 	);
 
 	@Override
-	public GuiElementType<?> getType() {
-		return GuiElementTypes.BAR;
+	public HudElementType<?> getType() {
+		return HudElementTypes.BAR;
 	}
 
 	@Override

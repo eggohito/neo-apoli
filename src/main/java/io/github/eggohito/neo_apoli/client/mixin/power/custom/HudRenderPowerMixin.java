@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 
-import io.github.eggohito.neo_apoli.client.integration.GuiElementRenderEvents;
-import io.github.eggohito.neo_apoli.power.custom.GuiElementPower;
+import io.github.eggohito.neo_apoli.client.integration.HudElementRenderEvents;
+import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.DeltaTracker;
@@ -15,13 +15,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Gui.class)
-public abstract class GuiElementPowerMixin {
+public abstract class HudRenderPowerMixin {
 
 	@Inject(method = "renderHotbarAndDecorations", at = @At("TAIL"))
 	private void render(GuiGraphics graphics, DeltaTracker delta, CallbackInfo ci) {
 
 		LocalPlayer viewer = Minecraft.getInstance().player;
-		Prioritized.InstanceCollection<GuiElementPower.Instance> instances = new Prioritized.InstanceCollection<>(viewer, GuiElementPower.Instance.class);
+		Prioritized.InstanceCollection<HudRenderPower.Instance> instances = new Prioritized.InstanceCollection<>(viewer, HudRenderPower.Instance.class);
 
 		for (var instance : instances) {
 
@@ -30,7 +30,7 @@ public abstract class GuiElementPowerMixin {
 			try {
 
 				if (context.markActive(instance)) {
-					GuiElementRenderEvents.START.invoker().render(context, instance.getGuiElement(), graphics, delta);
+					HudElementRenderEvents.START.invoker().start(context, instance.getHudElement(), graphics, delta);
 				}
 
 			}
@@ -42,7 +42,7 @@ public abstract class GuiElementPowerMixin {
 		}
 
 		if (!instances.isEmpty()) {
-			GuiElementRenderEvents.END.invoker().render(graphics, delta);
+			HudElementRenderEvents.END.invoker().end(graphics, delta);
 		}
 
 	}

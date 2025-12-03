@@ -15,7 +15,7 @@ import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
-import io.github.eggohito.neo_apoli.gui.type.GuiElementTypes;
+import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
@@ -117,7 +117,7 @@ public class NeoApoli implements ModInitializer {
 		ComparisonTypes.registerAll();
 		ColorTypes.registerAll();
 		ModifierTypes.registerAll();
-		GuiElementTypes.registerAll();
+		HudElementTypes.registerAll();
 
 		PowerTypes.registerAll();
 		PowerManager.init();
