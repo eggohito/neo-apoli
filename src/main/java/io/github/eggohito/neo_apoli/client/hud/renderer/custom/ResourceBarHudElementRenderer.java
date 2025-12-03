@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.custom.BarHudElement;
+import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.client.DeltaTracker;
@@ -13,7 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public record BarHudElementRenderer() implements HudElementRenderer {
+public record ResourceBarHudElementRenderer() implements HudElementRenderer {
 
 	private static final int BAR_WIDTH = 72;
 	private static final int BAR_HEIGHT = 8;
@@ -24,12 +24,12 @@ public record BarHudElementRenderer() implements HudElementRenderer {
 	@Override
 	public void start(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof BarHudElement barGuiElement)) {
+		if (!(element instanceof ResourceBarHudElement resourceBar)) {
 			return;
 		}
 
-		BarHudElement.Properties properties = barGuiElement.properties();
-		BarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
+		ResourceBarHudElement.Properties properties = resourceBar.properties();
+		ResourceBarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
 
 		if (!properties.shouldRender().next(context.makeChild(".should_render"))) {
 			return;
@@ -46,7 +46,7 @@ public record BarHudElementRenderer() implements HudElementRenderer {
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);
 
 		//	Draw the fill portion of the bar
-		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BAR_WIDTH, BAR_HEIGHT, 0, 0, x, y - 2, (int) (barGuiElement.getFill(context) * BAR_WIDTH), BAR_HEIGHT);
+		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BAR_WIDTH, BAR_HEIGHT, 0, 0, x, y - 2, (int) (resourceBar.getFill(context) * BAR_WIDTH), BAR_HEIGHT);
 
 		//	Draw the icon of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.icon(), x - ICON_SIZE - 2, y - 2, ICON_SIZE, ICON_SIZE);

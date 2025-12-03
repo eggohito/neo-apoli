@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.hud.type;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.custom.BarHudElement;
+import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class HudElementTypes {
 
-	public static final HudElementType<BarHudElement> BAR = registerInternal("bar", BarHudElement.CODEC, BarHudElement.STREAM_CODEC);
+	public static final HudElementType<ResourceBarHudElement> RESOURCE_BAR = registerInternal("resource_bar", ResourceBarHudElement.CODEC, ResourceBarHudElement.STREAM_CODEC);
 
 	public static void registerAll() {
 

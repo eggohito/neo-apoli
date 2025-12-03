@@ -18,26 +18,26 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public record BarHudElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements HudElement, ContextAware {
+public record ResourceBarHudElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements HudElement, ContextAware {
 
-	public static final MapCodec<BarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Properties.CODEC.forGetter(BarHudElement::properties),
-		NumberProvider.CODEC.fieldOf("min").forGetter(BarHudElement::min),
-		NumberProvider.CODEC.fieldOf("max").forGetter(BarHudElement::max),
-		NumberProvider.CODEC.fieldOf("value").forGetter(BarHudElement::value)
-	).apply(instance, BarHudElement::new));
+	public static final MapCodec<ResourceBarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Properties.CODEC.forGetter(ResourceBarHudElement::properties),
+		NumberProvider.CODEC.fieldOf("min").forGetter(ResourceBarHudElement::min),
+		NumberProvider.CODEC.fieldOf("max").forGetter(ResourceBarHudElement::max),
+		NumberProvider.CODEC.fieldOf("value").forGetter(ResourceBarHudElement::value)
+	).apply(instance, ResourceBarHudElement::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, BarHudElement> STREAM_CODEC = StreamCodec.composite(
-		Properties.STREAM_CODEC, BarHudElement::properties,
-		NumberProvider.STREAM_CODEC, BarHudElement::min,
-		NumberProvider.STREAM_CODEC, BarHudElement::max,
-		NumberProvider.STREAM_CODEC, BarHudElement::value,
-		BarHudElement::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, ResourceBarHudElement> STREAM_CODEC = StreamCodec.composite(
+		Properties.STREAM_CODEC, ResourceBarHudElement::properties,
+		NumberProvider.STREAM_CODEC, ResourceBarHudElement::min,
+		NumberProvider.STREAM_CODEC, ResourceBarHudElement::max,
+		NumberProvider.STREAM_CODEC, ResourceBarHudElement::value,
+		ResourceBarHudElement::new
 	);
 
 	@Override
 	public HudElementType<?> getType() {
-		return HudElementTypes.BAR;
+		return HudElementTypes.RESOURCE_BAR;
 	}
 
 	@Override
