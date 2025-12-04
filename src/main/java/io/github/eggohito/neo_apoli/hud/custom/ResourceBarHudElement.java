@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -20,11 +20,10 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.context.ContextKey;
 
 import java.util.Optional;
 
-public record ResourceBarHudElement(Properties properties, NumberProvider x, NumberProvider y, BooleanProvider shouldRender, Optional<NumberProvider> min, Optional<NumberProvider> max, Optional<NumberProvider> value, int order) implements HudElement {
+public record ResourceBarHudElement(Properties properties, NumberProvider x, NumberProvider y, BooleanProvider shouldRender, Optional<NumberProvider> min, Optional<NumberProvider> max, Optional<NumberProvider> value, int order) implements NumberBoundHudElement {
 
 	public static final MapCodec<ResourceBarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Properties.MAP_CODEC.forGetter(ResourceBarHudElement::properties),
@@ -62,12 +61,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	@Override
 	public void validate(ProblemReporter reporter) {
 
-		HudElement.super.validate(reporter);
-
-		//	Check if the following context keys and fields are absent
-		reportIfBothAbsent(reporter, NeoApoliContextKeys.MAX_VALUE, max(), "max");
-		reportIfBothAbsent(reporter, NeoApoliContextKeys.MIN_VALUE, min(), "min");
-		reportIfBothAbsent(reporter, NeoApoliContextKeys.CUR_VALUE, value(), "value");
+		NumberBoundHudElement.super.validate(reporter);
 
 		properties().validate(reporter);
 		min().ifPresent(min -> min.validate(reporter.forChild(".min")));
@@ -113,14 +107,6 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 		double fill = Mth.clamp((value - min) / (max - min), 0.0D, 1.0D);
 		return inverted ? 1.0 - fill : fill;
-
-	}
-
-	private static void reportIfBothAbsent(ProblemReporter reporter, ContextKey<?> key, Optional<NumberProvider> field, String fieldName) {
-
-		if (!reporter.getKeySet().allowed().contains(key) && field.isEmpty()) {
-			reporter.report("Either the parameter \"" + key.name() + "\" must be provided, or the field \"" + fieldName + "\" be defined!");
-		}
 
 	}
 
