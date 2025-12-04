@@ -18,7 +18,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public record ResourceBarHudElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements HudElement, ContextAware {
+public record ResourceBarHudElement(Properties properties, NumberProvider min, NumberProvider max, NumberProvider value) implements HudElement {
 
 	public static final MapCodec<ResourceBarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Properties.CODEC.forGetter(ResourceBarHudElement::properties),
@@ -42,7 +42,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider min, N
 
 	@Override
 	public void validate(ProblemReporter reporter) {
-		ContextAware.super.validate(reporter);
+		HudElement.super.validate(reporter);
 		properties().validate(reporter);
 		min().validate(reporter.forChild(".min"));
 		max().validate(reporter.forChild(".max"));

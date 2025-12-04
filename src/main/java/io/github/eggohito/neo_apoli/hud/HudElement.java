@@ -2,12 +2,13 @@ package io.github.eggohito.neo_apoli.hud;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public interface HudElement {
+public interface HudElement extends ContextAware {
 
 	Codec<HudElement> CODEC = HudElementType.CODEC.dispatch(HudElement::getType, HudElementType::mapCodec);
 
