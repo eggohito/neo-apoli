@@ -1,45 +1,44 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.function.BiConsumer;
 
 @Getter
-public class HudRenderPower extends Power implements Prioritized<HudRenderPower> {
+public class HudRenderPower extends Power {
 
-	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(HudElement.CODEC.fieldOf("hud_element").forGetter(HudRenderPower::getHudElement))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(HudRenderPower::getPriority))
+	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::getHudElements))
 		.apply(instance, HudRenderPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, HudRenderPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		HudElement.STREAM_CODEC, HudRenderPower::getHudElement,
-		ByteBufCodecs.INT, HudRenderPower::getPriority,
+		ByteBufCodecs.collection(ObjectArrayList::new, HudElement.STREAM_CODEC), HudRenderPower::getHudElements,
 		HudRenderPower::new
 	);
 
-	private final HudElement hudElement;
-	private final int priority;
+	private final List<HudElement> hudElements;
 
-	public HudRenderPower(Optional<Condition> activeCondition, HudElement hudElement, int priority) {
-		super(activeCondition);
-		this.hudElement = hudElement;
-		this.priority = priority;
+	public HudRenderPower(List<HudElement> hudElements) {
+		this.hudElements = hudElements;
 	}
 
 	@Override
@@ -52,14 +51,57 @@ public class HudRenderPower extends Power implements Prioritized<HudRenderPower>
 		return new Instance(holder, this);
 	}
 
+	@Override
+	public void validate(ProblemReporter reporter) {
+
+		super.validate(reporter);
+
+		ListIterator<HudElement> iterator = this.getHudElements().listIterator();
+
+		while (iterator.hasNext()) {
+
+			int index = iterator.nextIndex();
+			HudElement hudElement = iterator.next();
+
+			hudElement.validate(reporter.forChild(".hud_elements[" + index + "]"));
+
+		}
+
+	}
+
 	public static class Instance extends Power.Instance<HudRenderPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull HudRenderPower power) {
 			super(holder, power);
 		}
 
-		public HudElement getHudElement() {
-			return power.getHudElement();
+		public List<HudElement> getHudElements() {
+			return power.getHudElements();
+		}
+
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static void prepareHudElements(PowersComponent powersComponent, BiConsumer<Context, HudElement> adder) {
+
+		for (var instance : powersComponent.getInstances(Instance.class)) {
+
+			Context context = instance.createHolderContext();
+			ListIterator<HudElement> iterator = instance.getHudElements().listIterator();
+
+			while (iterator.hasNext()) {
+
+				int index = iterator.nextIndex();
+				HudElement hudElement = iterator.next();
+
+				Context hudElementContext = context.makeChild(".hud_elements[" + index + "]");
+
+				if (hudElement.shouldRender(hudElementContext)) {
+					adder.accept(hudElementContext, hudElement);
+				}
+
+			}
+
 		}
 
 	}

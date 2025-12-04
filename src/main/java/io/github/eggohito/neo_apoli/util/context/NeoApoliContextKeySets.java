@@ -58,6 +58,12 @@ public class NeoApoliContextKeySets {
 		.optional(NeoApoliContextKeys.ITEM_STACK)
 		.build();
 
+	public static final ContextKeySet NUMBER_BOUND = new ContextKeySet.Builder()
+		.required(NeoApoliContextKeys.CUR_VALUE)
+		.required(NeoApoliContextKeys.MIN_VALUE)
+		.required(NeoApoliContextKeys.MAX_VALUE)
+		.build();
+
 	public static void init() {
 
 	}

@@ -31,16 +31,12 @@ public record ResourceBarHudElementRenderer() implements HudElementRenderer {
 		ResourceBarHudElement.Properties properties = resourceBar.properties();
 		ResourceBarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
 
-		if (!properties.shouldRender().next(context.makeChild(".should_render"))) {
-			return;
-		}
-
 		if (anchorPos == null) {
 			init(context, element, graphics, delta);
 		}
 
-		int x = anchorPos.getX() + spriteLocation.x().nextInt(context.makeChild(".x"));
-		int y = anchorPos.getY() + spriteLocation.y().nextInt(context.makeChild(".y"));
+		int x = anchorPos.getX() + resourceBar.x().nextInt(context.makeChild(".x"));
+		int y = anchorPos.getY() + resourceBar.y().nextInt(context.makeChild(".y"));
 
 		//	Draw the background texture of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);
