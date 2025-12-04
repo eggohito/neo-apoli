@@ -1,0 +1,156 @@
+package io.github.eggohito.neo_apoli.power.custom;
+
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
+import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextImpl;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.util.Mth;
+import net.minecraft.util.Unit;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.BiConsumer;
+
+@AllArgsConstructor
+@Getter
+public class CooldownPower extends Power {
+
+	public static final MapCodec<CooldownPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NumberBoundHudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::getHudElement),
+		NumberProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::getCooldown)
+	).apply(instance, CooldownPower::new));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownPower> STREAM_CODEC = StreamCodec.composite(
+		NumberBoundHudElement.STREAM_CODEC, CooldownPower::getHudElement,
+		NumberProvider.STREAM_CODEC, CooldownPower::getCooldown,
+		CooldownPower::new
+	);
+
+	private final NumberBoundHudElement hudElement;
+	private final NumberProvider cooldown;
+
+	@Override
+	public PowerType<?> getType() {
+		return PowerTypes.COOLDOWN;
+	}
+
+	@Override
+	public Power.Instance<?> createInstance(Entity holder) {
+		return new Instance(holder, this);
+	}
+
+	@Override
+	public void validate(ProblemReporter reporter) {
+		super.validate(reporter);
+		getHudElement().validate(reporter.forChild(".hud_element"));
+		getCooldown().validate(reporter.forChild(".cooldown"));
+	}
+
+	public static class Instance extends Power.Instance<CooldownPower> {
+
+		protected long lastUseTime;
+
+		protected Instance(@NotNull Entity holder, @NotNull CooldownPower power) {
+			super(holder, power);
+		}
+
+		@Override
+		public ContextImpl.Builder createHolderContextBuilder() {
+
+			ContextImpl.Builder builder = super.createHolderContextBuilder();
+			Context context = builder.build(holder.level());
+
+			return builder
+				.add(NeoApoliContextKeys.MIN_VALUE, 0.0D)
+				.add(NeoApoliContextKeys.MAX_VALUE, power.getCooldown().nextDouble(context.makeChild(".cooldown")))
+				.add(NeoApoliContextKeys.CUR_VALUE, (double) this.getRemainingTicks(context));
+
+		}
+
+		@Override
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
+			return ops.getNumberValue(data)
+				.ifSuccess(number -> this.lastUseTime = number.longValue())
+				.map(ignored -> Unit.INSTANCE);
+		}
+
+		@Override
+		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
+			return DataResult.success(ops.createLong(lastUseTime));
+		}
+
+		public HudElement getHudElement() {
+			return power.getHudElement();
+		}
+
+		public NumberProvider getCooldown() {
+			return power.getCooldown();
+		}
+
+		public double getProgress(Context context) {
+
+			double diff = holder.level().getGameTime() - lastUseTime;
+			double progress = diff / getCooldown().nextDouble(context.makeChild(".cooldown"));
+
+			return Mth.clamp(progress, 0D, 1D);
+
+		}
+
+		public int getRemainingTicks(Context context) {
+
+			long diff = holder.level().getGameTime() - lastUseTime;
+			long remainingTicks = getCooldown().nextLong(context.makeChild(".cooldown")) - diff;
+
+			return (int) Math.max(0, remainingTicks);
+
+		}
+
+		public void trigger() {
+
+			if (holder.level().isClientSide()) {
+				return;
+			}
+
+			this.lastUseTime = holder.level().getGameTime();
+			this.syncData();
+
+		}
+
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static void prepareHudElements(PowersComponent powersComponent, BiConsumer<Context, HudElement> adder) {
+
+		for (var instance : powersComponent.getInstances(Instance.class)) {
+
+			Context context = instance.createHolderContext();
+			HudElement hudElement = instance.getHudElement();
+
+			long timeDiff = instance.getHolder().level().getGameTime() - instance.lastUseTime;
+			int cooldown = instance.getCooldown().nextInt(context.makeChild(".cooldown"));
+
+			if (timeDiff <= cooldown && hudElement.shouldRender(context)) {
+				adder.accept(context, hudElement);
+			}
+
+		}
+
+	}
+
+}

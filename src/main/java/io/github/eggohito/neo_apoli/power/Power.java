@@ -94,19 +94,19 @@ public abstract class Power implements ContextAware {
 			power.validate(reporter);
 		}
 
-		public final ContextImpl.Builder createHolderContextBuilder() {
+		public final ProblemReporter createReporter() {
+			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().contextType());
+		}
+
+		public ContextImpl.Builder createHolderContextBuilder() {
 			return power.getType().contextBuilder()
 				.withReporter(this.createReporter())
 				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
 				.add(NeoApoliContextKeys.THIS_POS, holder.position());
 		}
 
-		public final Context createHolderContext() {
-			return createHolderContextBuilder().build(holder.level());
-		}
-
-		public final ProblemReporter createReporter() {
-			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().contextType());
+		public Context createHolderContext() {
+			return this.createHolderContextBuilder().build(holder.level());
 		}
 
 		public final void syncData() {

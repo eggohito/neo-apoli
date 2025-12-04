@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.client.integration;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
@@ -16,6 +17,7 @@ public class PowerIntegrationsClient {
 
 		ClientPlayConnectionEvents.DISCONNECT.register(CraftingRecipePower::resetRecipeDisplays);
 		HudElementRenderEvents.PREPARE.register(HudRenderPower::prepareHudElements);
+		HudElementRenderEvents.PREPARE.register(CooldownPower::prepareHudElements);
 
 	}
 
