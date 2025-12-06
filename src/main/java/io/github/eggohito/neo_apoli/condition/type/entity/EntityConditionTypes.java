@@ -24,6 +24,7 @@ public class EntityConditionTypes extends ConditionTypes {
 	public static final EntityConditionType<HasCollidedHorizontallyEntityCondition> HAS_COLLIDED_HORIZONTALLY = registerInternal("has_collided_horizontally", HasCollidedHorizontallyEntityCondition.CODEC, HasCollidedHorizontallyEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<HasEquippedItemEntityCondition> HAS_EQUIPPED_ITEM = registerInternal("has_equipped_item", HasEquippedItemEntityCondition.CODEC, HasEquippedItemEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsClimbingEntityCondition> IS_CLIMBING = registerInternal("is_climbing", IsClimbingEntityCondition.CODEC, IsClimbingEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<IsFallFlyingEntityCondition> IS_FALL_FLYING = registerInternal("is_fall_flying", IsFallFlyingEntityCondition.CODEC, IsFallFlyingEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsInBlockEntityCondition> IS_IN_BLOCK = registerInternal("is_in_block", IsInBlockEntityCondition.CODEC, IsInBlockEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsInTagEntityCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEntityCondition.CODEC, IsInTagEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.CODEC, IsInvisibleEntityCondition.STREAM_CODEC);
