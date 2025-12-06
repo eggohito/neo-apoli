@@ -28,6 +28,7 @@ public class PowerTypes {
 	public static final PowerType<CraftingRecipePower> CRAFTING_RECIPE = registerInternal("crafting_recipe", CraftingRecipePower.CODEC, CraftingRecipePower.STREAM_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.STREAM_CODEC);
 	public static final PowerType<HudRenderPower> HUD_RENDER = registerInternal("hud_render", HudRenderPower.CODEC, HudRenderPower.STREAM_CODEC);
+	public static final PowerType<ModifyAirSpeedPower> MODIFY_AIR_SPEED = registerInternal("modify/air/speed", ModifyAirSpeedPower.CODEC, ModifyAirSpeedPower.STREAM_CODEC);
 	public static final PowerType<ModifyAttributeLegacyConditionalPower> MODIFY_ATTRIBUTE_LEGACY_CONDITIONAL = registerInternal("modify/attribute/legacy/conditional", ModifyAttributeLegacyConditionalPower.CODEC, ModifyAttributeLegacyConditionalPower.STREAM_CODEC);
 	public static final PowerType<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal("modify/attribute/legacy", ModifyAttributeLegacyPower.CODEC, ModifyAttributeLegacyPower.STREAM_CODEC);
 	public static final PowerType<ModifyBlockHarvestablePower> MODIFY_BLOCK_HARVESTABLE = registerInternal("modify/block/harvestable", ModifyBlockHarvestablePower.CODEC, ModifyBlockHarvestablePower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK);

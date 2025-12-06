@@ -39,6 +39,8 @@
 		"power.custom.CraftingRecipePowerMixin$ManagerRegistrant",
 		"power.custom.CraftingRecipePowerMixin$RecipeDisplayCraftableProxy",
 		"power.custom.CraftingRecipePowerMixin$TransientCraftingContainerCache",
+		"power.custom.ModifyAirSpeedPowerMixin$LivingTarget",
+		"power.custom.ModifyAirSpeedPowerMixin$Player",
 		"power.custom.ModifyBlockHarvestablePowerMixin$BlockBreakingDeltaProxy",
 		"power.custom.ModifyBlockHarvestablePowerMixin$HarvestableProxy",
 		"power.custom.ModifyBlockSelectablePowerMixin",
