@@ -49,6 +49,7 @@
 		"power.custom.ModifyEntityTypeTagPowerMixin$EntityCache",
 		"power.custom.ModifyEntityTypeTagPowerMixin$IsInTagProxy",
 		"power.custom.ModifyEntityTypeTagPowerMixin$TagCache",
+		"power.custom.ModifyFallingPowerMixin",
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl",
 		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",

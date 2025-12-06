@@ -36,6 +36,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyClimbingPower> MODIFY_CLIMBING = registerInternal("modify/climbing", ModifyClimbingPower.CODEC, ModifyClimbingPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK);
 	public static final PowerType<ModifyDamageDealtPower> MODIFY_DAMAGE_DEALT = registerInternal("modify/damage/dealt", ModifyDamageDealtPower.CODEC, ModifyDamageDealtPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.DAMAGE);
 	public static final PowerType<ModifyEntityTypeTagPower> MODIFY_ENTITY_TYPE_TAG = registerInternal("modify/entity/type_tag", ModifyEntityTypeTagPower.CODEC, ModifyEntityTypeTagPower.STREAM_CODEC);
+	public static final PowerType<ModifyFallingPower> MODIFY_FALLING = registerInternal("modify/falling", ModifyFallingPower.CODEC, ModifyFallingPower.STREAM_CODEC);
 	public static final PowerType<ModifyGlowingOtherPower> MODIFY_GLOWING_OTHER_POWER = registerInternal("modify/glowing/other", ModifyGlowingOtherPower.CODEC, ModifyGlowingOtherPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyGlowingSelfPower> MODIFY_GLOWING_SELF_POWER = registerInternal("modify/glowing/self", ModifyGlowingSelfPower.CODEC, ModifyGlowingSelfPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyInvisibilityPower> MODIFY_INVISIBILITY = registerInternal("modify/invisibility", ModifyInvisibilityPower.CODEC, ModifyInvisibilityPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
