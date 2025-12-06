@@ -7,9 +7,11 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -60,6 +62,14 @@ public class CooldownPower extends Power {
 		super.validate(reporter);
 		getHudElement().validate(reporter.forChild(".hud_element"));
 		getCooldown().validate(reporter.forChild(".cooldown"));
+	}
+
+	public static DataResult<CooldownPower> getAsResult(PowerReference reference) {
+		return PowerManager.getAsResult(reference).flatMap(
+			power -> power instanceof CooldownPower cooldownPower
+				? DataResult.success(cooldownPower)
+				: DataResult.error(() -> reference.asDisplayString() + " does not have a cooldown!")
+		);
 	}
 
 	public static class Instance extends Power.Instance<CooldownPower> {

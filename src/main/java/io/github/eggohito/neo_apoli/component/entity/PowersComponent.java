@@ -34,6 +34,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.logging.log4j.util.TriConsumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
@@ -395,8 +397,14 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	}
 
+	@NotNull
 	public Power.Instance<?> getInstance(PowerReference reference) {
-		return Objects.requireNonNull(instances.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
+		return Objects.requireNonNull(this.getNullableInstance(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
+	}
+
+	@Nullable
+	public Power.Instance<?> getNullableInstance(PowerReference reference) {
+		return instances.get(reference);
 	}
 
 	public boolean hasInstance(PowerReference reference) {
