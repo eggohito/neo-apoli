@@ -19,27 +19,30 @@ public interface NumberBoundHudElement extends HudElement {
 
 	StreamCodec<RegistryFriendlyByteBuf, NumberBoundHudElement> STREAM_CODEC = HudElement.STREAM_CODEC.map(hudElement -> validate(hudElement).getOrThrow(), Function.identity());
 
+	Optional<NumberProvider> value();
+
 	Optional<NumberProvider> min();
 
 	Optional<NumberProvider> max();
-
-	Optional<NumberProvider> value();
 
 	@Override
 	default void validate(ProblemReporter reporter) {
 
 		HudElement.super.validate(reporter);
 
-		reportIfBothIsAbsent(reporter, NeoApoliContextKeys.MAX_VALUE, max(), "max");
-		reportIfBothIsAbsent(reporter, NeoApoliContextKeys.MIN_VALUE, min(), "min");
-		reportIfBothIsAbsent(reporter, NeoApoliContextKeys.CUR_VALUE, value(), "value");
+		validateKeyAndField(reporter, NeoApoliContextKeys.CURRENT_VALUE, value(), "value");
+		validateKeyAndField(reporter, NeoApoliContextKeys.MAX_VALUE, max(), "max");
+		validateKeyAndField(reporter, NeoApoliContextKeys.MIN_VALUE, min(), "min");
 
 	}
 
-	static void reportIfBothIsAbsent(ProblemReporter reporter, ContextKey<?> key, Optional<NumberProvider> field, String name) {
+	static void validateKeyAndField(ProblemReporter reporter, ContextKey<?> key, Optional<NumberProvider> fieldMethod, String fieldName) {
 
-		if (!reporter.getKeySet().allowed().contains(key) && field.isEmpty()) {
-			reporter.report("Either the parameter \"" + key.name() + "\" must be provided, or the field \"" + name + "\" be defined!");
+		boolean keyIsAllowed = reporter.getKeySet().allowed().contains(key);
+		boolean fieldIsPresent = fieldMethod.isPresent();
+
+		if (keyIsAllowed == fieldIsPresent) {
+			reporter.report("Either the parameter \"" + key.name() + "\" must be provided or the field \"" + fieldName + "\" be defined" + (fieldIsPresent ? ", not both" : "") + "!");
 		}
 
 	}

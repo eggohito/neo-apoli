@@ -23,16 +23,16 @@ import net.minecraft.util.Mth;
 
 import java.util.Optional;
 
-public record ResourceBarHudElement(Properties properties, NumberProvider x, NumberProvider y, BooleanProvider shouldRender, Optional<NumberProvider> min, Optional<NumberProvider> max, Optional<NumberProvider> value, int order) implements NumberBoundHudElement {
+public record ResourceBarHudElement(Properties properties, NumberProvider x, NumberProvider y, BooleanProvider shouldRender, Optional<NumberProvider> value, Optional<NumberProvider> min, Optional<NumberProvider> max, int order) implements NumberBoundHudElement {
 
 	public static final MapCodec<ResourceBarHudElement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Properties.MAP_CODEC.forGetter(ResourceBarHudElement::properties),
 		NumberProvider.CODEC.optionalFieldOf("x", new ConstantNumberProvider(0)).forGetter(ResourceBarHudElement::x),
 		NumberProvider.CODEC.optionalFieldOf("y", new ConstantNumberProvider(0)).forGetter(ResourceBarHudElement::y),
 		BooleanProvider.CODEC.optionalFieldOf("should_render", new ConstantBooleanProvider(true)).forGetter(ResourceBarHudElement::shouldRender),
+		NumberProvider.CODEC.optionalFieldOf("value").forGetter(ResourceBarHudElement::value),
 		NumberProvider.CODEC.optionalFieldOf("min").forGetter(ResourceBarHudElement::min),
 		NumberProvider.CODEC.optionalFieldOf("max").forGetter(ResourceBarHudElement::max),
-		NumberProvider.CODEC.optionalFieldOf("value").forGetter(ResourceBarHudElement::value),
 		Codec.INT.optionalFieldOf("order", 0).forGetter(ResourceBarHudElement::order)
 	).apply(instance, ResourceBarHudElement::new));
 
@@ -41,9 +41,9 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		NumberProvider.STREAM_CODEC, ResourceBarHudElement::x,
 		NumberProvider.STREAM_CODEC, ResourceBarHudElement::y,
 		BooleanProvider.STREAM_CODEC, ResourceBarHudElement::shouldRender,
+		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), ResourceBarHudElement::value,
 		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), ResourceBarHudElement::min,
 		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), ResourceBarHudElement::max,
-		ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), ResourceBarHudElement::value,
 		ByteBufCodecs.INT, ResourceBarHudElement::order,
 		ResourceBarHudElement::new
 	);
@@ -95,7 +95,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		Context valueContext = context.makeChild(".value");
 		double value = value()
 			.map(p -> p.nextDouble(valueContext))
-			.or(() -> context.optional(NeoApoliContextKeys.CUR_VALUE))
+			.or(() -> context.optional(NeoApoliContextKeys.CURRENT_VALUE))
 			.orElse(min);
 
 		if (valueContext.hasErrors()) {

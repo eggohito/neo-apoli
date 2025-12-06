@@ -79,7 +79,7 @@ public class CooldownPower extends Power {
 			return builder
 				.add(NeoApoliContextKeys.MIN_VALUE, 0.0D)
 				.add(NeoApoliContextKeys.MAX_VALUE, power.getCooldown().nextDouble(context.makeChild(".cooldown")))
-				.add(NeoApoliContextKeys.CUR_VALUE, (double) this.getRemainingTicks(context));
+				.add(NeoApoliContextKeys.CURRENT_VALUE, (double) this.getRemainingTicks(context));
 
 		}
 

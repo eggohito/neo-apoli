@@ -65,7 +65,7 @@ public final class NeoApoliContextKeys {
 	public static final TypedContextKey<ItemStack> ITEM_STACK = registerInternal("item_stack", ItemStackContextKey::new);
 
 	//	Usually used in HUD elements
-	public static final TypedContextKey<Double> CUR_VALUE = registerInternal("value/cur", id -> new TypedContextKey<>(id, Double.class));
+	public static final TypedContextKey<Double> CURRENT_VALUE = registerInternal("value/current", id -> new TypedContextKey<>(id, Double.class));
 	public static final TypedContextKey<Double> MAX_VALUE = registerInternal("value/max", id -> new TypedContextKey<>(id, Double.class));
 	public static final TypedContextKey<Double> MIN_VALUE = registerInternal("value/min", id -> new TypedContextKey<>(id, Double.class));
 
