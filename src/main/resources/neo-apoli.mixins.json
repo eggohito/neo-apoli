@@ -33,6 +33,7 @@
 		"power.custom.CallbackBlockBreakPowerMixin",
 		"power.custom.CallbackDamageDealtPowerMixin$ArmorStandDelegate",
 		"power.custom.CallbackDamageDealtPowerMixin$BaseImpl",
+		"power.custom.CallbackPlayerWakeUpPowerMixin",
 		"power.custom.CraftingRecipePowerMixin$AbstractCraftingMenuCacheInitializer",
 		"power.custom.CraftingRecipePowerMixin$CraftingContainerCache",
 		"power.custom.CraftingRecipePowerMixin$CraftingInputCache",

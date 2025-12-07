@@ -95,7 +95,7 @@ public abstract class Power implements ContextAware {
 		}
 
 		public final ProblemReporter createReporter() {
-			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().contextType());
+			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().keySet());
 		}
 
 		public ContextImpl.Builder createHolderContextBuilder() {

@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -14,7 +13,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.event.Level;
 
 import java.util.Optional;
 
@@ -22,7 +20,7 @@ import java.util.Optional;
 public class CallbackPowerRemovedPower extends SimpleCallbackPower {
 
 	public static final MapCodec<CallbackPowerRemovedPower> CODEC = createSimpleCallbackCodec(CallbackPowerRemovedPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerRemovedPower> STREAM_CODEC = createSimpleCallbackPacketCodec(CallbackPowerRemovedPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerRemovedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPowerRemovedPower::new);
 
 	public CallbackPowerRemovedPower(Optional<Condition> activeCondition, Action action) {
 		super(activeCondition, action);

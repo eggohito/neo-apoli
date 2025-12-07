@@ -35,7 +35,7 @@ public abstract class SimpleCallbackPower extends Power {
 			.apply(instance, constructor));
 	}
 
-	protected static <P extends SimpleCallbackPower> StreamCodec<RegistryFriendlyByteBuf, P> createSimpleCallbackPacketCodec(BiFunction<Optional<Condition>, Action, P> constructor) {
+	protected static <P extends SimpleCallbackPower> StreamCodec<RegistryFriendlyByteBuf, P> createSimpleCallbackStreamCodec(BiFunction<Optional<Condition>, Action, P> constructor) {
 		return StreamCodec.composite(
 			ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
 			Action.STREAM_CODEC, SimpleCallbackPower::getAction,

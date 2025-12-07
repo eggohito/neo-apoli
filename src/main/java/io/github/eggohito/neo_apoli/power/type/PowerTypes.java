@@ -19,6 +19,7 @@ public class PowerTypes {
 	public static final PowerType<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal("callback/block/break", CallbackBlockBreakPower.CODEC, CallbackBlockBreakPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK);
 	public static final PowerType<CallbackDamageDealtPower> CALLBACK_DAMAGE_DEALT = registerInternal("callback/damage/dealt", CallbackDamageDealtPower.CODEC, CallbackDamageDealtPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.DAMAGE);
 	public static final PowerType<CallbackPlayerRespawnedPower> CALLBACK_PLAYER_RESPAWNED = registerInternal("callback/player/respawned", CallbackPlayerRespawnedPower.CODEC, CallbackPlayerRespawnedPower.STREAM_CODEC);
+	public static final PowerType<CallbackPlayerWakeUpPower> CALLBACK_PLAYER_WAKE_UP = registerInternal("callback/player/wake_up", CallbackPlayerWakeUpPower.CODEC, CallbackPlayerWakeUpPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK);
 	public static final PowerType<CallbackPowerAddedPower> CALLBACK_POWER_ADDED = registerInternal("callback/power/added", CallbackPowerAddedPower.CODEC, CallbackPowerAddedPower.STREAM_CODEC);
 	public static final PowerType<CallbackPowerGrantedPower> CALLBACK_POWER_GRANTED = registerInternal("callback/power/granted", CallbackPowerGrantedPower.CODEC, CallbackPowerGrantedPower.STREAM_CODEC);
 	public static final PowerType<CallbackPowerRemovedPower> CALLBACK_POWER_REMOVED = registerInternal("callback/power/removed", CallbackPowerRemovedPower.CODEC, CallbackPowerRemovedPower.STREAM_CODEC);

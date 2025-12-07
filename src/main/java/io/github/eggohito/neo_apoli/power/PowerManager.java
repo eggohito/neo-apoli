@@ -242,7 +242,7 @@ public final class PowerManager implements JsonReloadListener {
 			PowerEntry<?> entry = entryIterator.next();
 			Power power = entry.power();
 
-			ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(power.getType().contextType(), "{" + entry.reference() + "}").withHolderProvider(((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries());
+			ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(power.getType().keySet(), "{" + entry.reference() + "}").withHolderProvider(((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries());
 			power.validate(reporter);
 
 			if (!reporter.hasAnyErrors()) {
