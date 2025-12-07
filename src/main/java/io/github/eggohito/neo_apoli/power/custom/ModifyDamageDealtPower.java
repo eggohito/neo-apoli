@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.integration.ModifyValueEvent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -13,7 +14,6 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -97,17 +97,13 @@ public class ModifyDamageDealtPower extends Power {
 	}
 
 	public static float modify(Context context, float baseValue) {
-
 		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		List<io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance.class);
-
-		return modify(context, instances, baseValue);
-
+		return modify(context, PowersComponent.getInstances(holder, Instance.class), baseValue);
 	}
 
-	public static float modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower.Instance> instances, float baseValue) {
+	public static float modify(Context context, List<Instance> instances, float baseValue) {
 
-		List<Pair<Modifier, Context>> modifiers = new ObjectArrayList<>();
+		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
 
 			ProblemReporter reporter = instance.createReporter();
@@ -127,7 +123,7 @@ public class ModifyDamageDealtPower extends Power {
 					int index = listIterator.nextIndex();
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Pair.of(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+					modifiers.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
 
 				}
 
@@ -139,6 +135,7 @@ public class ModifyDamageDealtPower extends Power {
 
 		}
 
+		ModifyValueEvent.INSTANCE.invoker().beforeModified(PowerTypes.MODIFY_DAMAGE_DEALT, modifiers, context, baseValue);
 		return (float) Modifier.applyAll(modifiers, baseValue);
 
 	}

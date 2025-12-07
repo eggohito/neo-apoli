@@ -9,18 +9,13 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.function.IntFunction;
 
 public interface Modifier extends ContextAware, Comparable<Modifier> {
 
@@ -56,110 +51,65 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 		);
 	}
 
-	static double applyAllWithContext(IntFunction<Context> mapper, Collection<Modifier> modifiers, double baseValue) {
+	static double applyAll(List<Entry> entries, double baseValue) {
 
-		if (modifiers.isEmpty()) {
+		if (entries.isEmpty()) {
 			return baseValue;
 		}
 
-		else {
+		List<Entry> sorted = new ObjectArrayList<>(entries);
+		sorted.sort(Entry::compareTo);
 
-			List<Modifier> sortedModifiers = new ObjectArrayList<>(modifiers);
-			sortedModifiers.sort(Modifier::compareTo);
+		double currentBase = baseValue;
+		double currentTotal = baseValue;
 
-			double currentBase = baseValue;
-			double currentTotal = baseValue;
+		Phase previousPhase = null;
 
-			Phase previousPhase = null;
-			ListIterator<Modifier> listIterator = sortedModifiers.listIterator();
+		for (var entry : sorted) {
 
-			while (listIterator.hasNext()) {
+			Modifier modifier = entry.modifier();
+			Context context = entry.context();
 
-				int index = listIterator.nextIndex();
-				Modifier modifier = listIterator.next();
+			Phase currentPhase = modifier.phase();
 
-				Phase currentPhase = modifier.phase();
+			if (currentPhase != previousPhase) {
+				previousPhase = currentPhase;
+				currentBase = currentTotal;
+			}
 
-				if (currentPhase != previousPhase) {
-					previousPhase = currentPhase;
-					currentBase = currentTotal;
-				}
+			try {
 
-				Context modifierContext = mapper.apply(index);
-				try {
+				if (context.markActive(modifier)) {
 
-					if (modifierContext.markActive(modifier)) {
+					double value = modifier.apply(context, currentBase, currentTotal);
 
-						double value = modifier.apply(modifierContext, currentBase, currentTotal);
-
-						if (!modifierContext.hasErrors()) {
-							currentTotal = value;
-						}
-
+					if (!context.hasErrors()) {
+						currentTotal = value;
 					}
 
 				}
 
-				finally {
-					modifierContext.markInActive(modifier);
-				}
-
 			}
 
-			return currentTotal;
+			finally {
+				context.markInActive(modifier);
+			}
 
 		}
+
+		return currentTotal;
 
 	}
 
-	static double applyAll(List<Pair<Modifier, Context>> modifiers, double baseValue) {
+	static Entry entry(Modifier modifier, Context context) {
+		return new Entry(modifier, context);
+	}
 
-		if (modifiers.isEmpty()) {
-			return baseValue;
-		}
+	record Entry(Modifier modifier, Context context) implements Comparable<Entry> {
 
-		else {
-
-			List<Pair<Modifier, Context>> sortedModifiers = new ObjectArrayList<>(modifiers);
-			sortedModifiers.sort(Comparator.comparing(Pair::left));
-
-			double currentBase = baseValue;
-			double currentTotal = baseValue;
-
-			Phase previousPhase = null;
-
-			for (Pair<Modifier, Context> entry : sortedModifiers) {
-
-				Modifier modifier = entry.left();
-				Context modifierContext = entry.right();
-
-				Phase currentPhase = modifier.phase();
-
-				if (currentPhase != previousPhase) {
-					previousPhase = currentPhase;
-					currentBase = currentTotal;
-				}
-
-				try {
-
-					if (modifierContext.markActive(modifier)) {
-
-						double value = modifier.apply(modifierContext, currentBase, currentTotal);
-
-						if (!modifierContext.hasErrors()) {
-							currentTotal = value;
-						}
-
-					}
-
-				} finally {
-					modifierContext.markInActive(modifier);
-				}
-
-			}
-
-			return currentTotal;
-
+		@Override
+		public int compareTo(@NotNull Modifier.Entry that) {
+			return this.modifier().compareTo(that.modifier());
 		}
 
 	}

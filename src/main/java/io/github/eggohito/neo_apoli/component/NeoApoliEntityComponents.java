@@ -10,7 +10,7 @@ import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
 
 public class NeoApoliEntityComponents implements EntityComponentInitializer {
 
-	public static final ComponentKey<PowersComponent> POWERS = ComponentRegistry.getOrCreate(PowersComponent.getId(), PowersComponent.class);
+	public static final ComponentKey<PowersComponent> POWERS = ComponentRegistry.getOrCreate(PowersComponent.ID, PowersComponent.class);
 
 	@Override
 	public void registerEntityComponentFactories(EntityComponentFactoryRegistry registry) {

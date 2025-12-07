@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.integration.ModifyValueEvent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -11,7 +12,6 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -74,8 +74,7 @@ public class ModifyAirSpeedPower extends Power {
 
 	public static float modify(Context context, List<Instance> instances, float baseValue) {
 
-		List<Pair<Modifier, Context>> modifiers = new ObjectArrayList<>();
-
+		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
 
 			ProblemReporter reporter = instance.createReporter();
@@ -94,7 +93,7 @@ public class ModifyAirSpeedPower extends Power {
 					int index = listIterator.nextIndex();
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Pair.of(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+					modifiers.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
 
 				}
 
@@ -106,6 +105,7 @@ public class ModifyAirSpeedPower extends Power {
 
 		}
 
+		ModifyValueEvent.INSTANCE.invoker().beforeModified(PowerTypes.MODIFY_AIR_SPEED, modifiers, context, baseValue);
 		return (float) Modifier.applyAll(modifiers, baseValue);
 
 	}

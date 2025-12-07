@@ -48,7 +48,7 @@ import java.util.function.*;
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersComponent implements Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
 
-	private static final ResourceLocation ID = NeoApoli.id("powers");
+	public static final ResourceLocation ID = NeoApoli.id("powers");
 
 	private static final int FULL_SYNC_ID = 0;
 	private static final int GRANT_SYNC_ID = 1;
@@ -484,20 +484,16 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 			.orElseGet(ObjectArrayList::new);
 	}
 
-	public static <I extends Power.Instance<?>> List<I> getInstances(Entity entity, Class<I> implClass) {
+	public static <I extends Power.Instance<?>> List<I> getInstances(Entity entity, Class<I> instanceClass) {
 		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
-			.map(powersComponent -> powersComponent.getInstances(implClass))
+			.map(powersComponent -> powersComponent.getInstances(instanceClass))
 			.orElseGet(ObjectArrayList::new);
 	}
 
-	public static <I extends Power.Instance<?>> List<I> getInstances(Entity entity, Class<I> implClass, Predicate<I> implFilter) {
+	public static <I extends Power.Instance<?>> List<I> getInstances(Entity entity, Class<I> instanceClass, Predicate<I> filter) {
 		return NeoApoliEntityComponents.POWERS.maybeGet(entity)
-			.map(powersComponent -> powersComponent.getInstances(implClass, implFilter))
+			.map(powersComponent -> powersComponent.getInstances(instanceClass, filter))
 			.orElseGet(ObjectArrayList::new);
-	}
-
-	public static ResourceLocation getId() {
-		return ID;
 	}
 
 	private static void update(Entity entity, boolean initialize) {
@@ -576,7 +572,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 	static {
 
-		ServerEntityEvents.ENTITY_LOAD.register(getId(), (entity, world) -> {
+		ServerEntityEvents.ENTITY_LOAD.register(ID, (entity, world) -> {
 
 			if (!(entity instanceof Player)) {
 				update(entity, false);
@@ -584,8 +580,8 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 
 		});
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, getId());
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(getId(), PowersComponent::update);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, PowersComponent::update);
 
 	}
 
