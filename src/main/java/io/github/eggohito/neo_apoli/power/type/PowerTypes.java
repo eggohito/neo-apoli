@@ -49,6 +49,7 @@ public class PowerTypes {
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.STREAM_CODEC);
 	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK, NeoApoliContextKeySets.ENTITY);
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.STREAM_CODEC, NeoApoliContextKeySets.ENTITY);
+	public static final PowerType<ModifyInvulnerabilityPower> MODIFY_INVULNERABILITY = registerInternal("modify/invulnerability", ModifyInvulnerabilityPower.CODEC, ModifyInvulnerabilityPower.STREAM_CODEC, NeoApoliContextKeySets.DAMAGE_WITHOUT_AMOUNT);
 
 	public static void registerAll() {
 

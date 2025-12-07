@@ -55,6 +55,7 @@
 		"power.custom.ModifyFallingPowerMixin",
 		"power.custom.ModifyInvisibilityPowerMixin$ProxyImpl",
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl",
+		"power.custom.ModifyInvulnerabilityPowerMixin",
 		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",
 		"power.custom.ModifyItemUsePowerMixin$StackUse",
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",

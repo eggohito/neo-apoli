@@ -39,6 +39,12 @@ public class NeoApoliContextKeySets {
 		.optional(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY)
 		.build();
 
+	public static final ContextKeySet DAMAGE_WITHOUT_AMOUNT = new ContextKeySet.Builder()
+		.required(NeoApoliContextKeys.DAMAGE_SOURCE)
+		.optional(NeoApoliContextKeys.DAMAGING_ENTITY)
+		.optional(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY)
+		.build();
+
 	public static final ContextKeySet ENTITY = Util.make(new ContextKeySet.Builder(), builder -> {
 
 		for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
