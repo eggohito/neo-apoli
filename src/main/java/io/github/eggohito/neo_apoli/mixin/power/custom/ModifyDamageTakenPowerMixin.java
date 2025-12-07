@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
+
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.llamalad7.mixinextras.sugar.Cancellable;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower;
+import io.github.eggohito.neo_apoli.power.custom.ModifyDamageTakenPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -18,33 +18,24 @@ import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-public abstract class ModifyDamageDealtPowerMixin {
+public abstract class ModifyDamageTakenPowerMixin {
 
 	@Mixin(LivingEntity.class)
 	public static abstract class BaseImpl extends Entity {
 
-		protected BaseImpl(EntityType<?> type, Level world) {
-			super(type, world);
+		private BaseImpl(EntityType<?> entityType, Level level) {
+			super(entityType, level);
 		}
 
 		@ModifyVariable(method = "hurtServer", at = @At("HEAD"), argsOnly = true)
-		private float modify(float original, ServerLevel world, DamageSource source, @Share(value = "damageAmountModified", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef damageAmountModifiedRef, @Cancellable CallbackInfoReturnable<Float> cir) {
+		private float modify(float original, ServerLevel level, DamageSource source, @Share(value = "damageAmountModified", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef damageAmountModifiedRef) {
 
-			if (source.getEntity() != null) {
+			Context context = ModifyDamageTakenPower.createContext(source.getEntity(), this, source, original);
+			float modified = ModifyDamageTakenPower.modify(context, original);
 
-				Context context = ModifyDamageDealtPower.createContext(source.getEntity(), this, source, original);
-				float modified = ModifyDamageDealtPower.modify(context, original);
-
-				damageAmountModifiedRef.set(damageAmountModifiedRef.get() || modified != original);
-				return modified;
-
-			}
-
-			else {
-				return original;
-			}
+			damageAmountModifiedRef.set(damageAmountModifiedRef.get() || modified != original);
+			return modified;
 
 		}
 
@@ -60,9 +51,7 @@ public abstract class ModifyDamageDealtPowerMixin {
 		@ModifyReturnValue(method = "hurtServer", at = @At(value = "RETURN", ordinal = 3))
 		private boolean delegate(boolean original, ServerLevel world, DamageSource source, float amount, @Share(value = "hasModifyingPowers", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef hasModifyingPowersRef) {
 
-			if (source.getEntity() != null) {
-				hasModifyingPowersRef.set(hasModifyingPowersRef.get() || PowersComponent.hasInstances(source.getEntity(), ModifyDamageDealtPower.Instance.class));
-			}
+			hasModifyingPowersRef.set(hasModifyingPowersRef.get() || PowersComponent.hasInstances(this, ModifyDamageTakenPower.Instance.class));
 
 			if (hasModifyingPowersRef.get()) {
 				return super.hurtServer(world, source, amount);

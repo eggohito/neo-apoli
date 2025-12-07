@@ -49,6 +49,8 @@
 		"power.custom.ModifyClimbingPowerMixin",
 		"power.custom.ModifyDamageDealtPowerMixin$BaseImpl",
 		"power.custom.ModifyDamageDealtPowerMixin$PlayerDelegate",
+		"power.custom.ModifyDamageTakenPowerMixin$BaseImpl",
+		"power.custom.ModifyDamageTakenPowerMixin$PlayerDelegate",
 		"power.custom.ModifyEntityTypeTagPowerMixin$EntityCache",
 		"power.custom.ModifyEntityTypeTagPowerMixin$IsInTagProxy",
 		"power.custom.ModifyEntityTypeTagPowerMixin$TagCache",
