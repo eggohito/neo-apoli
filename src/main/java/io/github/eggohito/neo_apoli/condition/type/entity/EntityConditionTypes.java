@@ -30,6 +30,7 @@ public class EntityConditionTypes extends ConditionTypes {
 	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.CODEC, IsInvisibleEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsOfEntityCondition> IS_OF = registerInternal("is_of", IsOfEntityCondition.CODEC, IsOfEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsOnBlockEntityCondition> IS_ON_BLOCK = registerInternal("is_on_block", IsOnBlockEntityCondition.CODEC, IsOnBlockEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<IsOnFireEntityCondition> IS_ON_FIRE = registerInternal("is_on_fire", IsOnFireEntityCondition.CODEC, IsOnFireEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsPowerActiveEntityCondition> IS_POWER_ACTIVE = registerInternal("is_power_active", IsPowerActiveEntityCondition.CODEC, IsPowerActiveEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsSneakingEntityCondition> IS_SNEAKING = registerInternal("is_sneaking", IsSneakingEntityCondition.CODEC, IsSneakingEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsSprintingEntityCondition> IS_SPRINTING = registerInternal("is_sprinting", IsSprintingEntityCondition.CODEC, IsSprintingEntityCondition.STREAM_CODEC);
