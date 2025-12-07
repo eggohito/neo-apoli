@@ -19,7 +19,7 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
@@ -52,7 +52,7 @@ public class NeoApoliRegistries {
 	public static final Registry<NbtProviderType<?>> NBT_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NBT_PROVIDER_TYPE);
 	public static final Registry<NumberProviderType<?>> NUMBER_PROVIDER_TYPE = create(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
 	public static final Registry<StringProviderType<?>> STRING_PROVIDER_TYPE = create(NeoApoliRegistryKeys.STRING_PROVIDER_TYPE);
-	public static final Registry<Vec3dProviderType<?>> VEC3D_PROVIDER_TYPE = create(NeoApoliRegistryKeys.VEC3D_PROVIDER_TYPE);
+	public static final Registry<Vec3ProviderType<?>> VEC3_PROVIDER_TYPE = create(NeoApoliRegistryKeys.VEC3_PROVIDER_TYPE);
 
 	public static final Registry<ComparisonType<?>> COMPARISON_TYPE = create(NeoApoliRegistryKeys.COMPARISON_TYPE);
 	public static final Registry<ContainerType> CONTAINER_TYPE = create(NeoApoliRegistryKeys.CONTAINER_TYPE);

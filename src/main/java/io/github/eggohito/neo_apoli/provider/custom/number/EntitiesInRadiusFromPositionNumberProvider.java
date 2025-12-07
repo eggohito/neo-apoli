@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.entity.ConstantEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -17,18 +17,18 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityCondition, Vec3dProvider position, Shape shape, NumberProvider radius) implements NumberProvider {
+public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityCondition, Vec3Provider position, Shape shape, NumberProvider radius) implements NumberProvider {
 
 	public static final MapCodec<EntitiesInRadiusFromPositionNumberProvider> CODEC = MapCodecUtil.lazy(EntitiesInRadiusFromPositionNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityCondition.CODEC.optionalFieldOf("entity_condition", new ConstantEntityCondition(true)).forGetter(EntitiesInRadiusFromPositionNumberProvider::entityCondition),
-		Vec3dProvider.CODEC.fieldOf("position").forGetter(EntitiesInRadiusFromPositionNumberProvider::position),
+		Vec3Provider.CODEC.fieldOf("position").forGetter(EntitiesInRadiusFromPositionNumberProvider::position),
 		Shape.CODEC.fieldOf("shape").forGetter(EntitiesInRadiusFromPositionNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromPositionNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromPositionNumberProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntitiesInRadiusFromPositionNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntitiesInRadiusFromPositionNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		EntityCondition.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::entityCondition,
-		Vec3dProvider.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::position,
+		Vec3Provider.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::position,
 		Shape.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::shape,
 		NumberProvider.STREAM_CODEC, EntitiesInRadiusFromPositionNumberProvider::radius,
 		EntitiesInRadiusFromPositionNumberProvider::new

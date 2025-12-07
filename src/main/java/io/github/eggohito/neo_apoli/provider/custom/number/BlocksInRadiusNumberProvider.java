@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -17,18 +17,18 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3dProvider position, Shape shape, NumberProvider radius) implements NumberProvider {
+public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Provider position, Shape shape, NumberProvider radius) implements NumberProvider {
 
 	public static final MapCodec<BlocksInRadiusNumberProvider> CODEC = MapCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksInRadiusNumberProvider::blockCondition),
-		Vec3dProvider.CODEC.fieldOf("position").forGetter(BlocksInRadiusNumberProvider::position),
+		Vec3Provider.CODEC.fieldOf("position").forGetter(BlocksInRadiusNumberProvider::position),
 		Shape.CODEC.fieldOf("shape").forGetter(BlocksInRadiusNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(BlocksInRadiusNumberProvider::radius)
 	).apply(instance, BlocksInRadiusNumberProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksInRadiusNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		BlockCondition.STREAM_CODEC, BlocksInRadiusNumberProvider::blockCondition,
-		Vec3dProvider.STREAM_CODEC, BlocksInRadiusNumberProvider::position,
+		Vec3Provider.STREAM_CODEC, BlocksInRadiusNumberProvider::position,
 		Shape.STREAM_CODEC, BlocksInRadiusNumberProvider::shape,
 		NumberProvider.STREAM_CODEC, BlocksInRadiusNumberProvider::radius,
 		BlocksInRadiusNumberProvider::new

@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
@@ -19,16 +19,16 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
-public record OffsetBlockAction(BlockAction action, Vec3dProvider offset) implements BlockAction {
+public record OffsetBlockAction(BlockAction action, Vec3Provider offset) implements BlockAction {
 
 	public static final MapCodec<OffsetBlockAction> CODEC = MapCodecUtil.lazy(OffsetBlockAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockAction.CODEC.fieldOf("action").forGetter(OffsetBlockAction::action),
-		Vec3dProvider.CODEC.fieldOf("offset").forGetter(OffsetBlockAction::offset)
+		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetBlockAction::offset)
 	).apply(instance, OffsetBlockAction::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, OffsetBlockAction> STREAM_CODEC = StreamCodec.composite(
 		BlockAction.STREAM_CODEC, OffsetBlockAction::action,
-		Vec3dProvider.STREAM_CODEC, OffsetBlockAction::offset,
+		Vec3Provider.STREAM_CODEC, OffsetBlockAction::offset,
 		OffsetBlockAction::new
 	);
 

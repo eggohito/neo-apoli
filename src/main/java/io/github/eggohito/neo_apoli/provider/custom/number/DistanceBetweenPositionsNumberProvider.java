@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -11,16 +11,16 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public record DistanceBetweenPositionsNumberProvider(Vec3dProvider first, Vec3dProvider second) implements NumberProvider {
+public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Provider second) implements NumberProvider {
 
 	public static final MapCodec<DistanceBetweenPositionsNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Vec3dProvider.CODEC.fieldOf("first").forGetter(DistanceBetweenPositionsNumberProvider::first),
-		Vec3dProvider.CODEC.fieldOf("second").forGetter(DistanceBetweenPositionsNumberProvider::second)
+		Vec3Provider.CODEC.fieldOf("first").forGetter(DistanceBetweenPositionsNumberProvider::first),
+		Vec3Provider.CODEC.fieldOf("second").forGetter(DistanceBetweenPositionsNumberProvider::second)
 	).apply(instance, DistanceBetweenPositionsNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DistanceBetweenPositionsNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		Vec3dProvider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::first,
-		Vec3dProvider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::second,
+		Vec3Provider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::first,
+		Vec3Provider.STREAM_CODEC, DistanceBetweenPositionsNumberProvider::second,
 		DistanceBetweenPositionsNumberProvider::new
 	);
 

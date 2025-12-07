@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -19,16 +19,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3dProvider position) implements NumberProvider {
+public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provider position) implements NumberProvider {
 
 	public static final MapCodec<LightLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.LIGHT_TYPE.optionalFieldOf("light_type").forGetter(LightLevelNumberProvider::lightType),
-		Vec3dProvider.CODEC.fieldOf("position").forGetter(LightLevelNumberProvider::position)
+		Vec3Provider.CODEC.fieldOf("position").forGetter(LightLevelNumberProvider::position)
 	).apply(instance, LightLevelNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, LightLevelNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(NeoApoliStreamCodecs.LIGHT_TYPE), LightLevelNumberProvider::lightType,
-		Vec3dProvider.STREAM_CODEC, LightLevelNumberProvider::position,
+		Vec3Provider.STREAM_CODEC, LightLevelNumberProvider::position,
 		LightLevelNumberProvider::new
 	);
 

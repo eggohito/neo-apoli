@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -14,16 +14,16 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public record TranslateBoxProvider(BoxProvider box, Vec3dProvider translation) implements BoxProvider {
+public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) implements BoxProvider {
 
 	public static final MapCodec<TranslateBoxProvider> CODEC = MapCodecUtil.lazy(TranslateBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BoxProvider.CODEC.fieldOf("box").forGetter(TranslateBoxProvider::box),
-		Vec3dProvider.CODEC.fieldOf("translation").forGetter(TranslateBoxProvider::translation)
+		Vec3Provider.CODEC.fieldOf("translation").forGetter(TranslateBoxProvider::translation)
 	).apply(instance, TranslateBoxProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TranslateBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(TranslateBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		BoxProvider.STREAM_CODEC, TranslateBoxProvider::box,
-		Vec3dProvider.STREAM_CODEC, TranslateBoxProvider::translation,
+		Vec3Provider.STREAM_CODEC, TranslateBoxProvider::translation,
 		TranslateBoxProvider::new
 	));
 

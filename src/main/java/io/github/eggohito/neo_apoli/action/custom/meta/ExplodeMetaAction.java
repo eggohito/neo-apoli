@@ -11,7 +11,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.context.*;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import lombok.AllArgsConstructor;
@@ -44,7 +44,7 @@ public interface ExplodeMetaAction extends MetaAction {
 
 	BlockCondition destructibleBlockCondition();
 
-	Vec3dProvider position();
+	Vec3Provider position();
 
 	TypedContextKey<Entity> actor();
 

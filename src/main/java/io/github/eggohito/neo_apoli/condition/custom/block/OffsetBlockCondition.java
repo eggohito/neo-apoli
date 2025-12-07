@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -19,16 +19,16 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
-public record OffsetBlockCondition(BlockCondition condition, Vec3dProvider offset) implements BlockCondition {
+public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset) implements BlockCondition {
 
 	public static final MapCodec<OffsetBlockCondition> CODEC = MapCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("condition").forGetter(OffsetBlockCondition::condition),
-		Vec3dProvider.CODEC.fieldOf("offset").forGetter(OffsetBlockCondition::offset)
+		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetBlockCondition::offset)
 	).apply(instance, OffsetBlockCondition::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, OffsetBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> StreamCodec.composite(
 		BlockCondition.STREAM_CODEC, OffsetBlockCondition::condition,
-		Vec3dProvider.STREAM_CODEC, OffsetBlockCondition::offset,
+		Vec3Provider.STREAM_CODEC, OffsetBlockCondition::offset,
 		OffsetBlockCondition::new
 	));
 

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
-import io.github.eggohito.neo_apoli.provider.custom.vec3d.Vec3dProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.*;
@@ -14,16 +14,16 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3dProvider position) implements NumberProvider {
+public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3Provider position) implements NumberProvider {
 
 	public static final MapCodec<AdjacentBlocksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("block_condition").forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition),
-		Vec3dProvider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
+		Vec3Provider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
 	).apply(instance, AdjacentBlocksNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, AdjacentBlocksNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		BlockCondition.STREAM_CODEC, AdjacentBlocksNumberProvider::adjacentBlockCondition,
-		Vec3dProvider.STREAM_CODEC, AdjacentBlocksNumberProvider::position,
+		Vec3Provider.STREAM_CODEC, AdjacentBlocksNumberProvider::position,
 		AdjacentBlocksNumberProvider::new
 	);
 
