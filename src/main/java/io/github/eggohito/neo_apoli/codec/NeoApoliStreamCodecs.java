@@ -128,7 +128,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Set<TagKey<EntityType<?>>>> ENTITY_TYPE_TAG_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ENTITY_TYPE_TAG);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, List<AttributeModifier>> ATTRIBUTE_MODIFIERS = ByteBufCodecs.collection(ObjectArrayList::new, AttributeModifier.STREAM_CODEC);
+	public static final StreamCodec<RegistryFriendlyByteBuf, List<AttributedAttributeModifier>> ATTRIBUTE_MODIFIERS = ByteBufCodecs.collection(ObjectArrayList::new, AttributedAttributeModifier.STREAM_CODEC);
 
 	public static final StreamCodec<ByteBuf, Dynamic<?>> PASSTHROUGH = ByteBufCodecs.fromCodec(Codec.PASSTHROUGH);
 

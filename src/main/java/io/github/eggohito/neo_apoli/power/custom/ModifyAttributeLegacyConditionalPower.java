@@ -11,7 +11,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.AttributeModifier;
+import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -40,7 +40,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 
 	private final NumberProvider tickRate;
 
-	public ModifyAttributeLegacyConditionalPower(Optional<Condition> activeCondition, List<AttributeModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) {
+	public ModifyAttributeLegacyConditionalPower(Optional<Condition> activeCondition, List<AttributedAttributeModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) {
 		super(activeCondition, modifiers, sendUpdate);
 		this.tickRate = tickRate;
 	}

@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.power.misc.AttributeModifying;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.util.AttributeModifier;
+import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,7 +29,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 		ModifyAttributeLegacyPower::new
 	);
 
-	public ModifyAttributeLegacyPower(List<AttributeModifier> modifiers, BooleanProvider sendUpdate) {
+	public ModifyAttributeLegacyPower(List<AttributedAttributeModifier> modifiers, BooleanProvider sendUpdate) {
 		super(modifiers, sendUpdate);
 	}
 

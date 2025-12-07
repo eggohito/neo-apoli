@@ -7,7 +7,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
-import io.github.eggohito.neo_apoli.util.AttributeModifier;
+import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -114,7 +114,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<BlockState> REGULAR_OR_STRINGIFIED_BLOCK_STATE = Codec.withAlternative(BlockState.CODEC, STRINGIFIED_BLOCK_STATE);
 
-	public static final Codec<List<AttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributeModifier.CODEC.listOf());
+	public static final Codec<List<AttributedAttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributedAttributeModifier.CODEC.listOf());
 
 	public static final Codec<Vec3> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
 
