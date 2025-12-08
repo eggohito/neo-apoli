@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyBlockSelectablePower extends Power implements Prioritized<ModifyBlockSelectablePower> {
 
@@ -59,7 +61,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -83,13 +85,13 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 	public static VoxelShape modify(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
 
 		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance.class);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
 
 		return modify(context, instances, defaultValue);
 
 	}
 
-	public static VoxelShape modify(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower.Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
+	public static VoxelShape modify(Context context, InstanceCollection<Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
 
 		for (var instance : instances) {
 

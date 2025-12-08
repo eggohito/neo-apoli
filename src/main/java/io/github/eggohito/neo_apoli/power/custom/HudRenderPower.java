@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.BiConsumer;
 
+@EqualsAndHashCode
 @Getter
 public class HudRenderPower extends Power {
 

@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyModelColorSelfPower extends Power {
 
@@ -49,7 +51,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -70,7 +72,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 	}
 
-	public static int modify(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower.Instance> instances, int original) {
+	public static int modify(Context context, List<Instance> instances, int original) {
 
 		Entity viewer = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
 		int color = original;

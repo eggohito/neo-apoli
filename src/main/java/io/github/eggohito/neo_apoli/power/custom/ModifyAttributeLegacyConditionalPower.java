@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 
@@ -52,7 +54,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 
 	@Override
 	public AttributeModifying.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyAttributeLegacyConditionalPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyConditionalPower> {

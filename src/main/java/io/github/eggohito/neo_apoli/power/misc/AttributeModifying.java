@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+@EqualsAndHashCode
 @Getter
 public abstract class AttributeModifying extends Power {
 

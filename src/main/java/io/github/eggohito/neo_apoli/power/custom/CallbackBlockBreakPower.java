@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
 
@@ -64,7 +66,7 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -97,13 +99,13 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	public static void execute(Context context, boolean harvested) {
 
 		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance.class);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
 
 		execute(context, instances, harvested);
 
 	}
 
-	public static void execute(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower.Instance> instances, boolean harvested) {
+	public static void execute(Context context, InstanceCollection<Instance> instances, boolean harvested) {
 
 		for (var instance : instances) {
 

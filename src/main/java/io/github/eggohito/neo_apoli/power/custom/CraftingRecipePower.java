@@ -12,6 +12,8 @@ import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,6 +31,8 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+@AllArgsConstructor
+@EqualsAndHashCode
 @Getter
 public class CraftingRecipePower extends Power implements Prioritized<CraftingRecipePower> {
 
@@ -46,11 +50,6 @@ public class CraftingRecipePower extends Power implements Prioritized<CraftingRe
 	private final RecipeHolder<CraftingRecipe> recipeEntry;
 	private final int priority;
 
-	public CraftingRecipePower(RecipeHolder<CraftingRecipe> recipeEntry, int priority) {
-		this.recipeEntry = recipeEntry;
-		this.priority = priority;
-	}
-
 	@Override
 	public PowerType<?> getType() {
 		return PowerTypes.CRAFTING_RECIPE;
@@ -58,7 +57,7 @@ public class CraftingRecipePower extends Power implements Prioritized<CraftingRe
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	public static class Instance extends Power.Instance<CraftingRecipePower> {

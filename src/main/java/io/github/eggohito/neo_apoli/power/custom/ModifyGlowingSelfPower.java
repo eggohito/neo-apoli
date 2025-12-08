@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyGlowingSelfPower extends Power {
 
@@ -56,7 +58,7 @@ public class ModifyGlowingSelfPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -93,7 +95,7 @@ public class ModifyGlowingSelfPower extends Power {
 	public static boolean modifyOutlineVisibility(Context context) {
 
 		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance.class);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
 
 		for (var instance : instances) {
 
@@ -121,13 +123,13 @@ public class ModifyGlowingSelfPower extends Power {
 	public static int modifyColor(Context context, boolean hasTeamColor, int original) {
 
 		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance> instances = PowersComponent.getInstances(holder, io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance.class);
+		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
 
 		return modifyColor(context, instances, hasTeamColor, original);
 
 	}
 
-	public static int modifyColor(Context context, List<io.github.eggohito.neo_apoli.power.custom.ModifyGlowingSelfPower.Instance> instances, boolean hasTeamColor, int original) {
+	public static int modifyColor(Context context, List<Instance> instances, boolean hasTeamColor, int original) {
 
 		int color = original;
 

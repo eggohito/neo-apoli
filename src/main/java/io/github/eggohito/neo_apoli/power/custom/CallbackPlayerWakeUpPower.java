@@ -11,6 +11,8 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
+@EqualsAndHashCode
+@Getter
 public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
 
 	public static final MapCodec<CallbackPlayerWakeUpPower> CODEC = SimpleCallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);

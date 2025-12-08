@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class CallbackDamageDealtPower extends Power implements Prioritized<CallbackDamageDealtPower> {
 
@@ -53,7 +55,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -77,13 +79,13 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	public static void execute(Context context) {
 
 		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance.class);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
 
 		execute(context, instances);
 
 	}
 
-	public static void execute(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower.Instance> instances) {
+	public static void execute(Context context, InstanceCollection<Instance> instances) {
 
 		for (var instance : instances) {
 

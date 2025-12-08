@@ -18,6 +18,7 @@ import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBlockUsePower> {
 
@@ -79,7 +81,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -163,7 +165,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	private static InteractionResult executeOnBeforeBlockUse(Player player, InteractionHand hand, BlockHitResult blockHitResult, BlockUsePhase interactionPhase, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultSupplier) {
 
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance> instanceCollection = new InstanceCollection<>(player, io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.BEFORE));
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.BEFORE));
 
 		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
@@ -171,7 +173,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 				continue;
 			}
 
-			List<io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance> instances = instanceCollection.getInstances(priority);
+			List<Instance> instances = instanceCollection.getInstances(priority);
 			InteractionResult previousResult = InteractionResult.PASS;
 
 			for (var instance : instances) {
@@ -222,7 +224,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		else if (original == InteractionResult.PASS) {
 
-			InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance> instanceCollection = new InstanceCollection<>(player, io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.AFTER));
+			InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(player, Instance.class, instance -> instance.doesApply(interactionPhase, PriorityPhase.AFTER));
 
 			for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority(); priority--) {
 
@@ -230,7 +232,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 					continue;
 				}
 
-				List<io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance> instances = instanceCollection.getInstances(priority);
+				List<Instance> instances = instanceCollection.getInstances(priority);
 				InteractionResult previousResult = InteractionResult.PASS;
 
 				for (var instance : instances) {
@@ -260,7 +262,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	}
 
-	public static Context createContext(io.github.eggohito.neo_apoli.power.custom.ModifyBlockUsePower.Instance instance, Player player, InteractionHand hand, BlockHitResult blockHitResult) {
+	public static Context createContext(Instance instance, Player player, InteractionHand hand, BlockHitResult blockHitResult) {
 
 		Level world = player.level();
 		BlockPos blockPos = blockHitResult.getBlockPos();

@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -13,6 +14,7 @@ import net.minecraft.network.codec.StreamCodec;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+@EqualsAndHashCode
 @Getter
 public abstract class SimpleCallbackPower extends Power {
 

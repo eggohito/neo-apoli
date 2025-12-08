@@ -15,6 +15,7 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyEntityTypeTagPower extends Power {
 
@@ -69,7 +71,7 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -151,7 +153,7 @@ public class ModifyEntityTypeTagPower extends Power {
 	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
 
 		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower.Instance> instances = PowersComponent.getInstances(entity, io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower.Instance.class);
+		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
 
 		for (var instance : instances) {
 

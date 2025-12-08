@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.Util;
@@ -31,6 +32,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@EqualsAndHashCode
 @Getter
 public class MultiplePower extends Power {
 

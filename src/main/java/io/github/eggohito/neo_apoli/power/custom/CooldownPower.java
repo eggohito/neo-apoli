@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiConsumer;
 
 @AllArgsConstructor
+@EqualsAndHashCode
 @Getter
 public class CooldownPower extends Power {
 

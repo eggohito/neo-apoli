@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyInvisibilityPower extends Power {
 
@@ -60,7 +62,7 @@ public class ModifyInvisibilityPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -94,10 +96,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	}
 
-	public static boolean doesApply(Context context, BiPredicate<io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance, Context> tester) {
+	public static boolean doesApply(Context context, BiPredicate<Instance, Context> tester) {
 
 		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance> instances = PowersComponent.getInstances(entity, io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower.Instance.class);
+		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
 
 		for (var instance : instances) {
 

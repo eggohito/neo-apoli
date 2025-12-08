@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyAirSpeedPower extends Power {
 

@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyAttributeLegacyPower extends AttributeModifying {
 
@@ -40,7 +42,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 
 	@Override
 	public AttributeModifying.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyAttributeLegacyPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyPower> {

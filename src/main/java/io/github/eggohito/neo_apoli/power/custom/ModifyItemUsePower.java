@@ -18,6 +18,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemUsePower> {
 
@@ -84,7 +86,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	}
 
 	public static InteractionResult execute(Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, TriggerType triggerType, PriorityPhase priorityPhase, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance> instanceCollection = new InstanceCollection<>(user, io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance.class, instance -> instance.shouldExecute(priorityPhase, triggerType));
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(user, Instance.class, instance -> instance.shouldExecute(priorityPhase, triggerType));
 		return switch (priorityPhase) {
 			case BEFORE ->
 				executeBeforeUse(instanceCollection, world, user, hand, stackReference, zeroPriorityResultSetter, defaultResultGetter);
@@ -126,11 +128,11 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 		};
 	}
 
-	private static InteractionResult executeBeforeUse(InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
+	private static InteractionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
 
 		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
-			List<io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance> instances = instanceCollection.getInstances(priority);
+			List<Instance> instances = instanceCollection.getInstances(priority);
 			InteractionResult previousResult = InteractionResult.PASS;
 
 			for (var instance: instances) {
@@ -174,7 +176,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	}
 
-	private static InteractionResult executeAfterUse(InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
+	private static InteractionResult executeAfterUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
 
 		InteractionResult original = defaultResultGetter.get();
 		InteractionResult modified = InteractionResult.PASS;
@@ -189,7 +191,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 			for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
-				List<io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance> instances = instanceCollection.getInstances(priority);
+				List<Instance> instances = instanceCollection.getInstances(priority);
 				InteractionResult previousResult = InteractionResult.PASS;
 
 				for (var instance: instances) {
@@ -225,7 +227,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	}
 
-	public static Context createContext(io.github.eggohito.neo_apoli.power.custom.ModifyItemUsePower.Instance instance, LivingEntity user, InteractionHand hand, SlotAccess stackReference) {
+	public static Context createContext(Instance instance, LivingEntity user, InteractionHand hand, SlotAccess stackReference) {
 		return instance.createHolderContextBuilder()
 			.add(NeoApoliContextKeys.HAND, hand)
 			.add(NeoApoliContextKeys.THIS_ENTITY, user)

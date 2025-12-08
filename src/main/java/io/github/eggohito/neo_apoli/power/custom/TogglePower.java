@@ -15,6 +15,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+@EqualsAndHashCode
 @Getter
 public class TogglePower extends Power {
 
@@ -67,7 +69,7 @@ public class TogglePower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.TogglePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	public static class Instance extends Power.Instance<TogglePower> {
@@ -147,7 +149,7 @@ public class TogglePower extends Power {
 
 	public static void onKeyPressed(Player player, KeyState ignoredState) {
 
-		for (var instance : PowersComponent.getInstances(player, io.github.eggohito.neo_apoli.power.custom.TogglePower.Instance.class)) {
+		for (var instance : PowersComponent.getInstances(player, Instance.class)) {
 
 			Context instanceContext = instance.createHolderContext();
 

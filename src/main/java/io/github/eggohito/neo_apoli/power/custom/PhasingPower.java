@@ -18,6 +18,7 @@ import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
+@EqualsAndHashCode
 @Getter
 public class PhasingPower extends Power {
 
@@ -69,7 +71,7 @@ public class PhasingPower extends Power {
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.PhasingPower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override

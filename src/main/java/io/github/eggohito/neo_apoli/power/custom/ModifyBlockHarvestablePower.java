@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
+@EqualsAndHashCode
 @Getter
 public class ModifyBlockHarvestablePower extends Power implements Prioritized<ModifyBlockHarvestablePower> {
 
@@ -58,7 +60,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	@Override
 	public Power.Instance<?> createInstance(Entity holder) {
-		return new io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance(holder, this);
+		return new Instance(holder, this);
 	}
 
 	@Override
@@ -67,7 +69,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 		getAllow().validate(reporter.forChild(".allow"));
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<Instance> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestablePower power) {
 			super(holder, power);
@@ -87,13 +89,13 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 	public static boolean modify(Context context, BooleanSupplier defaultValue) {
 
 		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> instances = new InstanceCollection<>(holder, io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance.class);
+		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
 
 		return modify(context, instances, defaultValue);
 
 	}
 
-	public static boolean modify(Context context, InstanceCollection<io.github.eggohito.neo_apoli.power.custom.ModifyBlockHarvestablePower.Instance> instances, BooleanSupplier defaultValue) {
+	public static boolean modify(Context context, InstanceCollection<Instance> instances, BooleanSupplier defaultValue) {
 
 		for (var instance : instances) {
 
