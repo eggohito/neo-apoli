@@ -57,6 +57,7 @@ public final class NeoApoliContextKeys {
 	public static final TypedContextKey<Entity> DIRECT_DAMAGING_ENTITY = registerInternal("direct_damaging_entity", EntityContextKey::new);
 
 	//	Usually used in entity contexts
+	public static final TypedContextKey<Entity> PROJECTILE_ENTITY = registerInternal("projectile_entity", id -> new TypedContextKey<>(id, Entity.class));
 	public static final TypedContextKey<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextKey::new);
 	public static final TypedContextKey<Vec3> THIS_POS = registerInternal("this_pos", Vec3DContextKey::new);
 
@@ -70,11 +71,12 @@ public final class NeoApoliContextKeys {
 	public static final TypedContextKey<Double> MIN_VALUE = registerInternal("value/min", id -> new TypedContextKey<>(id, Double.class));
 
 	//	Can be used generally
-	public static final TypedContextKey<PowerReference> POWER_REFERENCE = registerInternal("power_reference", id -> new TypedContextKey<>(id, PowerReference.class));
 	public static final TypedContextKey<InteractionHand> HAND = registerInternal("hand", id -> new TypedContextKey<>(id, InteractionHand.class));
+	public static final TypedContextKey<PowerReference> POWER_REFERENCE = registerInternal("power_reference", id -> new TypedContextKey<>(id, PowerReference.class));
 
 	public static void init() {
 		ALIASES.addPathAlias("actor", ACTOR_ENTITY);
+		ALIASES.addPathAlias("projectile", PROJECTILE_ENTITY);
 		ALIASES.addPathAlias("target", TARGET_ENTITY);
 		ALIASES.addPathAlias("this", THIS_ENTITY);
 	}

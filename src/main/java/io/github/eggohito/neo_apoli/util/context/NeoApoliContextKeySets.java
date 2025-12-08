@@ -16,8 +16,8 @@ public class NeoApoliContextKeySets {
 	}).build();
 
 	public static final ContextKeySet GENERIC = new ContextKeySet.Builder()
-		.optional(NeoApoliContextKeys.POWER_REFERENCE)
 		.optional(NeoApoliContextKeys.HAND)
+		.optional(NeoApoliContextKeys.POWER_REFERENCE)
 		.build();
 
 	public static final ContextKeySet BIENTITY = new ContextKeySet.Builder()
@@ -49,7 +49,7 @@ public class NeoApoliContextKeySets {
 
 		for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
 
-			if (parameter.getTypeClass().isAssignableFrom(Entity.class)) {
+			if (Entity.class.isAssignableFrom(parameter.getTypeClass())) {
 				builder.optional(parameter);
 			}
 

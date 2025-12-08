@@ -34,6 +34,7 @@
 		"power.custom.CallbackDamageDealtPowerMixin$ArmorStandDelegate",
 		"power.custom.CallbackDamageDealtPowerMixin$BaseImpl",
 		"power.custom.CallbackPlayerWakeUpPowerMixin",
+		"power.custom.CallbackProjectileLandPowerMixin",
 		"power.custom.CraftingRecipePowerMixin$AbstractCraftingMenuCacheInitializer",
 		"power.custom.CraftingRecipePowerMixin$CraftingContainerCache",
 		"power.custom.CraftingRecipePowerMixin$CraftingInputCache",

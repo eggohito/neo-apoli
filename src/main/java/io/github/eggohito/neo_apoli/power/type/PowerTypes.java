@@ -25,6 +25,7 @@ public class PowerTypes {
 	public static final PowerType<CallbackPowerRemovedPower> CALLBACK_POWER_REMOVED = registerInternal("callback/power/removed", CallbackPowerRemovedPower.CODEC, CallbackPowerRemovedPower.STREAM_CODEC);
 	public static final PowerType<CallbackPowerRevokedPower> CALLBACK_POWER_REVOKED = registerInternal("callback/power/revoked", CallbackPowerRevokedPower.CODEC, CallbackPowerRevokedPower.STREAM_CODEC);
 	public static final PowerType<CallbackPowerTickPower> CALLBACK_POWER_TICK = registerInternal("callback/power/tick", CallbackPowerTickPower.CODEC, CallbackPowerTickPower.STREAM_CODEC);
+	public static final PowerType<CallbackProjectileLandPower> CALLBACK_PROJECTILE_LAND = registerInternal("callback/projectile/land", CallbackProjectileLandPower.CODEC, CallbackProjectileLandPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.BLOCK);
 	public static final PowerType<CooldownPower> COOLDOWN = registerInternal("cooldown", CooldownPower.CODEC, CooldownPower.STREAM_CODEC, NeoApoliContextKeySets.NUMBER_BOUND);
 	public static final PowerType<CraftingRecipePower> CRAFTING_RECIPE = registerInternal("crafting_recipe", CraftingRecipePower.CODEC, CraftingRecipePower.STREAM_CODEC);
 	public static final PowerType<DummyPower> DUMMY = registerInternal("dummy", DummyPower.CODEC, DummyPower.STREAM_CODEC);
