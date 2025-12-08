@@ -1,54 +1,33 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.NothingAction;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.integration.ModifyValueEvent;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.misc.DamageModifyingPower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
 
 @Getter
-public class ModifyDamageTakenPower extends Power {
+public class ModifyDamageTakenPower extends DamageModifyingPower {
 
-	public static final MapCodec<ModifyDamageTakenPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("on_modify_action", new NothingAction()).forGetter(ModifyDamageTakenPower::getOnModifyAction))
-		.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(ModifyDamageTakenPower::getModifiers))
-		.apply(instance, ModifyDamageTakenPower::new));
+	public static final MapCodec<ModifyDamageTakenPower> CODEC = DamageModifyingPower.createDamageModifyingCodec(ModifyDamageTakenPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageTakenPower> STREAM_CODEC = DamageModifyingPower.createDamageModifyingStreamCodec(ModifyDamageTakenPower::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageTakenPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, ModifyDamageTakenPower::getOnModifyAction,
-		ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), ModifyDamageTakenPower::getModifiers,
-		ModifyDamageTakenPower::new
-	);
-
-	private final Action onModifyAction;
-	private final List<Modifier> modifiers;
-
-	public ModifyDamageTakenPower(Optional<Condition> activeCondition, Action onModifyAction, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.onModifyAction = onModifyAction;
-		this.modifiers = modifiers;
+	public ModifyDamageTakenPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) {
+		super(activeCondition, modifiers, onModifyAction);
 	}
 
 	@Override
@@ -61,82 +40,11 @@ public class ModifyDamageTakenPower extends Power {
 		return new Instance(holder, this);
 	}
 
-	@Override
-	public void validate(ProblemReporter reporter) {
-
-		super.validate(reporter);
-		getOnModifyAction().validate(reporter.forChild(".on_modify_action"));
-
-		ListIterator<Modifier> listIterator = getModifiers().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			Modifier modifier = listIterator.next();
-
-			modifier.validate(reporter.forChild(".modifiers[" + index + "]"));
-
-		}
-
-	}
-
-	public static class Instance extends Power.Instance<ModifyDamageTakenPower> {
+	public static class Instance extends DamageModifyingPower.Instance<ModifyDamageTakenPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyDamageTakenPower power) {
 			super(holder, power);
 		}
-
-		public List<Modifier> getModifiers() {
-			return power.getModifiers();
-		}
-
-		public void execute(Context context) {
-			power.getOnModifyAction().execute(context.makeChild(".on_modify_action"));
-		}
-
-	}
-
-	public static float modify(Context context, float baseValue) {
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		return modify(context, PowersComponent.getInstances(holder, Instance.class), baseValue);
-	}
-
-	public static float modify(Context context, List<Instance> instances, float baseValue) {
-
-		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
-		for (var instance : instances) {
-
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
-
-			try {
-
-				if (!instanceContext.markActive(instance) || !instance.isActive(instanceContext)) {
-					continue;
-				}
-
-				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-				instance.execute(instanceContext);
-
-				while (listIterator.hasNext()) {
-
-					int index = listIterator.nextIndex();
-					Modifier modifier = listIterator.next();
-
-					modifiers.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
-
-				}
-
-			}
-
-			finally {
-				instanceContext.markInActive(instance);
-			}
-
-		}
-
-		ModifyValueEvent.INSTANCE.invoker().beforeModified(PowerTypes.MODIFY_DAMAGE_TAKEN, modifiers, context, baseValue);
-		return (float) Modifier.applyAll(modifiers, baseValue);
 
 	}
 

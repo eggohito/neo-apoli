@@ -61,7 +61,9 @@
 		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",
 		"power.custom.ModifyItemUsePowerMixin$StackUse",
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",
-		"power.custom.PhasingPowerMixin$PhasingImpl"
+		"power.custom.PhasingPowerMixin$PhasingImpl",
+		"power.misc.DamageModifyingPowerMixin",
+		"power.misc.DamageModifyingPowerMixin$PlayerDelegate"
 	],
 	"injectors": {
 		"defaultRequire": 1
