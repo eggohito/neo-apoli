@@ -59,6 +59,10 @@ public class NeoApoliContextKeySets {
 
 	}).build();
 
+	public static final ContextKeySet FLUID = new ContextKeySet.Builder()
+		.required(NeoApoliContextKeys.FLUID_STATE)
+		.build();
+
 	public static final ContextKeySet ITEM = new ContextKeySet.Builder()
 		.optional(NeoApoliContextKeys.STACK_REFERENCE)
 		.optional(NeoApoliContextKeys.ITEM_STACK)

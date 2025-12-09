@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockEntityCont
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockPosContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockStateContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.entity.EntityContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.fluid.FluidStateContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.item.ItemStackContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.item.StackReferenceContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.number.FloatContextKey;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.function.Function;
@@ -61,6 +63,9 @@ public final class NeoApoliContextKeys {
 	public static final TypedContextKey<Entity> PROJECTILE_ENTITY = registerInternal("projectile_entity", id -> new TypedContextKey<>(id, Entity.class));
 	public static final TypedContextKey<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextKey::new);
 	public static final TypedContextKey<Vec3> THIS_POS = registerInternal("this_pos", Vec3DContextKey::new);
+
+	//	Usually used in fluid contexts
+	public static final TypedContextKey<FluidState> FLUID_STATE = registerInternal("fluid_state", FluidStateContextKey::new);
 
 	//	Usually used in item contexts
 	public static final TypedContextKey<SlotAccess> STACK_REFERENCE = registerInternal("stack_reference", StackReferenceContextKey::new);

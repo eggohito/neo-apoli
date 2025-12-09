@@ -9,8 +9,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record InvertedEffectCondition(
-	EffectCondition condition) implements EffectCondition, InvertedMetaCondition<EffectCondition> {
+public record InvertedEffectCondition(EffectCondition condition) implements EffectCondition, InvertedMetaCondition<EffectCondition> {
 
 	public static final MapCodec<InvertedEffectCondition> CODEC = MapCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> InvertedMetaCondition.createCodec(EffectCondition.CODEC, InvertedEffectCondition::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> InvertedMetaCondition.createStreamCodec(EffectCondition.STREAM_CODEC, InvertedEffectCondition::new));

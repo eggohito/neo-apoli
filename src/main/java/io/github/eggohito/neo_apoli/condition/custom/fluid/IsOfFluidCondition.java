@@ -1,0 +1,39 @@
+package io.github.eggohito.neo_apoli.condition.custom.fluid;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
+import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.material.Fluid;
+
+public record IsOfFluidCondition(Fluid fluid) implements FluidCondition {
+
+	public static final MapCodec<IsOfFluidCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(IsOfFluidCondition::fluid))
+		.apply(instance, IsOfFluidCondition::new));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, IsOfFluidCondition> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.registry(Registries.FLUID), IsOfFluidCondition::fluid,
+		IsOfFluidCondition::new
+	);
+
+	@Override
+	public FluidConditionType<?> getType() {
+		return FluidConditionTypes.IS_OF;
+	}
+
+	@Override
+	public boolean test(Context context) {
+		return context.optional(NeoApoliContextKeys.FLUID_STATE)
+			.map(state -> state.is(fluid()))
+			.orElse(false);
+	}
+
+}

@@ -25,6 +25,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
+import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
@@ -78,6 +79,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<ItemConditionType<?>>> ITEM_CONDITION_TYPE = create("condition_type/item");
 	public static final ResourceKey<Registry<KeyConditionType<?>>> KEY_CONDITION_TYPE = create("condition_type/key");
 	public static final ResourceKey<Registry<EffectConditionType<?>>> EFFECT_CONDITION_TYPE = create("condition_type/effect");
+	public static final ResourceKey<Registry<FluidConditionType<?>>> FLUID_CONDITION_TYPE = create("condition_type/fluid");
 
 	public static final ResourceKey<Registry<BooleanProviderType<?>>> BOOLEAN_PROVIDER_TYPE = create("provider_type/bool");
 	public static final ResourceKey<Registry<BoxProviderType<?>>> BOX_PROVIDER_TYPE = create("provider_type/box");
