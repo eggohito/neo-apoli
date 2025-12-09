@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class AABBUtil {
 
-	public static final AABB EMPTY = AABB.unitCubeFromLowerCorner(Vec3.ZERO);
+	public static final AABB EMPTY = new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 	public static Direction getSideFromPoint(AABB aabb, Vec3 point) {
 
