@@ -4,6 +4,7 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
+import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
@@ -18,6 +19,7 @@ public class ConditionTypes {
 		BiEntityConditionTypes.registerAll();
 		BlockConditionTypes.registerAll();
 		DamageConditionTypes.registerAll();
+		EffectConditionTypes.registerAll();
 		EntityConditionTypes.registerAll();
 		ItemConditionTypes.registerAll();
 		KeyConditionTypes.registerAll();

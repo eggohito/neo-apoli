@@ -24,6 +24,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
@@ -64,6 +65,9 @@ public final class NeoApoliContextKeys {
 	//	Usually used in item contexts
 	public static final TypedContextKey<SlotAccess> STACK_REFERENCE = registerInternal("stack_reference", StackReferenceContextKey::new);
 	public static final TypedContextKey<ItemStack> ITEM_STACK = registerInternal("item_stack", ItemStackContextKey::new);
+
+	//	Usually used in status effect contexts
+	public static final TypedContextKey<MobEffectInstance> EFFECT_INSTANCE = registerInternal("mob_effect", id -> new TypedContextKey<>(id, MobEffectInstance.class));
 
 	//	Usually used in HUD elements
 	public static final TypedContextKey<Double> CURRENT_VALUE = registerInternal("value/current", id -> new TypedContextKey<>(id, Double.class));
