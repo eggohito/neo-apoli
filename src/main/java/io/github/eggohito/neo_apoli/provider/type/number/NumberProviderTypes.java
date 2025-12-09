@@ -33,6 +33,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BlocksInRadiusNumberProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusNumberProvider.CODEC, BlocksInRadiusNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BlocksIntersectingBoxNumberProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxNumberProvider.CODEC, BlocksIntersectingBoxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.CODEC, CommandResultNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<ContextKeyNumberProvider> CONTEXT_KEY = registerInternal("context_key", ContextKeyNumberProvider.CODEC, ContextKeyNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CooldownProgressNumberProvider> COOLDOWN_PROGRESS = registerInternal("cooldown/progress", CooldownProgressNumberProvider.CODEC, CooldownProgressNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CooldownRemainingTicksNumberProvider> COOLDOWN_REMAINING_TICKS = registerInternal("cooldown/remaining_ticks", CooldownRemainingTicksNumberProvider.CODEC, CooldownRemainingTicksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DamageAmountNumberProvider> DAMAGE_AMOUNT = registerInternal("damage_amount", DamageAmountNumberProvider.CODEC, DamageAmountNumberProvider.STREAM_CODEC);
@@ -46,7 +47,6 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<KeyPressedTicksNumberProvider> KEY_PRESSED_TICKS = registerInternal("key_pressed/ticks", KeyPressedTicksNumberProvider.CODEC, KeyPressedTicksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<KeyPressedTimeNumberProvider> KEY_PRESSED_TIME = registerInternal("key_pressed/time", KeyPressedTimeNumberProvider.CODEC, KeyPressedTimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<ParameterNumberProvider> PARAMETER = registerInternal("parameter", ParameterNumberProvider.CODEC, ParameterNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorComponentNumberProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentNumberProvider.CODEC, VectorComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VelocityComponentNumberProvider> VELOCITY_COMPONENT = registerInternal("velocity/component", VelocityComponentNumberProvider.CODEC, VelocityComponentNumberProvider.STREAM_CODEC);

@@ -17,27 +17,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record ParameterNumberProvider(TypedContextKey<Number> parameter) implements NumberProvider {
+public record ContextKeyNumberProvider(TypedContextKey<Number> key) implements NumberProvider {
 
-	public static final MapCodec<ParameterNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(NeoApoliCodecs.NUMBER_CONTEXT_KEY.fieldOf("parameter").forGetter(ParameterNumberProvider::parameter))
-		.apply(instance, ParameterNumberProvider::new));
+	public static final MapCodec<ContextKeyNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(NeoApoliCodecs.NUMBER_CONTEXT_KEY.fieldOf("key").forGetter(ContextKeyNumberProvider::key))
+		.apply(instance, ContextKeyNumberProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ParameterNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ParameterNumberProvider::parameter,
-		ParameterNumberProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, ContextKeyNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ContextKeyNumberProvider::key,
+		ContextKeyNumberProvider::new
 	);
 
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.PARAMETER;
+		return NumberProviderTypes.CONTEXT_KEY;
 	}
 
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ResourceLocation id = parameter().name();
-		Optional<Number> number = context.optional(parameter());
+		ResourceLocation id = key().name();
+		Optional<Number> number = context.optional(key());
 
 		if (number.isEmpty()) {
 			context.getReporter().report("Couldn't get and provide number from parameter \"" + id + "\", as it's not included in the context!");
@@ -49,7 +49,7 @@ public record ParameterNumberProvider(TypedContextKey<Number> parameter) impleme
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(parameter());
+		return Set.of(key());
 	}
 
 }
