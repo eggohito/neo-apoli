@@ -24,7 +24,7 @@ public record ParameterNumberProvider(TypedContextKey<Number> parameter) impleme
 		.apply(instance, ParameterNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParameterNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.NUMBER_PARAMETER, ParameterNumberProvider::parameter,
+		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ParameterNumberProvider::parameter,
 		ParameterNumberProvider::new
 	);
 

@@ -146,7 +146,7 @@ public class NeoApoliStreamCodecs {
 		Function.identity()
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_PARAMETER = StreamCodecUtil.createContextKeyCodec("number", Number.class);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("number", Number.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("entity", Entity.class);
 
