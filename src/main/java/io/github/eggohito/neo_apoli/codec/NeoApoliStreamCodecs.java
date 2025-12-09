@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -152,5 +153,7 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Block> BLOCK_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Block.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Fluid> FLUID_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Fluid.class);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, EntityAnchorArgument.Anchor> ENTITY_ANCHOR = StreamCodecUtil.enumType(EntityAnchorArgument.Anchor.class);
 
 }
