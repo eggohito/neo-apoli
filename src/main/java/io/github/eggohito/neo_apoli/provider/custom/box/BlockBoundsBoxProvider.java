@@ -25,7 +25,7 @@ import java.util.Set;
 public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements BoxProvider {
 
 	public static final MapCodec<BlockBoundsBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(NeoApoliCodecs.BLOCK_CLIP_CONTEXT.optionalFieldOf("shape_type", ClipContext.Block.COLLIDER).forGetter(BlockBoundsBoxProvider::shapeType))
+		.group(NeoApoliCodecs.BLOCK_CLIP_CONTEXT.optionalFieldOf("shape_type", ClipContext.Block.OUTLINE).forGetter(BlockBoundsBoxProvider::shapeType))
 		.apply(instance, BlockBoundsBoxProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockBoundsBoxProvider> STREAM_CODEC = StreamCodec.composite(
@@ -59,10 +59,11 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
 
 		VoxelShape shape = shapeType().get(blockState, context.getWorld(), blockPos, CollisionContext.empty());
-
-		return shape.isEmpty()
-			? AABBUtil.EMPTY.move(blockPos)
+		AABB bounds = shape.isEmpty()
+			? AABBUtil.EMPTY
 			: shape.bounds();
+
+		return bounds.move(blockPos);
 
 	}
 
