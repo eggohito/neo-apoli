@@ -17,8 +17,8 @@ public class BoxProviderTypes {
 	public static final BoxProviderType<OffsetBoxProvider> OFFSET = registerInternal("offset", OffsetBoxProvider.CODEC, OffsetBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<TranslateBoxProvider> TRANSLATE = registerInternal("translate", TranslateBoxProvider.CODEC, TranslateBoxProvider.STREAM_CODEC);
 
-	public static final BoxProviderType<BoundingBoxProvider> BOUNDING_BOX = registerInternal("bounding_box", BoundingBoxProvider.CODEC, BoundingBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<DynamicBoxProvider> DYNAMIC = registerInternal("dynamic", DynamicBoxProvider.CODEC, DynamicBoxProvider.STREAM_CODEC);
+	public static final BoxProviderType<EntityBoundsBoxProvider> ENTITY_BOUNDS = registerInternal("entity/bounds", EntityBoundsBoxProvider.CODEC, EntityBoundsBoxProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 
