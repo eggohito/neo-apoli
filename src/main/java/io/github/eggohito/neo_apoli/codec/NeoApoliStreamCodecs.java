@@ -24,6 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -147,5 +148,9 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_PARAMETER = StreamCodecUtil.createContextKeyCodec("number", Number.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("entity", Entity.class);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Block> BLOCK_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Block.class);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Fluid> FLUID_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Fluid.class);
 
 }

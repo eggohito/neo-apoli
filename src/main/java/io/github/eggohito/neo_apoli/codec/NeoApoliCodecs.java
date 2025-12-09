@@ -25,6 +25,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -121,5 +122,9 @@ public class NeoApoliCodecs {
 	public static final Codec<TypedContextKey<Number>> NUMBER_CONTEXT_KEY = CodecUtil.createContextKeyCodec("number", Number.class);
 
 	public static final Codec<TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = CodecUtil.createContextKeyCodec("entity", Entity.class);
+
+	public static final Codec<ClipContext.Block> BLOCK_CLIP_CONTEXT = CodecUtil.enumType(ClipContext.Block.class);
+
+	public static final Codec<ClipContext.Fluid> FLUID_CLIP_CONTEXT = CodecUtil.enumType(ClipContext.Fluid.class);
 
 }
