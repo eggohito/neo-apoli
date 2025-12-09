@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
@@ -21,6 +22,7 @@ public class ConditionTypes {
 		DamageConditionTypes.registerAll();
 		EffectConditionTypes.registerAll();
 		EntityConditionTypes.registerAll();
+		FluidConditionTypes.registerAll();
 		ItemConditionTypes.registerAll();
 		KeyConditionTypes.registerAll();
 		MetaConditionTypes.registerAll();
