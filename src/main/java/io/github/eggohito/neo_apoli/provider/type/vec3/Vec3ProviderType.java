@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.provider.type.vec3d;
+package io.github.eggohito.neo_apoli.provider.type.vec3;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;

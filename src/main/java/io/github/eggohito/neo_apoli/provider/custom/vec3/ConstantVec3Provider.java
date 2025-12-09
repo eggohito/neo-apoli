@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -38,7 +38,7 @@ public record ConstantVec3Provider(double x, double y, double z) implements Vec3
 
 	@Override
 	public Vec3ProviderType<?> getType() {
-		return Vec3dProviderTypes.CONSTANT;
+		return Vec3ProviderTypes.CONSTANT;
 	}
 
 	@Override

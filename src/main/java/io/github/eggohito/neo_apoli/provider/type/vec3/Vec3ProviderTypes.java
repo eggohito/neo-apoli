@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.provider.type.vec3d;
+package io.github.eggohito.neo_apoli.provider.type.vec3;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class Vec3dProviderTypes {
+public class Vec3ProviderTypes {
 
 	public static final Vec3ProviderType<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("position/block", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
 	public static final Vec3ProviderType<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);

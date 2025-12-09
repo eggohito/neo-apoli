@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -22,7 +22,7 @@ public record BlockPositionVec3Provider() implements Vec3Provider {
 
 	@Override
 	public Vec3ProviderType<?> getType() {
-		return Vec3dProviderTypes.BLOCK_POSITION;
+		return Vec3ProviderTypes.BLOCK_POSITION;
 	}
 
 	@Override

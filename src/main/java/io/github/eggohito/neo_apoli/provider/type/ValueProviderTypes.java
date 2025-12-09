@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 
 public class ValueProviderTypes {
 
@@ -15,7 +15,7 @@ public class ValueProviderTypes {
 		NbtProviderTypes.registerAll();
 		NumberProviderTypes.registerAll();
 		StringProviderTypes.registerAll();
-		Vec3dProviderTypes.registerAll();
+		Vec3ProviderTypes.registerAll();
 	}
 
 }

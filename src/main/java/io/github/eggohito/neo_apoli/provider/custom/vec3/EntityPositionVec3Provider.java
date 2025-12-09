@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3dProviderTypes;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -30,7 +30,7 @@ public record EntityPositionVec3Provider(TypedContextKey<Entity> entity) impleme
 
 	@Override
 	public Vec3ProviderType<?> getType() {
-		return Vec3dProviderTypes.ENTITY_POSITION;
+		return Vec3ProviderTypes.ENTITY_POSITION;
 	}
 
 	@Override

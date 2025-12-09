@@ -35,7 +35,7 @@ import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;

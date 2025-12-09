@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.vec3d.Vec3ProviderType;
+import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
