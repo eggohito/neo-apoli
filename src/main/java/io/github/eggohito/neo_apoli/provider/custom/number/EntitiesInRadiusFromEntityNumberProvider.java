@@ -48,12 +48,12 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level world = context.getWorld();
-		Entity actor = context.nullable(actor());
-
-		if (actor == null) {
+		if (!context.hasParameter(actor())) {
 			return 0;
 		}
+
+		Entity actor = context.required(actor());
+		Level world = actor.level();
 
 		Context radiusContext = context.makeChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
@@ -67,10 +67,11 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 
 		for (Entity target : shape().getEntities(world, pos, radius)) {
 
-			Context biEntityContext = ContextImpl.of(context, builder -> builder
+			Context biEntityContext = new ContextImpl.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-				.add(NeoApoliContextKeys.TARGET_ENTITY, target));
+				.add(NeoApoliContextKeys.TARGET_ENTITY, target)
+				.build(world);
 
 			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
 				matches++;
