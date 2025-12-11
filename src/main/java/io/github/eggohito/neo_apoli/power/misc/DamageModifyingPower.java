@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.integration.ModifyValueEvent;
+import io.github.eggohito.neo_apoli.event.ModifyValue;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -124,7 +124,7 @@ public abstract class DamageModifyingPower extends Power {
 
 		}
 
-		ModifyValueEvent.INSTANCE.invoker().beforeModified(type, entries, context, original);
+		ModifyValue.EVENT.invoker().beforeModified(type, entries, context, original);
 		return (float) Modifier.applyAll(entries, original);
 
 	}

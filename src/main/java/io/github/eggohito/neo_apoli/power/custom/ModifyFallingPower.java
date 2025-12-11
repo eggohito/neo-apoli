@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.integration.ModifyValueEvent;
+import io.github.eggohito.neo_apoli.event.ModifyValue;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -148,7 +148,7 @@ public class ModifyFallingPower extends Power {
 
 		}
 
-		ModifyValueEvent.INSTANCE.invoker().beforeModified(PowerTypes.MODIFY_FALLING, modifiers, context, baseValue);
+		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_FALLING, modifiers, context, baseValue);
 		return Modifier.applyAll(modifiers, baseValue);
 
 	}

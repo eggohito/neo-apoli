@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.integration;
+package io.github.eggohito.neo_apoli.event;
 
 import io.github.eggohito.neo_apoli.key.KeyState;
 import net.fabricmc.fabric.api.event.Event;

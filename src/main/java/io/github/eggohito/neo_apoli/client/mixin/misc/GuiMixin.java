@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.misc;
 
-import io.github.eggohito.neo_apoli.client.integration.HudElementRenderEvents;
+import io.github.eggohito.neo_apoli.client.event.HudElementRenderEvents;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;

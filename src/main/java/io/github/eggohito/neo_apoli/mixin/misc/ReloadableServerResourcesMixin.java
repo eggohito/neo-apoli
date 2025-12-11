@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
-import io.github.eggohito.neo_apoli.integration.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import net.minecraft.server.ReloadableServerResources;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

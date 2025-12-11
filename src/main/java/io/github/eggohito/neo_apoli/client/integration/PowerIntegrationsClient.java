@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
+import io.github.eggohito.neo_apoli.client.event.HudElementRenderEvents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;

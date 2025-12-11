@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.integration;
+package io.github.eggohito.neo_apoli.client.event;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;

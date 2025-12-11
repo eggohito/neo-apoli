@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.client.event.HudElementRenderEvents;
 import io.github.eggohito.neo_apoli.client.hud.renderer.custom.ResourceBarHudElementRenderer;
-import io.github.eggohito.neo_apoli.client.integration.HudElementRenderEvents;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Supplier;

@@ -9,7 +9,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
-import io.github.eggohito.neo_apoli.integration.DependencyManager;
+import io.github.eggohito.neo_apoli.event.DependencyManager;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonReloadListener;

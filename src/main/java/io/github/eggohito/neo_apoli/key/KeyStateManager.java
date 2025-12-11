@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.key;
 
-import io.github.eggohito.neo_apoli.integration.KeyStateEvents;
+import io.github.eggohito.neo_apoli.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.network.packet.c2s.SynchronizeKeyStatesC2SPacket;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;

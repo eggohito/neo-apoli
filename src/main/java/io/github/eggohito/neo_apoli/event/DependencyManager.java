@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.integration;
+package io.github.eggohito.neo_apoli.event;
 
 import com.google.common.collect.ImmutableSet;
 import net.fabricmc.fabric.api.event.Event;

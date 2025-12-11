@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.integration;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
