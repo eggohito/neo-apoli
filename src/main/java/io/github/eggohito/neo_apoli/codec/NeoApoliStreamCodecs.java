@@ -18,6 +18,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -155,5 +156,7 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Fluid> FLUID_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Fluid.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityAnchorArgument.Anchor> ENTITY_ANCHOR = StreamCodecUtil.enumType(EntityAnchorArgument.Anchor.class);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, Difficulty> DIFFICULTY = StreamCodecUtil.enumType(Difficulty.class);
 
 }

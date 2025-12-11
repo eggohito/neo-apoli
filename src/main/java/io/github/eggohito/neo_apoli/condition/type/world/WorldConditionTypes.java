@@ -21,6 +21,7 @@ public class WorldConditionTypes extends ConditionTypes {
 	public static final WorldConditionType<InvertedWorldCondition> INVERTED = registerMetaInternal("inverted", InvertedWorldCondition.CODEC, InvertedWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<ReferenceWorldCondition> REFERENCE = registerMetaInternal("reference", ReferenceWorldCondition.CODEC, ReferenceWorldCondition.STREAM_CODEC);
 
+	public static final WorldConditionType<DifficultyWorldCondition> DIFFICULTY = registerInternal("difficulty", DifficultyWorldCondition.CODEC, DifficultyWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsInTagWorldCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagWorldCondition.CODEC, IsInTagWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsOfWorldCondition> IS_OF = registerInternal("is_of", IsOfWorldCondition.CODEC, IsOfWorldCondition.STREAM_CODEC);
 

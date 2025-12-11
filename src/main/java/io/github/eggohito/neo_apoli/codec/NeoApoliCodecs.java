@@ -23,6 +23,7 @@ import net.minecraft.nbt.StringTagVisitor;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -129,5 +130,7 @@ public class NeoApoliCodecs {
 	public static final Codec<ClipContext.Fluid> FLUID_CLIP_CONTEXT = CodecUtil.enumType(ClipContext.Fluid.class);
 
 	public static final Codec<EntityAnchorArgument.Anchor> ENTITY_ANCHOR = CodecUtil.enumType(EntityAnchorArgument.Anchor.class);
+
+	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
 
 }
