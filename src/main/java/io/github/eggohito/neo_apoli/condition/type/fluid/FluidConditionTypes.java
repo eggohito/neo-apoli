@@ -20,6 +20,7 @@ public final class FluidConditionTypes extends ConditionTypes {
 	public static final FluidConditionType<DynamicFluidCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicFluidCondition.CODEC, DynamicFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<InvertedFluidCondition> INVERTED = registerMetaInternal("inverted", InvertedFluidCondition.CODEC, InvertedFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<ReferenceFluidCondition> REFERENCE = registerMetaInternal("reference", ReferenceFluidCondition.CODEC, ReferenceFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<TestWorldFluidCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldFluidCondition.CODEC, TestWorldFluidCondition.STREAM_CODEC);
 
 	public static final FluidConditionType<IsOfFluidCondition> IS_OF = registerInternal("is_of", IsOfFluidCondition.CODEC, IsOfFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<IsInTagFluidCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagFluidCondition.CODEC, IsInTagFluidCondition.STREAM_CODEC);

@@ -21,6 +21,7 @@ public class EntityConditionTypes extends ConditionTypes {
 	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerMetaInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<OffsetEntityCondition> OFFSET = registerMetaInternal("offset", OffsetEntityCondition.CODEC, OffsetEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<ReferenceEntityCondition> REFERENCE = registerMetaInternal("reference", ReferenceEntityCondition.CODEC, ReferenceEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<TestWorldEntityCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldEntityCondition.CODEC, TestWorldEntityCondition.STREAM_CODEC);
 
 	public static final EntityConditionType<HasCollidedHorizontallyEntityCondition> HAS_COLLIDED_HORIZONTALLY = registerInternal("has_collided_horizontally", HasCollidedHorizontallyEntityCondition.CODEC, HasCollidedHorizontallyEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<HasEquippedItemEntityCondition> HAS_EQUIPPED_ITEM = registerInternal("has_equipped_item", HasEquippedItemEntityCondition.CODEC, HasEquippedItemEntityCondition.STREAM_CODEC);

@@ -20,6 +20,7 @@ public class ItemConditionTypes extends ConditionTypes {
 	public static final ItemConditionType<DynamicItemCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicItemCondition.CODEC, DynamicItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<InvertedItemCondition> INVERTED = registerMetaInternal("inverted", InvertedItemCondition.CODEC, InvertedItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<ReferenceItemCondition> REFERENCE = registerMetaInternal("reference", ReferenceItemCondition.CODEC, ReferenceItemCondition.STREAM_CODEC);
+	public static final ItemConditionType<TestWorldItemCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldItemCondition.CODEC, TestWorldItemCondition.STREAM_CODEC);
 
 	public static final ItemConditionType<IsDamageableItemCondition> IS_DAMAGEABLE = registerInternal("is_damageable", IsDamageableItemCondition.CODEC, IsDamageableItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<IsEmptyItemCondition> IS_EMPTY = registerInternal("is_empty", IsEmptyItemCondition.CODEC, IsEmptyItemCondition.STREAM_CODEC);

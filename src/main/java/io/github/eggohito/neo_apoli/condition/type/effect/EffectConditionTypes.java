@@ -20,6 +20,7 @@ public final class EffectConditionTypes extends ConditionTypes {
 	public static final EffectConditionType<DynamicEffectCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicEffectCondition.CODEC, DynamicEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<InvertedEffectCondition> INVERTED = registerMetaInternal("inverted", InvertedEffectCondition.CODEC, InvertedEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<ReferenceEffectCondition> REFERENCE = registerMetaInternal("reference", ReferenceEffectCondition.CODEC, ReferenceEffectCondition.STREAM_CODEC);
+	public static final EffectConditionType<TestWorldEffectCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldEffectCondition.CODEC, TestWorldEffectCondition.STREAM_CODEC);
 
 	public static final EffectConditionType<IsInTagEffectCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEffectCondition.CODEC, IsInTagEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<IsOfEffectCondition> IS_OF = registerInternal("is_of", IsOfEffectCondition.CODEC, IsOfEffectCondition.STREAM_CODEC);

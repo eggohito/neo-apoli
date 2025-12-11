@@ -21,6 +21,7 @@ public class BlockConditionTypes extends ConditionTypes {
 	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerMetaInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerMetaInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerMetaInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<TestWorldBlockCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldBlockCondition.CODEC, TestWorldBlockCondition.STREAM_CODEC);
 
 	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<FluidBlockCondition> FLUID = registerInternal("fluid", FluidBlockCondition.CODEC, FluidBlockCondition.STREAM_CODEC);

@@ -20,6 +20,7 @@ public class MetaConditionTypes extends ConditionTypes {
 	public static final MetaConditionType<InvertedCondition> INVERTED = registerInternal("inverted", InvertedCondition.CODEC, InvertedCondition.STREAM_CODEC);
 	public static final MetaConditionType<ReferenceCondition> REFERENCE = registerInternal("reference", ReferenceCondition.CODEC, ReferenceCondition.STREAM_CODEC);
 	public static final MetaConditionType<TestEntityCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityCondition.CODEC, TestEntityCondition.STREAM_CODEC);
+	public static final MetaConditionType<TestWorldCondition> TEST_WORLD = registerInternal("test_world", TestWorldCondition.CODEC, TestWorldCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

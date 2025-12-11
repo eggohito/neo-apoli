@@ -20,6 +20,7 @@ public class DamageConditionTypes extends ConditionTypes {
 	public static final DamageConditionType<DynamicDamageCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicDamageCondition.CODEC, DynamicDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<InvertedDamageCondition> INVERTED = registerMetaInternal("inverted", InvertedDamageCondition.CODEC, InvertedDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<ReferenceDamageCondition> REFERENCE = registerMetaInternal("reference", ReferenceDamageCondition.CODEC, ReferenceDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<TestWorldDamageCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldDamageCondition.CODEC, TestWorldDamageCondition.STREAM_CODEC);
 
 	public static final DamageConditionType<IsInTagDamageCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagDamageCondition.CODEC, IsInTagDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<IsOfDamageCondition> IS_OF = registerInternal("is_of", IsOfDamageCondition.CODEC, IsOfDamageCondition.STREAM_CODEC);

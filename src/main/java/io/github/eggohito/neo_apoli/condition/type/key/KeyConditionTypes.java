@@ -20,6 +20,7 @@ public class KeyConditionTypes extends ConditionTypes {
 	public static final KeyConditionType<DynamicKeyCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicKeyCondition.CODEC, DynamicKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<InvertedKeyCondition> INVERTED = registerMetaInternal("inverted", InvertedKeyCondition.CODEC, InvertedKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<ReferenceKeyCondition> REFERENCE = registerMetaInternal("reference", ReferenceKeyCondition.CODEC, ReferenceKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<TestWorldKeyCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldKeyCondition.CODEC, TestWorldKeyCondition.STREAM_CODEC);
 
 	public static final KeyConditionType<IsPressedKeyCondition> IS_PRESSED = registerInternal("is_pressed", IsPressedKeyCondition.CODEC, IsPressedKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<IsSimultaneouslyPressedKeyCondition> IS_SIMULTANEOUSLY_PRESSED = registerInternal("is_simultaneously_pressed", IsSimultaneouslyPressedKeyCondition.CODEC, IsSimultaneouslyPressedKeyCondition.STREAM_CODEC);
