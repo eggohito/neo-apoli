@@ -17,6 +17,7 @@ public final class FluidConditionTypes extends ConditionTypes {
 	public static final FluidConditionType<CompareFluidCondition> COMPARE = registerMetaInternal("compare", CompareFluidCondition.CODEC, CompareFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<CompareToRangeFluidCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeFluidCondition.CODEC, CompareToRangeFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<ConstantFluidCondition> CONSTANT = registerMetaInternal("constant", ConstantFluidCondition.CODEC, ConstantFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<DynamicFluidCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicFluidCondition.CODEC, DynamicFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<InvertedFluidCondition> INVERTED = registerMetaInternal("inverted", InvertedFluidCondition.CODEC, InvertedFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<ReferenceFluidCondition> REFERENCE = registerMetaInternal("reference", ReferenceFluidCondition.CODEC, ReferenceFluidCondition.STREAM_CODEC);
 

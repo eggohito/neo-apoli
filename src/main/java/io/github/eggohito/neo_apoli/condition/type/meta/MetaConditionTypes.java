@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.condition.type.meta;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.*;
-import io.github.eggohito.neo_apoli.condition.custom.meta.*;
+import io.github.eggohito.neo_apoli.condition.custom.meta.MetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,6 +16,7 @@ public class MetaConditionTypes extends ConditionTypes {
 	public static final MetaConditionType<CompareCondition> COMPARE = registerInternal("compare", CompareCondition.CODEC, CompareCondition.STREAM_CODEC);
 	public static final MetaConditionType<CompareToRangeCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeCondition.CODEC, CompareToRangeCondition.STREAM_CODEC);
 	public static final MetaConditionType<ConstantCondition> CONSTANT = registerInternal("constant", ConstantCondition.CODEC, ConstantCondition.STREAM_CODEC);
+	public static final MetaConditionType<DynamicCondition> DYNAMIC = registerInternal("dynamic", DynamicCondition.CODEC, DynamicCondition.STREAM_CODEC);
 	public static final MetaConditionType<InvertedCondition> INVERTED = registerInternal("inverted", InvertedCondition.CODEC, InvertedCondition.STREAM_CODEC);
 	public static final MetaConditionType<ReferenceCondition> REFERENCE = registerInternal("reference", ReferenceCondition.CODEC, ReferenceCondition.STREAM_CODEC);
 	public static final MetaConditionType<TestEntityCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityCondition.CODEC, TestEntityCondition.STREAM_CODEC);

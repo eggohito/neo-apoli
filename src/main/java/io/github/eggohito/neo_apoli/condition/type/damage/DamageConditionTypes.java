@@ -17,6 +17,7 @@ public class DamageConditionTypes extends ConditionTypes {
 	public static final DamageConditionType<CompareDamageCondition> COMPARE = registerMetaInternal("compare", CompareDamageCondition.CODEC, CompareDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<CompareToRangeDamageCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeDamageCondition.CODEC, CompareToRangeDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<ConstantDamageCondition> CONSTANT = registerMetaInternal("constant", ConstantDamageCondition.CODEC, ConstantDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<DynamicDamageCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicDamageCondition.CODEC, DynamicDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<InvertedDamageCondition> INVERTED = registerMetaInternal("inverted", InvertedDamageCondition.CODEC, InvertedDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<ReferenceDamageCondition> REFERENCE = registerMetaInternal("reference", ReferenceDamageCondition.CODEC, ReferenceDamageCondition.STREAM_CODEC);
 

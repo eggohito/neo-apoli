@@ -17,6 +17,7 @@ public class BiEntityConditionTypes extends ConditionTypes {
 	public static final BiEntityConditionType<CompareBiEntityCondition> COMPARE = registerMetaInternal("compare", CompareBiEntityCondition.CODEC, CompareBiEntityCondition.STREAM_CODEC);
 	public static final BiEntityConditionType<CompareToRangeBiEntityCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeBiEntityCondition.CODEC, CompareToRangeBiEntityCondition.STREAM_CODEC);
 	public static final BiEntityConditionType<ConstantBiEntityCondition> CONSTANT = registerMetaInternal("constant", ConstantBiEntityCondition.CODEC, ConstantBiEntityCondition.STREAM_CODEC);
+	public static final BiEntityConditionType<DynamicBiEntityCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicBiEntityCondition.CODEC, DynamicBiEntityCondition.STREAM_CODEC);
 	public static final BiEntityConditionType<InvertedBiEntityCondition> INVERTED = registerMetaInternal("inverted", InvertedBiEntityCondition.CODEC, InvertedBiEntityCondition.STREAM_CODEC);
 	public static final BiEntityConditionType<ReferenceBiEntityCondition> REFERENCE = registerMetaInternal("reference", ReferenceBiEntityCondition.CODEC, ReferenceBiEntityCondition.STREAM_CODEC);
 

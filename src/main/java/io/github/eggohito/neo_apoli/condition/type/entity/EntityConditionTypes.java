@@ -17,6 +17,7 @@ public class EntityConditionTypes extends ConditionTypes {
 	public static final EntityConditionType<CompareEntityCondition> COMPARE = registerMetaInternal("compare", CompareEntityCondition.CODEC, CompareEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<CompareToRangeEntityCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeEntityCondition.CODEC, CompareToRangeEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<ConstantEntityCondition> CONSTANT = registerMetaInternal("constant", ConstantEntityCondition.CODEC, ConstantEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<DynamicEntityCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicEntityCondition.CODEC, DynamicEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<InvertedEntityCondition> INVERTED = registerMetaInternal("inverted", InvertedEntityCondition.CODEC, InvertedEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<OffsetEntityCondition> OFFSET = registerMetaInternal("offset", OffsetEntityCondition.CODEC, OffsetEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<ReferenceEntityCondition> REFERENCE = registerMetaInternal("reference", ReferenceEntityCondition.CODEC, ReferenceEntityCondition.STREAM_CODEC);

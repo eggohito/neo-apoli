@@ -14,9 +14,10 @@ public class WorldConditionTypes extends ConditionTypes {
 
 	public static final WorldConditionType<AllOfWorldCondition> ALL_OF = registerMetaInternal("all_of", AllOfWorldCondition.CODEC, AllOfWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<AnyOfWorldCondition> ANY_OF = registerMetaInternal("any_of", AnyOfWorldCondition.CODEC, AnyOfWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<CompareWorldCondition> COMPARE = registerMetaInternal("compare", CompareWorldCondition.CODEC, CompareWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<CompareToRangeWorldCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeWorldCondition.CODEC, CompareToRangeWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<CompareWorldCondition> COMPARE = registerMetaInternal("compare", CompareWorldCondition.CODEC, CompareWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<ConstantWorldCondition> CONSTANT = registerMetaInternal("constant", ConstantWorldCondition.CODEC, ConstantWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<DynamicWorldCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicWorldCondition.CODEC, DynamicWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<InvertedWorldCondition> INVERTED = registerMetaInternal("inverted", InvertedWorldCondition.CODEC, InvertedWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<ReferenceWorldCondition> REFERENCE = registerMetaInternal("reference", ReferenceWorldCondition.CODEC, ReferenceWorldCondition.STREAM_CODEC);
 

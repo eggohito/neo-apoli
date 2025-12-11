@@ -17,6 +17,7 @@ public class KeyConditionTypes extends ConditionTypes {
 	public static final KeyConditionType<CompareKeyCondition> COMPARE = registerMetaInternal("compare", CompareKeyCondition.CODEC, CompareKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<CompareToRangeKeyCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeKeyCondition.CODEC, CompareToRangeKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<ConstantKeyCondition> CONSTANT = registerMetaInternal("constant", ConstantKeyCondition.CODEC, ConstantKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<DynamicKeyCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicKeyCondition.CODEC, DynamicKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<InvertedKeyCondition> INVERTED = registerMetaInternal("inverted", InvertedKeyCondition.CODEC, InvertedKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<ReferenceKeyCondition> REFERENCE = registerMetaInternal("reference", ReferenceKeyCondition.CODEC, ReferenceKeyCondition.STREAM_CODEC);
 

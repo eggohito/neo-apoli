@@ -17,6 +17,7 @@ public class ItemConditionTypes extends ConditionTypes {
 	public static final ItemConditionType<CompareItemCondition> COMPARE = registerMetaInternal("compare", CompareItemCondition.CODEC, CompareItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<CompareToRangeItemCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeItemCondition.CODEC, CompareToRangeItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<ConstantItemCondition> CONSTANT = registerMetaInternal("constant", ConstantItemCondition.CODEC, ConstantItemCondition.STREAM_CODEC);
+	public static final ItemConditionType<DynamicItemCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicItemCondition.CODEC, DynamicItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<InvertedItemCondition> INVERTED = registerMetaInternal("inverted", InvertedItemCondition.CODEC, InvertedItemCondition.STREAM_CODEC);
 	public static final ItemConditionType<ReferenceItemCondition> REFERENCE = registerMetaInternal("reference", ReferenceItemCondition.CODEC, ReferenceItemCondition.STREAM_CODEC);
 

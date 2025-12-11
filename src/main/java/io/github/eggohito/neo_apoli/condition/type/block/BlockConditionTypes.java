@@ -17,6 +17,7 @@ public class BlockConditionTypes extends ConditionTypes {
 	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerMetaInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerMetaInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<DynamicBlockCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicBlockCondition.CODEC, DynamicBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerMetaInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerMetaInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerMetaInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.STREAM_CODEC);

@@ -17,6 +17,7 @@ public final class EffectConditionTypes extends ConditionTypes {
 	public static final EffectConditionType<CompareEffectCondition> COMPARE = registerMetaInternal("compare", CompareEffectCondition.CODEC, CompareEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<CompareToRangeEffectCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeEffectCondition.CODEC, CompareToRangeEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<ConstantEffectCondition> CONSTANT = registerMetaInternal("constant", ConstantEffectCondition.CODEC, ConstantEffectCondition.STREAM_CODEC);
+	public static final EffectConditionType<DynamicEffectCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicEffectCondition.CODEC, DynamicEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<InvertedEffectCondition> INVERTED = registerMetaInternal("inverted", InvertedEffectCondition.CODEC, InvertedEffectCondition.STREAM_CODEC);
 	public static final EffectConditionType<ReferenceEffectCondition> REFERENCE = registerMetaInternal("reference", ReferenceEffectCondition.CODEC, ReferenceEffectCondition.STREAM_CODEC);
 
