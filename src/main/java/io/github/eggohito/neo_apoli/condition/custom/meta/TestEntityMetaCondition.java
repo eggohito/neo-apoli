@@ -12,7 +12,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -25,10 +24,15 @@ public interface TestEntityMetaCondition extends MetaCondition {
 	@Override
 	default boolean test(Context context) {
 
-		Optional<Entity> entity = context.optional(entity());
-		Context conditionContext = ContextImpl.of(context, builder -> builder
-			.addOptional(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.addOptional(NeoApoliContextKeys.THIS_POS, entity.map(Entity::position)));
+		if (!context.hasParameter(entity())) {
+			return false;
+		}
+
+		Entity entity = context.required(entity());
+		Context conditionContext = new ContextImpl.Builder(context)
+			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
+			.add(NeoApoliContextKeys.THIS_POS, entity.position())
+			.build(entity.level());
 
 		return condition().test(conditionContext.makeChild(".condition"));
 
