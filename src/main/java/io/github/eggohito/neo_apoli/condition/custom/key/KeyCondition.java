@@ -29,7 +29,7 @@ public interface KeyCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Key condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Key condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.KEY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

@@ -29,7 +29,7 @@ public interface ItemCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Item condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Item condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.ITEM_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

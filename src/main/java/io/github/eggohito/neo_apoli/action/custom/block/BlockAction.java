@@ -41,7 +41,7 @@ public interface BlockAction extends Action {
 
 	@Override
 	default String asDisplayString() {
-		return "Block action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, this.getType()) + "\"";
+		return "Block action with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 	void serverExecute(ServerContext context);

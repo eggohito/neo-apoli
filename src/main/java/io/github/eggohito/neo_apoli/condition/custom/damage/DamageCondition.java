@@ -29,7 +29,7 @@ public interface DamageCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Damage condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Damage condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.DAMAGE_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

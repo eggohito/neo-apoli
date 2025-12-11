@@ -29,7 +29,7 @@ public interface BiEntityAction extends Action {
 
 	@Override
 	default String asDisplayString() {
-		return "Bi-entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, this.getType()) + "\"";
+		return "Bi-entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 }

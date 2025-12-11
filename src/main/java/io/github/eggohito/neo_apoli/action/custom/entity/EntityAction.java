@@ -29,7 +29,7 @@ public interface EntityAction extends Action {
 
 	@Override
 	default String asDisplayString() {
-		return "Entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, this.getType()) + "\"";
+		return "Entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 }

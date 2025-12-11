@@ -29,7 +29,7 @@ public interface BlockCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Block condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Block condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

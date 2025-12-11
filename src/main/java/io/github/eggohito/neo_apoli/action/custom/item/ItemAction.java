@@ -43,7 +43,7 @@ public interface ItemAction extends Action {
 
 	@Override
 	default String asDisplayString() {
-		return "Item action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, this.getType()) + "\"";
+		return "Item action with type \"" + RegistryUtil.getId(NeoApoliRegistries.ITEM_ACTION_TYPE, this.getType()) + "\"";
 	}
 
 }

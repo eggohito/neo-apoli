@@ -29,7 +29,7 @@ public interface EntityCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }

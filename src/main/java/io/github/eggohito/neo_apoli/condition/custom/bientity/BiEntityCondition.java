@@ -29,7 +29,7 @@ public interface BiEntityCondition extends Condition {
 
 	@Override
 	default String asDisplayString() {
-		return "Bi-entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, this.getType()) + "\"";
+		return "Bi-entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, this.getType()) + "\"";
 	}
 
 }
