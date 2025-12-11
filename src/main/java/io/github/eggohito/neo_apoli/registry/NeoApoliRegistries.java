@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
+import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
@@ -50,6 +51,7 @@ public class NeoApoliRegistries {
 	public static final Registry<KeyConditionType<?>> KEY_CONDITION_TYPE = create(NeoApoliRegistryKeys.KEY_CONDITION_TYPE);
 	public static final Registry<EffectConditionType<?>> EFFECT_CONDITION_TYPE = create(NeoApoliRegistryKeys.EFFECT_CONDITION_TYPE);
 	public static final Registry<FluidConditionType<?>> FLUID_CONDITION_TYPE = create(NeoApoliRegistryKeys.FLUID_CONDITION_TYPE);
+	public static final Registry<WorldConditionType<?>> WORLD_CONDITION_TYPE = create(NeoApoliRegistryKeys.WORLD_CONDITION_TYPE);
 
 	public static final Registry<BooleanProviderType<?>> BOOLEAN_PROVIDER_TYPE = create(NeoApoliRegistryKeys.BOOLEAN_PROVIDER_TYPE);
 	public static final Registry<BoxProviderType<?>> BOX_PROVIDER_TYPE = create(NeoApoliRegistryKeys.BOX_PROVIDER_TYPE);

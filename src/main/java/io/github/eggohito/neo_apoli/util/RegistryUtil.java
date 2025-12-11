@@ -53,8 +53,7 @@ public final class RegistryUtil {
 	public static <T> void validateTag(ContextAware.ProblemReporter reporter, TagKey<T> tag) {
 
 		ResourceKey<? extends Registry<T>> registryRef = tag.registry();
-		HolderLookup.Provider lookupProvider
-			= reporter.getHolderProvider().orElse(null);
+		HolderLookup.Provider lookupProvider = reporter.getHolderProvider().orElse(null);
 
 		if (lookupProvider == null) {
 			reporter.report("Couldn't access registry " + registryRef + "!");

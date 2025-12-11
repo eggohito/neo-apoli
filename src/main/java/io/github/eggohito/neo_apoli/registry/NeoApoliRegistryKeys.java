@@ -17,8 +17,10 @@ import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.damage.DamageCondition;
 import io.github.eggohito.neo_apoli.condition.custom.effect.EffectCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.fluid.FluidCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
+import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
@@ -28,6 +30,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
+import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -63,7 +66,9 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<EntityCondition>> ENTITY_CONDITION = create("condition/entity");
 	public static final ResourceKey<Registry<ItemCondition>> ITEM_CONDITION = create("condition/item");
 	public static final ResourceKey<Registry<KeyCondition>> KEY_CONDITION = create("condition/key");
-	public static final ResourceKey<Registry<EffectCondition>> MOB_EFFECT_CONDITION = create("condition/mob_effect");
+	public static final ResourceKey<Registry<EffectCondition>> EFFECT_CONDITION = create("condition/effect");
+	public static final ResourceKey<Registry<FluidCondition>> FLUID_CONDITION = create("condition/fluid");
+	public static final ResourceKey<Registry<WorldCondition>> WORLD_CONDITION = create("condition/world");
 
 	public static final ResourceKey<Registry<ActionType<?>>> ACTION_TYPE = create("action_type");
 	public static final ResourceKey<Registry<BiEntityActionType<?>>> BIENTITY_ACTION_TYPE = create("action_type/bientity");
@@ -80,6 +85,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<KeyConditionType<?>>> KEY_CONDITION_TYPE = create("condition_type/key");
 	public static final ResourceKey<Registry<EffectConditionType<?>>> EFFECT_CONDITION_TYPE = create("condition_type/effect");
 	public static final ResourceKey<Registry<FluidConditionType<?>>> FLUID_CONDITION_TYPE = create("condition_type/fluid");
+	public static final ResourceKey<Registry<WorldConditionType<?>>> WORLD_CONDITION_TYPE = create("condition_type/world");
 
 	public static final ResourceKey<Registry<BooleanProviderType<?>>> BOOLEAN_PROVIDER_TYPE = create("provider_type/bool");
 	public static final ResourceKey<Registry<BoxProviderType<?>>> BOX_PROVIDER_TYPE = create("provider_type/box");
