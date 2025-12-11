@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -11,6 +10,7 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextImpl;
@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -115,6 +117,16 @@ public class CooldownPower extends Power {
 			return power.getCooldown();
 		}
 
+		public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+
+			long timePassed = holder.level().getGameTime() - lastUseTime;
+			int cooldown = power.getCooldown().nextInt(context.makeChild(".cooldown"));
+
+			return timePassed <= cooldown
+				&& getHudElement().shouldRender(context, renderPhase);
+
+		}
+
 		public double getProgress(Context context) {
 
 			double diff = holder.level().getGameTime() - lastUseTime;
@@ -147,21 +159,27 @@ public class CooldownPower extends Power {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public static void prepareHudElements(PowersComponent powersComponent, BiConsumer<Context, HudElement> adder) {
+	public static void prepareHudElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
-		for (var instance : powersComponent.getInstances(Instance.class)) {
+		boolean hideGui = Minecraft.getInstance().options.hideGui;
+		Consumer<Power.Instance<?>> preparer = instance -> {
 
-			Context context = instance.createHolderContext();
-			HudElement hudElement = instance.getHudElement();
-
-			long timeDiff = instance.getHolder().level().getGameTime() - instance.lastUseTime;
-			int cooldown = instance.getCooldown().nextInt(context.makeChild(".cooldown"));
-
-			if (timeDiff <= cooldown && hudElement.shouldRender(context)) {
-				adder.accept(context, hudElement);
+			if (!(instance instanceof Instance cooldownInstance)) {
+				return;
 			}
 
-		}
+			Context hudContext = cooldownInstance.createHolderContext().makeChild(".hud_element");
+			HudElement hudElement = cooldownInstance.getHudElement();
+
+			boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);
+
+			if (doNotHide && cooldownInstance.shouldRender(hudContext, renderPhase)) {
+				adder.accept(hudContext, hudElement);
+			}
+
+		};
+
+		prepare.accept(preparer);
 
 	}
 

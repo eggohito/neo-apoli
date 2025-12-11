@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.hud;
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import lombok.Getter;
@@ -24,7 +25,11 @@ public interface HudElement extends ContextAware {
 
 	int order();
 
-	default boolean shouldRender(Context context) {
+	default boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+		return renderPhase == HudRenderPhase.ABOVE_HUD;
+	}
+
+	default boolean hideWithHud(Context context) {
 		return true;
 	}
 

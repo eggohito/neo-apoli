@@ -1,7 +1,8 @@
 package io.github.eggohito.neo_apoli.client.event;
 
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -9,15 +10,16 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class HudElementRenderEvents {
 
 	public static final Event<Prepare> PREPARE = EventFactory.createArrayBacked(
 		Prepare.class,
-		callbacks -> (powersComponent, adder) -> {
+		callbacks -> (prepare, renderPhase, adder) -> {
 
 			for (var callback : callbacks) {
-				callback.prepare(powersComponent, adder);
+				callback.prepare(prepare, renderPhase, adder);
 			}
 
 		}
@@ -46,7 +48,7 @@ public class HudElementRenderEvents {
 	);
 
 	public interface Prepare {
-		void prepare(PowersComponent powersComponent, BiConsumer<Context, HudElement> adder);
+		void prepare(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
 	}
 
 	public interface Start {

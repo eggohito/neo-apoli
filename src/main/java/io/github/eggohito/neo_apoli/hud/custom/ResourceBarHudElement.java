@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
+import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -54,8 +55,9 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	}
 
 	@Override
-	public boolean shouldRender(Context context) {
-		return shouldRender().next(context.makeChild(".should_render"));
+	public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+		return NumberBoundHudElement.super.shouldRender(context, renderPhase)
+			&& shouldRender().next(context.makeChild(".should_render"));
 	}
 
 	@Override

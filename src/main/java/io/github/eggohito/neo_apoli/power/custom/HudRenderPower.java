@@ -2,17 +2,18 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @EqualsAndHashCode
 @Getter
@@ -84,27 +86,35 @@ public class HudRenderPower extends Power {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public static void prepareHudElements(PowersComponent powersComponent, BiConsumer<Context, HudElement> adder) {
+	public static void prepareHudElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
-		for (var instance : powersComponent.getInstances(Instance.class)) {
+		boolean hideGui = Minecraft.getInstance().options.hideGui;
+		Consumer<Power.Instance<?>> preparer = instance -> {
+
+			if (!(instance instanceof Instance hudRenderInstance)) {
+				return;
+			}
 
 			Context context = instance.createHolderContext();
-			ListIterator<HudElement> iterator = instance.getHudElements().listIterator();
+			ListIterator<HudElement> listIterator = hudRenderInstance.getHudElements().listIterator();
 
-			while (iterator.hasNext()) {
+			while (listIterator.hasNext()) {
 
-				int index = iterator.nextIndex();
-				HudElement hudElement = iterator.next();
+				int index = listIterator.nextIndex();
+				HudElement hudElement = listIterator.next();
 
-				Context hudElementContext = context.makeChild(".hud_elements[" + index + "]");
+				Context hudContext = context.makeChild(".hud_elements[" + index + "]");
+				boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);
 
-				if (hudElement.shouldRender(hudElementContext)) {
-					adder.accept(hudElementContext, hudElement);
+				if (doNotHide && hudElement.shouldRender(hudContext, renderPhase)) {
+					adder.accept(hudContext, hudElement);
 				}
 
 			}
 
-		}
+		};
+
+		prepare.accept(preparer);
 
 	}
 

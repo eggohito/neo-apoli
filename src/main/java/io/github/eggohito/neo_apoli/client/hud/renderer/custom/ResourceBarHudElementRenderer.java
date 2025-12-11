@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.tags.FluidTags;
@@ -24,7 +25,7 @@ public record ResourceBarHudElementRenderer() implements HudElementRenderer {
 	@Override
 	public void start(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof ResourceBarHudElement resourceBar)) {
+		if (!(element instanceof ResourceBarHudElement resourceBar) || Minecraft.getInstance().options.hideGui) {
 			return;
 		}
 
