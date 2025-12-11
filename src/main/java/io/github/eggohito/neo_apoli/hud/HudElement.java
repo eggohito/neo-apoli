@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.hud;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
@@ -18,10 +17,6 @@ public interface HudElement extends ContextAware {
 	StreamCodec<RegistryFriendlyByteBuf, HudElement> STREAM_CODEC = HudElementType.STREAM_CODEC.dispatch(HudElement::getType, HudElementType::streamCodec);
 
 	HudElementType<?> getType();
-
-	NumberProvider x();
-
-	NumberProvider y();
 
 	int order();
 
