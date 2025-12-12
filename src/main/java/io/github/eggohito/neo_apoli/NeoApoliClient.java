@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.integration.PowerIntegrationsClient;
+import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.key.KeyStateManager;
@@ -19,6 +20,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliS2CNetworkHandler.init();
 		PowerIntegrationsClient.registerAll();
 
+		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
 		ClientTickEvents.END_CLIENT_TICK.register(KeyStateManager::startTrackingClient);

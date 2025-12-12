@@ -11,6 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
+//	TODO: Replace sprite ID with a record that accepts an atlas texture ID and the the sprite ID
 public record NauseaOverlayHudElement(ResourceLocation sprite, Color color, HudRenderPhase renderPhase, BooleanProvider shouldRender, BooleanProvider hideWithHud, BooleanProvider visibleInThirdPerson, int order) implements OverlayHudElement {
 
 	public static final MapCodec<NauseaOverlayHudElement> CODEC = OverlayHudElement.createCommonOverlayCodec(NauseaOverlayHudElement::new);
