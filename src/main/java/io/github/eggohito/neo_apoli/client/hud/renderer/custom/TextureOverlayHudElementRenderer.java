@@ -58,7 +58,7 @@ public record TextureOverlayHudElementRenderer() implements OverlayHudElementRen
 		float maxV = sprite.getV1();
 
 		Matrix4f matrices = graphics.pose().last().pose();
-		VertexConsumer vertexBuffer = spriteMaterial.buffer(Minecraft.getInstance().renderBuffers().bufferSource(), RenderType::guiTexturedOverlay);
+		VertexConsumer vertexBuffer = spriteMaterial.buffer(Minecraft.getInstance().renderBuffers().bufferSource(), NeoApoliRenderTypes.GUI_TEXTURED_OVERLAY);
 
 		vertexBuffer.addVertex(matrices, x1, y1, 0.0F).setUv(minU, minV).setColor(color);
 		vertexBuffer.addVertex(matrices, x1, y2, 0.0F).setUv(minU, maxV).setColor(color);

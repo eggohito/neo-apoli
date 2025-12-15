@@ -75,7 +75,7 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		color = ARGB.colorFromFloat(1.0F, red, green, blue);
 
 		Matrix4f matrices = graphics.pose().last().pose();
-		VertexConsumer vertexBuffer = spriteMaterial.buffer(Minecraft.getInstance().renderBuffers().bufferSource(), NeoApoliRenderTypes.GUI_TEXTURED_NAUSEA_OVERLAY);
+		VertexConsumer vertexBuffer = spriteMaterial.buffer(Minecraft.getInstance().renderBuffers().bufferSource(), NeoApoliRenderTypes.GUI_NAUSEA_OVERLAY);
 
 		vertexBuffer.addVertex(matrices, x1, y1, 0.0F).setUv(minU, minV).setColor(color);
 		vertexBuffer.addVertex(matrices, x1, y2, 0.0F).setUv(minU, maxV).setColor(color);

@@ -3,8 +3,12 @@
 	"package": "io.github.eggohito.neo_apoli.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"accessor.AtlasSetAccessor",
 		"accessor.KeyMappingAccessor",
+		"accessor.LayeredDrawAccessor",
+		"accessor.ModelManagerAccessor",
 		"accessor.RecipeBookPageAccessor",
+		"accessor.TextureAtlasAccessor",
 		"misc.ClientLevelMixin",
 		"misc.EntityRenderDispatcherMixin",
 		"misc.EntityRendererMixin",

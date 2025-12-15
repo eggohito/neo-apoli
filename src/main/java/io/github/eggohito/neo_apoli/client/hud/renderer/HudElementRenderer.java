@@ -36,7 +36,17 @@ public interface HudElementRenderer extends HudElementRenderEvents.Start, HudEle
 			}
 
 			queue.sort(Instance::compareTo);
-			queue.forEach(instance -> instance.render(graphics, delta));
+
+			for (var instance : queue) {
+
+				graphics.pose().pushPose();
+
+				instance.render(graphics, delta);
+				graphics.pose().translate(0.0F, 0.0F, 200.0F);
+
+				graphics.pose().popPose();
+
+			}
 
 			HudElementRenderEvents.END.invoker().end(graphics, delta);
 
@@ -44,7 +54,7 @@ public interface HudElementRenderer extends HudElementRenderEvents.Start, HudEle
 
 	}
 
-	 record Instance(Context context, HudElement hudElement) implements Comparable<Instance>, LayeredDraw.Layer {
+	record Instance(Context context, HudElement hudElement) implements Comparable<Instance>, LayeredDraw.Layer {
 
 		@Override
 		public int compareTo(@NotNull HudElementRenderer.Instance that) {
@@ -56,6 +66,6 @@ public interface HudElementRenderer extends HudElementRenderEvents.Start, HudEle
 			 HudElementRenderEvents.START.invoker().start(context(), hudElement(), graphics, delta);
 		 }
 
-	 }
+	}
 
 }
