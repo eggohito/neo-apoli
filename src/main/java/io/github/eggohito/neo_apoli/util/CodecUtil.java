@@ -3,11 +3,13 @@ package io.github.eggohito.neo_apoli.util;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +19,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.*;
 
 public class CodecUtil {
@@ -72,41 +75,63 @@ public class CodecUtil {
 	}
 
 	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass) {
-		return enumType(enumClass, ByIdMap.OutOfBoundsStrategy.CLAMP);
+		return enumType(enumClass, ImmutableMap.of());
 	}
 
-	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass, ByIdMap.OutOfBoundsStrategy oobHandler) {
+	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass, ImmutableMap<String, E> aliases) {
 
 		E[] enumConstants = enumClass.getEnumConstants();
 
 		ToIntFunction<E> toOrdinal = Enum::ordinal;
-		IntFunction<E> fromOrdinal = ByIdMap.continuous(toOrdinal, enumConstants, oobHandler);
+		IntFunction<E> fromOrdinal = ByIdMap.continuous(toOrdinal, enumConstants, ByIdMap.OutOfBoundsStrategy.CLAMP);
 
-		Function<E, String> toString = enumConstant -> (enumConstant instanceof StringRepresentable stringIdentifiable
-			? stringIdentifiable.getSerializedName()
-			: enumConstant.name()).toLowerCase(Locale.ROOT);
-		Function<String, E> fromString = name -> {
+		Function<E, String> toString = e -> e instanceof StringRepresentable representable
+			? representable.getSerializedName()
+			: e.name();
+
+		Function<String, DataResult<E>> fromString = name -> {
+
+			Set<String> expectedValues = new ObjectOpenHashSet<>();
 
 			for (E enumConstant : enumConstants) {
 
-				boolean matches = enumConstant.name().equalsIgnoreCase(name);
+				String constantName = enumConstant.name();
+				expectedValues.add(constantName);
 
-				if (!matches && enumConstant instanceof StringRepresentable stringIdentifiable) {
-					matches = stringIdentifiable.getSerializedName().equalsIgnoreCase(name);
+				if (constantName.equalsIgnoreCase(name)) {
+					return DataResult.success(enumConstant);
 				}
 
-				if (matches) {
-					return enumConstant;
+				else if (enumConstant instanceof StringRepresentable representable) {
+
+					String representedName = representable.getSerializedName();
+					expectedValues.add(representedName);
+
+					if (representedName.equalsIgnoreCase(name)) {
+						return DataResult.success(enumConstant);
+					}
+
 				}
 
 			}
 
-			return null;
+			for (var entry : aliases.entrySet()) {
+
+				String alias = entry.getKey().toLowerCase(Locale.ROOT);
+				expectedValues.add(alias);
+
+				if (alias.equalsIgnoreCase(name)) {
+					return DataResult.success(entry.getValue());
+				}
+
+			}
+
+			return DataResult.error(() -> "Expected value to be any of " + String.join(", ", expectedValues) + " (case-insensitive)");
 
 		};
 
 		return ExtraCodecs.orCompressed(
-			Codec.stringResolver(toString, fromString),
+			Codec.STRING.comapFlatMap(fromString, toString),
 			ExtraCodecs.idResolverCodec(toOrdinal, fromOrdinal, -1)
 		);
 

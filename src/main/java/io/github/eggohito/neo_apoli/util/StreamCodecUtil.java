@@ -91,13 +91,9 @@ public final class StreamCodecUtil {
 	}
 
 	public static <B extends ByteBuf, E extends Enum<E>> StreamCodec<B, E> enumType(Class<E> enumClass) {
-		return enumType(enumClass, ByIdMap.OutOfBoundsStrategy.CLAMP);
-	}
-
-	public static <B extends ByteBuf, E extends Enum<E>> StreamCodec<B, E> enumType(Class<E> enumClass, ByIdMap.OutOfBoundsStrategy oobHandler) {
 
 		ToIntFunction<E> toOrdinal = Enum::ordinal;
-		IntFunction<E> fromOrdinal = ByIdMap.continuous(toOrdinal, enumClass.getEnumConstants(), oobHandler);
+		IntFunction<E> fromOrdinal = ByIdMap.continuous(toOrdinal, enumClass.getEnumConstants(), ByIdMap.OutOfBoundsStrategy.CLAMP);
 
 		return ByteBufCodecs.idMapper(fromOrdinal, toOrdinal).cast();
 
