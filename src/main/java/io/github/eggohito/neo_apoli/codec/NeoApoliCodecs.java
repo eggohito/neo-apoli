@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.codec;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -9,7 +10,6 @@ import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.HandProperty;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -41,7 +41,10 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Set<ResourceLocation>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = ResourceLocation.CODEC.listOf(1, Integer.MAX_VALUE).xmap(ObjectOpenHashSet::new, ObjectArrayList::new);
 
-	public static final Codec<InteractionHand> HAND = HandProperty.CODEC.xmap(HandProperty::get, HandProperty::fromHand);
+	public static final Codec<InteractionHand> HAND = CodecUtil.enumType(InteractionHand.class, ImmutableMap.<String, InteractionHand>builder()
+		.put("mainhand", InteractionHand.MAIN_HAND)
+		.put("offhand", InteractionHand.OFF_HAND)
+		.build());
 
 	public static final Codec<List<InteractionHand>> HANDS = ExtraCodecs.nonEmptyList(HAND.listOf());
 

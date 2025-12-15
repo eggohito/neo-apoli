@@ -3,7 +3,10 @@ package io.github.eggohito.neo_apoli.codec;
 import com.google.gson.internal.LazilyParsedNumber;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import io.github.eggohito.neo_apoli.util.*;
+import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RecipeUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -42,7 +45,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = StreamCodecUtil.nonEmptyCollection(MUTABLE_IDENTIFIER_SET);
 
-	public static final StreamCodec<ByteBuf, InteractionHand> HAND = HandProperty.STREAM_CODEC.map(HandProperty::get, HandProperty::fromHand);
+	public static final StreamCodec<ByteBuf, InteractionHand> HAND = StreamCodecUtil.enumType(InteractionHand.class);
 
 	public static final StreamCodec<ByteBuf, List<InteractionHand>> HANDS = ByteBufCodecs.collection(ObjectArrayList::new, HAND);
 
@@ -100,12 +103,10 @@ public class NeoApoliStreamCodecs {
 					buf.writeByte(5);
 					buf.writeShort(s);
 				}
-				case LazilyParsedNumber n -> {
+				default -> {
 					buf.writeByte(6);
-					buf.writeUtf(n.toString());
+					buf.writeUtf(value.toString());
 				}
-				default ->
-					throw new IllegalArgumentException("Unsupported number: " + value);
 			}
 		}
 
