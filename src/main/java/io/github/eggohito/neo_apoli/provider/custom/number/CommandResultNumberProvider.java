@@ -53,7 +53,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 
 		CommandSourceStack commandSource = server.createCommandSourceStack()
 			.withPosition(Vec3.ZERO)
-			.withPermission(NeoApoli.getConfig().command().permissionLevel())
+			.withPermission(NeoApoli.getConfig().command.permissionLevel)
 			.withSource(NeoApoli.validateCommandOutput(server))
 			.withCallback((successful, returnValue) -> result.set(returnValue));
 

@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.client;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.client.config.NeoApoliClientConfig;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.integration.PowerIntegrationsClient;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
@@ -24,6 +25,8 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
+		NeoApoliClientConfig.HANDLER.load();
+
 		ClientTickEvents.END_CLIENT_TICK.register(KeyStateManager::startTrackingClient);
 		ClientPlayConnectionEvents.DISCONNECT.register(KeyStateManager::stopTrackingClient);
 
@@ -36,6 +39,10 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		});
 
+	}
+
+	public static NeoApoliClientConfig getConfig() {
+		return NeoApoliClientConfig.HANDLER.instance();
 	}
 
 }

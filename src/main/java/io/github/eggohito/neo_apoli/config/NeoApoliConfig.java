@@ -1,55 +1,29 @@
 package io.github.eggohito.neo_apoli.config;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
+import dev.isxander.yacl3.config.v2.api.SerialEntry;
+import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.core.HolderLookup;
+import net.fabricmc.loader.api.FabricLoader;
 
-public record NeoApoliConfig(Command command) {
+public class NeoApoliConfig {
 
-	public static final Codec<NeoApoliConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-		Command.CODEC.fieldOf("command").forGetter(NeoApoliConfig::command)
-	).apply(instance, NeoApoliConfig::new));
+	public static final ConfigClassHandler<NeoApoliConfig> HANDLER = ConfigClassHandler.createBuilder(NeoApoliConfig.class)
+		.id(NeoApoli.id("config"))
+		.serializer(handler -> GsonConfigSerializerBuilder.create(handler)
+			.setPath(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5"))
+			.setJson5(true).build()).build();
 
-	public NeoApoliConfig() {
-		this(new Command());
-	}
+	@SerialEntry
+	public final Command command = new Command();
 
-	public static void init() {
+	public static class Command {
 
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+		@SerialEntry
+		public boolean showOutput = false;
 
-			HolderLookup.Provider wrapperLookup = server.registryAccess();
-			if (NeoApoli.loadConfig(wrapperLookup)) {
-				return;
-			}
-
-			NeoApoli.LOGGER.info("Loading and saving config with default values...");
-			NeoApoli.saveConfig(wrapperLookup, new NeoApoliConfig());
-
-		});
-
-		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, manager, success) -> {
-
-			if (success) {
-				NeoApoli.loadConfig(server.registryAccess());
-			}
-
-		});
-
-	}
-
-	public record Command(int permissionLevel, boolean showOutput) {
-
-		public static final Codec<Command> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			Codec.intRange(0, 4).fieldOf("permission_level").forGetter(Command::permissionLevel),
-			Codec.BOOL.fieldOf("show_output").forGetter(Command::showOutput)
-		).apply(instance, Command::new));
-
-		public Command() {
-			this(2, false);
-		}
+		@SerialEntry
+		public int permissionLevel = 2;
 
 	}
 

@@ -22,6 +22,9 @@
 		],
 		"cardinal-components": [
 			"io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents"
+		],
+		"modmenu": [
+			"io.github.eggohito.neo_apoli.client.integration.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -46,9 +49,13 @@
 	},
 	"depends": {
 		"fabricloader": ">=0.16.13",
-		"minecraft": "~1.21.5",
+		"minecraft": "1.21.5",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"yet_another_config_lib_v3": ">=3.8.1+1.21.5-fabric"
+	},
+	"suggests": {
+		"modmenu": ">=14.0.0"
 	},
 	"accessWidener": "neo-apoli.accesswidener"
 }

@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
+import io.github.eggohito.neo_apoli.client.NeoApoliClient;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
@@ -81,8 +82,8 @@ public record ResourceBarHudElementRenderer() implements HudElementRenderer {
 
 		anchorPos = new HudElement.Position();
 
-		anchorPos.setX((graphics.guiWidth() / 2) + 20);
-		anchorPos.setY(graphics.guiHeight() - yOffset);
+		anchorPos.setX(((graphics.guiWidth() / 2) + 20) + NeoApoliClient.getConfig().resourceBars.offsetX);
+		anchorPos.setY((graphics.guiHeight() - yOffset) + NeoApoliClient.getConfig().resourceBars.offsetY);
 
 	}
 

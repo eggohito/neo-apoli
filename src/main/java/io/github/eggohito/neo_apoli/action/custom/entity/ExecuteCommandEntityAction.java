@@ -62,7 +62,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			pos,
 			Vec2.ZERO,
 			serverWorld,
-			NeoApoli.getConfig().command().permissionLevel(),
+			NeoApoli.getConfig().command.permissionLevel,
 			entity.getName().getString(),
 			entity.getName(),
 			server,

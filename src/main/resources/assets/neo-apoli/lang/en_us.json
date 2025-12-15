@@ -28,5 +28,15 @@
 	"commands.neo-apoli.power.revoke.fail.multiple": "%s entities didn't have the power '%s' from source '%s'",
 	"commands.neo-apoli.power.revoke.fail.single": "Entity %s didn't have the power '%s' from source '%s'",
 	"commands.neo-apoli.power.revoke.success.multiple": "%s entities had power '%s' from source '%s' revoked",
-	"commands.neo-apoli.power.revoke.success.single": "Entity %s had power '%s' from source '%s' revoked"
+	"commands.neo-apoli.power.revoke.success.single": "Entity %s had power '%s' from source '%s' revoked",
+	"config.neo-apoli.category.commands.name": "Commands",
+	"config.neo-apoli.category.commands.option.permission_level.description": "Determines the permission level used for executing commands in actions.",
+	"config.neo-apoli.category.commands.option.permission_level.name": "Permission level",
+	"config.neo-apoli.category.commands.option.show_output.description": "Determines whether the output of the executed command should be displayed in chat.",
+	"config.neo-apoli.category.commands.option.show_output.name": "Show output",
+	"config.neo-apoli.category.resource_bars.name": "Resource bars",
+	"config.neo-apoli.category.resource_bars.option.offset_x.description": "Determines the horizontal offset to the anchor position for resource bars. Positive values move the resource bars to the right, while negative values move the resource bars to the left.",
+	"config.neo-apoli.category.resource_bars.option.offset_x.name": "Offset X",
+	"config.neo-apoli.category.resource_bars.option.offset_y.description": "Determines the vertical offset to the anchor position for resource bars. Positive values move the resource bars downwards, while negative values moves the resource bars upwards.",
+	"config.neo-apoli.category.resource_bars.option.offset_y.name": "Offset Y"
 }
