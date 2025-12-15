@@ -14,6 +14,7 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.*;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
+import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -31,7 +32,7 @@ public class NeoApoliS2CNetworkHandler {
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-			ClientPlayNetworking.registerReceiver(ClearLogsS2CPacket.TYPE, (payload, context) -> NeoApoli.LOGS.clear());
+			ClientPlayNetworking.registerReceiver(ClearLogsS2CPacket.TYPE, NeoApoliLogger::onReloadClientBound);
 			ClientPlayNetworking.registerReceiver(DismountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityDismounted);
 			ClientPlayNetworking.registerReceiver(MountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityMounted);
 			ClientPlayNetworking.registerReceiver(SynchronizeActionsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onActionsSynchronized);

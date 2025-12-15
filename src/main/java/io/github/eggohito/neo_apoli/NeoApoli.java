@@ -15,13 +15,13 @@ import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
-import io.github.eggohito.neo_apoli.network.packet.s2c.ClearLogsS2CPacket;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
+import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
@@ -34,22 +34,19 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 import java.util.Set;
 
 public class NeoApoli implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "neo-apoli";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
+	public static final Logger LOGGER = NeoApoliLogger.INSTANCE;
 
 	@ApiStatus.Internal
 	public static final Set<String> LOGS = new ObjectOpenHashSet<>();
@@ -116,11 +113,7 @@ public class NeoApoli implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(KeyStateManager::startTrackingServer);
 		ServerPlayConnectionEvents.DISCONNECT.register(KeyStateManager::stopTrackingServer);
 
-		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
-			LOGS.clear();
-			server.getPlayerList().getPlayers().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, ClearLogsS2CPacket.INSTANCE));
-		});
-
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register(NeoApoliLogger::onReloadServerBound);
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> NeoApoliConfig.HANDLER.load());
 
 	}
@@ -146,14 +139,6 @@ public class NeoApoli implements ModInitializer {
 
 		else {
 			return CommandSource.NULL;
-		}
-
-	}
-
-	public static void logOnce(Level level, String message) {
-
-		if (LOGS.add(message)) {
-			LOGGER.atLevel(level).log(message);
 		}
 
 	}

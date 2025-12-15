@@ -1,12 +1,12 @@
 package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.renderer.OverlayHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.util.NeoApoliRenderTypes;
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.TextureOverlayHudElement;
+import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.client.DeltaTracker;
@@ -35,7 +35,7 @@ public record TextureOverlayHudElementRenderer() implements OverlayHudElementRen
 		if (sprite == null || reporter.hasErrors()) {
 
 			if (reporter.hasErrors()) {
-				NeoApoli.logOnce(Level.ERROR, "Error trying to render HUD element due to error(s) " + reporter.getErrorsAsString());
+				NeoApoliLogger.logOnce(Level.ERROR, "Error trying to render HUD element due to error(s) " + reporter.getErrorsAsString());
 			}
 
 			return;
@@ -66,7 +66,7 @@ public record TextureOverlayHudElementRenderer() implements OverlayHudElementRen
 		vertexBuffer.addVertex(matrices, x2, y1, 0.0F).setUv(maxU, minV).setColor(color);
 
 		if (reporter.hasErrors()) {
-			NeoApoli.logOnce(Level.WARN, "Found warnings when rendering HUD element(s) at " + reporter.getErrorsAsString());
+			NeoApoliLogger.logOnce(Level.WARN, "Found warnings when rendering HUD element(s) at " + reporter.getErrorsAsString());
 		}
 
 	}
