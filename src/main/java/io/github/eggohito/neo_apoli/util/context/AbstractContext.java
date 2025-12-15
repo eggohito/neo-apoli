@@ -24,12 +24,14 @@ public abstract class AbstractContext<C extends Context> implements Context {
 		this.reporter = reporter;
 	}
 
+	//	TODO: These methods should be returning a new instance of the context object, not replacing the reporter instance!
 	@Override
 	public C makeChild(String path) {
 		this.reporter = reporter.forChild(path);
 		return getThis();
 	}
 
+	//	TODO: These methods should be returning a new instance of the context object, not replacing the reporter instance!
 	@Override
 	public C makeChild(String path, ReferenceKey key) {
 		this.reporter = reporter.forChild(path, key);

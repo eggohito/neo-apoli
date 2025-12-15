@@ -18,7 +18,7 @@
 			"io.github.eggohito.neo_apoli.NeoApoli"
 		],
 		"client": [
-			"io.github.eggohito.neo_apoli.NeoApoliClient"
+			"io.github.eggohito.neo_apoli.client.NeoApoliClient"
 		],
 		"cardinal-components": [
 			"io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents"

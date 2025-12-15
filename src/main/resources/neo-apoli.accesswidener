@@ -10,3 +10,4 @@ accessible	method	net/minecraft/util/ARGB	from8BitChannel	(I)F
 accessible	class	net/minecraft/tags/TagLoader$SortingEntry
 mutable	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;
 accessible	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;
+accessible class net/minecraft/client/resources/model/AtlasSet$AtlasEntry

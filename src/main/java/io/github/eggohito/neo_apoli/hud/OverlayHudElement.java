@@ -4,9 +4,9 @@ import com.mojang.datafixers.util.Function7;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
@@ -18,7 +18,11 @@ import net.minecraft.resources.ResourceLocation;
 
 public interface OverlayHudElement extends HudElement {
 
-	ResourceLocation sprite();
+	ResourceLocation ATLAS_NAME = NeoApoli.id("overlay");
+
+	ResourceLocation ATLAS_SHEET = ATLAS_NAME.withPath(path -> "textures/atlas/" + path + ".png");
+
+	Sprite sprite();
 
 	Color color();
 
@@ -50,9 +54,9 @@ public interface OverlayHudElement extends HudElement {
 		visibleInThirdPerson().validate(reporter.forChild(".visible_in_third_person"));
 	}
 
-	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<ResourceLocation, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
+	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<Sprite, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			DynamicResourceLocation.CODEC.fieldOf("sprite").forGetter(OverlayHudElement::sprite),
+			Sprite.CODEC.fieldOf("sprite").forGetter(OverlayHudElement::sprite),
 			Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(OverlayHudElement::color),
 			HudRenderPhase.CODEC.fieldOf("render_phase").forGetter(OverlayHudElement::renderPhase),
 			BooleanProvider.CODEC.optionalFieldOf("should_render", new ConstantBooleanProvider(true)).forGetter(OverlayHudElement::shouldRender),
@@ -62,9 +66,9 @@ public interface OverlayHudElement extends HudElement {
 		).apply(instance, constructor));
 	}
 
-	static <H extends OverlayHudElement> StreamCodec<RegistryFriendlyByteBuf, H> createCommonOverlayStreamCodec(Function7<ResourceLocation, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
+	static <H extends OverlayHudElement> StreamCodec<RegistryFriendlyByteBuf, H> createCommonOverlayStreamCodec(Function7<Sprite, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
 		return StreamCodec.composite(
-			ResourceLocation.STREAM_CODEC, OverlayHudElement::sprite,
+			Sprite.STREAM_CODEC, OverlayHudElement::sprite,
 			Color.STREAM_CODEC, OverlayHudElement::color,
 			HudRenderPhase.STREAM_CODEC, OverlayHudElement::renderPhase,
 			BooleanProvider.STREAM_CODEC, OverlayHudElement::shouldRender,

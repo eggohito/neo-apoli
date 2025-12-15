@@ -1,5 +1,6 @@
-package io.github.eggohito.neo_apoli;
+package io.github.eggohito.neo_apoli.client;
 
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.integration.PowerIntegrationsClient;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;

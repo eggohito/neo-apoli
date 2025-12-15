@@ -1,20 +1,22 @@
 package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.renderer.OverlayHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.util.NeoApoliRenderTypes;
-import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
+import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
+import org.slf4j.event.Level;
 
 public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRenderer {
 
@@ -23,6 +25,23 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 
 		if (!(element instanceof NauseaOverlayHudElement nauseaOverlay) || !this.visibleBasedOnPerspective(context, nauseaOverlay)) {
 			return;
+		}
+
+		ContextAware.ProblemReporter reporter = context.getReporter();
+		SpriteMaterial spriteMaterial = new SpriteMaterial(nauseaOverlay.sprite());
+
+		TextureAtlasSprite sprite = spriteMaterial.spriteAsResult()
+			.resultOrPartial(reporter::report)
+			.orElse(null);
+
+		if (sprite == null || reporter.hasErrors()) {
+
+			if (reporter.hasErrors()) {
+				NeoApoli.logOnce(Level.ERROR, "Error trying to render HUD element due to error(s) " + reporter.getErrorsAsString());
+			}
+
+			return;
+
 		}
 
 		float scaledWidth = graphics.guiWidth();
@@ -35,9 +54,6 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		float red = ARGB.redFloat(color) * intensity;
 		float green = ARGB.greenFloat(color) * intensity;
 		float blue = ARGB.blueFloat(color) * intensity;
-
-		Material spriteMaterial = NeoApoliAtlases.OVERLAY.getMaterial(nauseaOverlay.sprite());
-		TextureAtlasSprite sprite = spriteMaterial.sprite();
 
 		float stretch = Mth.lerp(intensity, 2.0F, 1.0F);
 
@@ -56,19 +72,19 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		float minV = sprite.getV0();
 		float maxV = sprite.getV1();
 
-		int alphaColor = ARGB.colorFromFloat(1.0F, red, green, blue);
-
-		graphics.pose().pushPose();
+		color = ARGB.colorFromFloat(1.0F, red, green, blue);
 
 		Matrix4f matrices = graphics.pose().last().pose();
 		VertexConsumer vertexBuffer = spriteMaterial.buffer(Minecraft.getInstance().renderBuffers().bufferSource(), NeoApoliRenderTypes.GUI_TEXTURED_NAUSEA_OVERLAY);
 
-		vertexBuffer.addVertex(matrices, x1, y1, -1.0F).setUv(minU, minV).setColor(alphaColor);
-		vertexBuffer.addVertex(matrices, x1, y2, -1.0F).setUv(minU, maxV).setColor(alphaColor);
-		vertexBuffer.addVertex(matrices, x2, y2, -1.0F).setUv(maxU, maxV).setColor(alphaColor);
-		vertexBuffer.addVertex(matrices, x2, y1, -1.0F).setUv(maxU, minV).setColor(alphaColor);
+		vertexBuffer.addVertex(matrices, x1, y1, 0.0F).setUv(minU, minV).setColor(color);
+		vertexBuffer.addVertex(matrices, x1, y2, 0.0F).setUv(minU, maxV).setColor(color);
+		vertexBuffer.addVertex(matrices, x2, y2, 0.0F).setUv(maxU, maxV).setColor(color);
+		vertexBuffer.addVertex(matrices, x2, y1, 0.0F).setUv(maxU, minV).setColor(color);
 
-		graphics.pose().popPose();
+		if (reporter.hasErrors()) {
+			NeoApoli.logOnce(Level.WARN, "Found warnings when rendering HUD element(s) at " + reporter.getErrorsAsString());
+		}
 
 	}
 
