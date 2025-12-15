@@ -65,6 +65,7 @@
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",
 		"power.custom.PhasingPowerMixin$PhasingImpl",
 		"power.misc.DamageModifyingPowerMixin",
+		"power.misc.DamageModifyingPowerMixin$BaseLiving",
 		"power.misc.DamageModifyingPowerMixin$PlayerDelegate"
 	],
 	"injectors": {

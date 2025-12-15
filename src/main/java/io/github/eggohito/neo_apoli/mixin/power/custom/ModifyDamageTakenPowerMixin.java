@@ -44,7 +44,7 @@ public abstract class ModifyDamageTakenPowerMixin {
 		}
 
 		@ModifyVariable(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isSleeping()Z"), argsOnly = true)
-		private float modify(float original, ServerLevel level, DamageSource source) {
+		private float modify(float original, ServerLevel level, DamageSource source, @Share(value = "modifiedDamageAmount", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef modifiedDamageAmountRef) {
 
 			LivingEntity thisAsLiving = (LivingEntity) (Object) this;
 			List<ModifyDamageTakenPower.Instance> instances = PowersComponent.getInstances(thisAsLiving, ModifyDamageTakenPower.Instance.class);
@@ -55,6 +55,8 @@ public abstract class ModifyDamageTakenPowerMixin {
 
 			Context context = this.neo_apoli$getOrCreateDamageModifyingContext(source, original);
 			float modified = DamageModifyingPower.modify(PowerTypes.MODIFY_DAMAGE_TAKEN, context, instances, original);
+
+			modifiedDamageAmountRef.set(modifiedDamageAmountRef.get() || modified != original);
 
 			this.neo_apoli$damageModifyingContext.remove();
 			return modified;

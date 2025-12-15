@@ -15,7 +15,9 @@ import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Slice;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.lang.ref.WeakReference;
 
@@ -27,6 +29,20 @@ public abstract class DamageModifyingPowerMixin {
 
 	@Unique
 	protected abstract Context neo_apoli$getOrCreateDamageModifyingContext(DamageSource source, float amount);
+
+	@Mixin(value = LivingEntity.class, priority = 1001)
+	public static abstract class BaseLiving extends DamageModifyingPowerMixin {
+
+		@Inject(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isSleeping()Z"), cancellable = true)
+		private void cancelWhenModifiedDamageIsZero(ServerLevel level, DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> cir, @Share(value = "modifiedDamageAmount", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef modifiedDamageAmountRef) {
+
+			if (modifiedDamageAmountRef.get() && Math.signum(amount) <= 0) {
+				cir.setReturnValue(false);
+			}
+
+		}
+
+	}
 
 	@Mixin(Player.class)
 	public static abstract class PlayerDelegate extends LivingEntity {
