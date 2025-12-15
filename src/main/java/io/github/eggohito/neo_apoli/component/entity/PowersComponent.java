@@ -372,7 +372,7 @@ public final class PowersComponent implements Component, AutoSyncedComponent, Co
 		List<Power> collected = new ObjectArrayList<>();
 		this.forEach((reference, type, sources) -> {
 
-			if (includingSubPowers || !reference.subPower()) {
+			if (includingSubPowers || !reference.isSubPower()) {
 				collected.add(type.getPower());
 			}
 

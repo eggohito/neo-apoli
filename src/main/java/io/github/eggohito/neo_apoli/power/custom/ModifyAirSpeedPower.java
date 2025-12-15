@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -79,8 +78,10 @@ public class ModifyAirSpeedPower extends Power {
 		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -95,7 +96,7 @@ public class ModifyAirSpeedPower extends Power {
 					int index = listIterator.nextIndex();
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+					modifiers.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
 
 				}
 

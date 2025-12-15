@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import io.github.eggohito.neo_apoli.mixin.access.ContextMapAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
@@ -17,68 +18,81 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface Context extends ContextParameterHolder {
+@Getter
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class Context implements ContextParameterHolder {
+
+	protected final Level level;
+	protected final ContextAware.ProblemReporter reporter;
+
+	protected ContextMap parameters;
+	protected ImmutableSet<ContextAware> activeEntries;
 
 	@Override
-	default <T> T required(ContextKey<T> parameter) {
+	public <T> T required(ContextKey<T> parameter) {
 		return this.getParameters().getOrThrow(parameter);
 	}
 
 	@Override
-	default <T> @Nullable T nullable(ContextKey<T> parameter) {
+	public <T> @Nullable T nullable(ContextKey<T> parameter) {
 		return this.getParameters().getOptional(parameter);
 	}
 
-	ContextAware.ProblemReporter getReporter();
-
-	default ContextKeySet getKeySet() {
-		return this.getReporter().getKeySet();
+	public ContextKeySet getKeySet() {
+		return getReporter().getKeySet();
 	}
 
-	Level getWorld();
+	public Context forChild(String path) {
+		return new Context(this.level, this.reporter.forChild(path), this.parameters, this.activeEntries);
+	}
 
-	ContextMap getParameters();
+	public Context forChild(String path, ReferenceKey key) {
+		return new Context(this.level, this.reporter.forChild(path, key), this.parameters, this.activeEntries);
+	}
 
-	ImmutableSet<ContextAware> getActiveEntries();
-
-	Context makeChild(String path);
-
-	Context makeChild(String path, ReferenceKey key);
-
-	default boolean isActive(ContextAware entry) {
+	public boolean isActive(ContextAware entry) {
 		return this.getActiveEntries().contains(entry);
 	}
 
-	boolean markActive(ContextAware entry);
+	public boolean markActive(ContextAware entry) {
 
-	boolean markInActive(ContextAware entry);
+		Set<ContextAware> newEntries = new ObjectOpenHashSet<>(this.activeEntries);
+		boolean added = newEntries.add(entry);
 
-	default boolean hasErrors() {
+		this.activeEntries = ImmutableSet.copyOf(newEntries);
+		return added;
+
+	}
+
+	public boolean markInActive(ContextAware entry) {
+
+		Set<ContextAware> newEntries = new ObjectOpenHashSet<>(this.activeEntries);
+		boolean removed = newEntries.remove(entry);
+
+		this.activeEntries = ImmutableSet.copyOf(newEntries);
+		return removed;
+
+	}
+
+	public boolean hasErrors() {
 		return this.getReporter().hasErrors();
 	}
 
-	default boolean hasAnyErrors() {
+	public boolean hasAnyErrors() {
 		return this.getReporter().hasAnyErrors();
 	}
 
-	abstract class Builder<C extends Context, W extends Level, B extends Builder<C, W, B>> implements ContextParameterHolder {
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	public static final class Builder implements ContextParameterHolder {
 
-		@Getter(AccessLevel.PROTECTED)
 		private final ContextMap.Builder parameters;
-		@Getter(AccessLevel.PROTECTED)
-		private final Set<ContextAware> activeEntries;
+		private ImmutableSet<ContextAware> activeEntries;
 
 		@Getter
 		private ContextAware.ProblemReporter reporter;
 
-		Builder(ContextMap.Builder parameters, Set<ContextAware> activeEntries, ContextAware.ProblemReporter reporter) {
-			this.parameters = parameters;
-			this.activeEntries = activeEntries;
-			this.reporter = reporter;
-		}
-
 		public Builder(ContextAware.ProblemReporter reporter) {
-			this(new ContextMap.Builder(), new ObjectOpenHashSet<>(), reporter);
+			this(new ContextMap.Builder(), ImmutableSet.of(), reporter);
 		}
 
 		public Builder(ContextKeySet type) {
@@ -102,68 +116,68 @@ public interface Context extends ContextParameterHolder {
 
 		@Override
 		public <T> T required(ContextKey<T> parameter) {
-			return this.getParameters().getParameter(parameter);
+			return this.parameters.getParameter(parameter);
 		}
 
 		@Override
 		public <T> @Nullable T nullable(ContextKey<T> parameter) {
-			return this.getParameters().getOptionalParameter(parameter);
+			return this.parameters.getOptionalParameter(parameter);
 		}
 
-		public <T> B add(ContextKey<T> parameter, @NotNull T value) {
-			this.getParameters().withParameter(parameter, value);
-			return getThis();
+		public <T> Builder add(ContextKey<T> parameter, @NotNull T value) {
+			this.parameters.withParameter(parameter, value);
+			return this;
 		}
 
-		public <T> B addIfAbsent(ContextKey<T> parameter, Supplier<@NotNull T> value) {
+		public <T> Builder addIfAbsent(ContextKey<T> parameter, Supplier<@NotNull T> value) {
 			return hasParameter(parameter)
-				? getThis()
+				? this
 				: add(parameter, value.get());
 		}
 
-		public <T> B addNullable(ContextKey<T> parameter, @Nullable T value) {
-			this.getParameters().withOptionalParameter(parameter, value);
-			return getThis();
+		public <T> Builder addNullable(ContextKey<T> parameter, @Nullable T value) {
+			this.parameters.withOptionalParameter(parameter, value);
+			return this;
 		}
 
-		public <T> B addNullableIfAbsent(ContextKey<T> parameter, Supplier<@Nullable T> value) {
+		public <T> Builder addNullableIfAbsent(ContextKey<T> parameter, Supplier<@Nullable T> value) {
 			return hasParameter(parameter)
-				? getThis()
+				? this
 				: addNullable(parameter, value.get());
 		}
 
-		public <T> B addOptional(ContextKey<T> parameter, Optional<T> value) {
+		public <T> Builder addOptional(ContextKey<T> parameter, Optional<T> value) {
 			this.addNullable(parameter, value.orElse(null));
-			return getThis();
+			return this;
 		}
 
-		public <T> B addOptionalIfAbsent(ContextKey<T> parameter, Supplier<Optional<T>> value) {
+		public <T> Builder addOptionalIfAbsent(ContextKey<T> parameter, Supplier<Optional<T>> value) {
 			return hasParameter(parameter)
-				? getThis()
+				? this
 				: addOptional(parameter, value.get());
+		}
+
+		public Builder withKeySet(ContextKeySet keySet) {
+			this.reporter = reporter.withKeySet(keySet);
+			return this;
+		}
+
+		public Builder withReporter(ContextAware.ProblemReporter reporter) {
+			this.reporter = reporter;
+			return this;
+		}
+
+		public Context build(Level level) {
+			return new Context(level, this.getReporter(), this.parameters.create(this.getKeySet()), this.activeEntries);
 		}
 
 		public ContextKeySet getKeySet() {
 			return this.getReporter().getKeySet();
 		}
 
-		public B withKeySet(ContextKeySet keySet) {
-			this.reporter = reporter.withKeySet(keySet);
-			return getThis();
-		}
-
-		public B withReporter(ContextAware.ProblemReporter reporter) {
-			this.reporter = reporter;
-			return getThis();
-		}
-
 		public boolean isActive(ContextAware entry) {
-			return this.getActiveEntries().contains(entry);
+			return this.activeEntries.contains(entry);
 		}
-
-		protected abstract B getThis();
-
-		public abstract C build(W world);
 
 	}
 

@@ -24,7 +24,7 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 	@ApiStatus.Internal
 	default V internalNextOrElse(Context context, Supplier<V> errorValue) {
 
-		Context conditionContext = context.makeChild(".condition");
+		Context conditionContext = context.forChild(".condition");
 		boolean shouldProvide = condition().test(conditionContext);
 
 		if (conditionContext.hasErrors()) {
@@ -32,11 +32,11 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 		}
 
 		else if (shouldProvide) {
-			return ifValue().next(context.makeChild(".if_value"));
+			return ifValue().next(context.forChild(".if_value"));
 		}
 
 		else {
-			return elseValue().next(context.makeChild(".else_value"));
+			return elseValue().next(context.forChild(".else_value"));
 		}
 
 	}

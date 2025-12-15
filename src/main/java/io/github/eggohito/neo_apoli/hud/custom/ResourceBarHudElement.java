@@ -57,7 +57,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	@Override
 	public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
 		return NumberBoundHudElement.super.shouldRender(context, renderPhase)
-			&& shouldRender().next(context.makeChild(".should_render"));
+			&& shouldRender().next(context.forChild(".should_render"));
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 	public double getFill(Context context) {
 
-		Context minContext = context.makeChild(".min");
+		Context minContext = context.forChild(".min");
 		double min = min()
 			.map(p -> p.nextDouble(minContext))
 			.or(() -> context.optional(NeoApoliContextKeys.MIN_VALUE))
@@ -84,7 +84,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			return 0.0D;
 		}
 
-		Context maxContext = context.makeChild(".max");
+		Context maxContext = context.forChild(".max");
 		double max = max()
 			.map(p -> p.nextDouble(maxContext))
 			.or(() -> context.optional(NeoApoliContextKeys.MAX_VALUE))
@@ -94,7 +94,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			return 0.0D;
 		}
 
-		Context valueContext = context.makeChild(".value");
+		Context valueContext = context.forChild(".value");
 		double value = value()
 			.map(p -> p.nextDouble(valueContext))
 			.or(() -> context.optional(NeoApoliContextKeys.CURRENT_VALUE))
@@ -104,7 +104,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			return 0.0D;
 		}
 
-		Context invertedContext = context.makeChild(".inverted");
+		Context invertedContext = context.forChild(".inverted");
 		boolean inverted = properties().inverted().next(invertedContext);
 
 		double fill = Mth.clamp((value - min) / (max - min), 0.0D, 1.0D);

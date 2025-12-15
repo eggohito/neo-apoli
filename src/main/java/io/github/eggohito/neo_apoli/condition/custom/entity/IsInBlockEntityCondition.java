@@ -5,7 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,20 +40,21 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 			return false;
 		}
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.THIS_POS));
 
-		if (!world.hasChunkAt(blockPos)) {
+		if (!level.hasChunkAt(blockPos)) {
 			return false;
 		}
 
-		Context blockContext = ContextImpl.of(context, builder -> builder
+		Context blockContext = new Context.Builder(context)
 			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos)));
+			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(blockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+			.build(level);
 
-		return condition().test(blockContext.makeChild(".block_condition"));
+		return condition().test(blockContext.forChild(".block_condition"));
 
 	}
 

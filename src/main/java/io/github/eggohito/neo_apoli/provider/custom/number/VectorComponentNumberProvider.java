@@ -34,7 +34,7 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context vectorContext = context.makeChild(".vector");
+		Context vectorContext = context.forChild(".vector");
 		Vec3 vector = vector().next(vectorContext);
 
 		if (vectorContext.hasErrors()) {

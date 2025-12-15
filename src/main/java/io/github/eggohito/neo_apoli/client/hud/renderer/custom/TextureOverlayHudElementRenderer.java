@@ -42,7 +42,7 @@ public record TextureOverlayHudElementRenderer() implements OverlayHudElementRen
 
 		}
 
-		Context colorContext = context.makeChild(".color");
+		Context colorContext = context.forChild(".color");
 		int color = textureOverlay.color().getValue(colorContext);
 
 		float x1 = 0.0F;

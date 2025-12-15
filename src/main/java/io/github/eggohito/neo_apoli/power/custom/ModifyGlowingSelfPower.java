@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -83,11 +82,11 @@ public class ModifyGlowingSelfPower extends Power {
 		}
 
 		public int getColor(Context context) {
-			return this.getPower().getColor().getValue(context.makeChild(".color"));
+			return this.getPower().getColor().getValue(context.forChild(".color"));
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
-			return this.getPower().getUseTeamColors().next(context.makeChild(".use_team_color"));
+			return this.getPower().getUseTeamColors().next(context.forChild(".use_team_color"));
 		}
 
 	}
@@ -99,8 +98,10 @@ public class ModifyGlowingSelfPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -135,8 +136,10 @@ public class ModifyGlowingSelfPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

@@ -49,7 +49,7 @@ public record UniformNumberProvider(Random random, NumberProvider min, NumberPro
 	}
 
 	private <N extends Number> N randomize(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Random, N, N, N> method) {
-		return method.apply(random(), getter.apply(min(), context.makeChild(".min")), getter.apply(max(), context.makeChild(".max")));
+		return method.apply(random(), getter.apply(min(), context.forChild(".min")), getter.apply(max(), context.forChild(".max")));
 	}
 
 }

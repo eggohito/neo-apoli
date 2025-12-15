@@ -37,14 +37,14 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
+		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
 			return 0;
 		}
 
 		MinecraftServer server = serverWorld.getServer();
 		AtomicInteger result = new AtomicInteger();
 
-		Context commandContext = context.makeChild(".command");
+		Context commandContext = context.forChild(".command");
 		String command = command().next(commandContext);
 
 		if (commandContext.hasErrors()) {

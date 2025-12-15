@@ -51,7 +51,7 @@ public class CallbackPowerRemovedPower extends SimpleCallbackPower {
 			Context context = createHolderContext();
 
 			if (this.isActive(context)) {
-				power.getAction().execute(context.makeChild(".action"));
+				power.getAction().execute(context.forChild(".action"));
 			}
 
 		}

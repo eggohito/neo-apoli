@@ -78,7 +78,7 @@ public class TogglePower extends Power {
 
 		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
-			this.toggled = power.getActiveByDefault().next(this.createHolderContext().makeChild(".active_by_default"));
+			this.toggled = power.getActiveByDefault().next(this.createHolderContext().forChild(".active_by_default"));
 		}
 
 		@Override
@@ -107,7 +107,7 @@ public class TogglePower extends Power {
 		@Override
 		public boolean shouldTick() {
 			return power.getActiveCondition().isPresent()
-				&& !power.getRetainState().next(this.createHolderContext().makeChild(".retain_state"));
+				&& !power.getRetainState().next(this.createHolderContext().forChild(".retain_state"));
 		}
 
 		@Override
@@ -117,7 +117,7 @@ public class TogglePower extends Power {
 
 		public boolean shouldToggle(Context context) {
 			return super.isActive(context)
-				&& power.getKeyCondition().test(context.makeChild(".key_condition"));
+				&& power.getKeyCondition().test(context.forChild(".key_condition"));
 		}
 
 		public void toggle(Context context) {
@@ -133,7 +133,7 @@ public class TogglePower extends Power {
 
 					}
 
-					power.getAction().execute(context.makeChild(".action"));
+					power.getAction().execute(context.forChild(".action"));
 
 				}
 

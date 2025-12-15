@@ -6,8 +6,8 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,30 +36,28 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
-
-		ServerLevel world = context.getWorld();
-		MinecraftServer server = context.getServer();
 
 		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
 		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
 
-		ServerContext commandContext = context.makeChild(".command");
+		Context commandContext = context.forChild(".command");
 		String command = command().next(commandContext);
 
-		if (commandContext.hasErrors()) {
+		if (commandContext.hasErrors() || command.isEmpty()) {
 			return;
 		}
 
+		MinecraftServer server = serverLevel.getServer();
 		CommandSourceStack commandSource = new CommandSourceStack(
 			NeoApoli.validateCommandOutput(server),
 			blockPos.getCenter(),
 			Vec2.ZERO,
-			world,
+			serverLevel,
 			NeoApoli.getConfig().command.permissionLevel,
 			blockState.getBlock().getDescriptionId(),
 			Component.translatable(blockState.getBlock().getDescriptionId()),

@@ -33,7 +33,7 @@ public record IsInTagWorldCondition(TagKey<Level> tag) implements WorldCondition
 	@Override
 	public boolean test(Context context) {
 
-		Level level = context.getWorld();
+		Level level = context.getLevel();
 		Registry<Level> levelRegistry = level.registryAccess().lookupOrThrow(Registries.DIMENSION);
 
 		return levelRegistry.wrapAsHolder(level).is(this.tag());

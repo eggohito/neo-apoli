@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -81,17 +80,17 @@ public class ModifyInvisibilityPower extends Power {
 
 		public boolean isInvisibleTo(Context context) {
 			return this.isActive(context)
-				&& power.getInvisibleToCondition().test(context.makeChild(".invisible_to_condition"));
+				&& power.getInvisibleToCondition().test(context.forChild(".invisible_to_condition"));
 		}
 
 		public boolean shouldRenderArmor(Context context) {
 			return this.isActive(context)
-				&& power.getRenderArmor().next(context.makeChild(".render_armor"));
+				&& power.getRenderArmor().next(context.forChild(".render_armor"));
 		}
 
 		public boolean shouldRenderOutline(Context context) {
 			return this.isActive(context)
-				&& power.getRenderOutline().next(context.makeChild(".render_outline"));
+				&& power.getRenderOutline().next(context.forChild(".render_outline"));
 		}
 
 	}
@@ -103,8 +102,10 @@ public class ModifyInvisibilityPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

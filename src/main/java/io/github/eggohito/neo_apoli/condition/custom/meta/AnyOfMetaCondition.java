@@ -28,7 +28,7 @@ public interface AnyOfMetaCondition<C extends Condition> extends MetaCondition {
 			int index = listIterator.nextIndex();
 			C condition = listIterator.next();
 
-			Context conditionContext = context.makeChild(".conditions[" + index + "]");
+			Context conditionContext = context.forChild(".conditions[" + index + "]");
 			boolean result = condition.test(conditionContext);
 
 			if (!conditionContext.hasErrors() && result) {

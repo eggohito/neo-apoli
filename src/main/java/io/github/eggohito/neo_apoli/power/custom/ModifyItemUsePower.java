@@ -107,7 +107,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 		}
 
 		public InteractionResult execute(Context context) {
-			power.getOnUseAction().execute(context.makeChild(".on_use_action"));
+			power.getOnUseAction().execute(context.forChild(".on_use_action"));
 			return power.getResult();
 		}
 

@@ -34,9 +34,9 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	@Override
 	public @NotNull Vec3 next(Context context) {
 		return new Vec3(
-			x().nextDouble(context.makeChild(".x")),
-			y().nextDouble(context.makeChild(".y")),
-			z().nextDouble(context.makeChild(".z"))
+			x().nextDouble(context.forChild(".x")),
+			y().nextDouble(context.forChild(".y")),
+			z().nextDouble(context.forChild(".z"))
 		);
 	}
 

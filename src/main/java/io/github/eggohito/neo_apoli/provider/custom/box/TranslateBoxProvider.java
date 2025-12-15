@@ -35,8 +35,8 @@ public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) im
 	@Override
 	public @NotNull AABB next(Context context) {
 
-		AABB box = box().next(context.makeChild(".box"));
-		Vec3 translation = translation().next(context.makeChild(".translation"));
+		AABB box = box().next(context.forChild(".box"));
+		Vec3 translation = translation().next(context.forChild(".translation"));
 
 		return new AABB(translation.subtract(box.getMinPosition()), translation.add(box.getMaxPosition()));
 

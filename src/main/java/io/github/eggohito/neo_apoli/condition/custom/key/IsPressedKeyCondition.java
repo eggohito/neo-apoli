@@ -36,7 +36,7 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 			return false;
 		}
 
-		Context idContext = context.makeChild(".id");
+		Context idContext = context.forChild(".id");
 		String id = id().next(idContext);
 
 		if (idContext.hasErrors()) {

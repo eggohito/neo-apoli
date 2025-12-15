@@ -38,8 +38,8 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	@Override
 	public boolean compare(Context context) {
 
-		Context firstContext = context.makeChild(".first");
-		Context secondContext = context.makeChild(".second");
+		Context firstContext = context.forChild(".first");
+		Context secondContext = context.forChild(".second");
 
 		String firstValue = first().next(firstContext);
 		String secondValue = second().next(secondContext);

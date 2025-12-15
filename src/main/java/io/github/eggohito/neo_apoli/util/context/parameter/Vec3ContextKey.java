@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.util.context.parameter;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static net.minecraft.commands.Commands.argument;
 
-public class Vec3DContextKey extends TypedContextKey<Vec3> {
+public class Vec3ContextKey extends TypedContextKey<Vec3> {
 
-	public Vec3DContextKey(ResourceLocation id) {
+	public Vec3ContextKey(ResourceLocation id) {
 		super(id, Vec3.class);
 	}
 
@@ -39,7 +39,7 @@ public class Vec3DContextKey extends TypedContextKey<Vec3> {
 				CommandSourceStack source = context.getSource();
 				Vec3 pos = Vec3Argument.getVec3(context, "pos");
 
-				((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(Vec3DContextKey.this, pos);
+				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(Vec3ContextKey.this, pos);
 				return source;
 
 			}

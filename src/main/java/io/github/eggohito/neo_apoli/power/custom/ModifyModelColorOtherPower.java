@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -67,7 +66,7 @@ public class ModifyModelColorOtherPower extends Power {
 		}
 
 		public int getColor(Context context) {
-			return power.getColor().getValue(context.makeChild(".color"));
+			return power.getColor().getValue(context.forChild(".color"));
 		}
 
 	}
@@ -79,8 +78,10 @@ public class ModifyModelColorOtherPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

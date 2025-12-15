@@ -53,7 +53,7 @@ public abstract class AttributeModifying extends Power {
 				return;
 			}
 
-			Context sendUpdateContext = context.makeChild(".send_update");
+			Context sendUpdateContext = context.forChild(".send_update");
 			boolean sendUpdate = power.getSendUpdate().next(sendUpdateContext);
 
 			if (!sendUpdateContext.hasErrors()) {

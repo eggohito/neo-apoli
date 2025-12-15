@@ -8,7 +8,10 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -43,26 +46,26 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	@Override
 	public void execute(Context context) {
 
-		Level world = context.getWorld();
+		Level world = context.getLevel();
 		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 
-		if (!(world instanceof ServerLevel serverWorld) || entity == null) {
+		if (!(world instanceof ServerLevel serverLevel) || entity == null) {
 			return;
 		}
 
 		loopingStacks:
 		for (var indexedStack : stacks()) {
 
-			SlotAccess stackReference = InventoryUtil.createSingletonSlot(indexedStack.stack());
-			ServerContext itemContext = new ServerContext.Builder(context)
+			SlotAccess stackAccess = InventoryUtil.createSingletonSlot(indexedStack.stack());
+			Context itemContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
-				.add(NeoApoliContextKeys.STACK_REFERENCE, stackReference)
-				.add(NeoApoliContextKeys.ITEM_STACK, stackReference.get())
-				.build(serverWorld);
+				.add(NeoApoliContextKeys.STACK_REFERENCE, stackAccess)
+				.add(NeoApoliContextKeys.ITEM_STACK, stackAccess.get())
+				.build(serverLevel);
 
-			itemAction().execute(itemContext.makeChild(".item_action"));
+			itemAction().execute(itemContext.forChild(".item_action"));
 
-			ItemStack stack = stackReference.get();
+			ItemStack stack = stackAccess.get();
 			IntList slotIds = indexedStack.slotIds().orElseGet(IntArrayList::new);
 
 			for (var slotId : slotIds) {
@@ -94,7 +97,7 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 			}
 
 			else {
-				InventoryUtil.dropItem(serverWorld, entity, stack, false, false, 0);
+				InventoryUtil.dropItem(serverLevel, entity, stack, false, false, 0);
 			}
 
 		}

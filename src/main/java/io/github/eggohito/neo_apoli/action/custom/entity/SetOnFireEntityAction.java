@@ -33,7 +33,7 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 			return;
 		}
 
-		Context ticksContext = context.makeChild(".ticks");
+		Context ticksContext = context.forChild(".ticks");
 		int ticks = ticks().nextInt(ticksContext);
 
 		if (!ticksContext.hasErrors() && ticks > 0) {

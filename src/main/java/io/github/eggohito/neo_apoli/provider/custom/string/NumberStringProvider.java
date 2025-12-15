@@ -34,8 +34,8 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	@Override
 	public @NotNull String next(Context context) {
 
-		Context numberContext = context.makeChild(".number");
-		int decimals = decimals().nextInt(context.makeChild(".decimals"));
+		Context numberContext = context.forChild(".number");
+		int decimals = decimals().nextInt(context.forChild(".decimals"));
 
 		if (decimals == 0) {
 			return Long.toString(number().nextLong(numberContext));

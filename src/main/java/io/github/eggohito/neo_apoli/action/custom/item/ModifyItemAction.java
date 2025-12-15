@@ -7,14 +7,15 @@ import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +25,6 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.function.Consumers;
 
 import java.util.Optional;
 
@@ -47,20 +47,20 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
 		SlotAccess stackReference = context.required(NeoApoliContextKeys.STACK_REFERENCE);
 		ItemStack stack = stackReference.get();
 
-		LootItemFunction modifier = context.getServer().reloadableRegistries().lookup()
+		LootItemFunction modifier = serverLevel.getServer().reloadableRegistries().lookup()
 			.getOrThrow(this.modifier())
 			.value();
 
-		LootParams lootParams = new LootParams.Builder(context.getWorld())
+		LootParams lootParams = new LootParams.Builder(serverLevel)
 			.withParameter(LootContextParams.ORIGIN, context.optional(NeoApoliContextKeys.THIS_POS).orElse(Vec3.ZERO))
 			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.nullable(entity()))
 			.create(LootContextParamSets.COMMAND);
@@ -77,20 +77,8 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 
 	@Override
 	public void validate(ProblemReporter reporter) {
-
 		ItemAction.super.validate(reporter);
-		Optional<HolderLookup.RegistryLookup<LootItemFunction>> itemModifierLookup = reporter
-			.getHolderProvider()
-			.flatMap(provider -> provider.lookup(this.modifier().registryKey()));
-
-		if (itemModifierLookup.isEmpty()) {
-			reporter.report("Couldn't properly validate whether item modifier with ID \"" + this.modifier().location() + "\" exists!");
-		}
-
-		else {
-			itemModifierLookup.get().get(this.modifier()).ifPresentOrElse(Consumers.nop(), () -> reporter.report("Unknown item modifier with ID \"" + this.modifier().location() + "\"!"));
-		}
-
+		RegistryUtil.validateEntry(reporter, this.modifier());
 	}
 
 }

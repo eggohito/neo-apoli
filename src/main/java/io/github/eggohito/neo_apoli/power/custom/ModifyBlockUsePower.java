@@ -128,7 +128,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		}
 
 		public InteractionResult execute(Context context) {
-			action().execute(context.makeChild(".action"));
+			action().execute(context.forChild(".action"));
 			return result();
 		}
 

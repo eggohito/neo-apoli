@@ -33,8 +33,8 @@ public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) imple
 	@Override
 	public @NotNull Vec3 next(Context context) {
 
-		Vec3 vector = vector().next(context.makeChild(".vector"));
-		Vec3 offset = offset().next(context.makeChild(".offset"));
+		Vec3 vector = vector().next(context.forChild(".vector"));
+		Vec3 offset = offset().next(context.forChild(".offset"));
 
 		return vector.add(offset);
 

@@ -46,14 +46,14 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 			int index = listIterator.nextIndex();
 			StringProvider provider = listIterator.next();
 
-			Context stringContext = context.makeChild(".strings[" + index + "]");
+			Context stringContext = context.forChild(".strings[" + index + "]");
 			String string = provider.next(stringContext);
 
 			if (!stringContext.hasErrors()) {
 
 				if (init) {
 
-					Context separatorContext = context.makeChild(".separator");
+					Context separatorContext = context.forChild(".separator");
 					String separator = separator().next(separatorContext);
 
 					if (!separatorContext.hasErrors()) {

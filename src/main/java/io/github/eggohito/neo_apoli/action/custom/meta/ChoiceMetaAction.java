@@ -33,19 +33,19 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 			int index = listIterator.nextIndex();
 			Case<C, A> aCase = listIterator.next();
 
-			Context caseContext = context.makeChild(".cases[" + index + "]");
+			Context caseContext = context.forChild(".cases[" + index + "]");
 
-			boolean shouldExecute = aCase.condition().test(caseContext.makeChild(".condition"));
+			boolean shouldExecute = aCase.condition().test(caseContext.forChild(".condition"));
 			executed = !caseContext.hasErrors() && shouldExecute;
 
 			if (executed) {
-				aCase.action().execute(caseContext.makeChild(".action"));
+				aCase.action().execute(caseContext.forChild(".action"));
 			}
 
 		}
 
 		if (!executed) {
-			defaultAction().execute(context.makeChild(".default"));
+			defaultAction().execute(context.forChild(".default"));
 		}
 
 	}

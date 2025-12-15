@@ -15,7 +15,7 @@ public interface TestWorldMetaCondition extends MetaCondition {
 
 	@Override
 	default boolean test(Context context) {
-		return condition().test(context.makeChild(".condition"));
+		return condition().test(context.forChild(".condition"));
 	}
 
 	@Override

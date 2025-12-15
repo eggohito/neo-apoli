@@ -24,17 +24,17 @@ public interface ConditionalMetaAction<C extends Condition, A extends Action> ex
 	@Override
 	default void execute(Context context) {
 
-		Context conditionContext = context.makeChild(".condition");
+		Context conditionContext = context.forChild(".condition");
 		boolean shouldExecute = condition().test(conditionContext);
 
 		if (!conditionContext.hasErrors()) {
 
 			if (shouldExecute) {
-				ifAction().execute(context.makeChild(".if_action"));
+				ifAction().execute(context.forChild(".if_action"));
 			}
 
 			else {
-				elseAction().ifPresent(elseAction -> elseAction.execute(context.makeChild(".else_action")));
+				elseAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".else_action")));
 			}
 
 		}

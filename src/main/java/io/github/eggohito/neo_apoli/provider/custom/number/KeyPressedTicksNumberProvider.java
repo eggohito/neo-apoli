@@ -41,14 +41,14 @@ public record KeyPressedTicksNumberProvider(StringProvider id) implements Number
 			return 0L;
 		}
 
-		Context idContext = context.makeChild(".id");
+		Context idContext = context.forChild(".id");
 		String id = id().next(idContext);
 
 		if (idContext.hasErrors()) {
 			return 0L;
 		}
 
-		Level world = context.getWorld();
+		Level world = context.getLevel();
 		UUID uuid = context.required(NeoApoliContextKeys.THIS_ENTITY).getUUID();
 
 		return KeyStateManager.getState(uuid, id)

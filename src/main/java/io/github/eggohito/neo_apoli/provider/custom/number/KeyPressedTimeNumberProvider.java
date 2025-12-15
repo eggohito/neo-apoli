@@ -40,7 +40,7 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 			return 0L;
 		}
 
-		Context idContext = context.makeChild(".id");
+		Context idContext = context.forChild(".id");
 		String id = id().next(idContext);
 
 		if (idContext.hasErrors()) {

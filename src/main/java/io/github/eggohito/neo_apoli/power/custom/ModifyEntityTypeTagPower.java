@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.EqualsAndHashCode;
@@ -157,8 +156,10 @@ public class ModifyEntityTypeTagPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

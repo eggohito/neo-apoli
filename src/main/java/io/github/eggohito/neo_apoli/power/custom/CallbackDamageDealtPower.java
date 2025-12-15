@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -71,7 +70,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 		}
 
 		public void execute(Context context) {
-			power.getOnHitAction().execute(context.makeChild(".on_hit_action"));
+			power.getOnHitAction().execute(context.forChild(".on_hit_action"));
 		}
 
 	}
@@ -89,8 +88,10 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

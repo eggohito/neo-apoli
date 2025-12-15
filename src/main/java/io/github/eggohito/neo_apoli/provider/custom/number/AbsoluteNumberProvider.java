@@ -29,12 +29,12 @@ public record AbsoluteNumberProvider(NumberProvider number) implements NumberPro
 
 	@Override
 	public @NotNull Number next(Context context) {
-		return Math.abs(this.number().nextDouble(context.makeChild(".number")));
+		return Math.abs(this.number().nextDouble(context.forChild(".number")));
 	}
 
 	@Override
 	public long nextLong(Context context) {
-		return Math.abs(this.number().nextLong(context.makeChild(".number")));
+		return Math.abs(this.number().nextLong(context.forChild(".number")));
 	}
 
 	@Override

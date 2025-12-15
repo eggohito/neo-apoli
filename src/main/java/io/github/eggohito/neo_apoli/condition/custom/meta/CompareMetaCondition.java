@@ -15,7 +15,7 @@ public interface CompareMetaCondition extends MetaCondition {
 
 	@Override
 	default boolean test(Context context) {
-		return comparison().compare(context.makeChild(".comparison"));
+		return comparison().compare(context.forChild(".comparison"));
 	}
 
 	@Override

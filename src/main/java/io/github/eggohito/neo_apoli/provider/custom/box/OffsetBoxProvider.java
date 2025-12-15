@@ -33,8 +33,8 @@ public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements 
 	@Override
 	public @NotNull AABB next(Context context) {
 
-		AABB box = box().next(context.makeChild(".box"));
-		AABB offset = offset().next(context.makeChild(".offset"));
+		AABB box = box().next(context.forChild(".box"));
+		AABB offset = offset().next(context.forChild(".offset"));
 
 		return new AABB(
 			box.minX + offset.minX,

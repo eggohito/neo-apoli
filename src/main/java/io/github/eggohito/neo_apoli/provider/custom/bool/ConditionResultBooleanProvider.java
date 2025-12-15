@@ -28,7 +28,7 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 
 	@Override
 	public @NotNull Boolean next(Context context) {
-		return condition().test(context.makeChild(".condition"));
+		return condition().test(context.forChild(".condition"));
 	}
 
 	@Override

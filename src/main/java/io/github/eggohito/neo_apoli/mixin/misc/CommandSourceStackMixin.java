@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -9,13 +9,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(CommandSourceStack.class)
-public abstract class CommandSourceStackMixin implements ExecutionCommandSource<CommandSourceStack>, SharedSuggestionProvider, ServerContextBuilderHolder {
+public abstract class CommandSourceStackMixin implements ExecutionCommandSource<CommandSourceStack>, SharedSuggestionProvider, ContextBuilderHolder {
 
 	@Unique
-	private final ServerContext.Builder neo_apoli$contextBuilder = new ServerContext.Builder();
+	private final Context.Builder neo_apoli$contextBuilder = new Context.Builder();
 
 	@Override
-	public ServerContext.Builder neo_apoli$getBuilder() {
+	public Context.Builder neo_apoli$getContextBuilder() {
 		return neo_apoli$contextBuilder;
 	}
 

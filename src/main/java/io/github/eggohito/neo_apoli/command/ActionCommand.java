@@ -10,14 +10,14 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
@@ -125,7 +125,7 @@ public class ActionCommand {
 		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			CommandSourceStack source = commandContext.getSource();
-			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
+			Context.Builder contextBuilder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
 
 			Action action = ActionArgumentType.getAction(commandContext, "action");
 			String display = action.asDisplayString(false);
@@ -138,7 +138,7 @@ public class ActionCommand {
 				);
 
 				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
-				ServerContext serverContext = builder
+				Context context = contextBuilder
 					.withReporter(reporter)
 					.build(source.getLevel());
 
@@ -148,7 +148,7 @@ public class ActionCommand {
 					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
 				}
 
-				action.execute(serverContext);
+				action.execute(context);
 
 				if (reporter.hasAnyErrors()) {
 					source.sendSuccess(() -> Component.literal("").append("Warnings found when executing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);

@@ -42,14 +42,14 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters()) || !(context.getWorld() instanceof ServerLevel serverWorld)) {
+		if (!context.hasAllParameters(this.getRequiredParameters()) || !(context.getLevel() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
 		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 		Vec3 pos = context.required(NeoApoliContextKeys.THIS_POS);
 
-		Context commandContext = context.makeChild(".command");
+		Context commandContext = context.forChild(".command");
 		String command = command().next(commandContext);
 
 		if (commandContext.hasErrors()) {

@@ -585,7 +585,7 @@ public class PowerCommand {
 			List<Component> powerTooltips = new ObjectArrayList<>();
 			powersComponent.forEach((reference, instance, sources) -> {
 
-				if (!includeSubPowers && reference.subPower()) {
+				if (!includeSubPowers && reference.isSubPower()) {
 					return;
 				}
 

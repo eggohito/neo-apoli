@@ -7,7 +7,10 @@ import io.github.eggohito.neo_apoli.condition.custom.item.IsEmptyItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -41,11 +44,16 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 
 		for (var equipmentSlot : EquipmentSlot.values()) {
 
-			Context itemContext = ContextImpl.of(context, builder -> builder
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
-				.add(NeoApoliContextKeys.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot)));
+			if (!slot().test(equipmentSlot)) {
+				continue;
+			}
 
-			if (slot().test(equipmentSlot) && itemCondition().test(itemContext.makeChild(".item_condition"))) {
+			Context itemContext = new Context.Builder(context)
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
+				.add(NeoApoliContextKeys.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot))
+				.build(context.getLevel());
+
+			if (itemCondition().test(itemContext.forChild(".item_condition"))) {
 				return true;
 			}
 

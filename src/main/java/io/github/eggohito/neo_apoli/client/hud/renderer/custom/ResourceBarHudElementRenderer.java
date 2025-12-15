@@ -36,8 +36,8 @@ public record ResourceBarHudElementRenderer() implements HudElementRenderer {
 			init(context, element, graphics, delta);
 		}
 
-		int x = anchorPos.getX() + resourceBar.x().nextInt(context.makeChild(".x"));
-		int y = anchorPos.getY() + resourceBar.y().nextInt(context.makeChild(".y"));
+		int x = anchorPos.getX() + resourceBar.x().nextInt(context.forChild(".x"));
+		int y = anchorPos.getY() + resourceBar.y().nextInt(context.forChild(".y"));
 
 		//	Draw the background texture of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);

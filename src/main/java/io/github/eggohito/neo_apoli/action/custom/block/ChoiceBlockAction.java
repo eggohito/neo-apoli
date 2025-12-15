@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -22,16 +20,6 @@ public record ChoiceBlockAction(List<Case<BlockCondition, BlockAction>> cases, B
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.CHOICE;
-	}
-
-	@Override
-	public void execute(Context context) {
-		ChoiceMetaAction.super.execute(context);
-	}
-
-	@Override
-	public void serverExecute(ServerContext context) {
-		ChoiceMetaAction.super.execute(context);
 	}
 
 	@Override

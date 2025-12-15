@@ -6,12 +6,9 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
@@ -26,15 +23,6 @@ public interface BlockAction extends Action {
 	BlockActionType<?> getType();
 
 	@Override
-	default void execute(Context context) {
-
-		if (context.getWorld() instanceof ServerLevel serverWorld && !serverWorld.isDebug()) {
-			this.serverExecute(new ServerContext.Builder(context).build(serverWorld));
-		}
-
-	}
-
-	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
@@ -43,7 +31,5 @@ public interface BlockAction extends Action {
 	default String asDisplayString() {
 		return "Block action with type \"" + RegistryUtil.getId(NeoApoliRegistries.BLOCK_ACTION_TYPE, this.getType()) + "\"";
 	}
-
-	void serverExecute(ServerContext context);
 
 }

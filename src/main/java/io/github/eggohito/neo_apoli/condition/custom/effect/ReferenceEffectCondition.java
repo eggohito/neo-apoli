@@ -21,7 +21,7 @@ public record ReferenceEffectCondition(ResourceLocation value) implements Effect
 
 	@Override
 	public Pair<Class<EffectCondition>, String> classAndName() {
-		return Pair.of(EffectCondition.class, "Mob effect condition");
+		return Pair.of(EffectCondition.class, "Effect condition");
 	}
 
 	@Override

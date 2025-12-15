@@ -46,19 +46,19 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 	}
 
 	public float hue(Context context) {
-		return DynamicColor.getValue(context.makeChild(".hue"), hue()::nextFloat, () -> 360.0F);
+		return DynamicColor.getValue(context.forChild(".hue"), hue()::nextFloat, () -> 360.0F);
 	}
 
 	public float saturation(Context context) {
-		return DynamicColor.getValue(context.makeChild(".saturation"), saturation()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".saturation"), saturation()::nextFloat, () -> 1.0F);
 	}
 
 	public float value(Context context) {
-		return DynamicColor.getValue(context.makeChild(".value"), value()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".value"), value()::nextFloat, () -> 1.0F);
 	}
 
 	public float alpha(Context context) {
-		return DynamicColor.getValue(context.makeChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
 	}
 
 }

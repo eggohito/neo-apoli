@@ -40,14 +40,14 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context positionContext = context.makeChild(".position");
+		Context positionContext = context.forChild(".position");
 		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return 0;
 		}
 
-		Level world = context.getWorld();
+		Level world = context.getLevel();
 		BlockPos blockPos = BlockPos.containing(position);
 
 		return this.lightType()

@@ -39,15 +39,15 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	@Override
 	public boolean compare(Context context) {
 
-		Context decimalsContext = context.makeChild(".decimals");
+		Context decimalsContext = context.forChild(".decimals");
 		int decimals = decimals().nextInt(decimalsContext);
 
 		if (decimalsContext.hasErrors()) {
 			return false;
 		}
 
-		Context firstContext = context.makeChild(".first");
-		Context secondContext = context.makeChild(".second");
+		Context firstContext = context.forChild(".first");
+		Context secondContext = context.forChild(".second");
 
 		double firstValue = this.getValue(first(), decimals, () -> firstContext);
 		double secondValue = this.getValue(second(), decimals, () -> secondContext);

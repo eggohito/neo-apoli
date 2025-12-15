@@ -46,19 +46,19 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 	}
 
 	public float alpha(Context context) {
-		return DynamicColor.getValue(context.makeChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".alpha"), alpha()::nextFloat, () -> 1.0F);
 	}
 
 	public float red(Context context) {
-		return DynamicColor.getValue(context.makeChild(".red"), red()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".red"), red()::nextFloat, () -> 1.0F);
 	}
 
 	public float green(Context context) {
-		return DynamicColor.getValue(context.makeChild(".green"), green()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".green"), green()::nextFloat, () -> 1.0F);
 	}
 
 	public float blue(Context context) {
-		return DynamicColor.getValue(context.makeChild(".blue"), blue()::nextFloat, () -> 1.0F);
+		return DynamicColor.getValue(context.forChild(".blue"), blue()::nextFloat, () -> 1.0F);
 	}
 
 }

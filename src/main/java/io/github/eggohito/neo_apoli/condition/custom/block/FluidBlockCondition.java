@@ -5,7 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.fluid.FluidCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
@@ -32,11 +35,15 @@ public record FluidBlockCondition(FluidCondition fluidCondition) implements Bloc
 	@Override
 	public boolean test(Context context) {
 
-		Level level = context.getWorld();
+		Level level = context.getLevel();
 		Optional<FluidState> fluidState = context.optional(NeoApoliContextKeys.BLOCK_POS).map(level::getFluidState);
 
-		Context fluidContext = ContextImpl.of(context, builder -> builder.addOptional(NeoApoliContextKeys.FLUID_STATE, fluidState));
-		return fluidCondition().test(fluidContext.makeChild(".fluid_condition"));
+		Context fluidContext = new Context.Builder(context)
+			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.FLUID))
+			.addOptional(NeoApoliContextKeys.FLUID_STATE, fluidState)
+			.build(level);
+
+		return fluidCondition().test(fluidContext.forChild(".fluid_condition"));
 
 	}
 

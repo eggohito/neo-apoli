@@ -30,7 +30,7 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 					try {
 
 						if (context.markActive(condition)) {
-							return condition.test(context.makeChild("{" + this.value() + "}", this.value()));
+							return condition.test(context.forChild("{" + this.value() + "}", this.value()));
 						}
 
 						else {

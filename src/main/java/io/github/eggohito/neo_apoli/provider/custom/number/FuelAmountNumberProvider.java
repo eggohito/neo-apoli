@@ -26,7 +26,7 @@ public record FuelAmountNumberProvider() implements NumberProvider {
 
 	@Override
 	public @NotNull Number next(Context context) {
-		FuelValues fuelRegistry = context.getWorld().fuelValues();
+		FuelValues fuelRegistry = context.getLevel().fuelValues();
 		return context.optional(NeoApoliContextKeys.ITEM_STACK)
 			.map(fuelRegistry::burnDuration)
 			.orElse(0);

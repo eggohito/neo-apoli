@@ -17,7 +17,7 @@ public interface DynamicMetaCondition extends MetaCondition {
 	@Override
 	default boolean test(Context context) {
 
-		Context valueContext = context.makeChild(".value");
+		Context valueContext = context.forChild(".value");
 		boolean value = value().next(valueContext);
 
 		return !valueContext.hasErrors()

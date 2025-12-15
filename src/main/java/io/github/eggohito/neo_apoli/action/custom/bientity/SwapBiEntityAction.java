@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,11 +30,12 @@ public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEnt
 	@Override
 	public void execute(Context context) {
 
-		Context actionContext = ContextImpl.of(context, builder -> builder
+		Context actionContext = new Context.Builder(context)
 			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
-			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY)));
+			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY))
+			.build(context.getLevel());
 
-		biEntityAction().execute(actionContext.makeChild(".bientity_action"));
+		biEntityAction().execute(actionContext.forChild(".bientity_action"));
 
 	}
 

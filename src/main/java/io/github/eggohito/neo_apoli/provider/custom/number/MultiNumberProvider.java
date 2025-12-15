@@ -35,7 +35,7 @@ public interface MultiNumberProvider extends NumberProvider {
 
 		this.iterate((index, number) -> {
 
-			Context numberContext = context.makeChild(".numbers[" + index + "]");
+			Context numberContext = context.forChild(".numbers[" + index + "]");
 			N value = getter.apply(number, numberContext);
 
 			if (!numberContext.hasErrors()) {

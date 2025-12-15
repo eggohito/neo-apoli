@@ -31,7 +31,7 @@ public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 
 	@Override
 	public @NotNull Tag next(Context context) {
-		return ((CommandStorageHolder) context.getWorld()).neo_apoli$get(this.id());
+		return ((CommandStorageHolder) context.getLevel()).neo_apoli$get(this.id());
 	}
 
 }

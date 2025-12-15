@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -22,8 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public record
-ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements BlockAction {
+public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements BlockAction {
 
 	private static final MapCodec<StringProvider> PROPERTY_CODEC = StringProvider.CODEC.fieldOf("property");
 	private static final MapCodec<Optional<StringProvider>> VALUE_CODEC = StringProvider.CODEC.optionalFieldOf("value");
@@ -79,13 +78,13 @@ ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProv
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
+		if (!context.getLevel().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		ServerContext propertyContext = context.makeChild(".property");
+		Context propertyContext = context.forChild(".property");
 		String propertyName = property().next(propertyContext);
 
 		if (propertyContext.hasErrors() || propertyName.isEmpty()) {
@@ -97,17 +96,17 @@ ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProv
 
 		if (property != null) {
 
-			ServerContext cycleContext = context.makeChild(".cycle");
+			Context cycleContext = context.forChild(".cycle");
 			Optional<Boolean> cycle = cycle().map(provider -> provider.next(cycleContext));
 
 			if (!cycleContext.hasErrors()) {
 
 				if (cycle.orElse(false)) {
-					context.getWorld().setBlockAndUpdate(context.required(NeoApoliContextKeys.BLOCK_POS), blockState.cycle(property));
+					context.getLevel().setBlockAndUpdate(context.required(NeoApoliContextKeys.BLOCK_POS), blockState.cycle(property));
 				}
 
 				else {
-					setValue(context, blockState, property);
+					this.setValue(context, blockState, property);
 				}
 
 			}
@@ -133,9 +132,9 @@ ModifyBlockStatePropertyBlockAction(StringProvider property, Optional<StringProv
 		cycle().ifPresent(cycle -> cycle.validate(reporter.forChild(".cycle")));
 	}
 
-	private <T extends Comparable<T>> void setValue(ServerContext context, StateHolder<?, ?> state, Property<T> property) {
+	private <T extends Comparable<T>> void setValue(Context context, StateHolder<?, ?> state, Property<T> property) {
 
-		ServerContext valueContext = context.makeChild(".value");
+		Context valueContext = context.forChild(".value");
 		Optional<T> value = value()
 			.map(provider -> provider.next(valueContext))
 			.flatMap(property::getValue);

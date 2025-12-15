@@ -103,7 +103,7 @@ public class HudRenderPower extends Power {
 				int index = listIterator.nextIndex();
 				HudElement hudElement = listIterator.next();
 
-				Context hudContext = context.makeChild(".hud_elements[" + index + "]");
+				Context hudContext = context.forChild(".hud_elements[" + index + "]");
 				boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);
 
 				if (doNotHide && hudElement.shouldRender(hudContext, renderPhase)) {

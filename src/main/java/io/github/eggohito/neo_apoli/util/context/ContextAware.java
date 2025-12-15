@@ -28,8 +28,6 @@ public interface ContextAware {
 
 	class ProblemReporter implements net.minecraft.util.ProblemReporter {
 
-		private final ProblemReporter parent;
-
 		@Getter
 		private final Optional<HolderLookup.Provider> holderProvider;
 		@Getter
@@ -42,8 +40,7 @@ public interface ContextAware {
 		private final String path;
 		private final Supplier<String> fullPathSupplier;
 
-		protected ProblemReporter(ProblemReporter parent, Optional<HolderLookup.Provider> holderProvider, ContextKeySet keySet, Multimap<String, String> errors, Set<ReferenceKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
-			this.parent = parent;
+		protected ProblemReporter(Optional<HolderLookup.Provider> holderProvider, ContextKeySet keySet, Multimap<String, String> errors, Set<ReferenceKey> referenceStack, String path, Supplier<String> fullPathSupplier) {
 			this.holderProvider = holderProvider;
 			this.keySet = keySet;
 			this.errors = errors;
@@ -53,7 +50,7 @@ public interface ContextAware {
 		}
 
 		public ProblemReporter(ContextKeySet keySet, String path) {
-			this(null, Optional.empty(), keySet, HashMultimap.create(), Set.of(), path, () -> path);
+			this(Optional.empty(), keySet, HashMultimap.create(), Set.of(), path, () -> path);
 		}
 
 		public ProblemReporter(String path) {
@@ -70,7 +67,7 @@ public interface ContextAware {
 
 		@Override
 		public ProblemReporter forChild(String path) {
-			return new ProblemReporter(this, this.holderProvider, this.keySet, this.errors, this.referenceStack, path, () -> appendPath(path));
+			return new ProblemReporter(this.holderProvider, this.keySet, this.errors, this.referenceStack, path, () -> appendPath(path));
 		}
 
 		public ProblemReporter forChild(String path, ReferenceKey key) {
@@ -80,16 +77,16 @@ public interface ContextAware {
 				.add(key)
 				.build();
 
-			return new ProblemReporter(this, this.holderProvider, this.keySet, this.errors, referenceStack, path, () -> appendPath(path));
+			return new ProblemReporter(this.holderProvider, this.keySet, this.errors, referenceStack, path, () -> appendPath(path));
 
 		}
 
 		public ProblemReporter withKeySet(ContextKeySet contextType) {
-			return new ProblemReporter(this.parent, this.holderProvider, contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
+			return new ProblemReporter(this.holderProvider, contextType, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
-		public ProblemReporter withHolderProvider(@NotNull HolderLookup.Provider wrapperLookup) {
-			return new ProblemReporter(this.parent, Optional.of(wrapperLookup), this.keySet, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
+		public ProblemReporter withHolderProvider(@NotNull HolderLookup.Provider holderProvider) {
+			return new ProblemReporter(Optional.of(holderProvider), this.keySet, this.errors, this.referenceStack, this.path, this.fullPathSupplier);
 		}
 
 		@Override
@@ -132,44 +129,12 @@ public interface ContextAware {
 
 		}
 
-		public boolean hasWrapperLookup() {
+		public boolean hasHolderProvider() {
 			return holderProvider.isPresent();
 		}
 
 		public String getFullPath() {
 			return fullPathSupplier.get();
-		}
-
-		public ProblemReporter getParent() {
-
-			if (this.hasParent()) {
-				return parent;
-			}
-
-			else {
-				throw new UnsupportedOperationException("The root reporter cannot have a parent!");
-			}
-
-		}
-
-		public boolean hasParent() {
-			return parent != null;
-		}
-
-		public ProblemReporter getRoot() {
-
-			if (this.parent == null) {
-				return this;
-			}
-
-			else {
-				return this.parent.getRoot();
-			}
-
-		}
-
-		public boolean isRoot() {
-			return this.parent == null;
 		}
 
 		public boolean isInStack(ReferenceKey key) {

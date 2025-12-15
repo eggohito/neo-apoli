@@ -5,7 +5,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,12 +32,13 @@ public interface TestEntityMetaCondition extends MetaCondition {
 		}
 
 		Entity entity = context.required(entity());
-		Context conditionContext = new ContextImpl.Builder(context)
+		Context conditionContext = new Context.Builder(context)
+			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
 			.add(NeoApoliContextKeys.THIS_POS, entity.position())
 			.build(entity.level());
 
-		return condition().test(conditionContext.makeChild(".condition"));
+		return condition().test(conditionContext.forChild(".condition"));
 
 	}
 

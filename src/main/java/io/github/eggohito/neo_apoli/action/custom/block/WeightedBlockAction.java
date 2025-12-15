@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.ai.behavior.ShufflingList;
@@ -20,16 +18,6 @@ public record WeightedBlockAction(ShufflingList<BlockAction> entries) implements
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.WEIGHTED;
-	}
-
-	@Override
-	public void execute(Context context) {
-		WeightedMetaAction.super.execute(context);
-	}
-
-	@Override
-	public void serverExecute(ServerContext context) {
-		WeightedMetaAction.super.execute(context);
 	}
 
 	@Override

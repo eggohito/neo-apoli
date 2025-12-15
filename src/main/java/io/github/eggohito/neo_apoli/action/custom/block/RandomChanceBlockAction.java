@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -22,16 +20,6 @@ public record RandomChanceBlockAction(BlockAction successAction, Optional<BlockA
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.RANDOM_CHANCE;
-	}
-
-	@Override
-	public void execute(Context context) {
-		RandomChanceMetaAction.super.execute(context);
-	}
-
-	@Override
-	public void serverExecute(ServerContext context) {
-		RandomChanceMetaAction.super.execute(context);
 	}
 
 	@Override

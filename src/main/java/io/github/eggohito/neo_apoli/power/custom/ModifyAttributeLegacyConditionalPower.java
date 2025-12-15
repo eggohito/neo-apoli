@@ -72,7 +72,7 @@ public class ModifyAttributeLegacyConditionalPower extends AttributeModifying {
 		public void onTick() {
 
 			Context context = createHolderContext();
-			int tickRate = power.getTickRate().nextInt(context.makeChild(".tick_rate"));
+			int tickRate = power.getTickRate().nextInt(context.forChild(".tick_rate"));
 
 			if (context.hasAnyErrors()) {
 

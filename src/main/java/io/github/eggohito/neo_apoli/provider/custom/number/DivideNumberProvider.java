@@ -32,14 +32,14 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context dividendContext = context.makeChild(".dividend");
+		Context dividendContext = context.forChild(".dividend");
 		double dividend = dividend().nextDouble(dividendContext);
 
 		if (dividendContext.hasErrors()) {
 			return 0.0d;
 		}
 
-		Context divisorContext = context.makeChild(".divisor");
+		Context divisorContext = context.forChild(".divisor");
 		double divisor = divisor().nextDouble(divisorContext);
 
 		if (divisorContext.hasErrors()) {

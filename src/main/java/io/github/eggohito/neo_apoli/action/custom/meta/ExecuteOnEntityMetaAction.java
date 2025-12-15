@@ -5,14 +5,16 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -25,13 +27,18 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		Optional<Entity> entity = context.optional(entity());
-		Context entityContext = ContextImpl.of(context, builder -> builder
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
-			.addOptional(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.addOptional(NeoApoliContextKeys.THIS_POS, entity.map(Entity::position)));
+		if (!context.hasParameter(entity())) {
+			return;
+		}
 
-		action().execute(entityContext.makeChild(".action"));
+		Entity entity = context.required(entity());
+		Context actionContext = new Context.Builder(context)
+			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
+			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
+			.add(NeoApoliContextKeys.THIS_POS, entity.position())
+			.build(entity.level());
+
+		action().execute(actionContext.forChild(".action"));
 
 	}
 

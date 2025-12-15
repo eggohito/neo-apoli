@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.event.ModifyValue;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -84,7 +83,7 @@ public abstract class DamageModifyingPower extends Power {
 		}
 
 		public void execute(Context context) {
-			power.getOnModifyAction().execute(context.makeChild(".on_modify_action"));
+			power.getOnModifyAction().execute(context.forChild(".on_modify_action"));
 		}
 
 	}
@@ -95,8 +94,10 @@ public abstract class DamageModifyingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -112,7 +113,7 @@ public abstract class DamageModifyingPower extends Power {
 					int index = listIterator.nextIndex();
 					Modifier modifier = listIterator.next();
 
-					entries.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+					entries.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
 
 				}
 

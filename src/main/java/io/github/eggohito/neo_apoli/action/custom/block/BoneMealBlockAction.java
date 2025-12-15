@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,26 +35,25 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
-			return;
-		}
+		BlockPos blockPos = context.nullable(NeoApoliContextKeys.BLOCK_POS);
+		Direction direction = context.nullable(NeoApoliContextKeys.DIRECTION);
 
-		ServerLevel world = context.getWorld();
-		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
+		if (context.getLevel() instanceof ServerLevel serverLevel && blockPos != null) {
 
-		if (BoneMealItem.growCrop(ItemStack.EMPTY, world, blockPos)) {
-			this.showEffects(context, blockPos);
-		}
-
-		else if (context.hasParameter(NeoApoliContextKeys.DIRECTION)) {
-
-			Direction direction = context.required(NeoApoliContextKeys.DIRECTION);
-			BlockState blockState = world.getBlockState(blockPos);
-
-			if (blockState.isFaceSturdy(world, blockPos, direction) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, world, blockPos.relative(direction), direction)) {
+			if (BoneMealItem.growCrop(ItemStack.EMPTY, serverLevel, blockPos)) {
 				this.showEffects(context, blockPos);
+			}
+
+			else if (direction != null) {
+
+				BlockState blockState = serverLevel.getBlockState(blockPos);
+
+				if (blockState.isFaceSturdy(serverLevel, blockPos, direction) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, serverLevel, blockPos.relative(direction), direction)) {
+					this.showEffects(context, blockPos);
+				}
+
 			}
 
 		}
@@ -68,13 +66,13 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 		showEffects().validate(reporter.forChild(".show_effects"));
 	}
 
-	private void showEffects(ServerContext context, BlockPos blockPos) {
+	private void showEffects(Context context, BlockPos blockPos) {
 
-		Context showEffectsContext = context.makeChild(".show_effects");
+		Context showEffectsContext = context.forChild(".show_effects");
 		boolean showEffects = showEffects().next(showEffectsContext);
 
 		if (!showEffectsContext.hasErrors() && showEffects) {
-			context.getWorld().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
+			context.getLevel().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
 		}
 
 	}

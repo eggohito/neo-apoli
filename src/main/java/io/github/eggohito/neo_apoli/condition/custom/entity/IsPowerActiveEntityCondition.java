@@ -45,7 +45,7 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 				return powersComponent.hasInstance(this.power())
-					&& powersComponent.getInstance(this.power()).isActive(context.makeChild(".power"));
+					&& powersComponent.getInstance(this.power()).isActive(context.forChild(".power"));
 
 			}
 

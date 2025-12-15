@@ -4,7 +4,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -39,7 +39,7 @@ public class FloatContextKey extends TypedContextKey<Float> {
 				CommandSourceStack source = context.getSource();
 				float value = FloatArgumentType.getFloat(context, "value");
 
-				((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(FloatContextKey.this, value);
+				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(FloatContextKey.this, value);
 				return source;
 
 			}

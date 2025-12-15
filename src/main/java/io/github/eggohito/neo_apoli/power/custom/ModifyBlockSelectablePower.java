@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -77,7 +76,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().next(context.makeChild(".allow"));
+			return power.getAllow().next(context.forChild(".allow"));
 		}
 
 	}
@@ -95,8 +94,10 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

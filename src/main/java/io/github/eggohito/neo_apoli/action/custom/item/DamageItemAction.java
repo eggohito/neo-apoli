@@ -12,10 +12,10 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvide
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
@@ -42,21 +42,21 @@ public record DamageItemAction(TypedContextKey<Entity> entity, NumberProvider am
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		SlotAccess stackReference = context.required(NeoApoliContextKeys.STACK_REFERENCE);
-		ItemStack stack = stackReference.get();
+		SlotAccess stackAccess = context.required(NeoApoliContextKeys.STACK_REFERENCE);
+		ItemStack stack = stackAccess.get();
 
-		Context amountContext = context.makeChild(".amount");
+		Context amountContext = context.forChild(".amount");
 		int amount = Math.abs(amount().nextInt(amountContext));
 
 		if (!amountContext.hasErrors()) {
 
-			Context ignoreUnbreakingContext = context.makeChild(".ignore_unbreaking");
+			Context ignoreUnbreakingContext = context.forChild(".ignore_unbreaking");
 			boolean ignoreUnbreaking = ignoreUnbreaking().next(ignoreUnbreakingContext);
 
 			if (!ignoreUnbreakingContext.hasErrors()) {
@@ -80,7 +80,7 @@ public record DamageItemAction(TypedContextKey<Entity> entity, NumberProvider am
 						.map(ServerPlayer.class::cast)
 						.orElse(null);
 
-					stack.hurtAndBreak(amount, context.getWorld(), itemHolder, item -> {});
+					stack.hurtAndBreak(amount, serverLevel, itemHolder, item -> {});
 
 				}
 

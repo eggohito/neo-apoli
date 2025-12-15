@@ -31,7 +31,7 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 	@Override
 	public @NotNull Tag next(Context context) {
 
-		HolderLookup.Provider wrapperLookup = context.getWorld().registryAccess();
+		HolderLookup.Provider wrapperLookup = context.getLevel().registryAccess();
 		Optional<BlockEntity> optBlockEntity = context.optional(NeoApoliContextKeys.BLOCK_ENTITY);
 
 		if (optBlockEntity.isEmpty()) {

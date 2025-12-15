@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -81,8 +80,8 @@ public class ModifyClimbingPower extends Power {
 
 		public boolean canHold(Context context) {
 			return this.isActive(context)
-				&& this.getPower().getAllowHolding().next(context.makeChild(".allow_holding"))
-				&& this.getPower().getHoldingCondition().test(context.makeChild(".holding_condition"));
+				&& this.getPower().getAllowHolding().next(context.forChild(".allow_holding"))
+				&& this.getPower().getHoldingCondition().test(context.forChild(".holding_condition"));
 		}
 
 	}
@@ -100,8 +99,10 @@ public class ModifyClimbingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

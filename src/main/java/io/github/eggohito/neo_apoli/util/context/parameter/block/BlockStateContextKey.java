@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.util.context.parameter.block;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -42,7 +42,7 @@ public class BlockStateContextKey extends TypedContextKey<BlockState> {
 				BlockPos blockPos = BlockPosArgument.getLoadedBlockPos(context, "pos");
 
 				BlockState blockEntity = source.getLevel().getBlockState(blockPos);
-				((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(BlockStateContextKey.this, blockEntity);
+				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(BlockStateContextKey.this, blockEntity);
 
 				return source;
 

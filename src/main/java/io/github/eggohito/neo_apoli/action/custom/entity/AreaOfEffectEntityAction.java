@@ -9,7 +9,10 @@ import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -44,25 +47,26 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		Entity actor = context.required(NeoApoliContextKeys.THIS_ENTITY);
 
-		Context radiusContext = context.makeChild(".radius");
+		Context radiusContext = context.forChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
 
 		if (radiusContext.hasErrors() || Math.signum(radius) <= 0) {
 			return;
 		}
 
-		for (var target : shape().getEntities(world, context.required(NeoApoliContextKeys.THIS_POS), radius)) {
+		for (var target : shape().getEntities(level, context.required(NeoApoliContextKeys.THIS_POS), radius)) {
 
-			Context biEntityContext = ContextImpl.of(context, builder -> builder
+			Context biEntityContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-				.add(NeoApoliContextKeys.TARGET_ENTITY, target));
+				.add(NeoApoliContextKeys.TARGET_ENTITY, target)
+				.build(level);
 
-			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
-				biEntityAction().execute(biEntityContext.makeChild(".bientity_action"));
+			if (biEntityCondition().test(biEntityContext.forChild(".bientity_condition"))) {
+				biEntityAction().execute(biEntityContext.forChild(".bientity_action"));
 			}
 
 		}

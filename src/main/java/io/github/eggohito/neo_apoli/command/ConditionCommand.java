@@ -10,14 +10,14 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
@@ -138,7 +138,7 @@ public class ConditionCommand {
 		public static boolean test(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			CommandSourceStack source = commandContext.getSource();
-			ServerContext.Builder builder = ((ServerContextBuilderHolder) source).neo_apoli$getBuilder();
+			Context.Builder contextBuilder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
 
 			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
 			String display = condition.asDisplayString(false);
@@ -151,7 +151,7 @@ public class ConditionCommand {
 				);
 
 				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
-				ServerContext serverContext = builder
+				Context context = contextBuilder
 					.withReporter(reporter)
 					.build(source.getLevel());
 
@@ -161,7 +161,7 @@ public class ConditionCommand {
 					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
 				}
 
-				boolean result = condition.test(serverContext) && !reporter.hasAnyErrors();
+				boolean result = condition.test(context) && !reporter.hasAnyErrors();
 
 				if (reporter.hasAnyErrors()) {
 					source.sendSuccess(() -> Component.literal("").append("Warnings found when testing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);

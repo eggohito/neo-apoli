@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -42,7 +41,7 @@ public record OffsetEntityAction(EntityAction action, Vec3Provider offset) imple
 			return;
 		}
 
-		Context offsetContext = context.makeChild(".offset");
+		Context offsetContext = context.forChild(".offset");
 		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
@@ -50,9 +49,11 @@ public record OffsetEntityAction(EntityAction action, Vec3Provider offset) imple
 		}
 
 		Vec3 offsetPos = context.required(NeoApoliContextKeys.THIS_POS).add(offset);
-		Context actionContext = ContextImpl.of(context, builder -> builder.add(NeoApoliContextKeys.THIS_POS, offsetPos));
+		Context actionContext = new Context.Builder(context)
+			.add(NeoApoliContextKeys.THIS_POS, offsetPos)
+			.build(context.getLevel());
 
-		action().execute(actionContext.makeChild(".action"));
+		action().execute(actionContext.forChild(".action"));
 
 	}
 

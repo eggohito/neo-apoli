@@ -26,16 +26,16 @@ public interface LoopMetaAction<A extends Action> extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		beforeAction().ifPresent(beforeAction -> beforeAction.execute(context.makeChild(".before_action")));
+		beforeAction().ifPresent(beforeAction -> beforeAction.execute(context.forChild(".before_action")));
 
-		Context iterationsContext = context.makeChild(".iterations");
+		Context iterationsContext = context.forChild(".iterations");
 		int iterations = iterations().nextInt(iterationsContext);
 
 		for (int i = 0; !iterationsContext.hasErrors() && i < iterations; i++) {
-			action().execute(context.makeChild(".action"));
+			action().execute(context.forChild(".action"));
 		}
 
-		afterAction().ifPresent(afterAction -> afterAction.execute(context.makeChild(".after_action")));
+		afterAction().ifPresent(afterAction -> afterAction.execute(context.forChild(".after_action")));
 
 	}
 

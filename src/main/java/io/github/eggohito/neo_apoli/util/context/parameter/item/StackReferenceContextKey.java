@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.util.context.parameter.item;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.commands.CommandBuildContext;
@@ -61,7 +61,7 @@ public class StackReferenceContextKey extends TypedContextKey<SlotAccess> {
 				if (world.getBlockEntity(blockPos) instanceof Container inventory) {
 
 					if (slot >= 0 && slot < inventory.getContainerSize()) {
-						((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(StackReferenceContextKey.this, SlotAccess.forContainer(inventory, slot));
+						((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(StackReferenceContextKey.this, SlotAccess.forContainer(inventory, slot));
 					}
 
 					else {
@@ -88,7 +88,7 @@ public class StackReferenceContextKey extends TypedContextKey<SlotAccess> {
 				SlotAccess stackReference = target.getSlot(slot);
 
 				if (stackReference != SlotAccess.NULL) {
-					((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(StackReferenceContextKey.this, stackReference);
+					((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(StackReferenceContextKey.this, stackReference);
 				}
 
 				else {

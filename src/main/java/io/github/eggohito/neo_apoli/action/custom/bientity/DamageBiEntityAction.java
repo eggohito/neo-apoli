@@ -36,11 +36,11 @@ public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
+		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
-		Context amountContext = context.makeChild(".amount");
+		Context amountContext = context.forChild(".amount");
 		float amount = amount().nextFloat(amountContext);
 
 		if (amountContext.hasErrors()) {

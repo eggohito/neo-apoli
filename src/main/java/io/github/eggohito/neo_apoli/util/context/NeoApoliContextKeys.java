@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
-import io.github.eggohito.neo_apoli.util.context.parameter.Vec3DContextKey;
+import io.github.eggohito.neo_apoli.util.context.parameter.Vec3ContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockEntityContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockPosContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.block.BlockStateContextKey;
@@ -62,7 +62,7 @@ public final class NeoApoliContextKeys {
 	//	Usually used in entity contexts
 	public static final TypedContextKey<Entity> PROJECTILE_ENTITY = registerInternal("projectile_entity", id -> new TypedContextKey<>(id, Entity.class));
 	public static final TypedContextKey<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextKey::new);
-	public static final TypedContextKey<Vec3> THIS_POS = registerInternal("this_pos", Vec3DContextKey::new);
+	public static final TypedContextKey<Vec3> THIS_POS = registerInternal("this_pos", Vec3ContextKey::new);
 
 	//	Usually used in fluid contexts
 	public static final TypedContextKey<FluidState> FLUID_STATE = registerInternal("fluid_state", FluidStateContextKey::new);

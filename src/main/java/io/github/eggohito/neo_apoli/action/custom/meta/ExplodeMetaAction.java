@@ -55,25 +55,25 @@ public interface ExplodeMetaAction extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		if (!(context.getWorld() instanceof ServerLevel serverWorld)) {
+		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
 			return;
 		}
 
-		Context positionContext = context.makeChild(".position");
+		Context positionContext = context.forChild(".position");
 		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return;
 		}
 
-		Context powerContext = context.makeChild(".power");
+		Context powerContext = context.forChild(".power");
 		float power = property().power().nextFloat(powerContext);
 
 		if (powerContext.hasErrors()) {
 			return;
 		}
 
-		Context createFireContext = context.makeChild(".create_fire");
+		Context createFireContext = context.forChild(".create_fire");
 		boolean createFire = property().createFire().next(createFireContext);
 
 		if (createFireContext.hasErrors()) {
@@ -131,37 +131,40 @@ public interface ExplodeMetaAction extends MetaAction {
 		@Override
 		public boolean shouldBlockExplode(Explosion explosion, BlockGetter world, BlockPos pos, BlockState state, float power) {
 
-			Context blockContext = ContextImpl.of(context, builder -> builder
+			Context blockContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
 				.add(NeoApoliContextKeys.BLOCK_POS, pos)
 				.add(NeoApoliContextKeys.BLOCK_STATE, state)
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(pos)));
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(pos))
+				.build(context.getLevel());
 
-			return action.destructibleBlockCondition().test(blockContext.makeChild(".destructible_block_condition"));
+			return action.destructibleBlockCondition().test(blockContext.forChild(".destructible_block_condition"));
 
 		}
 
 		@Override
 		public boolean shouldDamageEntity(Explosion explosion, Entity entity) {
 
-			Context biEntityContext = ContextImpl.of(context, builder -> builder
+			Context biEntityContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity));
+				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity)
+				.build(context.getLevel());
 
-			return action.damageableBiEntityCondition().test(biEntityContext.makeChild(".damageable_bientity_condition"));
+			return action.damageableBiEntityCondition().test(biEntityContext.forChild(".damageable_bientity_condition"));
 
 		}
 
 		@Override
 		public float getKnockbackMultiplier(Entity entity) {
 
-			Context knockbackModifierContext = ContextImpl.of(context, builder -> builder
+			Context knockbackContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity));
+				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity)
+				.build(context.getLevel());
 
-			return action.property().knockbackMultiplier().nextFloat(knockbackModifierContext.makeChild(".knockback_multiplier"));
+			return action.property().knockbackMultiplier().nextFloat(knockbackContext.forChild(".knockback_multiplier"));
 
 		}
 

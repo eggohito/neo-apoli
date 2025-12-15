@@ -152,7 +152,7 @@ public class MultiplePower extends Power {
 
 				PowerEntry<?> entry = PowerEntry.STREAM_CODEC.decode(buf);
 
-				if (entry.subPower()) {
+				if (entry.isSubPower()) {
 					entries.add(entry);
 				}
 

@@ -16,7 +16,7 @@ public interface InvertedMetaCondition<C extends Condition> extends MetaConditio
 
 	@Override
 	default boolean test(Context context) {
-		return !condition().test(context.makeChild(".condition"));
+		return !condition().test(context.forChild(".condition"));
 	}
 
 	@Override

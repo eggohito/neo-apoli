@@ -9,15 +9,14 @@ import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockConditio
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.context.ContextKey;
 
-import java.util.Set;
+import java.util.List;
 
 public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition blockCondition, Shape shape, NumberProvider radius) implements BlockAction {
 
@@ -42,45 +41,40 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		ServerLevel world = context.getWorld();
-		BlockPos originBlockPos = context.nullable(NeoApoliContextKeys.BLOCK_POS);
-
-		if (originBlockPos == null) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
 			return;
 		}
 
-		ServerContext radiusContext = context.makeChild(".radius");
+		Context radiusContext = context.forChild(".radius");
 		int radius = radius().nextInt(radiusContext);
 
 		if (radiusContext.hasErrors() || radius <= 0) {
 			return;
 		}
 
-		for (BlockPos blockPos : shape().getBlockPositions(originBlockPos, radius)) {
+		BlockPos origin = context.required(NeoApoliContextKeys.BLOCK_POS);
+		List<BlockPos> collectedPos = shape().getBlockPositions(origin, radius);
 
-			if (!world.hasChunkAt(blockPos)) {
+		for (var pos : collectedPos) {
+
+			if (!serverLevel.hasChunkAt(pos)) {
 				continue;
 			}
 
-			ServerContext blockContext = new ServerContext.Builder(context)
-				.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-				.build(world);
+			Context blockContext = new Context.Builder(context)
+				.add(NeoApoliContextKeys.BLOCK_POS, pos)
+				.add(NeoApoliContextKeys.BLOCK_STATE, serverLevel.getBlockState(pos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, serverLevel.getBlockEntity(pos))
+				.build(serverLevel);
 
-			if (blockCondition().test(blockContext.makeChild(".block_condition"))) {
-				blockAction().execute(blockContext.makeChild(".block_action"));
+			if (blockCondition().test(blockContext.forChild(".block_condition"))) {
+				blockAction().execute(blockContext.forChild(".block_action"));
 			}
 
 		}
 
-	}
-
-	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override

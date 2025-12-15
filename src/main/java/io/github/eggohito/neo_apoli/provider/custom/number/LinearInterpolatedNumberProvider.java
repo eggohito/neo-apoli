@@ -58,13 +58,13 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 
 	private <N extends Number> N lerp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Float, N, N, N> interpolator) {
 
-		Context deltaContext = context.makeChild(".delta");
+		Context deltaContext = context.forChild(".delta");
 		float delta = delta().nextFloat(deltaContext);
 
-		Context startContext = context.makeChild(".start");
+		Context startContext = context.forChild(".start");
 		N start = getter.apply(start(), startContext);
 
-		Context endContext = context.makeChild(".end");
+		Context endContext = context.forChild(".end");
 		N end = getter.apply(end(), endContext);
 
 		if (deltaContext.hasErrors() || endContext.hasErrors()) {

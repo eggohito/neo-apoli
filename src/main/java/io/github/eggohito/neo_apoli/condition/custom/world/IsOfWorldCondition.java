@@ -29,7 +29,7 @@ public record IsOfWorldCondition(ResourceKey<Level> dimension) implements WorldC
 
 	@Override
 	public boolean test(Context context) {
-		return context.getWorld().dimension().equals(this.dimension());
+		return context.getLevel().dimension().equals(this.dimension());
 	}
 
 }

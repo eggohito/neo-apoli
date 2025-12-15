@@ -37,7 +37,7 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 	@Override
 	public void execute(Context context) {
 
-		if (context.getWorld().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (context.getLevel().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
@@ -48,7 +48,7 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 			return;
 		}
 
-		Context forceContext = context.makeChild(".force");
+		Context forceContext = context.forChild(".force");
 		boolean force = force().next(forceContext);
 
 		if (!forceContext.hasErrors() && actor.startRiding(target, force)) {

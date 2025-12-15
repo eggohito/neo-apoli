@@ -281,7 +281,7 @@ public final class PowerManager implements JsonReloadListener {
 		Set<PowerEntry<?>> filteredEntries = new ObjectOpenHashSet<>();
 		BY_REFERENCE.forEach((reference, entry) -> {
 
-			if (!reference.subPower()) {
+			if (!reference.isSubPower()) {
 				filteredEntries.add(entry);
 			}
 

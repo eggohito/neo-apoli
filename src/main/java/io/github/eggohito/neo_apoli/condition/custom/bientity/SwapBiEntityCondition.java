@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTyp
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,11 +30,12 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	@Override
 	public boolean test(Context context) {
 
-		Context conditionContext = ContextImpl.of(context, builder -> builder
+		Context conditionContext = new Context.Builder(context)
 			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
-			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY)));
+			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY))
+			.build(context.getLevel());
 
-		return condition().test(conditionContext.makeChild(".condition"));
+		return condition().test(conditionContext.forChild(".condition"));
 
 	}
 

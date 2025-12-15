@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.util.context.parameter.entity;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.duck.ServerContextBuilderHolder;
+import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -40,7 +40,7 @@ public class EntityContextKey extends TypedContextKey<Entity> {
 				CommandSourceStack source = context.getSource();
 				Entity entity = EntityArgument.getEntity(context, "entity");
 
-				((ServerContextBuilderHolder) source).neo_apoli$getBuilder().add(EntityContextKey.this, entity);
+				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().add(EntityContextKey.this, entity);
 				return source;
 
 			}

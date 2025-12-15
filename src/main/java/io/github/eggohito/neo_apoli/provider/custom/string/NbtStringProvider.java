@@ -37,7 +37,7 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	@Override
 	public @NotNull String next(Context context) {
 
-		Context sourceContext = context.makeChild(".source");
+		Context sourceContext = context.forChild(".source");
 		Tag source = source().next(sourceContext);
 
 		if (sourceContext.hasErrors()) {

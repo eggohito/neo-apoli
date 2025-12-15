@@ -47,7 +47,7 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		float scaledWidth = graphics.guiWidth();
 		float scaledHeight = graphics.guiHeight();
 
-		Context colorContext = context.makeChild(".color");
+		Context colorContext = context.forChild(".color");
 		int color = nauseaOverlay.color().getValue(colorContext);
 
 		float intensity = ARGB.alphaFloat(color);

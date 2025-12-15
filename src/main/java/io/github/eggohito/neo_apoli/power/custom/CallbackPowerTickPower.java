@@ -91,7 +91,7 @@ public class CallbackPowerTickPower extends Power {
 		public void onTick() {
 
 			Context context = createHolderContext();
-			int interval = power.getInterval().nextInt(context.makeChild(".interval"));
+			int interval = power.getInterval().nextInt(context.forChild(".interval"));
 
 			if (context.hasAnyErrors()) {
 
@@ -118,12 +118,12 @@ public class CallbackPowerTickPower extends Power {
 					else if (interval <= 0 || ticks == startTicks) {
 
 						if (!wasActive) {
-							power.getRisingAction().execute(context.makeChild(".rising_action"));
+							power.getRisingAction().execute(context.forChild(".rising_action"));
 							this.wasActive = true;
 						}
 
 						else {
-							power.getTickAction().execute(context.makeChild(".tick_action"));
+							power.getTickAction().execute(context.forChild(".tick_action"));
 						}
 
 					}
@@ -138,7 +138,7 @@ public class CallbackPowerTickPower extends Power {
 					}
 
 					else if (interval <= 0 || ticks == endTicks) {
-						power.getFallingAction().execute(context.makeChild(".falling_action"));
+						power.getFallingAction().execute(context.forChild(".falling_action"));
 						this.wasActive = false;
 					}
 

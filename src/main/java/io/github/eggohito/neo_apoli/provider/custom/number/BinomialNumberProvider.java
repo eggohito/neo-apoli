@@ -33,13 +33,13 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	@Override
 	public @NotNull Number next(Context context) {
 
-		RandomSource random = context.getWorld().getRandom();
+		RandomSource random = context.getLevel().getRandom();
 		long result = 0;
 
-		Context attemptsContext = context.makeChild(".attempts");
+		Context attemptsContext = context.forChild(".attempts");
 		long attempts = attempts().nextLong(attemptsContext);
 
-		Context probabilityContext = context.makeChild(".probability");
+		Context probabilityContext = context.forChild(".probability");
 		double probability = probability().nextDouble(probabilityContext);
 
 		for (int i = 0; !attemptsContext.hasErrors() && !probabilityContext.hasErrors() && i < attempts; i++) {

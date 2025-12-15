@@ -74,13 +74,13 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 			return;
 		}
 
-		Context pointsContext = context.makeChild(".points");
+		Context pointsContext = context.forChild(".points");
 		this.points()
 			.map(provider -> provider.nextInt(pointsContext))
 			.filter(Predicate.not(points -> pointsContext.hasErrors()))
 			.ifPresent(serverPlayer::giveExperiencePoints);
 
-		Context levelsContext = context.makeChild(".levels");
+		Context levelsContext = context.forChild(".levels");
 		this.levels()
 			.map(provider -> provider.nextInt(levelsContext))
 			.filter(Predicate.not(levels -> levelsContext.hasErrors()))

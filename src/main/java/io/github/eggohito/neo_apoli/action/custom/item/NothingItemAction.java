@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -22,16 +20,6 @@ public record NothingItemAction() implements ItemAction, NothingMetaAction {
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.NOTHING;
-	}
-
-	@Override
-	public void execute(Context context) {
-
-	}
-
-	@Override
-	public void serverExecute(ServerContext context) {
-
 	}
 
 	@Override

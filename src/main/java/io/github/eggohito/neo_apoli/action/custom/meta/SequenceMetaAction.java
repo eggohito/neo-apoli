@@ -28,7 +28,7 @@ public interface SequenceMetaAction<A extends Action> extends MetaAction {
 			int index = listIterator.nextIndex();
 			A action = listIterator.next();
 
-			action.execute(context.makeChild(".actions[" + index + "]"));
+			action.execute(context.forChild(".actions[" + index + "]"));
 
 		}
 

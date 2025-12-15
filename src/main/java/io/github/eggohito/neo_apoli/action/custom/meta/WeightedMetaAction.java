@@ -28,7 +28,7 @@ public interface WeightedMetaAction<A extends Action> extends MetaAction {
 			int index = listIterator.nextIndex();
 			A entry = listIterator.next();
 
-			entry.execute(context.makeChild(".entries[" + index + "]"));
+			entry.execute(context.forChild(".entries[" + index + "]"));
 
 		}
 

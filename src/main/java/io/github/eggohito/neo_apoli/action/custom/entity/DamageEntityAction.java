@@ -37,14 +37,14 @@ public record DamageEntityAction(Holder<DamageType> damageType, NumberProvider a
 	@Override
 	public void execute(Context context) {
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 
-		if (!(world instanceof ServerLevel serverWorld) || entity == null) {
+		if (!(level instanceof ServerLevel serverWorld) || entity == null) {
 			return;
 		}
 
-		Context amountContext = context.makeChild(".amount");
+		Context amountContext = context.forChild(".amount");
 		float amount = amount().nextFloat(amountContext);
 
 		if (!amountContext.hasErrors()) {

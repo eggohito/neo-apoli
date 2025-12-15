@@ -10,7 +10,10 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
@@ -42,30 +45,32 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		int matches = 0;
 
-		Context positionContext = context.makeChild(".position");
+		Context positionContext = context.forChild(".position");
 		Vec3 position = position().next(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return matches;
 		}
 
-		Context radiusContext = context.makeChild(".radius");
+		Context radiusContext = context.forChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
 
 		if (radiusContext.hasErrors()) {
 			return matches;
 		}
 
-		for (var target : shape().getEntities(world, position, radius)) {
+		for (var target : shape().getEntities(level, position, radius)) {
 
-			Context entityContext = ContextImpl.of(context, builder -> builder
+			Context entityContext = new Context.Builder(context)
+				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
 				.add(NeoApoliContextKeys.THIS_ENTITY, target)
-				.add(NeoApoliContextKeys.THIS_POS, target.position()));
+				.add(NeoApoliContextKeys.THIS_POS, target.position())
+				.build(level);
 
-			if (entityCondition().test(entityContext.makeChild(".entity_condition"))) {
+			if (entityCondition().test(entityContext.forChild(".entity_condition"))) {
 				matches++;
 			}
 

@@ -58,7 +58,7 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
 		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
 
-		VoxelShape shape = shapeType().get(blockState, context.getWorld(), blockPos, CollisionContext.empty());
+		VoxelShape shape = shapeType().get(blockState, context.getLevel(), blockPos, CollisionContext.empty());
 		AABB bounds = shape.isEmpty()
 			? AABBUtil.EMPTY
 			: shape.bounds();

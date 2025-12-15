@@ -29,7 +29,7 @@ public record DifficultyWorldCondition(Difficulty difficulty) implements WorldCo
 
 	@Override
 	public boolean test(Context context) {
-		return context.getWorld().getDifficulty() == this.difficulty();
+		return context.getLevel().getDifficulty() == this.difficulty();
 	}
 
 }

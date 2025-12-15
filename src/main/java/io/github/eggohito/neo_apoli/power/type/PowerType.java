@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -21,8 +21,8 @@ public record PowerType<P extends Power>(ContextKeySet keySet, MapCodec<P> mapCo
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.POWER_TYPE);
 
-	public ContextImpl.Builder contextBuilder() {
-		return new ContextImpl.Builder(this.keySet());
+	public Context.Builder contextBuilder() {
+		return new Context.Builder(this.keySet());
 	}
 
 }

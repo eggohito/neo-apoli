@@ -14,7 +14,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -77,11 +76,16 @@ public abstract class Power implements ContextAware {
 	public abstract static class Instance<P extends Power> implements ContextAware {
 
 		protected final Entity holder;
+		protected final PowerEntry<P> entry;
+
 		protected final P power;
+		protected final ProblemReporter reporter;
 
 		protected Instance(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
+			this.entry = tryGettingEntry(power);
 			this.power = power;
+			this.reporter = new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().keySet());
 		}
 
 		@Override
@@ -94,13 +98,9 @@ public abstract class Power implements ContextAware {
 			power.validate(reporter);
 		}
 
-		public final ProblemReporter createReporter() {
-			return new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().keySet());
-		}
-
-		public ContextImpl.Builder createHolderContextBuilder() {
+		public Context.Builder createHolderContextBuilder() {
 			return power.getType().contextBuilder()
-				.withReporter(this.createReporter())
+				.withReporter(this.getReporter())
 				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
 				.add(NeoApoliContextKeys.THIS_POS, holder.position());
 		}
@@ -178,9 +178,28 @@ public abstract class Power implements ContextAware {
 
 		public boolean isActive(Context context) {
 			return power.getActiveCondition()
-				.map(activeCondition -> activeCondition.test(context.makeChild(".active_condition")))
+				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
 				.orElse(true);
 		}
+
+	}
+
+	private static <P extends Power> PowerEntry<P> tryGettingEntry(P power) {
+
+		DataResult<PowerEntry<P>> entry = PowerManager.getReferenceAsResult(power).flatMap(PowerManager::getEntryAsResult).flatMap(e -> {
+
+			if (power.getClass().isInstance(e.power())) {
+				//noinspection unchecked
+				return DataResult.success((PowerEntry<P>) e);
+			}
+
+			else {
+				return DataResult.error(() -> "Entry from power manager doesn't match the power when creating the instance!");
+			}
+
+		});
+
+		return entry.getOrThrow();
 
 	}
 

@@ -25,17 +25,17 @@ public interface RandomChanceMetaAction<A extends Action> extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		Context chanceContext = context.makeChild(".chance");
+		Context chanceContext = context.forChild(".chance");
 		float chance = Mth.clamp(chance().nextFloat(chanceContext), 0.0f, 1.0f);
 
 		if (!chanceContext.hasErrors()) {
 
-			if (context.getWorld().getRandom().nextFloat() < chance) {
-				successAction().execute(context.makeChild(".success_action"));
+			if (context.getLevel().getRandom().nextFloat() < chance) {
+				successAction().execute(context.forChild(".success_action"));
 			}
 
 			else {
-				failAction().ifPresent(elseAction -> elseAction.execute(context.makeChild(".fail_action")));
+				failAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".fail_action")));
 			}
 
 		}

@@ -11,7 +11,10 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -53,9 +56,9 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 		}
 
 		Entity actor = context.required(actor());
-		Level world = actor.level();
+		Level level = actor.level();
 
-		Context radiusContext = context.makeChild(".radius");
+		Context radiusContext = context.forChild(".radius");
 		double radius = radius().nextDouble(radiusContext);
 
 		if (radiusContext.hasErrors()) {
@@ -65,15 +68,15 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 		Vec3 pos = actor.position();
 		int matches = 0;
 
-		for (Entity target : shape().getEntities(world, pos, radius)) {
+		for (Entity target : shape().getEntities(level, pos, radius)) {
 
-			Context biEntityContext = new ContextImpl.Builder(context)
+			Context biEntityContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
 				.add(NeoApoliContextKeys.TARGET_ENTITY, target)
-				.build(world);
+				.build(level);
 
-			if (biEntityCondition().test(biEntityContext.makeChild(".bientity_condition"))) {
+			if (biEntityCondition().test(biEntityContext.forChild(".bientity_condition"))) {
 				matches++;
 			}
 

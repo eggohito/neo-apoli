@@ -41,7 +41,7 @@ public record EmitGameEventEntityAction(Holder<GameEvent> gameEvent) implements 
 		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 		Vec3 pos = context.required(NeoApoliContextKeys.THIS_POS);
 
-		context.getWorld().gameEvent(entity, gameEvent(), pos);
+		context.getLevel().gameEvent(entity, gameEvent(), pos);
 
 	}
 

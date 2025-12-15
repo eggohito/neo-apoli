@@ -32,14 +32,14 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context firstContext = context.makeChild(".first");
+		Context firstContext = context.forChild(".first");
 		Vec3 first = first().next(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return 0.0d;
 		}
 
-		Context secondContext = context.makeChild(".second");
+		Context secondContext = context.forChild(".second");
 		Vec3 second = second().next(secondContext);
 
 		if (secondContext.hasErrors()) {

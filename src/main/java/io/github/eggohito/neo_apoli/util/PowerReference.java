@@ -25,7 +25,7 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 
 	String createTranslationKey();
 
-	boolean subPower();
+	boolean isSubPower();
 
 	static PowerReference.Power ofPower(ResourceLocation id) {
 		return new Power(id);
@@ -141,7 +141,7 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 		}
 
 		@Override
-		public boolean subPower() {
+		public boolean isSubPower() {
 			return false;
 		}
 
@@ -193,7 +193,7 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 		}
 
 		@Override
-		public boolean subPower() {
+		public boolean isSubPower() {
 			return true;
 		}
 

@@ -6,7 +6,10 @@ import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -35,10 +38,10 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		long matches = 0;
 
-		Context positionContext = context.makeChild(".position");
+		Context positionContext = context.forChild(".position");
 		BlockPos blockPos = BlockPos.containing(position().next(positionContext));
 
 		if (positionContext.hasErrors()) {
@@ -49,17 +52,18 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 
 			BlockPos offsetPos = blockPos.relative(direction);
 
-			if (!world.hasChunkAt(offsetPos)) {
+			if (!level.hasChunkAt(offsetPos)) {
 				continue;
 			}
 
-			Context blockContext = ContextImpl.of(context, builder -> builder
+			Context blockContext = new Context.Builder(context)
 				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
 				.add(NeoApoliContextKeys.BLOCK_POS, offsetPos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetPos))
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetPos)));
+				.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(offsetPos))
+				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(offsetPos))
+				.build(level);
 
-			if (adjacentBlockCondition().test(blockContext.makeChild(".block_condition"))) {
+			if (adjacentBlockCondition().test(blockContext.forChild(".block_condition"))) {
 				matches++;
 			}
 

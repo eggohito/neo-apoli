@@ -13,7 +13,6 @@ import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -85,14 +84,14 @@ public class CooldownPower extends Power {
 		}
 
 		@Override
-		public ContextImpl.Builder createHolderContextBuilder() {
+		public Context.Builder createHolderContextBuilder() {
 
-			ContextImpl.Builder builder = super.createHolderContextBuilder();
+			Context.Builder builder = super.createHolderContextBuilder();
 			Context context = builder.build(holder.level());
 
 			return builder
 				.add(NeoApoliContextKeys.MIN_VALUE, 0.0D)
-				.add(NeoApoliContextKeys.MAX_VALUE, power.getCooldown().nextDouble(context.makeChild(".cooldown")))
+				.add(NeoApoliContextKeys.MAX_VALUE, power.getCooldown().nextDouble(context.forChild(".cooldown")))
 				.add(NeoApoliContextKeys.CURRENT_VALUE, (double) this.getRemainingTicks(context));
 
 		}
@@ -120,7 +119,7 @@ public class CooldownPower extends Power {
 		public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
 
 			long timePassed = holder.level().getGameTime() - lastUseTime;
-			int cooldown = power.getCooldown().nextInt(context.makeChild(".cooldown"));
+			int cooldown = power.getCooldown().nextInt(context.forChild(".cooldown"));
 
 			return timePassed <= cooldown
 				&& getHudElement().shouldRender(context, renderPhase);
@@ -130,7 +129,7 @@ public class CooldownPower extends Power {
 		public double getProgress(Context context) {
 
 			double diff = holder.level().getGameTime() - lastUseTime;
-			double progress = diff / getCooldown().nextDouble(context.makeChild(".cooldown"));
+			double progress = diff / getCooldown().nextDouble(context.forChild(".cooldown"));
 
 			return Mth.clamp(progress, 0D, 1D);
 
@@ -139,7 +138,7 @@ public class CooldownPower extends Power {
 		public int getRemainingTicks(Context context) {
 
 			long diff = holder.level().getGameTime() - lastUseTime;
-			long remainingTicks = getCooldown().nextLong(context.makeChild(".cooldown")) - diff;
+			long remainingTicks = getCooldown().nextLong(context.forChild(".cooldown")) - diff;
 
 			return (int) Math.max(0, remainingTicks);
 
@@ -168,7 +167,7 @@ public class CooldownPower extends Power {
 				return;
 			}
 
-			Context hudContext = cooldownInstance.createHolderContext().makeChild(".hud_element");
+			Context hudContext = cooldownInstance.createHolderContext().forChild(".hud_element");
 			HudElement hudElement = cooldownInstance.getHudElement();
 
 			boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);

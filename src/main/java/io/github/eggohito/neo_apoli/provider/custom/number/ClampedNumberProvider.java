@@ -35,13 +35,13 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context minContext = context.makeChild(".min");
+		Context minContext = context.forChild(".min");
 		double min = min().nextDouble(minContext);
 
-		Context maxContext = context.makeChild(".max");
+		Context maxContext = context.forChild(".max");
 		double max = max().nextDouble(maxContext);
 
-		Context valueContext = context.makeChild(".value");
+		Context valueContext = context.forChild(".value");
 		double value = value().nextDouble(valueContext);
 
 		if (minContext.hasErrors() || maxContext.hasErrors()) {

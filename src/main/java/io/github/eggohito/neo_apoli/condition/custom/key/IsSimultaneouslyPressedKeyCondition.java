@@ -45,7 +45,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			return false;
 		}
 
-		Context bufferContext = context.makeChild(".buffer");
+		Context bufferContext = context.forChild(".buffer");
 		long buffer = buffer().nextLong(bufferContext);
 
 		if (bufferContext.hasErrors()) {
@@ -63,7 +63,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			int index = iterator.nextIndex();
 			StringProvider idProvider = iterator.next();
 
-			Context idContext = context.makeChild(".ids[" + index + "]");
+			Context idContext = context.forChild(".ids[" + index + "]");
 			String id = idProvider.next(idContext);
 
 			if (!idContext.hasErrors() && KeyStateManager.getState(uuid, id).isPresent()) {

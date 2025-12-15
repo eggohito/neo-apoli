@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -75,7 +74,7 @@ public class ModifyFallingPower extends Power {
 
 		public boolean shouldNegateFallDamage(Context context) {
 			return this.isActive(context)
-				&& power.getTakeFallDamage().next(context.makeChild(".take_fall_damage"));
+				&& power.getTakeFallDamage().next(context.forChild(".take_fall_damage"));
 		}
 
 	}
@@ -89,8 +88,10 @@ public class ModifyFallingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -120,8 +121,10 @@ public class ModifyFallingPower extends Power {
 		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -136,7 +139,7 @@ public class ModifyFallingPower extends Power {
 					int index = listIterator.nextIndex();
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Modifier.entry(modifier, instanceContext.makeChild(".modifiers[" + index + "]")));
+					modifiers.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
 
 				}
 

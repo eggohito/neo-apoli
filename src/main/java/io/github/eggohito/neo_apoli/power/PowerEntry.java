@@ -55,12 +55,12 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 
 		name = ComponentUtil.forceTranslatable(translationKey + ".name", name);
 		description = ComponentUtil.forceTranslatable(translationKey + ".description", description);
-		hidden = hidden || reference.subPower();
+		hidden = hidden || reference.isSubPower();
 
 	}
 
-	public boolean subPower() {
-		return reference().subPower();
+	public boolean isSubPower() {
+		return reference().isSubPower();
 	}
 
 	@Override

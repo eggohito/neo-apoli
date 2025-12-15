@@ -23,17 +23,17 @@ public interface CompareToRangeMetaCondition extends MetaCondition {
 	@Override
 	default boolean test(Context context) {
 
-		Context valueContext = context.makeChild(".value");
+		Context valueContext = context.forChild(".value");
 		double value = value().nextDouble(valueContext);
 
 		if (valueContext.hasErrors()) {
 			return false;
 		}
 
-		Context minContext = context.makeChild(".min");
+		Context minContext = context.forChild(".min");
 		Optional<Double> min = min().map(provider -> provider.nextDouble(minContext));
 
-		Context maxContext = context.makeChild(".max");
+		Context maxContext = context.forChild(".max");
 		Optional<Double> max = max().map(provider -> provider.nextDouble(maxContext));
 
 		if (minContext.hasErrors() || maxContext.hasErrors()) {

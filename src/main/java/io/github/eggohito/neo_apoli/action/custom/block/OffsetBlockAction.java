@@ -7,17 +7,12 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.ServerContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.Set;
 
 public record OffsetBlockAction(BlockAction action, Vec3Provider offset) implements BlockAction {
 
@@ -38,40 +33,35 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 	}
 
 	@Override
-	public void serverExecute(ServerContext context) {
+	public void execute(Context context) {
 
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Context offsetContext = context.makeChild(".offset");
+		Context offsetContext = context.forChild(".offset");
 		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return;
 		}
 
-		Level world = context.getWorld();
 		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
 			.getCenter()
 			.add(offset));
 
-		if (!world.hasChunkAt(offsetBlockPos)) {
+		if (!serverLevel.hasChunkAt(offsetBlockPos)) {
 			return;
 		}
 
-		Context actionContext = ContextImpl.of(context, builder -> builder
+		Context actionContext = new Context.Builder(context)
 			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
+			.add(NeoApoliContextKeys.BLOCK_STATE, serverLevel.getBlockState(offsetBlockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, serverLevel.getBlockEntity(offsetBlockPos))
+			.build(serverLevel);
 
-		action().execute(actionContext.makeChild(".action"));
+		action().execute(actionContext.forChild(".action"));
 
-	}
-
-	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_POS);
 	}
 
 	@Override

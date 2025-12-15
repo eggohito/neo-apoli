@@ -32,7 +32,7 @@ public record ItemNbtProvider() implements NbtProvider {
 	@Override
 	public @NotNull Tag next(Context context) {
 
-		RegistryOps<Tag> ops = context.getWorld().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+		RegistryOps<Tag> ops = context.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		Optional<ItemStack> optStack = context.optional(NeoApoliContextKeys.ITEM_STACK);
 
 		if (optStack.isEmpty()) {

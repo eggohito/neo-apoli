@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -86,12 +85,12 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 		}
 
 		public void execute(Context context) {
-			power.getOnBreakAction().execute(context.makeChild(".on_break_action"));
+			power.getOnBreakAction().execute(context.forChild(".on_break_action"));
 		}
 
 		public boolean doesApply(Context context, boolean harvested) {
 			return this.isActive(context)
-				&& (!power.getOnlyWhenHarvested().next(context.makeChild(".only_when_harvested")) || harvested);
+				&& (!power.getOnlyWhenHarvested().next(context.forChild(".only_when_harvested")) || harvested);
 		}
 
 	}
@@ -109,8 +108,10 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 

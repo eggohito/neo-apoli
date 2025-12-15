@@ -34,16 +34,16 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 			int index = caseListIterator.nextIndex();
 			Case<P> aCase = caseListIterator.next();
 
-			Context caseContext = context.makeChild(".cases[" + index + "]");
-			boolean shouldProvide = aCase.condition().test(caseContext.makeChild(".condition"));
+			Context caseContext = context.forChild(".cases[" + index + "]");
+			boolean shouldProvide = aCase.condition().test(caseContext.forChild(".condition"));
 
 			if (!caseContext.hasErrors() && shouldProvide) {
-				return aCase.value().next(caseContext.makeChild(".value"));
+				return aCase.value().next(caseContext.forChild(".value"));
 			}
 
 		}
 
-		return defaultValue().next(context.makeChild(".default"));
+		return defaultValue().next(context.forChild(".default"));
 
 	}
 

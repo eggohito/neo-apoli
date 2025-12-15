@@ -34,12 +34,12 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level world = context.getWorld();
+		Level world = context.getLevel();
 		long time = world.getGameTime();
 
 		if (period().isPresent()) {
 
-			Context periodContext = context.makeChild(".period");
+			Context periodContext = context.forChild(".period");
 			long period = period().get().nextLong(periodContext);
 
 			if (!periodContext.hasErrors()) {

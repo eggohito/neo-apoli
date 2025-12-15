@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -44,28 +43,29 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 			return false;
 		}
 
-		Context offsetContext = context.makeChild(".offset");
+		Context offsetContext = context.forChild(".offset");
 		Vec3 offset = offset().next(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;
 		}
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
 			.getCenter()
 			.add(offset));
 
-		if (!world.hasChunkAt(offsetBlockPos)) {
+		if (!level.hasChunkAt(offsetBlockPos)) {
 			return false;
 		}
 
-		Context conditionContext = ContextImpl.of(context, builder -> builder
+		Context conditionContext = new Context.Builder(context)
 			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(offsetBlockPos)));
+			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(offsetBlockPos))
+			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(offsetBlockPos))
+			.build(level);
 
-		return condition().test(conditionContext.makeChild(".condition"));
+		return condition().test(conditionContext.forChild(".condition"));
 
 	}
 

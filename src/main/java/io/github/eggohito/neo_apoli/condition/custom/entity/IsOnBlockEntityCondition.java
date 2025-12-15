@@ -6,7 +6,10 @@ import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.*;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -36,7 +39,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 			return false;
 		}
 
-		Level world = context.getWorld();
+		Level level = context.getLevel();
 		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 
 		try {
@@ -48,13 +51,14 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 				}
 
 				BlockPos steppingPos = entity.getOnPos();
-				Context blockContext = ContextImpl.of(context, builder -> builder
+				Context blockContext = new Context.Builder(context)
 					.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
 					.add(NeoApoliContextKeys.BLOCK_POS, steppingPos)
-					.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(steppingPos))
-					.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(steppingPos)));
+					.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(steppingPos))
+					.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(steppingPos))
+					.build(level);
 
-				return blockCondition().test(blockContext.makeChild(".block_condition"));
+				return blockCondition().test(blockContext.forChild(".block_condition"));
 
 			}
 

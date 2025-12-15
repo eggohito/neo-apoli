@@ -15,7 +15,6 @@ import io.github.eggohito.neo_apoli.util.FloatSupplier;
 import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextImpl;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
 import lombok.EqualsAndHashCode;
@@ -97,7 +96,7 @@ public class PhasingPower extends Power {
 		public boolean shouldPhase(Context context, VoxelShape collisionShape) {
 			BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
 			return holder.getY() < (double) blockPos.getY() + collisionShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
-				|| power.getPhaseDownCondition().test(context.makeChild(".phase_down_condition"));
+				|| power.getPhaseDownCondition().test(context.forChild(".phase_down_condition"));
 		}
 
 	}
@@ -113,8 +112,10 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
@@ -143,8 +144,10 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.createReporter();
-			Context instanceContext = ContextImpl.of(context, builder -> builder.withReporter(reporter));
+			ProblemReporter reporter = instance.getReporter();
+			Context instanceContext = new Context.Builder(context)
+				.withReporter(reporter)
+				.build(context.getLevel());
 
 			try {
 
