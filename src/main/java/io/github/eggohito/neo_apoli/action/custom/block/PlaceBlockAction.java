@@ -41,7 +41,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
