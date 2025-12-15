@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
+import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ public class ConditionTypes {
 		ItemConditionTypes.registerAll();
 		KeyConditionTypes.registerAll();
 		MetaConditionTypes.registerAll();
+		WorldConditionTypes.registerAll();
 	}
 
 	protected static <C extends Condition, T extends ConditionType<C>> T register(ResourceLocation id, T type) {
