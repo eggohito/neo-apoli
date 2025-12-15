@@ -32,7 +32,7 @@ public class NeoApoliS2CNetworkHandler {
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-			ClientPlayNetworking.registerReceiver(ClearLogsS2CPacket.TYPE, NeoApoliLogger::onReloadClientBound);
+			ClientPlayNetworking.registerReceiver(ClearLogsS2CPacket.TYPE, NeoApoliLogger::afterServerReloadClientBound);
 			ClientPlayNetworking.registerReceiver(DismountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityDismounted);
 			ClientPlayNetworking.registerReceiver(MountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityMounted);
 			ClientPlayNetworking.registerReceiver(SynchronizeActionsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onActionsSynchronized);

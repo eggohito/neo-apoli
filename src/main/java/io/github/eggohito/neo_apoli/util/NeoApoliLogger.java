@@ -7,8 +7,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -28,13 +31,21 @@ public class NeoApoliLogger {
 
 	}
 
-	public static void onReloadServerBound(MinecraftServer server, ResourceManager ignoredManager) {
+	@ApiStatus.Internal
+	public static void afterServerReload(MinecraftServer server, ResourceManager ignoredManager) {
 		LOGS.clear();
 		server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClearLogsS2CPacket.INSTANCE));
 	}
 
+	@ApiStatus.Internal
 	@Environment(EnvType.CLIENT)
-	public static void onReloadClientBound(ClearLogsS2CPacket ignoredPayload, ClientPlayNetworking.Context ignoreddContext) {
+	public static void afterServerReloadClientBound(ClearLogsS2CPacket ignoredPayload, ClientPlayNetworking.Context ignoreddContext) {
+		LOGS.clear();
+	}
+
+	@ApiStatus.Internal
+	@Environment(EnvType.CLIENT)
+	public static void onDisconnectedClientBound(ClientPacketListener ignoredListener, Minecraft ignoredClient) {
 		LOGS.clear();
 	}
 

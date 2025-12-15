@@ -113,8 +113,16 @@ public class NeoApoli implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(KeyStateManager::startTrackingServer);
 		ServerPlayConnectionEvents.DISCONNECT.register(KeyStateManager::stopTrackingServer);
 
-		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register(NeoApoliLogger::onReloadServerBound);
-		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> NeoApoliConfig.HANDLER.load());
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+
+			if (!success) {
+				return;
+			}
+
+			NeoApoliConfig.HANDLER.load();
+			NeoApoliLogger.afterServerReload(server, resourceManager);
+
+		});
 
 	}
 
