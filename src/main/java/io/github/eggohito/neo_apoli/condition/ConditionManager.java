@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonReloadListener.Entry>> implements JsonReloadListener {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonReloadListener.ElementWithSource>> implements JsonReloadListener {
 
 	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
@@ -68,9 +68,9 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected Map<ResourceLocation, Entry> prepare(ResourceManager manager, ProfilerFiller profiler) {
+	protected Map<ResourceLocation, ElementWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
 
-		Map<ResourceLocation, Entry> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, ElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -83,7 +83,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 				switch (jsonElement) {
 					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) ->
-						prepared.put(resourceId, new Entry() {
+						prepared.put(resourceId, new ElementWithSource() {
 
 							@Override
 							public String source() {
@@ -116,20 +116,23 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected void apply(Map<ResourceLocation, Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<ResourceLocation, ElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
 
 		prepared.forEach((id, entry) -> {
+
 			DynamicResourceLocation.setCurrent(id);
 			Condition.CODEC.parse(ops, entry.element())
 				.ifSuccess(condition -> register(id, condition))
 				.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
+
+			DynamicResourceLocation.setCurrent(null);
+
 		});
 
 		LOGGER.info("Finished parsing conditions from data packs. Parsed {} condition(s)", BY_ID.size());
-		DynamicResourceLocation.setCurrent(null);
 
 	}
 

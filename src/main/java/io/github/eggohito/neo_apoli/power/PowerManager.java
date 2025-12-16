@@ -88,10 +88,10 @@ public final class PowerManager implements JsonReloadListener {
 	@Override
 	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
+		CompletableFuture<Map<PowerReference.Power, ObjectElementWithSource>> preparedElementsFuture = CompletableFuture
+			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
 			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
-		CompletableFuture<Map<PowerReference.Power, Entry>> preparedElementsFuture = CompletableFuture
-			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
 			.thenCompose(synchronizer::wait)
@@ -121,7 +121,6 @@ public final class PowerManager implements JsonReloadListener {
 		TAGS.clear();
 
 		TAGS.putAll(TAG_LOADER.build(PREPARED_TAGS));
-
 		LOGGER.info("Finished parsing power tags from data packs. Parsed {} power tag(s)", TAGS.size());
 
 		PREPARED_TAGS.clear();
@@ -129,9 +128,9 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private Map<PowerReference.Power, Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<PowerReference.Power, ObjectElementWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<PowerReference.Power, Entry> prepared = new Object2ObjectOpenHashMap<>();
+		Map<PowerReference.Power, ObjectElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packName = resource.sourcePackId();
@@ -150,10 +149,10 @@ public final class PowerManager implements JsonReloadListener {
 
 					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops)) {
 
-						Entry entry = new Entry(packName, jsonObject);
-						PowerPreparation.EVENT.invoker().prepare(resourceId, entry, DIRECTORY, ops);
+						ObjectElementWithSource elementWithSource = new ObjectElementWithSource(packName, jsonObject);
+						PowerPreparation.EVENT.invoker().prepare(resourceId, elementWithSource, DIRECTORY, ops);
 
-						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), entry) != null) {
+						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), elementWithSource) != null) {
 							throw new IllegalStateException("Duplicate power JSON file!");
 						}
 
@@ -177,7 +176,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private void applyElements(Map<PowerReference.Power, Entry> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	private void applyElements(Map<PowerReference.Power, ObjectElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 
@@ -194,13 +193,14 @@ public final class PowerManager implements JsonReloadListener {
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference, jsonEntry.source(), error.message()));
 
+			DynamicResourceLocation.setCurrent(null);
+
 		});
 
 		LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s)", BY_REFERENCE.size());
 		endLoading();
 
 		PowerReloadEvents.AFTER.invoker().afterReload(manager, profiler);
-		DynamicResourceLocation.setCurrent(null);
 
 	}
 
@@ -218,6 +218,8 @@ public final class PowerManager implements JsonReloadListener {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+
+		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.addPhaseOrdering(ActionManager.ID, ID);
 		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.register(ID, resources -> {
 			validate(resources);
 			applyPendingTags(resources);
@@ -235,7 +237,7 @@ public final class PowerManager implements JsonReloadListener {
 		ObjectIterator<PowerEntry<?>> entryIterator = BY_REFERENCE.values().iterator();
 		int prevSize = BY_REFERENCE.size();
 
-		NeoApoli.LOGGER.info("Validating {} power(s)...", prevSize);
+		LOGGER.info("Validating {} power(s)...", prevSize);
 
 		while (entryIterator.hasNext()) {
 
@@ -249,14 +251,14 @@ public final class PowerManager implements JsonReloadListener {
 				continue;
 			}
 
-			NeoApoli.LOGGER.warn("Error validating {} due to error(s) {}", entry.reference().asDisplayString(false), reporter.getErrorsAsString());
+			LOGGER.warn("Error validating {} due to error(s) {}", entry.reference().asDisplayString(false), reporter.getErrorsAsString());
 
 			BY_POWER.remove(power);
 			entryIterator.remove();
 
 		}
 
-		NeoApoli.LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", prevSize, BY_REFERENCE.size());
+		LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", prevSize, BY_REFERENCE.size());
 		BY_REFERENCE.trim();
 
 	}
@@ -420,10 +422,6 @@ public final class PowerManager implements JsonReloadListener {
 
 	private static void endLoading() {
 		BY_REFERENCE.trim();
-	}
-
-	public record Entry(String source, JsonObject element) implements JsonReloadListener.Entry {
-
 	}
 
 }

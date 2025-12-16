@@ -8,10 +8,10 @@ import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -216,9 +216,9 @@ public class MultiplePower extends Power {
 	 * 	</ul>
 	 */
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(ResourceLocation id, PowerManager.Entry entry, String directoryPath, RegistryOps<JsonElement> ops) {
+	public static void preProcessSubPowers(ResourceLocation id, JsonReloadListener.ObjectElementWithSource elementWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
 
-		JsonObject powerJson = entry.element();
+		JsonObject powerJson = elementWithSource.element();
 		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
 
 		if (!powerTypeResult.mapOrElse(type -> Objects.equals(type, PowerTypes.MULTIPLE), error -> false)) {

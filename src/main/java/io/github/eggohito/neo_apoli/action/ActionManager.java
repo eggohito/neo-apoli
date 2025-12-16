@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.event.DependencyManager;
+import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -30,6 +31,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -54,6 +56,8 @@ public final class ActionManager implements JsonReloadListener {
 	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.ACTION);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
+	private static final TagLoader<Action> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
+
 	private static final Gson GSON = new GsonBuilder()
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
@@ -65,7 +69,7 @@ public final class ActionManager implements JsonReloadListener {
 	private static final Object2ObjectOpenHashMap<ResourceLocation, Action> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final IdentityHashMap<Action, ResourceLocation> BY_ACTION = new IdentityHashMap<>();
 
-	private static final TagLoader<Action> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), TAG_DIRECTORY);
+	private static final Object2ObjectOpenHashMap<ResourceLocation, List<TagLoader.EntryWithSource>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<ResourceLocation, List<Action>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
@@ -77,20 +81,14 @@ public final class ActionManager implements JsonReloadListener {
 	@Override
 	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
-			.supplyAsync(() -> prepareTags(manager, Profiler.get()), prepareExecutor);
-		CompletableFuture<Map<ResourceLocation, Entry>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<ResourceLocation, ElementWithSource>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> prepareElements(manager, Profiler.get()), prepareExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
+			.supplyAsync(() -> preparePendingTags(manager, Profiler.get()), prepareExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
 			.thenCompose(synchronizer::wait)
-			.thenAcceptAsync(
-				pair -> {
-					applyTags(pair.getFirst(), manager, Profiler.get());
-					applyElements(pair.getSecond(), manager, Profiler.get());
-				},
-				applyExecutor
-			);
+			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profiler.get()), applyExecutor);
 
 	}
 
@@ -104,13 +102,21 @@ public final class ActionManager implements JsonReloadListener {
 		return DEPENDENCIES;
 	}
 
-	private Map<ResourceLocation, List<TagLoader.EntryWithSource>> prepareTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
-		return TAG_LOADER.load(manager);
+	private Map<ResourceLocation, List<TagLoader.EntryWithSource>> preparePendingTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+
+		PREPARED_TAGS.clear();
+		Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = TAG_LOADER.load(manager);
+
+		PREPARED_TAGS.putAll(pendingTags);
+		PREPARED_TAGS.trim();
+
+		return PREPARED_TAGS;
+
 	}
 
-	private Map<ResourceLocation, Entry> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<ResourceLocation, ElementWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<ResourceLocation, Entry> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, ElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -123,7 +129,7 @@ public final class ActionManager implements JsonReloadListener {
 
 				switch (jsonElement) {
 					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) ->
-						prepared.put(resourceId, new Entry() {
+						prepared.put(resourceId, new ElementWithSource() {
 
 							@Override
 							public String source() {
@@ -155,32 +161,40 @@ public final class ActionManager implements JsonReloadListener {
 
 	}
 
-	private void applyTags(Map<ResourceLocation, List<TagLoader.EntryWithSource>> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
+	private static void applyPendingTags(ReloadableServerResources ignored) {
+
+		if (PREPARED_TAGS.isEmpty()) {
+			return;
+		}
 
 		LOGGER.info("Parsing action tags from data packs...");
 		TAGS.clear();
 
-		TAGS.putAll(TAG_LOADER.build(prepared));
+		TAGS.putAll(TAG_LOADER.build(PREPARED_TAGS));
 		LOGGER.info("Finished parsing action tags from data packs. Parsed {} action tag(s)", TAGS.size());
 
+		PREPARED_TAGS.clear();
 		TAGS.trim();
 
 	}
 
-	private void applyElements(Map<ResourceLocation, Entry> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
+	private void applyElements(Map<ResourceLocation, ElementWithSource> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
 		BY_ID.clear();
 
 		prepared.forEach((id, entry) -> {
+
 			DynamicResourceLocation.setCurrent(id);
 			Action.CODEC.parse(ops, entry.element())
 				.ifSuccess(action -> register(id, action))
 				.ifError(error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
+
+			DynamicResourceLocation.setCurrent(null);
+
 		});
 
 		LOGGER.info("Finished parsing actions from data packs. Parsed {} action(s)", BY_ID.size());
-		DynamicResourceLocation.setCurrent(null);
 
 	}
 
@@ -294,6 +308,8 @@ public final class ActionManager implements JsonReloadListener {
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+
+		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.register(ID, ActionManager::applyPendingTags);
 
 	}
 

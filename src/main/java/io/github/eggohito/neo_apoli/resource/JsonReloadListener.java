@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.resource;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -55,11 +56,15 @@ public interface JsonReloadListener extends PreparableReloadListener, Identifiab
 
 	}
 
-	interface Entry {
+	interface ElementWithSource {
 
 		String source();
 
 		JsonElement element();
+
+	}
+
+	record ObjectElementWithSource(String source, JsonObject element) implements ElementWithSource {
 
 	}
 
