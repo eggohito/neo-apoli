@@ -19,6 +19,7 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -35,10 +36,12 @@ import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -52,6 +55,30 @@ import java.util.stream.Stream;
 
 public final class ActionManager implements JsonReloadListener {
 
+	public static final ResourceLocation ID = NeoApoli.id("manager/actions");
+	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
+
+	public static final TagLike.Lookup<Action> TAG_LOOKUP =  new TagLike.Lookup<>() {
+
+		@Nullable
+		@Override
+		public Action element(ResourceLocation id, boolean required) {
+			return getAsResult(id).result().orElse(null);
+		}
+
+		@Nullable
+		@Override
+		public Collection<Action> tag(ResourceLocation id) {
+			return getEntriesFromTag(id).result().orElse(null);
+		}
+
+		@Override
+		public String name() {
+			return "Action tag-like";
+		}
+
+	};
+
 	private static final String TAG_DIRECTORY = Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION);
 	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.ACTION);
 
@@ -62,9 +89,6 @@ public final class ActionManager implements JsonReloadListener {
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
-
-	public static final ResourceLocation ID = NeoApoli.id("manager/actions");
-	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
 
 	private static final Object2ObjectOpenHashMap<ResourceLocation, Action> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final IdentityHashMap<Action, ResourceLocation> BY_ACTION = new IdentityHashMap<>();
@@ -275,6 +299,16 @@ public final class ActionManager implements JsonReloadListener {
 
 	public static ResourceLocation getId(Action action) {
 		return getIdAsResult(action).getOrThrow();
+	}
+
+	public static DataResult<List<Action>> getEntriesFromTag(TagKey<Action> tag) {
+		return getEntriesFromTag(tag.location());
+	}
+
+	public static DataResult<List<Action>> getEntriesFromTag(ResourceLocation tagId) {
+		return Optional.ofNullable(TAGS.get(tagId))
+			.map(DataResult::success)
+			.orElseGet(() -> DataResult.error(() -> "Unknown action tag: " + tagId));
 	}
 
 	public static Stream<Action> actions() {

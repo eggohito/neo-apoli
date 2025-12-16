@@ -7,11 +7,17 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
+import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -27,6 +33,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
@@ -135,5 +142,15 @@ public class NeoApoliCodecs {
 	public static final Codec<EntityAnchorArgument.Anchor> ENTITY_ANCHOR = CodecUtil.enumType(EntityAnchorArgument.Anchor.class);
 
 	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
+
+	public static final Codec<TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.createCodec(BuiltInRegistries.ENTITY_TYPE);
+
+	public static final Codec<TagLike<PowerEntry<?>>> POWER_TAG_LIKE = TagLike.createCodec(PowerManager.TAG_LOOKUP);
+
+	public static final Codec<TagLike<Action>> ACTION_TAG_LIKE = TagLike.createCodec(ActionManager.TAG_LOOKUP);
+
+	public static final Codec<LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createCodec(PowerManager.TAG_LOOKUP);
+
+	public static final Codec<LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createCodec(ActionManager.TAG_LOOKUP);
 
 }

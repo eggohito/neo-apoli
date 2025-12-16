@@ -3,24 +3,34 @@ package io.github.eggohito.neo_apoli.codec;
 import com.google.gson.internal.LazilyParsedNumber;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
+import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -159,5 +169,30 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityAnchorArgument.Anchor> ENTITY_ANCHOR = StreamCodecUtil.enumType(EntityAnchorArgument.Anchor.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, Difficulty> DIFFICULTY = StreamCodecUtil.enumType(Difficulty.class);
+
+	public static final StreamCodec<ByteBuf, ExtraCodecs.TagOrElementLocation> TAG_OR_ELEMENT_ID = ByteBufCodecs.STRING_UTF8.map(
+		str -> str.startsWith("#")
+			? ResourceLocation.read(str.substring(1)).map(id -> new ExtraCodecs.TagOrElementLocation(id, true)).getOrThrow()
+			: ResourceLocation.read(str).map(id -> new ExtraCodecs.TagOrElementLocation(id, false)).getOrThrow(),
+		ExtraCodecs.TagOrElementLocation::toString
+	);
+
+	public static final StreamCodec<ByteBuf, TagEntry> TAG_ENTRY = StreamCodec.composite(
+		TAG_OR_ELEMENT_ID, tagEntry -> ((TagEntryAccessor) tagEntry).callElementOrTag(),
+		ByteBufCodecs.BOOL, tagEntry -> ((TagEntryAccessor) tagEntry).isRequired(),
+		TagEntryAccessor::createTagEntry
+	);
+
+	public static final StreamCodec<ByteBuf, List<TagEntry>> TAG_ENTRIES = ByteBufCodecs.collection(ObjectArrayList::new, TAG_ENTRY);
+
+	public static final StreamCodec<ByteBuf, TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.createStreamCodec(BuiltInRegistries.ENTITY_TYPE);
+
+	public static final StreamCodec<ByteBuf, TagLike<PowerEntry<?>>> POWER_TAG_LIKE = TagLike.createStreamCodec(PowerManager.TAG_LOOKUP);
+
+	public static final StreamCodec<ByteBuf, TagLike<Action>> ACTION_TAG_LIKE = TagLike.createStreamCodec(ActionManager.TAG_LOOKUP);
+
+	public static final StreamCodec<ByteBuf, LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createStreamCodec(PowerManager.TAG_LOOKUP);
+
+	public static final StreamCodec<ByteBuf, LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createStreamCodec(ActionManager.TAG_LOOKUP);
 
 }

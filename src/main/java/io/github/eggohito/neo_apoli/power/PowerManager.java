@@ -23,6 +23,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -46,6 +47,7 @@ import net.minecraft.tags.TagLoader;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -59,6 +61,30 @@ import java.util.stream.Stream;
 
 public final class PowerManager implements JsonReloadListener {
 
+	public static final ResourceLocation ID = NeoApoli.id("manager/powers");
+	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
+
+	public static final TagLike.Lookup<PowerEntry<?>> TAG_LOOKUP = new TagLike.Lookup<>() {
+
+		@Nullable
+		@Override
+		public PowerEntry<?> element(ResourceLocation id, boolean required) {
+			return getEntryAsResult(PowerReference.ofPower(id)).result().orElse(null);
+		}
+
+		@Nullable
+		@Override
+		public Collection<PowerEntry<?>> tag(ResourceLocation id) {
+			return getEntriesFromTag(id).result().orElse(null);
+		}
+
+		@Override
+		public String name() {
+			return "Power tag-like";
+		}
+
+	};
+
 	private static final String TAG_DIRECTORY = Registries.tagsDirPath(NeoApoliRegistryKeys.POWER);
 	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.POWER);
 
@@ -69,9 +95,6 @@ public final class PowerManager implements JsonReloadListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
 	private static final TagLoader<PowerEntry<?>> TAG_LOADER = new TagLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
-
-	public static final ResourceLocation ID = NeoApoli.id("manager/powers");
-	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Map<Power, PowerReference> BY_POWER = new IdentityHashMap<>();
