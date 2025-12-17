@@ -37,7 +37,7 @@ public record PowerArgumentType(boolean allowTags) implements ArgumentType<Power
 		}
 
 		else {
-			PowerReference reference = PowerReference.parse(reader);
+			PowerReference reference = PowerReference.read(reader);
 			return new Power(reference);
 		}
 

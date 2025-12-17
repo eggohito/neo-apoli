@@ -17,7 +17,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 
 	public static final String REFERENCE_KEY = "reference";
 
-	private static final MapCodec<PowerEntry<?>> UNMAPPED_RESULT_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final MapCodec<PowerEntry<?>> FULL_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf(REFERENCE_KEY).forGetter(PowerEntry::reference),
 		Power.MAP_CODEC.forGetter(PowerEntry::power),
 		ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerEntry::name),
@@ -25,7 +25,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 		Codec.BOOL.optionalFieldOf("hidden", false).forGetter(PowerEntry::hidden)
 	).apply(instance, PowerEntry::new));
 
-	public static final MapCodec<PowerEntry<?>> CODEC = UNMAPPED_RESULT_CODEC.mapResult(new MapCodec.ResultFunction<>() {
+	public static final MapCodec<PowerEntry<?>> MAP_CODEC = FULL_MAP_CODEC.mapResult(new MapCodec.ResultFunction<>() {
 
 		@Override
 		public <T> DataResult<PowerEntry<?>> apply(DynamicOps<T> ops, MapLike<T> mapInput, DataResult<PowerEntry<?>> result) {
@@ -39,6 +39,8 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 		}
 
 	});
+
+	public static final Codec<PowerEntry<?>> CODEC = MAP_CODEC.codec();
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerEntry<?>> STREAM_CODEC = StreamCodec.composite(
 		PowerReference.STREAM_CODEC, PowerEntry::reference,

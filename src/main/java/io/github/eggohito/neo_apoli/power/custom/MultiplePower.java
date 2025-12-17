@@ -39,7 +39,7 @@ public class MultiplePower extends Power {
 	//	TODO: This set of filters should be controllable via config
 	private static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
 
-		PowerEntry.CODEC.keys(JavaOps.INSTANCE)
+		PowerEntry.MAP_CODEC.keys(JavaOps.INSTANCE)
 			.map(Object::toString)
 			.distinct()
 			.map(Pattern::compile)
@@ -90,12 +90,14 @@ public class MultiplePower extends Power {
 						DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY)
 							.decode(ops, childMapInput)
 							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
-								? DataResult.error(() -> subReference.asDisplayString() + " uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which is not allowed!")
+								? DataResult.error(() ->  "Sub-power \"" + subReference.name() + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which is not allowed!")
 								: DataResult.success(type));
 
 						if (typeResult.isSuccess()) {
 
-							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.CODEC.decode(ops, childMapInput);
+							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC
+								.decode(ops, childMapInput)
+								.mapError(error -> "Error parsing sub-power \"" + subReference.name() + "\" (skipping): " + error);
 
 							if (subPowerResult.isSuccess()) {
 
@@ -131,7 +133,7 @@ public class MultiplePower extends Power {
 		public <O> RecordBuilder<O> encode(ImmutableSet<PowerEntry<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
 
 			for (var entry : entries) {
-				prefix.add(entry.reference().toString(), PowerEntry.CODEC.encode(entry, ops, ops.mapBuilder()).build(ops.empty()));
+				prefix.add(entry.reference().toString(), PowerEntry.MAP_CODEC.encode(entry, ops, ops.mapBuilder()).build(ops.empty()));
 			}
 
 			return prefix;

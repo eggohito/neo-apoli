@@ -206,15 +206,18 @@ public final class PowerManager implements JsonReloadListener {
 		LOGGER.info("Parsing powers from data packs...");
 		startLoading();
 
-		prepared.forEach((powerReference, jsonEntry) -> {
+		prepared.forEach((powerReference, elementWithSource) -> {
 
-			JsonObject element = jsonEntry.element();
+			JsonObject element = elementWithSource.element();
 			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 
 			DynamicResourceLocation.setCurrent(powerReference.id());
-			PowerEntry.CODEC.compressedDecode(ops, element)
-				.ifSuccess(PowerManager::register)
-				.ifError(error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference, jsonEntry.source(), error.message()));
+			MiscUtil.resultOrPartial(
+				PowerEntry.CODEC.parse(ops, element),
+				PowerManager::register,
+				warn -> LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerReference.asDisplayString(false), elementWithSource.source(), warn),
+				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference.asDisplayString(false), elementWithSource.source(), error)
+			);
 
 			DynamicResourceLocation.setCurrent(null);
 

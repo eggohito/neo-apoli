@@ -8,7 +8,7 @@ public class ResourceLocationUtil {
 	public static ResourceLocation nonEmpty(ResourceLocation id) {
 
 		if (id.getNamespace().isEmpty() || id.getPath().isEmpty()) {
-			throw new ResourceLocationException("Disallowed empty " + (id.getNamespace().isEmpty() ? "namespace" : "path") + " in resource location \"" + id + "\"");
+			throw new ResourceLocationException("Empty " + (id.getNamespace().isEmpty() ? "namespace" : "path") + " in identifier \"" + id + "\" is not allowed!");
 		}
 
 		else {

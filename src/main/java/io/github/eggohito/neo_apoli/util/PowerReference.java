@@ -42,79 +42,66 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 	static DataResult<PowerReference> ofValidated(String value) {
 
 		try {
-			return DataResult.success(parse(new StringReader(value)));
+			return DataResult.success(parse(value));
 		}
 
-		catch (CommandSyntaxException cse) {
-			return DataResult.error(cse::getMessage);
+		catch (Exception e) {
+			return DataResult.error(e::getMessage);
 		}
 
 	}
 
-	static PowerReference parse(StringReader reader) throws CommandSyntaxException {
+	static PowerReference parse(String value) {
 
-		int startIndex = reader.getCursor();
-		while (reader.canRead() && isAllowed(reader.peek())) {
-			reader.skip();
-		}
+		int separatorIndex = value.indexOf(SubPower.SEPARATOR);
 
-		String value = reader.getString().substring(startIndex, reader.getCursor());
-		int subSeparatorIndex = value.indexOf(SubPower.SEPARATOR);
+		if (separatorIndex >= 0) {
 
-		if (value.isEmpty()) {
-			throw MiscUtil.createCommandException(() -> "Power references cannot be empty!");
-		}
+			String parent = value.substring(0, separatorIndex);
+			String name = value.substring(separatorIndex + 1);
 
-		else if (subSeparatorIndex >= 0) {
+			Pair<String, String> parentNamespaceAndPath = DynamicResourceLocation.split(parent);
+			ResourceLocation parentId = DynamicResourceLocation.of(parentNamespaceAndPath.getFirst(), parentNamespaceAndPath.getSecond());
 
-			String parent = value.substring(0, subSeparatorIndex);
-			String name = value.substring(subSeparatorIndex + 1);
-
-			if (parent.isEmpty()) {
-				reader.setCursor(startIndex);
-				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty parent ID in power reference \"" + value + "\"");
-			}
-
-			else if (name.isEmpty()) {
-				reader.setCursor(startIndex);
-				throw MiscUtil.createCommandExceptionWithContext(reader, () -> "Disallowed empty sub-power name in power reference \"" + value + "\"");
-			}
-
-			else {
-
-				try {
-
-					Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(parent);
-					ResourceLocation parentId = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
-
-					return ofSubPower(ResourceLocationUtil.nonEmpty(parentId), name);
-
-				}
-
-				catch (ResourceLocationException iie) {
-					throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
-				}
-
-			}
+			return ofSubPower(ResourceLocationUtil.nonEmpty(parentId), name);
 
 		}
 
 		else {
 
-			try {
+			Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(value);
+			ResourceLocation id = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
 
-				Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(value);
-				ResourceLocation id = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
-
-				return ofPower(ResourceLocationUtil.nonEmpty(id));
-
-			}
-
-			catch (ResourceLocationException iie) {
-				throw MiscUtil.createCommandExceptionWithContext(reader, iie::getMessage);
-			}
+			return ofPower(id);
 
 		}
+
+	}
+
+	static PowerReference read(StringReader reader) throws CommandSyntaxException {
+
+		int cursor = reader.getCursor();
+		String value = readGreedy(reader);
+
+		try {
+			return parse(value);
+		}
+
+		catch (ResourceLocationException rle) {
+			reader.setCursor(cursor);
+			throw MiscUtil.createCommandExceptionWithContext(reader, rle::getMessage);
+		}
+
+	}
+
+	static String readGreedy(StringReader reader) {
+
+		int cursor = reader.getCursor();
+		while (reader.canRead() && isAllowed(reader.peek())) {
+			reader.skip();
+		}
+
+		return reader.getString().substring(cursor, reader.getCursor());
 
 	}
 

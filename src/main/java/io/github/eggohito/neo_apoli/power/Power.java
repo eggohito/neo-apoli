@@ -83,9 +83,9 @@ public abstract class Power implements ContextAware {
 
 		protected Instance(@NotNull Entity holder, @NotNull P power) {
 			this.holder = holder;
-			this.entry = tryGettingEntry(power);
+			this.entry = getMatchingEntry(power);
 			this.power = power;
-			this.reporter = new ProblemReporter("{\"" + PowerManager.getReference(power) + "\"}").withKeySet(power.getType().keySet());
+			this.reporter = new ProblemReporter("{\"" + this.entry.reference() + "\"}").withKeySet(power.getType().keySet());
 		}
 
 		@Override
@@ -184,7 +184,7 @@ public abstract class Power implements ContextAware {
 
 	}
 
-	private static <P extends Power> PowerEntry<P> tryGettingEntry(P power) {
+	private static <P extends Power> PowerEntry<P> getMatchingEntry(P power) {
 
 		DataResult<PowerEntry<P>> entry = PowerManager.getReferenceAsResult(power).flatMap(PowerManager::getEntryAsResult).flatMap(e -> {
 
@@ -194,7 +194,7 @@ public abstract class Power implements ContextAware {
 			}
 
 			else {
-				return DataResult.error(() -> "Entry from power manager doesn't match the power when creating the instance!");
+				return DataResult.error(() -> "Power entry \"" + e.reference() + "\" from power manager doesn't match! (Passed power: " + power + ", from entry: " + e.power() + ")");
 			}
 
 		});
