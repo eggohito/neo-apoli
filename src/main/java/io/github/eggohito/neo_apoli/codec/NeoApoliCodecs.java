@@ -149,8 +149,10 @@ public class NeoApoliCodecs {
 
 	public static final Codec<TagLike<Action>> ACTION_TAG_LIKE = TagLike.createCodec(ActionManager.TAG_LOOKUP);
 
-	public static final Codec<LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createCodec(PowerManager.TAG_LOOKUP);
+	public static final Codec<LazyTagLike<EntityType<?>>> LAZY_ENTITY_TYPE_TAG_LIKE = LazyTagLike.createLazyCodec(BuiltInRegistries.ENTITY_TYPE);
 
-	public static final Codec<LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createCodec(ActionManager.TAG_LOOKUP);
+	public static final Codec<LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyCodec(PowerManager.TAG_LOOKUP);
+
+	public static final Codec<LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyCodec(ActionManager.TAG_LOOKUP);
 
 }

@@ -191,8 +191,10 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, TagLike<Action>> ACTION_TAG_LIKE = TagLike.createStreamCodec(ActionManager.TAG_LOOKUP);
 
-	public static final StreamCodec<ByteBuf, LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createStreamCodec(PowerManager.TAG_LOOKUP);
+	public static final StreamCodec<ByteBuf, LazyTagLike<EntityType<?>>> LAZY_ENTITY_TYPE_TAG_LIKE = LazyTagLike.createLazyStreamCodec(BuiltInRegistries.ENTITY_TYPE);
 
-	public static final StreamCodec<ByteBuf, LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createStreamCodec(ActionManager.TAG_LOOKUP);
+	public static final StreamCodec<ByteBuf, LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyStreamCodec(PowerManager.TAG_LOOKUP);
+
+	public static final StreamCodec<ByteBuf, LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyStreamCodec(ActionManager.TAG_LOOKUP);
 
 }

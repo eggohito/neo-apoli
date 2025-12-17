@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util.tag;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
@@ -26,11 +27,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class TagLike<T> {
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class TagLike<T> {
 
-	private final List<TagEntry> entries;
-	private final List<T> elements;
+	private final ImmutableList<TagEntry> entries;
+	private final ImmutableList<T> elements;
 
 	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> createStreamCodec(HolderLookup.RegistryLookup<T> registryLookup) {
 		return createStreamCodec(Lookup.fromRegistry(registryLookup));
@@ -49,23 +50,25 @@ public final class TagLike<T> {
 	}
 
 	private static <T> DataResult<TagLike<T>> build(List<TagEntry> entries, Lookup<T> lookup) {
-		return toElementsWithPartial(entries, lookup).map(elements -> new TagLike<>(entries, elements));
+		return toElementsWithPartial(entries, lookup).map(elements -> new TagLike<>(ImmutableList.copyOf(entries), ImmutableList.copyOf(elements)));
 	}
 
-	public static <T> DataResult<List<T>> toElementsWithPartial(List<TagEntry> entries, Lookup<T> lookup) {
+	protected static <T> DataResult<ImmutableList<T>> toElementsWithPartial(List<TagEntry> entries, Lookup<T> lookup) {
 
-		List<T> found = new ObjectArrayList<>();
+		ImmutableList.Builder<T> foundBuilder = ImmutableList.builder();
 		List<TagEntry> missing = new ObjectArrayList<>();
 
 		for (var entry : entries) {
 
-			if (!entry.build(lookup, found::add)) {
+			if (!entry.build(lookup, foundBuilder::add)) {
 				missing.add(entry);
 			}
 
 		}
 
-		DataResult<List<T>> result = DataResult.success(found);
+		ImmutableList<T> found = foundBuilder.build();
+		DataResult<ImmutableList<T>> result = DataResult.success(found);
+
 		if (!missing.isEmpty()) {
 			result = DataResult.error(() -> lookup.name() + " is missing the following references: " + missing.stream().map(Objects::toString).collect(Collectors.joining(", ")));
 		}
@@ -74,18 +77,23 @@ public final class TagLike<T> {
 
 	}
 
+	@Getter
 	public static final class Builder<T> {
 
 		private final List<TagEntry> entries;
 		private final Lookup<T> lookup;
 
-		public Builder(List<TagEntry> entries, Lookup<T> lookup) {
+		Builder(List<TagEntry> entries, Lookup<T> lookup) {
 			this.entries = new ObjectArrayList<>(entries);
 			this.lookup = lookup;
 		}
 
-		public Builder(List<TagEntry> entries, HolderLookup.RegistryLookup<T> registryLookup) {
-			this(entries, Lookup.fromRegistry(registryLookup));
+		public Builder(Lookup<T> lookup) {
+			this(new ObjectArrayList<>(), lookup);
+		}
+
+		public Builder(HolderLookup.RegistryLookup<T> registryLookup) {
+			this(Lookup.fromRegistry(registryLookup));
 		}
 
 		public Builder<T> add(TagEntry entry) {
@@ -137,7 +145,7 @@ public final class TagLike<T> {
 
 				@Override
 				public String name() {
-					return "Registry tag-like \"" + registryRef.location() + "\"";
+					return "Registry \"" + registryRef.location() + "\" tag-like";
 				}
 
 			};
