@@ -22,6 +22,8 @@
 		"misc.CommandStorageMixin",
 		"misc.ComponentSerializationMixin",
 		"misc.ComponentSerializationMixin$StrictEitherMixin",
+		"misc.DataResultMixin",
+		"misc.EitherCodecMixin",
 		"misc.EntityMixin",
 		"misc.ExecuteCommandMixin",
 		"misc.KeyDispatchCodecMixin",
