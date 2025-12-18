@@ -41,7 +41,7 @@ public record EntityBoundsBoxProvider(TypedContextKey<Entity> entity) implements
 	public @NotNull AABB next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getReporter().report("Couldn't get the bounding box of the non-existing entity from parameter \"" + entity().name() + "\"!");
+			context.getValidator().report("Couldn't get the bounding box of the non-existing entity from parameter \"" + entity().name() + "\"!");
 		}
 
 		return context.optional(entity())
@@ -59,7 +59,7 @@ public record EntityBoundsBoxProvider(TypedContextKey<Entity> entity) implements
 	public CollisionContext getShapeContext(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getReporter().report("Couldn't get shape context from non-existnet entity from parameter \"" + entity().name() + "\"!");
+			context.getValidator().report("Couldn't get shape context from non-existnet entity from parameter \"" + entity().name() + "\"!");
 		}
 
 		return context.optional(entity())

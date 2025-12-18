@@ -46,13 +46,13 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
+		NumberProvider.super.validate(validator);
 
-		delta().validate(reporter.forChild(".delta"));
-		start().validate(reporter.forChild(".start"));
-		end().validate(reporter.forChild(".end"));
+		delta().validate(validator.forChild(".delta"));
+		start().validate(validator.forChild(".start"));
+		end().validate(validator.forChild(".end"));
 
 	}
 

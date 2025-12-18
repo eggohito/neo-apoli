@@ -53,9 +53,9 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		period().ifPresent(period -> period.validate(reporter.forChild(".period")));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		period().ifPresent(period -> period.validate(validator.forChild(".period")));
 	}
 
 }

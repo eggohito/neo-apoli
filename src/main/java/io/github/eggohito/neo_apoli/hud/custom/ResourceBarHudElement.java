@@ -61,14 +61,14 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberBoundHudElement.super.validate(reporter);
+		NumberBoundHudElement.super.validate(validator);
 
-		properties().validate(reporter);
-		min().ifPresent(min -> min.validate(reporter.forChild(".min")));
-		max().ifPresent(max -> max.validate(reporter.forChild(".max")));
-		value().ifPresent(value -> value.validate(reporter.forChild(".value")));
+		properties().validate(validator);
+		min().ifPresent(min -> min.validate(validator.forChild(".min")));
+		max().ifPresent(max -> max.validate(validator.forChild(".max")));
+		value().ifPresent(value -> value.validate(validator.forChild(".value")));
 
 	}
 
@@ -126,9 +126,9 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		);
 
 		@Override
-		public void validate(ProblemReporter reporter) {
-			ContextAware.super.validate(reporter);
-			inverted().validate(reporter.forChild(".inverted"));
+		public void validate(Context.Validator validator) {
+			ContextAware.super.validate(validator);
+			inverted().validate(validator.forChild(".inverted"));
 		}
 
 	}

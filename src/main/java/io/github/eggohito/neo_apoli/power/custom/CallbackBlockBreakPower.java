@@ -69,12 +69,12 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
-		getOnBreakAction().validate(reporter.forChild(".on_break_action"));
-		getOnlyWhenHarvested().validate(reporter.forChild(".only_when_harvested"));
+		getOnBreakAction().validate(validator.forChild(".on_break_action"));
+		getOnlyWhenHarvested().validate(validator.forChild(".only_when_harvested"));
 
 	}
 
@@ -108,9 +108,9 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

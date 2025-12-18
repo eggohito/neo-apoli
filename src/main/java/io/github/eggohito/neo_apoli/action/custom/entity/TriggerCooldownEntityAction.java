@@ -48,9 +48,9 @@ public record TriggerCooldownEntityAction(PowerReference power) implements Entit
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityAction.super.validate(reporter);
-		PowerManager.getAsResult(this.power()).ifError(error -> reporter.forChild(".power").report(error.message()));
+	public void validate(Context.Validator validator) {
+		EntityAction.super.validate(validator);
+		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
 	}
 
 }

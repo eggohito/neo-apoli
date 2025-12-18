@@ -54,9 +54,9 @@ public class ModifyModelColorOtherPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getColor().validate(reporter.forChild(".color"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getColor().validate(validator.forChild(".color"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
@@ -78,9 +78,9 @@ public class ModifyModelColorOtherPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

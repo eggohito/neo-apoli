@@ -42,13 +42,13 @@ public interface ConditionalMetaAction<C extends Condition, A extends Action> ex
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(reporter);
-		condition().validate(reporter.forChild(".condition"));
+		MetaAction.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
 
-		ifAction().validate(reporter.forChild(".if_action"));
-		elseAction().ifPresent(elseAction -> elseAction.validate(reporter.forChild(".else_action")));
+		ifAction().validate(validator.forChild(".if_action"));
+		elseAction().ifPresent(elseAction -> elseAction.validate(validator.forChild(".else_action")));
 
 	}
 

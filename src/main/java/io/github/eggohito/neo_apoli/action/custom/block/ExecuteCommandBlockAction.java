@@ -70,9 +70,9 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockAction.super.validate(reporter);
-		command().validate(reporter.forChild(".command"));
+	public void validate(Context.Validator validator) {
+		BlockAction.super.validate(validator);
+		command().validate(validator.forChild(".command"));
 	}
 
 }

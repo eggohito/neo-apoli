@@ -43,12 +43,12 @@ public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) im
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BoxProvider.super.validate(reporter);
+		BoxProvider.super.validate(validator);
 
-		box().validate(reporter.forChild(".box"));
-		translation().validate(reporter.forChild(".translation"));
+		box().validate(validator.forChild(".box"));
+		translation().validate(validator.forChild(".translation"));
 
 	}
 

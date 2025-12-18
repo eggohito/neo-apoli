@@ -42,13 +42,13 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		ValueProvider.super.validate(reporter);
-		condition().validate(reporter.forChild(".condition"));
+		ValueProvider.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
 
-		ifValue().validate(reporter.forChild(".if_value"));
-		elseValue().validate(reporter.forChild(".else_value"));
+		ifValue().validate(validator.forChild(".if_value"));
+		elseValue().validate(validator.forChild(".else_value"));
 
 	}
 

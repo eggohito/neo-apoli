@@ -33,11 +33,11 @@ public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvid
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		red().validate(reporter.forChild(".red"));
-		green().validate(reporter.forChild(".green"));
-		blue().validate(reporter.forChild(".blue"));
-		alpha().validate(reporter.forChild(".alpha"));
+	public void validate(Context.Validator validator) {
+		red().validate(validator.forChild(".red"));
+		green().validate(validator.forChild(".green"));
+		blue().validate(validator.forChild(".blue"));
+		alpha().validate(validator.forChild(".alpha"));
 	}
 
 	@Override

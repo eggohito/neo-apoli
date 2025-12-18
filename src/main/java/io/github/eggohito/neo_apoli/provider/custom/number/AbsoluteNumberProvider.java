@@ -38,9 +38,9 @@ public record AbsoluteNumberProvider(NumberProvider number) implements NumberPro
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		number().validate(reporter.forChild(".number"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		number().validate(validator.forChild(".number"));
 	}
 
 }

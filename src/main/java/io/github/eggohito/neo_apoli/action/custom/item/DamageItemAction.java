@@ -91,12 +91,12 @@ public record DamageItemAction(TypedContextKey<Entity> entity, NumberProvider am
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		ItemAction.super.validate(reporter);
+		ItemAction.super.validate(validator);
 
-		amount().validate(reporter.forChild(".amount"));
-		ignoreUnbreaking().validate(reporter.forChild(".ignore_unbreaking"));
+		amount().validate(validator.forChild(".amount"));
+		ignoreUnbreaking().validate(validator.forChild(".ignore_unbreaking"));
 
 	}
 

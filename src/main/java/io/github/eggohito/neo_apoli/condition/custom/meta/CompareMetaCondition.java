@@ -19,8 +19,8 @@ public interface CompareMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		comparison().validate(reporter.forChild(".comparison"));
+	default void validate(Context.Validator validator) {
+		comparison().validate(validator.forChild(".comparison"));
 	}
 
 	static <M extends CompareMetaCondition> MapCodec<M> createCodec(Function<Comparison, M> constructor) {

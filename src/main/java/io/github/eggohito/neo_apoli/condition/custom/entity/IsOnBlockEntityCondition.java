@@ -75,10 +75,10 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityCondition.super.validate(reporter);
-		blockCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+	public void validate(Context.Validator validator) {
+		EntityCondition.super.validate(validator);
+		blockCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_condition"));
 	}
 

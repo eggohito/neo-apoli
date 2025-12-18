@@ -36,7 +36,7 @@ public interface SequenceMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
 		ListIterator<A> listIterator = actions().listIterator();
 
@@ -45,7 +45,7 @@ public interface SequenceMetaAction<A extends Action> extends MetaAction {
 			int index = listIterator.nextIndex();
 			A action = listIterator.next();
 
-			action.validate(reporter.forChild(".actions[" + index + "]"));
+			action.validate(validator.forChild(".actions[" + index + "]"));
 
 		}
 

@@ -65,7 +65,7 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 		}
 
 		catch (CommandSyntaxException e) {
-			context.getReporter().report("Error trying to get string in NBT path \"" + this.path() + "\" from NBT \"" + source + "\": " + e.getMessage());
+			context.getValidator().report("Error trying to get string in NBT path \"" + this.path() + "\" from NBT \"" + source + "\": " + e.getMessage());
 		}
 
 		return "";
@@ -73,9 +73,9 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		StringProvider.super.validate(reporter);
-		source().validate(reporter.forChild(".source"));
+	public void validate(Context.Validator validator) {
+		StringProvider.super.validate(validator);
+		source().validate(validator.forChild(".source"));
 	}
 
 }

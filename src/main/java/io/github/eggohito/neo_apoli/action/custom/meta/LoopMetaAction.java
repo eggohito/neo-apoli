@@ -40,15 +40,15 @@ public interface LoopMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(reporter);
+		MetaAction.super.validate(validator);
 
-		beforeAction().ifPresent(beforeAction -> beforeAction.validate(reporter.forChild(".before_action")));
-		afterAction().ifPresent(afterAction -> afterAction.validate(reporter.forChild(".after_action")));
+		beforeAction().ifPresent(beforeAction -> beforeAction.validate(validator.forChild(".before_action")));
+		afterAction().ifPresent(afterAction -> afterAction.validate(validator.forChild(".after_action")));
 
-		iterations().validate(reporter.forChild(".iterations"));
-		action().validate(reporter.forChild(".action"));
+		iterations().validate(validator.forChild(".iterations"));
+		action().validate(validator.forChild(".action"));
 
 	}
 

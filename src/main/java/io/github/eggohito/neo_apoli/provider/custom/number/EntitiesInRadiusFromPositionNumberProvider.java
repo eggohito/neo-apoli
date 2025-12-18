@@ -81,15 +81,15 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
-		entityCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ENTITY))
+		NumberProvider.super.validate(validator);
+		entityCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.forChild(".entity_condition"));
 
-		position().validate(reporter.forChild(".position"));
-		radius().validate(reporter.forChild(".radius"));
+		position().validate(validator.forChild(".position"));
+		radius().validate(validator.forChild(".radius"));
 
 	}
 

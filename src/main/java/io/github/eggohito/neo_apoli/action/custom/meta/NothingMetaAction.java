@@ -14,7 +14,7 @@ public interface NothingMetaAction extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
 	}
 

@@ -96,9 +96,9 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		KeyCondition.super.validate(reporter);
+		KeyCondition.super.validate(validator);
 		ListIterator<StringProvider> iterator = ids().listIterator();
 
 		while (iterator.hasNext()) {
@@ -106,11 +106,11 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			int index = iterator.nextIndex();
 			StringProvider idProvider = iterator.next();
 
-			idProvider.validate(reporter.forChild(".ids[" + index + "]"));
+			idProvider.validate(validator.forChild(".ids[" + index + "]"));
 
 		}
 
-		buffer().validate(reporter.forChild(".buffer"));
+		buffer().validate(validator.forChild(".buffer"));
 
 	}
 

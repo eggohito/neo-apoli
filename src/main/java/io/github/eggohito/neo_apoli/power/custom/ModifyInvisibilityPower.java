@@ -65,11 +65,11 @@ public class ModifyInvisibilityPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getInvisibleToCondition().validate(reporter.forChild(".invisible_to_condition"));
-		getRenderArmor().validate(reporter.forChild(".render_armor"));
-		getRenderOutline().validate(reporter.forChild(".render_outline"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getInvisibleToCondition().validate(validator.forChild(".invisible_to_condition"));
+		getRenderArmor().validate(validator.forChild(".render_armor"));
+		getRenderOutline().validate(validator.forChild(".render_outline"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
@@ -102,9 +102,9 @@ public class ModifyInvisibilityPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

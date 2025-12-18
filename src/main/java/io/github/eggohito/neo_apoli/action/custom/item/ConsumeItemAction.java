@@ -43,9 +43,9 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		ItemAction.super.validate(reporter);
-		amount().validate(reporter.forChild(".amount"));
+	public void validate(Context.Validator validator) {
+		ItemAction.super.validate(validator);
+		amount().validate(validator.forChild(".amount"));
 	}
 
 }

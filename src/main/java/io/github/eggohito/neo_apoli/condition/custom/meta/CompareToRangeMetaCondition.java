@@ -41,7 +41,7 @@ public interface CompareToRangeMetaCondition extends MetaCondition {
 		}
 
 		else if (min.isPresent() && max.isPresent() && min.get() > max.get()) {
-			context.getReporter().report("Minimum value cannot be bigger than maximum value");
+			context.getValidator().report("Minimum value cannot be bigger than maximum value");
 			return false;
 		}
 
@@ -53,12 +53,12 @@ public interface CompareToRangeMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		value().validate(reporter.forChild(".value"));
+		value().validate(validator.forChild(".value"));
 
-		min().ifPresent(min -> min.validate(reporter.forChild(".min")));
-		max().ifPresent(max -> max.validate(reporter.forChild(".max")));
+		min().ifPresent(min -> min.validate(validator.forChild(".min")));
+		max().ifPresent(max -> max.validate(validator.forChild(".max")));
 
 	}
 

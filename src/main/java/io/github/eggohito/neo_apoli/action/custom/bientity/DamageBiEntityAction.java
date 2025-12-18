@@ -57,9 +57,9 @@ public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BiEntityAction.super.validate(reporter);
-		amount().validate(reporter.forChild(".amount"));
+	public void validate(Context.Validator validator) {
+		BiEntityAction.super.validate(validator);
+		amount().validate(validator.forChild(".amount"));
 	}
 
 }

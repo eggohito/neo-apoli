@@ -36,11 +36,11 @@ public record ItemNbtProvider() implements NbtProvider {
 		Optional<ItemStack> optStack = context.optional(NeoApoliContextKeys.ITEM_STACK);
 
 		if (optStack.isEmpty()) {
-			context.getReporter().report("Couldn't encode and provide non-existent item stack as NBT!");
+			context.getValidator().report("Couldn't encode and provide non-existent item stack as NBT!");
 		}
 
 		return optStack
-			.flatMap(stack -> ItemStack.OPTIONAL_CODEC.encodeStart(ops, stack).resultOrPartial(context.getReporter()::report))
+			.flatMap(stack -> ItemStack.OPTIONAL_CODEC.encodeStart(ops, stack).resultOrPartial(context.getValidator()::report))
 			.orElseGet(CompoundTag::new);
 
 	}

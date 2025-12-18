@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.util.ComponentUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -59,6 +60,12 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 		description = ComponentUtil.forceTranslatable(translationKey + ".description", description);
 		hidden = hidden || reference.isSubPower();
 
+	}
+
+	public Context.Validator createValidator() {
+		return new Context.Validator()
+			.withKeySet(power().getType().keySet())
+			.forChildWithReference("{\"" + reference() + "\"}", reference());
 	}
 
 	public boolean isSubPower() {

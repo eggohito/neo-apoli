@@ -58,9 +58,9 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getOnHitAction().validate(reporter.forChild(".on_hit_action"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getOnHitAction().validate(validator.forChild(".on_hit_action"));
 	}
 
 	public static class Instance extends Power.Instance<CallbackDamageDealtPower> {
@@ -88,9 +88,9 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

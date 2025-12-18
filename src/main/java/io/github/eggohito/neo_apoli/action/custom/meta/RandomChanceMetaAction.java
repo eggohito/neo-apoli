@@ -43,14 +43,14 @@ public interface RandomChanceMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(reporter);
+		MetaAction.super.validate(validator);
 
-		successAction().validate(reporter.forChild(".success_action"));
-		failAction().ifPresent(failAction -> failAction.validate(reporter.forChild(".fail_action")));
+		successAction().validate(validator.forChild(".success_action"));
+		failAction().ifPresent(failAction -> failAction.validate(validator.forChild(".fail_action")));
 
-		chance().validate(reporter.forChild(".chance"));
+		chance().validate(validator.forChild(".chance"));
 
 	}
 

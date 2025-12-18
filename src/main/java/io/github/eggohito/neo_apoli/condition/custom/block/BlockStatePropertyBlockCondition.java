@@ -55,7 +55,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 		Property<?> property = blockState.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
-			propertyContext.getReporter().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
+			propertyContext.getValidator().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
 		}
 
 		return property != null
@@ -69,12 +69,12 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BlockCondition.super.validate(reporter);
+		BlockCondition.super.validate(validator);
 
-		property().validate(reporter.forChild(".property"));
-		value().validate(reporter.forChild(".value"));
+		property().validate(validator.forChild(".property"));
+		value().validate(validator.forChild(".value"));
 
 	}
 

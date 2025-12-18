@@ -40,8 +40,8 @@ public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEnt
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		biEntityAction().validate(reporter.forChild(".bientity_action"));
+	public void validate(Context.Validator validator) {
+		biEntityAction().validate(validator.forChild(".bientity_action"));
 	}
 
 }

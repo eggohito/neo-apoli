@@ -48,10 +48,10 @@ public record FluidBlockCondition(FluidCondition fluidCondition) implements Bloc
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockCondition.super.validate(reporter);
-		fluidCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.FLUID))
+	public void validate(Context.Validator validator) {
+		BlockCondition.super.validate(validator);
+		fluidCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.FLUID))
 			.forChild(".fluid_condition"));
 	}
 

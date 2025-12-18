@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
 import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,18 +26,16 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 			return;
 		}
 
-		ContextAware.ProblemReporter reporter = context.getReporter();
+		Context.Validator validator = context.getValidator();
 		SpriteMaterial spriteMaterial = new SpriteMaterial(nauseaOverlay.sprite());
 
 		TextureAtlasSprite sprite = spriteMaterial.spriteAsResult()
-			.resultOrPartial(reporter::report)
+			.resultOrPartial(validator::report)
 			.orElse(null);
 
-		if (sprite == null || reporter.hasErrors()) {
+		if (sprite == null || validator.selfPathHasErrors()) {
 
-			if (reporter.hasErrors()) {
-				NeoApoliLogger.logOnce(Level.ERROR, "Error trying to render HUD element due to error(s) " + reporter.getErrorsAsString());
-			}
+			validator.getErrorsFlattened().ifPresent(error -> NeoApoliLogger.logOnce(Level.ERROR, "Error trying to render overlay HUD element(s) due to error(s) " + error));
 
 			return;
 
@@ -82,9 +79,7 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		vertexBuffer.addVertex(matrices, x2, y2, 0.0F).setUv(maxU, maxV).setColor(color);
 		vertexBuffer.addVertex(matrices, x2, y1, 0.0F).setUv(maxU, minV).setColor(color);
 
-		if (reporter.hasErrors()) {
-			NeoApoliLogger.logOnce(Level.WARN, "Found warnings when rendering HUD element(s) at " + reporter.getErrorsAsString());
-		}
+		validator.getErrorsFlattened().ifPresent(warn -> NeoApoliLogger.logOnce(Level.WARN, "Found warnings when rendering overlay HUD element(s) " + warn));
 
 	}
 

@@ -61,9 +61,9 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockAction.super.validate(reporter);
-		showEffects().validate(reporter.forChild(".show_effects"));
+	public void validate(Context.Validator validator) {
+		BlockAction.super.validate(validator);
+		showEffects().validate(validator.forChild(".show_effects"));
 	}
 
 	private void showEffects(Context context, BlockPos blockPos) {

@@ -5,6 +5,7 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -26,23 +27,23 @@ public interface NumberBoundHudElement extends HudElement {
 	Optional<NumberProvider> max();
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		HudElement.super.validate(reporter);
+		HudElement.super.validate(validator);
 
-		validateKeyAndField(reporter, NeoApoliContextKeys.CURRENT_VALUE, value(), "value");
-		validateKeyAndField(reporter, NeoApoliContextKeys.MAX_VALUE, max(), "max");
-		validateKeyAndField(reporter, NeoApoliContextKeys.MIN_VALUE, min(), "min");
+		validateKeyAndField(validator, NeoApoliContextKeys.CURRENT_VALUE, value(), "value");
+		validateKeyAndField(validator, NeoApoliContextKeys.MAX_VALUE, max(), "max");
+		validateKeyAndField(validator, NeoApoliContextKeys.MIN_VALUE, min(), "min");
 
 	}
 
-	static void validateKeyAndField(ProblemReporter reporter, ContextKey<?> key, Optional<NumberProvider> fieldMethod, String fieldName) {
+	static void validateKeyAndField(Context.Validator validator, ContextKey<?> key, Optional<NumberProvider> fieldMethod, String fieldName) {
 
-		boolean keyIsAllowed = reporter.getKeySet().allowed().contains(key);
+		boolean keyIsAllowed = validator.getKeySet().allowed().contains(key);
 		boolean fieldIsPresent = fieldMethod.isPresent();
 
 		if (keyIsAllowed == fieldIsPresent) {
-			reporter.report("Either the parameter \"" + key.name() + "\" must be provided or the field \"" + fieldName + "\" be defined" + (fieldIsPresent ? ", not both" : "") + "!");
+			validator.report("Either the parameter \"" + key.name() + "\" must be provided or the field \"" + fieldName + "\" be defined" + (fieldIsPresent ? ", not both" : "") + "!");
 		}
 
 	}

@@ -32,9 +32,9 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BooleanProvider.super.validate(reporter);
-		condition().validate(reporter.forChild(".condition"));
+	public void validate(Context.Validator validator) {
+		BooleanProvider.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
 	}
 
 }

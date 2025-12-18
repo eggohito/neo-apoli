@@ -57,9 +57,9 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		position().validate(reporter.forChild(".position"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		position().validate(validator.forChild(".position"));
 	}
 
 }

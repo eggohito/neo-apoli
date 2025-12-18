@@ -85,15 +85,15 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Pr
 
 	}
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
-		blockCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+		NumberProvider.super.validate(validator);
+		blockCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_condition"));
 
-		position().validate(reporter.forChild(".position"));
-		radius().validate(reporter.forChild(".radius"));
+		position().validate(validator.forChild(".position"));
+		radius().validate(validator.forChild(".radius"));
 
 	}
 

@@ -63,9 +63,9 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		command().validate(reporter.forChild(".command"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		command().validate(validator.forChild(".command"));
 	}
 
 }

@@ -41,9 +41,9 @@ public record VelocityMagnitudeNumberProvider(TypedContextKey<Entity> entity) im
 				return Math.sqrt(movingEntity.neo_apoli$getSquaredVelocityMagnitude());
 			}
 			case null ->
-				context.getReporter().report("Couldn't get velocity magnitude of entity from parameter \"" + entity().name() + "\", as it doesn't exist!");
+				context.getValidator().report("Couldn't get velocity magnitude of entity from parameter \"" + entity().name() + "\", as it doesn't exist!");
 			default ->
-				context.getReporter().report("Couldn't get velocity magnitude of entity from parameter \"" + entity().name() + "\", as it's not a moving entity!");
+				context.getValidator().report("Couldn't get velocity magnitude of entity from parameter \"" + entity().name() + "\", as it's not a moving entity!");
 		}
 
 		return 0.0D;

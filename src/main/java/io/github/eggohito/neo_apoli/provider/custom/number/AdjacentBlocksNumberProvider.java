@@ -74,14 +74,14 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
-		adjacentBlockCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+		NumberProvider.super.validate(validator);
+		adjacentBlockCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_condition"));
 
-		position().validate(reporter.forChild(".position"));
+		position().validate(validator.forChild(".position"));
 
 	}
 

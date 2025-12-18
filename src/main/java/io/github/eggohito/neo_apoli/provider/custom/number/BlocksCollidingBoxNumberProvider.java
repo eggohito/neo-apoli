@@ -74,14 +74,14 @@ public record BlocksCollidingBoxNumberProvider(BlockCondition blockCondition, Bo
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
-		blockCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+		NumberProvider.super.validate(validator);
+		blockCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_condition"));
 
-		box().validate(reporter.forChild(".box"));
+		box().validate(validator.forChild(".box"));
 
 	}
 

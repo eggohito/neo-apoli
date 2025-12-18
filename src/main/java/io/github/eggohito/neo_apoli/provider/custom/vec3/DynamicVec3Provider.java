@@ -41,13 +41,13 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		Vec3Provider.super.validate(reporter);
+		Vec3Provider.super.validate(validator);
 
-		x().validate(reporter.forChild(".x"));
-		y().validate(reporter.forChild(".y"));
-		z().validate(reporter.forChild(".z"));
+		x().validate(validator.forChild(".x"));
+		y().validate(validator.forChild(".y"));
+		z().validate(validator.forChild(".z"));
 
 	}
 

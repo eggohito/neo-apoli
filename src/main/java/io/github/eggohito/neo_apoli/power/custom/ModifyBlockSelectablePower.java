@@ -64,9 +64,9 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getAllow().validate(reporter.forChild(".allow"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getAllow().validate(validator.forChild(".allow"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockSelectablePower> {
@@ -94,9 +94,9 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

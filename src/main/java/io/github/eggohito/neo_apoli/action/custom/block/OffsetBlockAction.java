@@ -65,12 +65,12 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BlockAction.super.validate(reporter);
+		BlockAction.super.validate(validator);
 
-		action().validate(reporter.forChild(".action"));
-		offset().validate(reporter.forChild(".offset"));
+		action().validate(validator.forChild(".action"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

@@ -39,7 +39,7 @@ public record EntityNbtProvider(TypedContextKey<Entity> entity) implements NbtPr
 	public @NotNull Tag next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getReporter().report("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");
+			context.getValidator().report("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");
 		}
 
 		return context.optional(entity())

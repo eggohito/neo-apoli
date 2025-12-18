@@ -107,18 +107,18 @@ public interface ExplodeMetaAction extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(reporter);
+		MetaAction.super.validate(validator);
 
-		damageableBiEntityCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+		damageableBiEntityCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 			.forChild(".damageable_bientity_condition"));
-		destructibleBlockCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+		destructibleBlockCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".destructible_block_condition"));
 
-		property().validate(reporter);
+		property().validate(validator);
 
 	}
 
@@ -188,13 +188,13 @@ public interface ExplodeMetaAction extends MetaAction {
 		);
 
 		@Override
-		public void validate(ProblemReporter reporter) {
+		public void validate(Context.Validator validator) {
 
-			ContextAware.super.validate(reporter);
+			ContextAware.super.validate(validator);
 
-			power().validate(reporter.forChild(".power"));
-			knockbackMultiplier().validate(reporter.forChild(".knockback_multiplier"));
-			createFire().validate(reporter.forChild(".create_fire"));
+			power().validate(validator.forChild(".power"));
+			knockbackMultiplier().validate(validator.forChild(".knockback_multiplier"));
+			createFire().validate(validator.forChild(".create_fire"));
 
 		}
 

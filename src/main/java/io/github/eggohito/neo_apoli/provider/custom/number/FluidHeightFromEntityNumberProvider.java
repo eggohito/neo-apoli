@@ -52,9 +52,9 @@ public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, TypedC
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".fluid_tag"), this.fluidTag());
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".fluid_tag"), this.fluidTag());
 	}
 
 }

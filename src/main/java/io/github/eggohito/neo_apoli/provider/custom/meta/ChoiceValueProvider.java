@@ -48,9 +48,9 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		ValueProvider.super.validate(reporter);
+		ValueProvider.super.validate(validator);
 		ListIterator<Case<P>> caseListIterator = cases().listIterator();
 
 		while (caseListIterator.hasNext()) {
@@ -58,7 +58,7 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 			int index = caseListIterator.nextIndex();
 			Case<P> aCase = caseListIterator.next();
 
-			aCase.validate(reporter.forChild(".cases[" + index + "]"));
+			aCase.validate(validator.forChild(".cases[" + index + "]"));
 
 		}
 
@@ -82,12 +82,12 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	record Case<P extends ValueProvider<?>>(Condition condition, P value) implements ContextAware {
 
 		@Override
-		public void validate(ProblemReporter reporter) {
+		public void validate(Context.Validator validator) {
 
-			ContextAware.super.validate(reporter);
+			ContextAware.super.validate(validator);
 
-			condition().validate(reporter.forChild(".condition"));
-			value().validate(reporter.forChild(".value"));
+			condition().validate(validator.forChild(".condition"));
+			value().validate(validator.forChild(".value"));
 
 		}
 

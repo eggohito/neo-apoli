@@ -16,7 +16,6 @@ import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.ChatFormatting;
@@ -24,6 +23,8 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
+
+import java.util.Optional;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -137,28 +138,37 @@ public class ActionCommand {
 					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\", ...}"
 				);
 
-				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
+				Context.Validator validator = new Context.Validator()
+					.withKeySet(NeoApoliContextKeySets.ANY)
+					.forChild(rootPath);
 				Context context = contextBuilder
-					.withReporter(reporter)
+					.withValidator(validator)
 					.build(source.getLevel());
 
-				action.validate(reporter);
+				action.validate(validator);
+				Optional<CommandSyntaxException> validationException = validator.getErrorsFlattened()
+					.map(error -> Component.literal("Found errors when validating " + display + ": ").append(error))
+					.map(MiscUtil::createCommandException);
 
-				if (reporter.hasAnyErrors()) {
-					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+				if (validationException.isPresent()) {
+					throw validationException.get();
 				}
 
 				action.execute(context);
+				Optional<CommandSyntaxException> executionWarning = validator.getErrorsFlattened().map(error -> Component.literal("Warnings found when validating " + display + ": ")
+					.withStyle(ChatFormatting.YELLOW)
+					.append(error))
+					.map(MiscUtil::createCommandException);
 
-				if (reporter.hasAnyErrors()) {
-					source.sendSuccess(() -> Component.literal("").append("Warnings found when executing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);
-					return 0;
+				if (executionWarning.isPresent()) {
+					throw executionWarning.get();
 				}
 
 				else {
 					source.sendSuccess(() -> Component.nullToEmpty("Successfully executed " + display + "!"), true);
-					return 1;
 				}
+
+				return 1;
 
 			}
 

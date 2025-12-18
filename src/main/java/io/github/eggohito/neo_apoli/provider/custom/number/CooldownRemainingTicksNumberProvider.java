@@ -60,9 +60,9 @@ public record CooldownRemainingTicksNumberProvider(PowerReference power, TypedCo
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		CooldownPower.getAsResult(power()).ifError(error -> reporter.report(error.message()));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		CooldownPower.getAsResult(power()).ifError(error -> validator.report(error.message()));
 	}
 
 }

@@ -38,11 +38,11 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		alpha().validate(reporter.forChild(".alpha"));
-		red().validate(reporter.forChild(".red"));
-		green().validate(reporter.forChild(".green"));
-		blue().validate(reporter.forChild(".blue"));
+	public void validate(Context.Validator validator) {
+		alpha().validate(validator.forChild(".alpha"));
+		red().validate(validator.forChild(".red"));
+		green().validate(validator.forChild(".green"));
+		blue().validate(validator.forChild(".blue"));
 	}
 
 	public float alpha(Context context) {

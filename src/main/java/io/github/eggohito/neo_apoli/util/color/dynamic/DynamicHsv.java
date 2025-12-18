@@ -38,11 +38,11 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		hue().validate(reporter.forChild(".hue"));
-		saturation().validate(reporter.forChild(".saturation"));
-		value().validate(reporter.forChild(".value"));
-		alpha().validate(reporter.forChild(".alpha"));
+	public void validate(Context.Validator validator) {
+		hue().validate(validator.forChild(".hue"));
+		saturation().validate(validator.forChild(".saturation"));
+		value().validate(validator.forChild(".value"));
+		alpha().validate(validator.forChild(".alpha"));
 	}
 
 	public float hue(Context context) {

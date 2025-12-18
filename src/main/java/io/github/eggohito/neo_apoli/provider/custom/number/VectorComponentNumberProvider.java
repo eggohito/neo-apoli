@@ -48,9 +48,9 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		vector().validate(reporter.forChild(".vector"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		vector().validate(validator.forChild(".vector"));
 	}
 
 }

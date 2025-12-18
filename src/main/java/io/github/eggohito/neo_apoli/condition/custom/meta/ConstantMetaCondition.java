@@ -19,7 +19,7 @@ public interface ConstantMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
 	}
 

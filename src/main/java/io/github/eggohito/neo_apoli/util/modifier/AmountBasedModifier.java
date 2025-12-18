@@ -21,9 +21,9 @@ public interface AmountBasedModifier extends Modifier {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		Modifier.super.validate(reporter);
-		amount().validate(reporter.forChild(".amount"));
+	default void validate(Context.Validator validator) {
+		Modifier.super.validate(validator);
+		amount().validate(validator.forChild(".amount"));
 	}
 
 	NumberProvider amount();

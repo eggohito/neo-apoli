@@ -85,10 +85,10 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getActions().validate(reporter);
-		getConditions().validate(reporter);
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getActions().validate(validator);
+		getConditions().validate(validator);
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockUsePower> {
@@ -122,9 +122,9 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		);
 
 		@Override
-		public void validate(ProblemReporter reporter) {
-			ContextAware.super.validate(reporter);
-			action().validate(reporter.forChild(".action"));
+		public void validate(Context.Validator validator) {
+			ContextAware.super.validate(validator);
+			action().validate(validator.forChild(".action"));
 		}
 
 		public InteractionResult execute(Context context) {

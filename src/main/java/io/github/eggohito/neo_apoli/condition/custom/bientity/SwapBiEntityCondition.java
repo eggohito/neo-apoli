@@ -40,8 +40,8 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		condition().validate(reporter.forChild(".condition"));
+	public void validate(Context.Validator validator) {
+		condition().validate(validator.forChild(".condition"));
 	}
 
 }

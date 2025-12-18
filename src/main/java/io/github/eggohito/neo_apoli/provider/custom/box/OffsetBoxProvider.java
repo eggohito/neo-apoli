@@ -48,12 +48,12 @@ public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements 
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BoxProvider.super.validate(reporter);
+		BoxProvider.super.validate(validator);
 
-		box().validate(reporter.forChild(".box"));
-		offset().validate(reporter.forChild(".offset"));
+		box().validate(validator.forChild(".box"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

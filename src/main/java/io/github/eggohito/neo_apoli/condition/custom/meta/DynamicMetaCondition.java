@@ -26,9 +26,9 @@ public interface DynamicMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		MetaCondition.super.validate(reporter);
-		value().validate(reporter.forChild(".value"));
+	default void validate(Context.Validator validator) {
+		MetaCondition.super.validate(validator);
+		value().validate(validator.forChild(".value"));
 	}
 
 	static <M extends DynamicMetaCondition> MapCodec<M> createCodec(Function<BooleanProvider, M> constructor) {

@@ -59,13 +59,13 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		Comparison.super.validate(reporter);
+		Comparison.super.validate(validator);
 
-		first().validate(reporter.forChild(".first"));
-		second().validate(reporter.forChild(".second"));
-		decimals().validate(reporter.forChild(".decimals"));
+		first().validate(validator.forChild(".first"));
+		second().validate(validator.forChild(".second"));
+		decimals().validate(validator.forChild(".decimals"));
 
 	}
 

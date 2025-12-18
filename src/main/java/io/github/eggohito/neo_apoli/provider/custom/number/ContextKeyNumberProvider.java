@@ -40,7 +40,7 @@ public record ContextKeyNumberProvider(TypedContextKey<Number> key) implements N
 		Optional<Number> number = context.optional(key());
 
 		if (number.isEmpty()) {
-			context.getReporter().report("Couldn't get and provide number from parameter \"" + id + "\", as it's not included in the context!");
+			context.getValidator().report("Couldn't get and provide number from parameter \"" + id + "\", as it's not included in the context!");
 		}
 
 		return number.orElse(0.0D);

@@ -63,12 +63,12 @@ public record OffsetEntityAction(EntityAction action, Vec3Provider offset) imple
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		EntityAction.super.validate(reporter);
+		EntityAction.super.validate(validator);
 
-		action().validate(reporter.forChild(".action"));
-		offset().validate(reporter.forChild(".offset"));
+		action().validate(validator.forChild(".action"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

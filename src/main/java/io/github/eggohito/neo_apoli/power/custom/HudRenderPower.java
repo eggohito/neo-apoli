@@ -56,9 +56,9 @@ public class HudRenderPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
 		ListIterator<HudElement> iterator = this.getHudElements().listIterator();
 
@@ -67,7 +67,7 @@ public class HudRenderPower extends Power {
 			int index = iterator.nextIndex();
 			HudElement hudElement = iterator.next();
 
-			hudElement.validate(reporter.forChild(".hud_elements[" + index + "]"));
+			hudElement.validate(validator.forChild(".hud_elements[" + index + "]"));
 
 		}
 

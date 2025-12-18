@@ -52,9 +52,9 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		KeyCondition.super.validate(reporter);
-		id().validate(reporter.forChild(".id"));
+	public void validate(Context.Validator validator) {
+		KeyCondition.super.validate(validator);
+		id().validate(validator.forChild(".id"));
 	}
 
 }

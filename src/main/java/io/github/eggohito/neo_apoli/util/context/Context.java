@@ -1,11 +1,17 @@
 package io.github.eggohito.neo_apoli.util.context;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import io.github.eggohito.neo_apoli.mixin.access.ContextMapAccessor;
+import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.util.context.ContextMap;
@@ -17,13 +23,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Context implements ContextParameterHolder {
 
 	protected final Level level;
-	protected final ContextAware.ProblemReporter reporter;
+	protected final Validator validator;
 
 	protected ContextMap parameters;
 	protected ImmutableSet<ContextAware> activeEntries;
@@ -39,15 +46,15 @@ public class Context implements ContextParameterHolder {
 	}
 
 	public ContextKeySet getKeySet() {
-		return getReporter().getKeySet();
+		return getValidator().getKeySet();
 	}
 
 	public Context forChild(String path) {
-		return new Context(this.level, this.reporter.forChild(path), this.parameters, this.activeEntries);
+		return new Context(this.level, this.validator.forChild(path), this.parameters, this.activeEntries);
 	}
 
-	public Context forChild(String path, ReferenceKey key) {
-		return new Context(this.level, this.reporter.forChild(path, key), this.parameters, this.activeEntries);
+	public Context forChildWithReference(String path, ReferenceKey key) {
+		return new Context(this.level, this.validator.forChildWithReference(path, key), this.parameters, this.activeEntries);
 	}
 
 	public boolean isActive(ContextAware entry) {
@@ -75,11 +82,15 @@ public class Context implements ContextParameterHolder {
 	}
 
 	public boolean hasErrors() {
-		return this.getReporter().hasErrors();
+		return this.getValidator().selfPathHasErrors();
 	}
 
 	public boolean hasAnyErrors() {
-		return this.getReporter().hasAnyErrors();
+		return this.getValidator().hasErrors();
+	}
+
+	public void report(String message) {
+		this.getValidator().report(message);
 	}
 
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -89,14 +100,14 @@ public class Context implements ContextParameterHolder {
 		private ImmutableSet<ContextAware> activeEntries;
 
 		@Getter
-		private ContextAware.ProblemReporter reporter;
+		private Validator validator;
 
-		public Builder(ContextAware.ProblemReporter reporter) {
-			this(new ContextMap.Builder(), ImmutableSet.of(), reporter);
+		public Builder(Validator validator) {
+			this(new ContextMap.Builder(), ImmutableSet.of(), validator);
 		}
 
-		public Builder(ContextKeySet type) {
-			this(new ContextAware.ProblemReporter(type));
+		public Builder(ContextKeySet keySet) {
+			this(new Validator().withKeySet(keySet));
 		}
 
 		public Builder(Context context) {
@@ -106,7 +117,7 @@ public class Context implements ContextParameterHolder {
 
 			this.parameters = newParameters;
 			this.activeEntries = context.getActiveEntries();
-			this.reporter = context.getReporter();
+			this.validator = context.getValidator();
 
 		}
 
@@ -158,25 +169,130 @@ public class Context implements ContextParameterHolder {
 		}
 
 		public Builder withKeySet(ContextKeySet keySet) {
-			this.reporter = reporter.withKeySet(keySet);
+			this.validator = validator.withKeySet(keySet);
 			return this;
 		}
 
-		public Builder withReporter(ContextAware.ProblemReporter reporter) {
-			this.reporter = reporter;
+		public Builder withValidator(Validator validator) {
+			this.validator = validator;
 			return this;
 		}
 
 		public Context build(Level level) {
-			return new Context(level, this.getReporter(), this.parameters.create(this.getKeySet()), this.activeEntries);
+			return new Context(level, this.getValidator(), this.parameters.create(this.getKeySet()), this.activeEntries);
 		}
 
 		public ContextKeySet getKeySet() {
-			return this.getReporter().getKeySet();
+			return this.getValidator().getKeySet();
 		}
 
 		public boolean isActive(ContextAware entry) {
 			return this.activeEntries.contains(entry);
+		}
+
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public static class Validator {
+
+		private final ContextKeySet keySet;
+		private final Reporter reporter;
+
+		private final Optional<HolderLookup.Provider> lookupProvider;
+		private final ImmutableSet<ReferenceKey> references;
+
+		public Validator(ContextKeySet keySet, Reporter reporter) {
+			this(keySet, reporter, Optional.empty(), ImmutableSet.of());
+		}
+
+		public Validator(ContextKeySet keySet, String path) {
+			this(keySet, new Reporter(path));
+		}
+
+		public Validator(ContextKeySet keySet) {
+			this(keySet, "");
+		}
+
+		public Validator(String path) {
+			this(NeoApoliContextKeySets.ANY, path);
+		}
+
+		public Validator() {
+			this("");
+		}
+
+		public Validator forChild(String name) {
+			return new Validator(this.getKeySet(), this.getReporter().forChild(name), this.getLookupProvider(), this.getReferences());
+		}
+
+		public Validator forChildWithReference(String name, ReferenceKey reference) {
+
+			ImmutableSet<ReferenceKey> references = ImmutableSet.<ReferenceKey>builder()
+				.addAll(this.references)
+				.add(reference)
+				.build();
+
+			return new Validator(this.getKeySet(), this.getReporter().forChild(name), this.getLookupProvider(), references);
+
+		}
+
+		public Validator withKeySet(ContextKeySet keySet) {
+			return new Validator(keySet, this.getReporter(), this.getLookupProvider(), this.getReferences());
+		}
+
+		public Validator withReporter(Reporter reporter) {
+			return new Validator(this.getKeySet(), reporter);
+		}
+
+		public Validator withLookupProvider(HolderLookup.Provider lookupProvider) {
+			return new Validator(this.getKeySet(), this.getReporter(), Optional.ofNullable(lookupProvider), this.getReferences());
+		}
+
+		public HolderLookup.Provider getLookupProviderUnsafe() {
+			return this.getLookupProvider().orElseThrow(() -> new IllegalStateException("References are not allowed!"));
+		}
+
+		public boolean hasLookupProvider() {
+			return this.getLookupProvider().isPresent();
+		}
+
+		public ImmutableMultimap<String, String> getErrors() {
+			return this.getReporter().getErrors();
+		}
+
+		public Optional<String> getErrorsFlattened() {
+			return this.getReporter().getErrorsFlattened();
+		}
+
+		public boolean pathHasErrors(String path) {
+			return this.getReporter().pathHasErrors(path);
+		}
+
+		public boolean selfPathHasErrors() {
+			return this.getReporter().selfPathHasErrors();
+		}
+
+		public boolean hasErrors() {
+			return this.getReporter().hasErrors();
+		}
+
+		public boolean isReferenced(ReferenceKey reference) {
+			return this.getReferences().contains(reference);
+		}
+
+		public void validate(ContextAware contextAware) {
+
+			Set<ContextKey<?>> missingParameters = Sets.difference(contextAware.getRequiredParameters(), this.getKeySet().allowed());
+
+			if (!missingParameters.isEmpty()) {
+				this.report("Parameters [" + missingParameters.stream().map(ContextKey::name).map(ResourceLocation::toString).collect(Collectors.joining(", ")) + "] are not provided in the context for " + (contextAware instanceof StringDisplayable displayable ? displayable.asDisplayString(false) : contextAware) + "!");
+			}
+
+		}
+
+		public void report(String message) {
+			this.getReporter().report(message);
 		}
 
 	}

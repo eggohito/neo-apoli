@@ -51,12 +51,12 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
+		NumberProvider.super.validate(validator);
 
-		dividend().validate(reporter.forChild(".dividend"));
-		divisor().validate(reporter.forChild(".divisor"));
+		dividend().validate(validator.forChild(".dividend"));
+		divisor().validate(validator.forChild(".divisor"));
 
 	}
 

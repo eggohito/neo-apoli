@@ -62,12 +62,12 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		Comparison.super.validate(reporter);
+		Comparison.super.validate(validator);
 
-		first().validate(reporter.forChild(".first"));
-		second().validate(reporter.forChild(".second"));
+		first().validate(validator.forChild(".first"));
+		second().validate(validator.forChild(".second"));
 
 	}
 

@@ -78,11 +78,11 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockAction.super.validate(reporter);
-		blockAction().validate(reporter.forChild(".block_action"));
-		blockCondition().validate(reporter.forChild(".block_condition"));
-		radius().validate(reporter.forChild(".radius"));
+	public void validate(Context.Validator validator) {
+		BlockAction.super.validate(validator);
+		blockAction().validate(validator.forChild(".block_action"));
+		blockCondition().validate(validator.forChild(".block_condition"));
+		radius().validate(validator.forChild(".radius"));
 	}
 
 }

@@ -75,12 +75,12 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BlockCondition.super.validate(reporter);
+		BlockCondition.super.validate(validator);
 
-		condition().validate(reporter.forChild(".condition"));
-		offset().validate(reporter.forChild(".offset"));
+		condition().validate(validator.forChild(".condition"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

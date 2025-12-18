@@ -74,9 +74,9 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".tag"), this.getTag());
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.getTag());
 	}
 
 	@ApiStatus.Internal
@@ -156,9 +156,9 @@ public class ModifyEntityTypeTagPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

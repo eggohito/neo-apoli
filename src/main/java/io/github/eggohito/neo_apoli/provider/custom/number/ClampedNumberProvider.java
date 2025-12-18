@@ -55,13 +55,13 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
+		NumberProvider.super.validate(validator);
 
-		value().validate(reporter.forChild(".value"));
-		min().validate(reporter.forChild(".min"));
-		max().validate(reporter.forChild(".max"));
+		value().validate(validator.forChild(".value"));
+		min().validate(validator.forChild(".min"));
+		max().validate(validator.forChild(".max"));
 
 	}
 

@@ -51,12 +51,12 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
+		NumberProvider.super.validate(validator);
 
-		first().validate(reporter.forChild(".first"));
-		second().validate(reporter.forChild(".second"));
+		first().validate(validator.forChild(".first"));
+		second().validate(validator.forChild(".second"));
 
 	}
 

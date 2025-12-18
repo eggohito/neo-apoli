@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,9 +27,9 @@ public abstract class SimpleCallbackPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getAction().validate(reporter.forChild(".action"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getAction().validate(validator.forChild(".action"));
 	}
 
 	protected static <P extends SimpleCallbackPower> MapCodec<P> createSimpleCallbackCodec(BiFunction<Optional<Condition>, Action, P> constructor) {

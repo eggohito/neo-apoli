@@ -35,7 +35,7 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 		Optional<BlockEntity> optBlockEntity = context.optional(NeoApoliContextKeys.BLOCK_ENTITY);
 
 		if (optBlockEntity.isEmpty()) {
-			context.getReporter().report("Couldn't get and provide NBT from non-existent block entity!");
+			context.getValidator().report("Couldn't get and provide NBT from non-existent block entity!");
 		}
 
 		return optBlockEntity

@@ -44,11 +44,11 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 
 			if (!context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
-				context.getReporter().report("Couldn't get bounding box of a block without its position!");
+				context.getValidator().report("Couldn't get bounding box of a block without its position!");
 			}
 
 			if (!context.hasParameter(NeoApoliContextKeys.BLOCK_STATE)) {
-				context.getReporter().report("Couldn't get bounding box of a non-existing block!");
+				context.getValidator().report("Couldn't get bounding box of a non-existing block!");
 			}
 
 			return AABBUtil.EMPTY;

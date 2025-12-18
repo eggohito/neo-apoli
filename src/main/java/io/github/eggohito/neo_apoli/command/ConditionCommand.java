@@ -16,14 +16,14 @@ import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
+
+import java.util.Optional;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -150,21 +150,29 @@ public class ConditionCommand {
 					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\", ...}"
 				);
 
-				ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(NeoApoliContextKeySets.ANY, rootPath);
+				Context.Validator validator = new Context.Validator()
+					.withKeySet(NeoApoliContextKeySets.ANY)
+					.forChild(rootPath);
 				Context context = contextBuilder
-					.withReporter(reporter)
+					.withValidator(validator)
 					.build(source.getLevel());
 
-				condition.validate(reporter);
+				condition.validate(validator);
+				Optional<CommandSyntaxException> validationException = validator.getErrorsFlattened()
+					.map(error -> Component.literal("Found errors when validating " + display + ": ").append(error))
+					.map(MiscUtil::createCommandException);
 
-				if (reporter.hasAnyErrors()) {
-					throw MiscUtil.createCommandException(Component.literal("Found errors when validating " + display + ": ").append(reporter.getErrorsAsString()));
+				if (validationException.isPresent()) {
+					throw validationException.get();
 				}
 
-				boolean result = condition.test(context) && !reporter.hasAnyErrors();
+				boolean result = condition.test(context);
+				Optional<CommandSyntaxException> testingException = validator.getErrorsFlattened()
+					.map(error -> Component.literal("Warnings found when testing " + display + ": ").append(error))
+					.map(MiscUtil::createCommandException);
 
-				if (reporter.hasAnyErrors()) {
-					source.sendSuccess(() -> Component.literal("").append("Warnings found when testing " + display + ": ").withStyle(ChatFormatting.YELLOW).append(reporter.getErrorsAsString()), false);
+				if (testingException.isPresent()) {
+					throw testingException.get();
 				}
 
 				return result;

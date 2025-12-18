@@ -30,11 +30,11 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 					try {
 
 						if (context.markActive(condition)) {
-							return condition.test(context.forChild("{" + this.value() + "}", this.value()));
+							return condition.test(context.forChildWithReference("{" + this.value() + "}", this.value()));
 						}
 
 						else {
-							context.getReporter().forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was tested recursively!");
+							context.getValidator().forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was tested recursively!");
 						}
 
 					}
@@ -52,17 +52,17 @@ public interface ReferenceMetaCondition<C extends Condition> extends MetaConditi
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		if (reporter.isInStack(this.value())) {
-			reporter.forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
+		if (validator.isReferenced(this.value())) {
+			validator.forChild(".value").report(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
 		}
 
 		else {
 			ConditionManager.getAsResult(this.value())
 				.flatMap(this::checkAndCast)
-				.ifSuccess(condition -> condition.validate(reporter.forChild("{" + this.value() + "}", this.value())))
-				.ifError(error -> reporter.forChild(".value").report(error.message()));
+				.ifSuccess(condition -> condition.validate(validator.forChildWithReference("{" + this.value() + "}", this.value())))
+				.ifError(error -> validator.forChild(".value").report(error.message()));
 		}
 
 	}

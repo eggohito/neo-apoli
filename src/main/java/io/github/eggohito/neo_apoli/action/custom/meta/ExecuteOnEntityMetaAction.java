@@ -48,10 +48,10 @@ public interface ExecuteOnEntityMetaAction extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		MetaAction.super.validate(reporter);
-		action().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ENTITY))
+	default void validate(Context.Validator validator) {
+		MetaAction.super.validate(validator);
+		action().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.forChild(".action"));
 	}
 

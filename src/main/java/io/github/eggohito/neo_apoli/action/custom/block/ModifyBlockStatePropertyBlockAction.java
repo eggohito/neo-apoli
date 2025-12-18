@@ -114,7 +114,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		}
 
 		else {
-			context.getReporter().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" does not have a state property with the name \"" + propertyName + "\"!");
+			context.getValidator().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" does not have a state property with the name \"" + propertyName + "\"!");
 		}
 
 	}
@@ -125,11 +125,11 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockAction.super.validate(reporter);
-		property().validate(reporter.forChild(".property"));
-		value().ifPresent(value -> value.validate(reporter.forChild(".value")));
-		cycle().ifPresent(cycle -> cycle.validate(reporter.forChild(".cycle")));
+	public void validate(Context.Validator validator) {
+		BlockAction.super.validate(validator);
+		property().validate(validator.forChild(".property"));
+		value().ifPresent(value -> value.validate(validator.forChild(".value")));
+		cycle().ifPresent(cycle -> cycle.validate(validator.forChild(".cycle")));
 	}
 
 	private <T extends Comparable<T>> void setValue(Context context, StateHolder<?, ?> state, Property<T> property) {

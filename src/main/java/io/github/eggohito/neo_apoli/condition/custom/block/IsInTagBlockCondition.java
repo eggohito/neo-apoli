@@ -38,9 +38,9 @@ public record IsInTagBlockCondition(TagKey<Block> tag) implements BlockCondition
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		BlockCondition.super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".tag"), this.tag());
+	public void validate(Context.Validator validator) {
+		BlockCondition.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.tag());
 	}
 
 }

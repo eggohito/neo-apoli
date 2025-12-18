@@ -89,12 +89,12 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		EntityAction.super.validate(reporter);
+		EntityAction.super.validate(validator);
 
-		points().ifPresent(points -> points.validate(reporter.forChild(".points")));
-		levels().ifPresent(levels -> levels.validate(reporter.forChild(".levels")));
+		points().ifPresent(points -> points.validate(validator.forChild(".points")));
+		levels().ifPresent(levels -> levels.validate(validator.forChild(".levels")));
 
 	}
 

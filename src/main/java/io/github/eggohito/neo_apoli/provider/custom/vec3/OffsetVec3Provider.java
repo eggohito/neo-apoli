@@ -41,12 +41,12 @@ public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) imple
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		Vec3Provider.super.validate(reporter);
+		Vec3Provider.super.validate(validator);
 
-		vector().validate(reporter.forChild(".vector"));
-		offset().validate(reporter.forChild(".offset"));
+		vector().validate(validator.forChild(".vector"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

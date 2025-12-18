@@ -43,9 +43,9 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityAction.super.validate(reporter);
-		ticks().validate(reporter.forChild(".ticks"));
+	public void validate(Context.Validator validator) {
+		EntityAction.super.validate(validator);
+		ticks().validate(validator.forChild(".ticks"));
 	}
 
 }

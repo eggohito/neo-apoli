@@ -42,7 +42,7 @@ public interface AllOfMetaCondition<C extends Condition> extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
 		ListIterator<C> listIterator = conditions().listIterator();
 
@@ -51,7 +51,7 @@ public interface AllOfMetaCondition<C extends Condition> extends MetaCondition {
 			int index = listIterator.nextIndex();
 			C condition = listIterator.next();
 
-			condition.validate(reporter.forChild(".conditions[" + index + "]"));
+			condition.validate(validator.forChild(".conditions[" + index + "]"));
 
 		}
 

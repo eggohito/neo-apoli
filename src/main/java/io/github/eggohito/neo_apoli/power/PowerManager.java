@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.event.DependencyManager;
 import io.github.eggohito.neo_apoli.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
-import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
@@ -22,7 +21,7 @@ import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -260,31 +259,31 @@ public final class PowerManager implements JsonReloadListener {
 			return;
 		}
 
-		ObjectIterator<PowerEntry<?>> entryIterator = BY_REFERENCE.values().iterator();
-		int prevSize = BY_REFERENCE.size();
+		ObjectIterator<PowerEntry<?>> iterator = BY_REFERENCE.values().iterator();
+		int size = BY_REFERENCE.size();
 
-		LOGGER.info("Validating {} power(s)...", prevSize);
+		LOGGER.info("Validating {} power(s)...", size);
 
-		while (entryIterator.hasNext()) {
+		while (iterator.hasNext()) {
 
-			PowerEntry<?> entry = entryIterator.next();
+			PowerEntry<?> entry = iterator.next();
 			Power power = entry.power();
 
-			ContextAware.ProblemReporter reporter = new ContextAware.ProblemReporter(power.getType().keySet(), "{" + entry.reference() + "}").withHolderProvider(((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries());
-			power.validate(reporter);
+			Context.Validator validator = entry.createValidator().withLookupProvider(MiscUtil.getLookupProvider(resources));
+			power.validate(validator);
 
-			if (!reporter.hasAnyErrors()) {
-				continue;
-			}
+			validator.getErrorsFlattened().ifPresent(error -> {
 
-			LOGGER.warn("Error validating {} due to error(s) {}", entry.reference().asDisplayString(false), reporter.getErrorsAsString());
+				LOGGER.error("Found error(s) while validating {} {}", entry.reference().asDisplayString(false), error);
 
-			BY_POWER.remove(power);
-			entryIterator.remove();
+				BY_POWER.remove(power);
+				iterator.remove();
+
+			});
 
 		}
 
-		LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", prevSize, BY_REFERENCE.size());
+		LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", size, BY_REFERENCE.size());
 		BY_REFERENCE.trim();
 
 	}

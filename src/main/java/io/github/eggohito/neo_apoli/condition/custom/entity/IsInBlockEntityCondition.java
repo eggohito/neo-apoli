@@ -64,10 +64,10 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityCondition.super.validate(reporter);
-		condition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+	public void validate(Context.Validator validator) {
+		EntityCondition.super.validate(validator);
+		condition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_condition"));
 	}
 

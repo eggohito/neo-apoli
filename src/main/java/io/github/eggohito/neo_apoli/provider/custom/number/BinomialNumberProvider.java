@@ -55,12 +55,12 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
+		NumberProvider.super.validate(validator);
 
-		attempts().validate(reporter.forChild(".attempts"));
-		probability().validate(reporter.forChild(".probability"));
+		attempts().validate(validator.forChild(".attempts"));
+		probability().validate(validator.forChild(".probability"));
 
 	}
 

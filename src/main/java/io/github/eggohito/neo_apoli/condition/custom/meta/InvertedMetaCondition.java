@@ -20,8 +20,8 @@ public interface InvertedMetaCondition<C extends Condition> extends MetaConditio
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		condition().validate(reporter.forChild(".condition"));
+	default void validate(Context.Validator validator) {
+		condition().validate(validator.forChild(".condition"));
 	}
 
 	static <C extends Condition, M extends InvertedMetaCondition<C>> MapCodec<M> createCodec(Codec<C> conditionCodec, Function<C, M> constructor) {

@@ -19,9 +19,9 @@ public interface TestWorldMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		MetaCondition.super.validate(reporter);
-		condition().validate(reporter.forChild(".condition"));
+	default void validate(Context.Validator validator) {
+		MetaCondition.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
 	}
 
 	static <M extends TestWorldMetaCondition> MapCodec<M> createCodec(Function<WorldCondition, M> constructor) {

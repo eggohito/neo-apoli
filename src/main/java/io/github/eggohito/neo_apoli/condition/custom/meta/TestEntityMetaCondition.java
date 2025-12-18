@@ -48,10 +48,10 @@ public interface TestEntityMetaCondition extends MetaCondition {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		MetaCondition.super.validate(reporter);
-		condition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ENTITY))
+	default void validate(Context.Validator validator) {
+		MetaCondition.super.validate(validator);
+		condition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ENTITY))
 			.forChild(".condition"));
 	}
 

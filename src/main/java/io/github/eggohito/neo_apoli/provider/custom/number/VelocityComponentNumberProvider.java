@@ -44,9 +44,9 @@ public record VelocityComponentNumberProvider(TypedContextKey<Entity> entity, Di
 				return movingEntity.neo_apoli$getVelocity().get(axis());
 			}
 			case null ->
-				context.getReporter().report("Couldn't get velocity from axis " + axis().getName() + ", as entity from parameter \"" + entity().name() + "\" doesn't exist!");
+				context.getValidator().report("Couldn't get velocity from axis " + axis().getName() + ", as entity from parameter \"" + entity().name() + "\" doesn't exist!");
 			default ->
-				context.getReporter().report("Couldn't get velocity from axis " + axis().getName() + ", as entity from parameter \"" + entity().name() + "\" is not a moving entity!");
+				context.getValidator().report("Couldn't get velocity from axis " + axis().getName() + ", as entity from parameter \"" + entity().name() + "\" is not a moving entity!");
 		}
 
 		return 0.0D;

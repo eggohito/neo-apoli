@@ -41,9 +41,9 @@ public record IsInTagWorldCondition(TagKey<Level> tag) implements WorldCondition
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		WorldCondition.super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".tag"), this.tag());
+	public void validate(Context.Validator validator) {
+		WorldCondition.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.tag());
 	}
 
 }

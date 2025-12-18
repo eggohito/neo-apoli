@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.util;
 
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import com.mojang.datafixers.util.Either;
+import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -23,54 +24,33 @@ public final class RegistryUtil {
 		return getId(registry, obj).getPath();
 	}
 
-	public static <T> void validateEntry(ContextAware.ProblemReporter reporter, ResourceKey<T> key) {
-
-		ResourceKey<? extends Registry<T>> registryRef = key.registryKey();
-		HolderLookup.Provider lookupProvider = reporter.getHolderProvider().orElse(null);
-
-		if (lookupProvider == null) {
-			reporter.report("Couldn't access registry " + registryRef + "!");
-		}
-
-		else {
-
-			HolderLookup.RegistryLookup<T> lookup = lookupProvider
-				.lookup(registryRef)
-				.orElse(null);
-
-			if (lookup == null) {
-				reporter.report("Couldn't find registry " + registryRef + "!");
-			}
-
-			else if (lookup.get(key).isEmpty()) {
-				reporter.report(key + " doesn't exist!");
-			}
-
-		}
-
+	public static <T> void validateEntry(Context.Validator validator, ResourceKey<T> key) {
+		validate(validator, Either.left(key));
 	}
 
-	public static <T> void validateTag(ContextAware.ProblemReporter reporter, TagKey<T> tag) {
+	public static <T> void validateTag(Context.Validator validator, TagKey<T> tag) {
+		validate(validator, Either.right(tag));
+	}
 
-		ResourceKey<? extends Registry<T>> registryRef = tag.registry();
-		HolderLookup.Provider lookupProvider = reporter.getHolderProvider().orElse(null);
+	public static <T> void validate(Context.Validator validator, Either<ResourceKey<T>, TagKey<T>> keyOrTag) {
 
-		if (lookupProvider == null) {
-			reporter.report("Couldn't access registry " + registryRef + "!");
+		ResourceKey<? extends Registry<T>> registryRef = keyOrTag.map(ResourceKey::registryKey, TagKey::registry);
+		if (!validator.hasLookupProvider()) {
+			validator.report("Couldn't access registry " + registryRef + "!");
 		}
 
 		else {
 
-			HolderLookup.RegistryLookup<T> lookup = lookupProvider
+			HolderLookup.RegistryLookup<T> lookup = validator.getLookupProviderUnsafe()
 				.lookup(registryRef)
 				.orElse(null);
 
 			if (lookup == null) {
-				reporter.report("Couldn't find registry " + registryRef + "!");
+				validator.report("Couldn't find registry " + registryRef + "!");
 			}
 
-			else if (lookup.get(tag).isEmpty()) {
-				reporter.report(tag + " doesn't exist!");
+			else if (keyOrTag.map(lookup::get, lookup::get).isEmpty()) {
+				validator.report(keyOrTag.map(ResourceKey::toString, TagKey::toString) + " doesn't exist!");
 			}
 
 		}

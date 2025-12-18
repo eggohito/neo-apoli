@@ -48,9 +48,9 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		source().validate(reporter.forChild(".source"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		source().validate(validator.forChild(".source"));
 	}
 
 }

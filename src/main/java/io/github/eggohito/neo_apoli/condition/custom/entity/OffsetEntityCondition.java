@@ -63,12 +63,12 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		EntityCondition.super.validate(reporter);
+		EntityCondition.super.validate(validator);
 
-		condition().validate(reporter.forChild(".condition"));
-		offset().validate(reporter.forChild(".offset"));
+		condition().validate(validator.forChild(".condition"));
+		offset().validate(validator.forChild(".offset"));
 
 	}
 

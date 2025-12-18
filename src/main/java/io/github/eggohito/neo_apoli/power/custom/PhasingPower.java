@@ -74,9 +74,9 @@ public class PhasingPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getPhaseDownCondition().validate(reporter.forChild(".phase_down_condition"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getPhaseDownCondition().validate(validator.forChild(".phase_down_condition"));
 	}
 
 	public static class Instance extends Power.Instance<PhasingPower> {
@@ -112,9 +112,9 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {
@@ -144,9 +144,9 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

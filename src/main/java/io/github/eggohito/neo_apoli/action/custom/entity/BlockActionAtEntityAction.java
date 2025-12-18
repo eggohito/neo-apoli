@@ -60,10 +60,10 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityAction.super.validate(reporter);
-		blockAction().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BLOCK))
+	public void validate(Context.Validator validator) {
+		EntityAction.super.validate(validator);
+		blockAction().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
 			.forChild(".block_action"));
 	}
 

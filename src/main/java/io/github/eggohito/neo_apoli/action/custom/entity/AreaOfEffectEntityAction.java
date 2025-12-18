@@ -74,15 +74,15 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		EntityAction.super.validate(reporter);
-		ProblemReporter biEntityReporter = reporter.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY));
+		EntityAction.super.validate(validator);
+		Context.Validator biEntityValidator = validator.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY));
 
-		biEntityAction().validate(biEntityReporter.forChild(".bientity_action"));
-		biEntityCondition().validate(biEntityReporter.forChild(".bientity_condition"));
+		biEntityAction().validate(biEntityValidator.forChild(".bientity_action"));
+		biEntityCondition().validate(biEntityValidator.forChild(".bientity_condition"));
 
-		radius().validate(reporter.forChild(".radius"));
+		radius().validate(validator.forChild(".radius"));
 
 	}
 

@@ -92,14 +92,14 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		NumberProvider.super.validate(reporter);
-		biEntityCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+		NumberProvider.super.validate(validator);
+		biEntityCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY))
 			.forChild(".bientity_condition"));
 
-		radius().validate(reporter.forChild(".radius"));
+		radius().validate(validator.forChild(".radius"));
 
 	}
 

@@ -76,9 +76,9 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		ItemAction.super.validate(reporter);
-		RegistryUtil.validateEntry(reporter, this.modifier());
+	public void validate(Context.Validator validator) {
+		ItemAction.super.validate(validator);
+		RegistryUtil.validateEntry(validator, this.modifier());
 	}
 
 }

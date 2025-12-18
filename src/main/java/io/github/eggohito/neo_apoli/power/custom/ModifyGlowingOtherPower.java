@@ -60,12 +60,12 @@ public class ModifyGlowingOtherPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
-		getUseTeamColor().validate(reporter.forChild(".use_team_color"));
-		getColor().validate(reporter.forChild(".color"));
+		getUseTeamColor().validate(validator.forChild(".use_team_color"));
+		getColor().validate(validator.forChild(".color"));
 
 	}
 
@@ -97,9 +97,9 @@ public class ModifyGlowingOtherPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {
@@ -135,9 +135,9 @@ public class ModifyGlowingOtherPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

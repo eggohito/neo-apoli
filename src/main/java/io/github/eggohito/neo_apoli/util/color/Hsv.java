@@ -84,7 +84,7 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 				blue = l;
 			}
 			default -> {
-				context.getReporter().report("Something went wrong when converting HSV to RGB. Input was " + hue() + ", " + saturation() + ", " + value());
+				context.getValidator().report("Something went wrong when converting HSV to RGB. Input was " + hue() + ", " + saturation() + ", " + value());
 				return -1;
 			}
 		}

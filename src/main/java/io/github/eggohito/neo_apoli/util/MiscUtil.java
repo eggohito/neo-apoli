@@ -11,13 +11,16 @@ import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
+import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -151,6 +154,10 @@ public class MiscUtil {
 			.ifError(error -> error
 				.resultOrPartial(onPartial)
 				.ifPresentOrElse(onSuccessOrPartial, () -> onError.accept(error.message())));
+	}
+
+	public static HolderLookup.Provider getLookupProvider(ReloadableServerResources resources) {
+		return ((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries();
 	}
 
 }

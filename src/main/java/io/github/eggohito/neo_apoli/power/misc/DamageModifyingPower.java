@@ -38,9 +38,9 @@ public abstract class DamageModifyingPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
 		ListIterator<Modifier> listIterator = this.getModifiers().listIterator();
 
@@ -48,11 +48,11 @@ public abstract class DamageModifyingPower extends Power {
 
 			int index = listIterator.nextIndex();
 
-			listIterator.next().validate(reporter.forChild(".modifiers[" + index + "]"));
+			listIterator.next().validate(validator.forChild(".modifiers[" + index + "]"));
 
 		}
 
-		getOnModifyAction().validate(reporter.forChild(".on_modify_action"));
+		getOnModifyAction().validate(validator.forChild(".on_modify_action"));
 
 	}
 
@@ -94,9 +94,9 @@ public abstract class DamageModifyingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

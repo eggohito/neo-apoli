@@ -56,7 +56,7 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, TypedContextK
 					}
 
 					else {
-						context.getReporter().report("Entity from parameter \"" + entityKeyLocation + "\" doesn't have the attribute \"" + attributeLocation + "\"!");
+						context.getValidator().report("Entity from parameter \"" + entityKeyLocation + "\" doesn't have the attribute \"" + attributeLocation + "\"!");
 					}
 
 				}
@@ -64,9 +64,9 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, TypedContextK
 					//	No-op
 				}
 				case null ->
-					context.getReporter().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", which doesn't exist!");
+					context.getValidator().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", which doesn't exist!");
 				default ->
-					context.getReporter().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", as it isn't an entity that can have attributes!");
+					context.getValidator().report("Couldn't get value of attribute \"" + attributeLocation + "\" from entity in parameter \"" + entityKeyLocation + "\", as it isn't an entity that can have attributes!");
 			}
 
 			return 0.0D;

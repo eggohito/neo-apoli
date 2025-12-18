@@ -61,9 +61,9 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		id().validate(reporter.forChild(".id"));
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		id().validate(validator.forChild(".id"));
 	}
 
 }

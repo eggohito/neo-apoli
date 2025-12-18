@@ -76,17 +76,17 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		StringProvider.super.validate(reporter);
+		StringProvider.super.validate(validator);
 		ListIterator<StringProvider> listIterator = strings.listIterator();
 
 		while (listIterator.hasNext()) {
 			int index = listIterator.nextIndex();
-			listIterator.next().validate(reporter.forChild(".strings[" + index + "]"));
+			listIterator.next().validate(validator.forChild(".strings[" + index + "]"));
 		}
 
-		separator().validate(reporter.forChild(".separator"));
+		separator().validate(validator.forChild(".separator"));
 
 	}
 }

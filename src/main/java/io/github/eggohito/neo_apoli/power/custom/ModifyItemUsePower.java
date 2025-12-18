@@ -90,9 +90,9 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getOnUseAction().validate(reporter.forChild(".on_use_action"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getOnUseAction().validate(validator.forChild(".on_use_action"));
 	}
 
 	@Override

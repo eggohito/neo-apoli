@@ -61,10 +61,10 @@ public class CooldownPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		super.validate(reporter);
-		getHudElement().validate(reporter.forChild(".hud_element"));
-		getCooldown().validate(reporter.forChild(".cooldown"));
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		getHudElement().validate(validator.forChild(".hud_element"));
+		getCooldown().validate(validator.forChild(".cooldown"));
 	}
 
 	public static DataResult<CooldownPower> getAsResult(PowerReference reference) {

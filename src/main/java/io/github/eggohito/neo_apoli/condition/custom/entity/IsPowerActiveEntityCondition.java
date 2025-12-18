@@ -62,9 +62,9 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityCondition.super.validate(reporter);
-		PowerManager.getAsResult(this.power()).ifError(error -> reporter.forChild(".power").report(error.message()));
+	public void validate(Context.Validator validator) {
+		EntityCondition.super.validate(validator);
+		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
 	}
 
 }

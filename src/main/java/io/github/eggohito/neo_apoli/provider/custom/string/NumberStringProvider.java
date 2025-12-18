@@ -48,12 +48,12 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		StringProvider.super.validate(reporter);
+		StringProvider.super.validate(validator);
 
-		number().validate(reporter.forChild(".number"));
-		decimals().validate(reporter.forChild(".decimals"));
+		number().validate(validator.forChild(".number"));
+		decimals().validate(validator.forChild(".decimals"));
 
 	}
 

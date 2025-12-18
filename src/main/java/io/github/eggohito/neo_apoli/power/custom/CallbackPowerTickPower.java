@@ -65,14 +65,14 @@ public class CallbackPowerTickPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
-		getTickAction().validate(reporter.forChild(".tick_action"));
-		getRisingAction().validate(reporter.forChild(".rising_action"));
-		getFallingAction().validate(reporter.forChild(".falling_action"));
-		getInterval().validate(reporter.forChild(".interval"));
+		getTickAction().validate(validator.forChild(".tick_action"));
+		getRisingAction().validate(validator.forChild(".rising_action"));
+		getFallingAction().validate(validator.forChild(".falling_action"));
+		getInterval().validate(validator.forChild(".interval"));
 
 	}
 

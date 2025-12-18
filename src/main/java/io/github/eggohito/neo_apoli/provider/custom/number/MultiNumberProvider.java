@@ -23,9 +23,9 @@ public interface MultiNumberProvider extends NumberProvider {
 	List<NumberProvider> numbers();
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		NumberProvider.super.validate(reporter);
-		this.iterate((index, number) -> number.validate(reporter.forChild(".numbers[" + index + "]")));
+	default void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		this.iterate((index, number) -> number.validate(validator.forChild(".numbers[" + index + "]")));
 	}
 
 	default <N extends Number> N iterateAndProcess(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> processor, N initialValue) {

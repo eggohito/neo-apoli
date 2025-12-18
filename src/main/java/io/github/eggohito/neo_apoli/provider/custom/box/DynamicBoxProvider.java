@@ -41,12 +41,12 @@ public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements 
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		BoxProvider.super.validate(reporter);
+		BoxProvider.super.validate(validator);
 
-		min().validate(reporter.forChild(".min"));
-		max().validate(reporter.forChild(".max"));
+		min().validate(validator.forChild(".min"));
+		max().validate(validator.forChild(".max"));
 
 	}
 

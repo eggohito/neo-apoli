@@ -35,7 +35,7 @@ public interface WeightedMetaAction<A extends Action> extends MetaAction {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
 		ListIterator<A> listIterator = this.entries().stream().toList().listIterator();
 
@@ -44,7 +44,7 @@ public interface WeightedMetaAction<A extends Action> extends MetaAction {
 			int index = listIterator.nextIndex();
 			A entry = listIterator.next();
 
-			entry.validate(reporter.forChild(".entries[" + index + "]"));
+			entry.validate(validator.forChild(".entries[" + index + "]"));
 
 		}
 

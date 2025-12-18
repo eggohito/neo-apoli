@@ -38,9 +38,9 @@ public record IsInTagDamageCondition(TagKey<DamageType> tag) implements DamageCo
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		DamageCondition.super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".tag"), this.tag());
+	public void validate(Context.Validator validator) {
+		DamageCondition.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.tag());
 	}
 
 }

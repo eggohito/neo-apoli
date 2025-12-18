@@ -64,10 +64,10 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityCondition.super.validate(reporter);
-		itemCondition().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ITEM))
+	public void validate(Context.Validator validator) {
+		EntityCondition.super.validate(validator);
+		itemCondition().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ITEM))
 			.forChild(".item_condition"));
 	}
 

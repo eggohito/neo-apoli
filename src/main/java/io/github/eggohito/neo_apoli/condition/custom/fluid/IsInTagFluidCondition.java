@@ -38,9 +38,9 @@ public record IsInTagFluidCondition(TagKey<Fluid> tag) implements FluidCondition
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		FluidCondition.super.validate(reporter);
-		RegistryUtil.validateTag(reporter.forChild(".tag"), this.tag());
+	public void validate(Context.Validator validator) {
+		FluidCondition.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.tag());
 	}
 
 }

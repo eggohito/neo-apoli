@@ -105,10 +105,10 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
-		EntityAction.super.validate(reporter);
-		itemAction().validate(reporter
-			.withKeySet(ContextKeySetHelper.merge(reporter.getKeySet(), NeoApoliContextKeySets.ITEM))
+	public void validate(Context.Validator validator) {
+		EntityAction.super.validate(validator);
+		itemAction().validate(validator
+			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ITEM))
 			.forChild(".item_action"));
 	}
 

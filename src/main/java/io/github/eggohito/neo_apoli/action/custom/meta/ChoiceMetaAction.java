@@ -51,9 +51,9 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
+	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(reporter);
+		MetaAction.super.validate(validator);
 		ListIterator<Case<C, A>> listIterator = cases().listIterator();
 
 		while (listIterator.hasNext()) {
@@ -61,11 +61,11 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 			int index = listIterator.nextIndex();
 			Case<C, A> aCase = listIterator.next();
 
-			aCase.validate(reporter.forChild(".cases[" + index + "]"));
+			aCase.validate(validator.forChild(".cases[" + index + "]"));
 
 		}
 
-		defaultAction().validate(reporter.forChild(".default"));
+		defaultAction().validate(validator.forChild(".default"));
 
 	}
 
@@ -87,12 +87,12 @@ public interface ChoiceMetaAction<C extends Condition, A extends Action> extends
 	record Case<C extends Condition, A extends Action>(C condition, A action) implements ContextAware {
 
 		@Override
-		public void validate(ProblemReporter reporter) {
+		public void validate(Context.Validator validator) {
 
-			ContextAware.super.validate(reporter);
+			ContextAware.super.validate(validator);
 
-			condition().validate(reporter.forChild(".condition"));
-			action().validate(reporter.forChild(".action"));
+			condition().validate(validator.forChild(".condition"));
+			action().validate(validator.forChild(".action"));
 
 		}
 

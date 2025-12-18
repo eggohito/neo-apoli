@@ -46,12 +46,12 @@ public interface OverlayHudElement extends HudElement {
 	}
 
 	@Override
-	default void validate(ProblemReporter reporter) {
-		HudElement.super.validate(reporter);
-		color().validate(reporter.forChild(".color"));
-		shouldRender().validate(reporter.forChild(".should_render"));
-		hideWithHud().validate(reporter.forChild(".hide_with_hud"));
-		visibleInThirdPerson().validate(reporter.forChild(".visible_in_third_person"));
+	default void validate(Context.Validator validator) {
+		HudElement.super.validate(validator);
+		color().validate(validator.forChild(".color"));
+		shouldRender().validate(validator.forChild(".should_render"));
+		hideWithHud().validate(validator.forChild(".hide_with_hud"));
+		visibleInThirdPerson().validate(validator.forChild(".visible_in_third_person"));
 	}
 
 	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<Sprite, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {

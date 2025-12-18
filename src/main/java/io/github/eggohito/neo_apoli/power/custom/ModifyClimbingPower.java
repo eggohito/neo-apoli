@@ -63,12 +63,12 @@ public class ModifyClimbingPower extends Power {
 	}
 
 	@Override
-	public void validate(ProblemReporter reporter) {
+	public void validate(Context.Validator validator) {
 
-		super.validate(reporter);
+		super.validate(validator);
 
-		getHoldingCondition().validate(reporter.forChild(".holding_condition"));
-		getAllowHolding().validate(reporter.forChild(".allow_holding"));
+		getHoldingCondition().validate(validator.forChild(".holding_condition"));
+		getAllowHolding().validate(validator.forChild(".allow_holding"));
 
 	}
 
@@ -99,9 +99,9 @@ public class ModifyClimbingPower extends Power {
 
 		for (var instance : instances) {
 
-			ProblemReporter reporter = instance.getReporter();
+			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withReporter(reporter)
+				.withValidator(validator)
 				.build(context.getLevel());
 
 			try {

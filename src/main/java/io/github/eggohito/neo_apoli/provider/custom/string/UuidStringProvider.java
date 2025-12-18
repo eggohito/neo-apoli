@@ -36,7 +36,7 @@ public record UuidStringProvider(TypedContextKey<Entity> entity) implements Stri
 	public @NotNull String next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getReporter().report("Couldn't get and provide UUID of entity from parameter \"" + entity().name() + "\", as it doesn't exist!");
+			context.getValidator().report("Couldn't get and provide UUID of entity from parameter \"" + entity().name() + "\", as it doesn't exist!");
 		}
 
 		return context.optional(entity())
