@@ -62,6 +62,11 @@ public abstract class Power implements ContextAware {
 
 	public abstract Instance<?> createInstance(Entity holder);
 
+	@Override
+	public void validate(Context.Validator validator) {
+		this.getActiveCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
+	}
+
 	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Optional<Condition>> addActiveConditionField(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition));
 	}
