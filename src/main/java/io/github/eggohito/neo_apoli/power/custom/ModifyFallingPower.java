@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.event.ModifyValue;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -62,6 +61,24 @@ public class ModifyFallingPower extends Power {
 		return new Instance(holder, this);
 	}
 
+	@Override
+	public void validate(Context.Validator validator) {
+
+		super.validate(validator);
+		ListIterator<Modifier> listIterator = modifiers.listIterator();
+
+		while (listIterator.hasNext()) {
+
+			Context.Validator modifierValidator = validator.forChild(".modifiers[" + listIterator.nextIndex() + "]");
+
+			listIterator.next().validate(modifierValidator);
+
+		}
+
+		getTakeFallDamage().validate(validator.forChild(".take_fall_damage"));
+
+	}
+
 	public static class Instance extends Power.Instance<ModifyFallingPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyFallingPower power) {
@@ -79,11 +96,6 @@ public class ModifyFallingPower extends Power {
 
 	}
 
-	public static boolean shouldNegateFallDamage(Context context) {
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		return shouldNegateFallDamage(context, PowersComponent.getInstances(holder, Instance.class));
-	}
-
 	public static boolean shouldNegateFallDamage(Context context, List<Instance> instances) {
 
 		for (var instance : instances) {
@@ -95,7 +107,7 @@ public class ModifyFallingPower extends Power {
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.shouldNegateFallDamage(context)) {
+				if (instanceContext.markActive(instance) && !instance.shouldNegateFallDamage(context)) {
 					return true;
 				}
 
@@ -109,11 +121,6 @@ public class ModifyFallingPower extends Power {
 
 		return false;
 
-	}
-
-	public static double modify(Context context, double baseValue) {
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		return modify(context, PowersComponent.getInstances(holder, Instance.class), baseValue);
 	}
 
 	public static double modify(Context context, List<Instance> instances, double baseValue) {

@@ -1,18 +1,20 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.sugar.Local;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyFallingPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Optional;
 
 @Mixin(LivingEntity.class)
@@ -37,18 +39,20 @@ public abstract class ModifyFallingPowerMixin extends Entity {
 
 	}
 
-	@ModifyVariable(method = "travelInAir", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getEffect(Lnet/minecraft/core/Holder;)Lnet/minecraft/world/effect/MobEffectInstance;"))
-	private double impl(double original, Vec3 travelVector) {
+	@ModifyReturnValue(method = "getEffectiveGravity", at = @At("RETURN"))
+	private double modifyEffectiveGravity(double original, @Local boolean falling) {
 
-		if (Math.signum(travelVector.y) >= 1.0) {
+		if (!falling) {
 			return original;
 		}
 
 		Context context = this.neo_apoli$getOrCreateFallingContext();
-		double modified = ModifyFallingPower.modify(context, original);
+		List<ModifyFallingPower.Instance> instances = PowersComponent.getInstances(this, ModifyFallingPower.Instance.class);
 
-		if (ModifyFallingPower.shouldNegateFallDamage(context)) {
-			this.fallDistance = 0;
+		double modified = ModifyFallingPower.modify(context, instances, original);
+
+		if (ModifyFallingPower.shouldNegateFallDamage(context, instances)) {
+			this.resetFallDistance();
 		}
 
 		this.neo_apoli$fallingContext.remove();
