@@ -75,7 +75,7 @@ public interface Prioritized<P extends Power & Prioritized<P>> extends Comparabl
 
 		public <U extends I> void add(Entity holder, @NotNull Class<U> instanceClass, @NotNull Predicate<U> instanceFilter) {
 
-			PowersComponent.forEach(holder, (reference, instance, sources) -> {
+			PowersComponent.getAllInstances(holder).forEach(instance -> {
 
 				if (instanceClass.isInstance(instance)) {
 

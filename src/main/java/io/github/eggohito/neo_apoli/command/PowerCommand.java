@@ -15,16 +15,15 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -37,11 +36,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -95,7 +93,7 @@ public class PowerCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 
 			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
-			Map<Entity, Collection<PowerReference>> processedTargets = new Object2ObjectOpenHashMap<>();
+			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
 			PowerArgumentType.PowerArgument powerArgument = PowerArgumentType.getArgument(commandContext, "power");
 			List<PowerEntry<?>> entries = powerArgument.get(commandContext);
@@ -103,24 +101,17 @@ public class PowerCommand {
 			for (var target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Collection<PowerReference> grantedPowers = new ObjectArrayList<>();
+				long grantedPowers = entries
+					.stream()
+					.filter(entry -> powersComponent.grantPower(entry, source))
+					.count();
 
-				for (var entry : entries) {
-
-					PowerReference reference = entry.reference();
-
-					if (powersComponent.grantPower(reference, source)) {
-						grantedPowers.add(reference);
-					}
-
-				}
-
-				if (grantedPowers.isEmpty()) {
+				if (grantedPowers <= 0) {
 					continue;
 				}
 
 				processedTargets.put(target, grantedPowers);
-				PowersComponent.Synchronizer.GRANT.sync(target, Map.of(source, grantedPowers));
+				powersComponent.updateGrantedPowers();
 
 			}
 
@@ -172,18 +163,17 @@ public class PowerCommand {
 					else {
 
 						if (processedTargets.size() == 1) {
-							Map.Entry<Entity, Collection<PowerReference>> processedTarget = processedTargets.entrySet().iterator().next();
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getValue().size(), tag.id().toString(), source.toString()), true);
+							var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), tag.id().toString(), source.toString()), true);
 						}
 
 						else {
 
-							int grantedPowers = processedTargets.values()
-								.stream()
-								.mapToInt(Collection::size)
+							long totalGrantedPowers = processedTargets.values()
+								.longStream()
 								.sum();
 
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), tag.id().toString(), grantedPowers, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), tag.id().toString(), totalGrantedPowers, source.toString()), true);
 
 						}
 
@@ -256,51 +246,38 @@ public class PowerCommand {
 		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets, @Nullable PowerEntry<?> entry, ResourceLocation source) {
 
 			CommandSourceStack commandSource = commandContext.getSource();
-			List<Entity> processedTargets = new ObjectArrayList<>();
-
-			AtomicInteger revokedPowersCount = new AtomicInteger();
+			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
 			for (Entity target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Map<ResourceLocation, Collection<PowerReference>> revokedPowers = new Object2ObjectOpenHashMap<>();
+				long revokedPowers;
 
 				if (entry != null) {
 
-					PowerReference reference = entry.reference();
+					if (powersComponent.revokePower(entry, source)) {
+						revokedPowers = 1;
+					}
 
-					if (powersComponent.revokePower(reference, source)) {
-						revokedPowers.put(source, List.of(reference));
+					else {
+						revokedPowers = 0;
 					}
 
 				}
 
 				else {
-
-					Set<PowerReference> matchingReferences = powersComponent.getReferences(source);
-					for (var matchingReference : matchingReferences) {
-						powersComponent.revokePower(matchingReference, source);
-					}
-
-					if (!matchingReferences.isEmpty()) {
-						revokedPowers.put(source, matchingReferences);
-					}
-
-				}
-
-				if (!revokedPowers.isEmpty()) {
-
-					processedTargets.add(target);
-					PowersComponent.Synchronizer.REVOKE.sync(target, revokedPowers);
-
-					int count = revokedPowers.values()
+					revokedPowers = powersComponent.getAllFromSource(source)
 						.stream()
-						.mapToInt(Collection::size)
-						.sum();
-
-					revokedPowersCount.addAndGet(count);
-
+						.filter(inner -> powersComponent.revokePower(inner, source))
+						.count();
 				}
+
+				if (revokedPowers <= 0) {
+					continue;
+				}
+
+				processedTargets.put(target, revokedPowers);
+				powersComponent.updateRevokedPowers();
 
 			}
 
@@ -346,17 +323,18 @@ public class PowerCommand {
 
 				if (processedTargets.size() == 1) {
 
+					var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
 					if (entry != null) {
 
 						PowerReference reference = entry.reference();
 						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(reference.toString()))));
 
-						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.single", processedTargets.getFirst().getName(), powerName, source.toString()), true);
+						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.single", processedTarget.getKey().getName(), powerName, source.toString()), true);
 
 					}
 
 					else {
-						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.single", processedTargets.getFirst().getName(), revokedPowersCount.get(), source.toString()), true);
+						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.single", processedTarget.getKey().getName(), processedTarget.getLongValue(), source.toString()), true);
 					}
 
 				}
@@ -373,7 +351,13 @@ public class PowerCommand {
 					}
 
 					else {
-						commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.all.success.multiple", processedTargets.size(), revokedPowersCount.get(), source), true);
+
+						long totalRevokedPowers = processedTargets.values()
+							.longStream()
+							.sum();
+
+						commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.all.success.multiple", processedTargets.size(), totalRevokedPowers, source), true);
+
 					}
 
 				}
@@ -405,30 +389,26 @@ public class PowerCommand {
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
 			PowerEntry<?> entry = PowerArgumentType.getPower(commandContext, "power");
-
-			PowerReference reference = entry.reference();
-			List<PowerReference> references = List.of(reference);
-
 			CommandSourceStack commandSource = commandContext.getSource();
+
 			Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(entry.toString()))));
 
 			for (Entity target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Map<ResourceLocation, Collection<PowerReference>> removedPowers = new Object2ObjectOpenHashMap<>();
+				Set<ResourceLocation> sources = powersComponent.getSources(entry);
 
-				for (ResourceLocation source : powersComponent.getSources(reference)) {
+				long removedPowers = sources
+					.stream()
+					.filter(source -> powersComponent.revokePower(entry, source))
+					.count();
 
-					if (powersComponent.revokePower(reference, source)) {
-						removedPowers.put(source, references);
-					}
-
+				if (removedPowers <= 0) {
+					continue;
 				}
 
-				if (!removedPowers.isEmpty()) {
-					processedTargets.add(target);
-					PowersComponent.Synchronizer.REVOKE.sync(target, removedPowers);
-				}
+				processedTargets.add(target);
+				powersComponent.updateRevokedPowers();
 
 			}
 
@@ -485,38 +465,32 @@ public class PowerCommand {
 
 		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets) {
 
-			List<Entity> processedTargets = new ObjectArrayList<>();
+			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 			CommandSourceStack commandSource = commandContext.getSource();
 
-			AtomicInteger totalClearedPowers = new AtomicInteger(0);
 			for (Entity target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Map<ResourceLocation, Collection<PowerReference>> clearedPowers = new Object2ObjectOpenHashMap<>();
+				long clearedPowers = 0;
 
-				powersComponent.forEach((reference, instance, sources) -> {
+				for (var entry : powersComponent.getAll()) {
 
-					for (var source : sources) {
+					for (var source : powersComponent.getSources(entry)) {
 
-						if (powersComponent.revokePower(reference, source)) {
-							clearedPowers.computeIfAbsent(source, k -> new ObjectOpenHashSet<>()).add(reference);
+						if (powersComponent.revokePower(entry, source)) {
+							clearedPowers++;
 						}
 
 					}
 
-				});
-
-				if (!clearedPowers.isEmpty()) {
-					processedTargets.add(target);
-					PowersComponent.Synchronizer.REVOKE.sync(target, clearedPowers);
 				}
 
-				int count = clearedPowers.values()
-					.stream()
-					.mapToInt(Collection::size)
-					.sum();
+				if (clearedPowers <= 0) {
+					continue;
+				}
 
-				totalClearedPowers.addAndGet(count);
+				processedTargets.put(target, clearedPowers);
+				powersComponent.updateRevokedPowers();
 
 			}
 
@@ -535,16 +509,26 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.single", processedTargets.getFirst().getName(), totalClearedPowers.get()), true);
+
+					var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
+
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.single", processedTarget.getKey().getName(), processedTarget.getLongValue()), true);
+
 				}
 
 				else {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.multiple", processedTargets.size(), totalClearedPowers.get()), true);
+
+					long totalClearedPowers = processedTargets.values()
+						.longStream()
+						.count();
+
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.multiple", processedTargets.size(), totalClearedPowers), true);
+
 				}
 
 			}
 
-			return totalClearedPowers.get();
+			return processedTargets.size();
 
 		}
 
@@ -583,29 +567,28 @@ public class PowerCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 
 			List<Component> powerTooltips = new ObjectArrayList<>();
-			powersComponent.forEach((reference, instance, sources) -> {
 
-				if (!includeSubPowers && reference.isSubPower()) {
-					return;
-				}
+			for (var entry : powersComponent.getAll(includeSubPowers)) {
 
-				PowerEntry<?> entry = PowerManager.getEntry(reference);
-				Power power = instance.getPower();
+				Power power = entry.power();
 				PowerType<?> type = power.getType();
 
-				List<Component> sourceTooltips = new ObjectArrayList<>();
-				sources.forEach(id -> sourceTooltips.add(Component.literal(id.toString()).withStyle()));
+				List<Component> sourceTooltips = powersComponent.getSources(entry)
+					.stream()
+					.map(Objects::toString)
+					.map(source -> Component.literal(source).withStyle())
+					.collect(Collectors.toCollection(ObjectArrayList::new));
 
-				Component idTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.id", Component.literal("\"" + reference.toString() + "\"").withStyle(ChatFormatting.GREEN));
-				Component joinedSourcesTooltip = Component.translatable("commands.neo-apoli.power.list.info.sources", ComponentUtils.formatList(sourceTooltips, Component.nullToEmpty(", ")));
+				Component idTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.id", Component.literal("\"" + entry.reference().toString() + "\"").withStyle(ChatFormatting.GREEN));
 				Component typeTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.type", Component.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\"").withStyle(ChatFormatting.GOLD));
+				Component joinedSourcesTooltip = Component.translatable("commands.neo-apoli.power.list.info.sources", ComponentUtils.formatList(sourceTooltips, Component.nullToEmpty(", ")));
 
 				Component hoverTooltip = Component.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, joinedSourcesTooltip);
 				HoverEvent hoverEvent = new HoverEvent.ShowText(hoverTooltip);
 
 				powerTooltips.add(entry.name().copy().withStyle(style -> style.withHoverEvent(hoverEvent)));
 
-			});
+			}
 
 			if (powerTooltips.isEmpty()) {
 				commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.list.fail", target.getName()));

@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.component;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponentImpl;
 import net.minecraft.world.entity.Entity;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -17,7 +18,7 @@ public class NeoApoliEntityComponents implements EntityComponentInitializer {
 		registry.beginRegistration(Entity.class, POWERS)
 			.impl(PowersComponent.class)
 			.respawnStrategy(RespawnCopyStrategy.ALWAYS_COPY)
-			.end(PowersComponent::new);
+			.end(PowersComponentImpl::new);
 	}
 
 }
