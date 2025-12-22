@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.condition.custom.key;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceKeyCondition(ResourceLocation value) implements KeyCondition, ReferenceMetaCondition<KeyCondition> {
+public record ReferenceKeyCondition(ResourceLocation value) implements KeyCondition, IReferenceMetaCondition<KeyCondition> {
 
-	public static final MapCodec<ReferenceKeyCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceKeyCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceKeyCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceKeyCondition::new);
+	public static final MapCodec<ReferenceKeyCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceKeyCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom.key;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.CompareToRangeMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.ICompareToRangeMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
@@ -10,10 +10,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
-public record CompareToRangeKeyCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements KeyCondition, CompareToRangeMetaCondition {
+public record CompareToRangeKeyCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements KeyCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeKeyCondition> CODEC = CompareToRangeMetaCondition.createCodec(CompareToRangeKeyCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeKeyCondition> STREAM_CODEC = CompareToRangeMetaCondition.createStreamCodec(CompareToRangeKeyCondition::new);
+	public static final MapCodec<CompareToRangeKeyCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeKeyCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {

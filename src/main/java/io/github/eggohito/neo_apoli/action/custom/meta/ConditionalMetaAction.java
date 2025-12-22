@@ -1,72 +1,25 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
-import com.mojang.datafixers.util.Function3;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.type.meta.MetaActionType;
+import io.github.eggohito.neo_apoli.action.type.meta.MetaActionTypes;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
-public interface ConditionalMetaAction<C extends Condition, A extends Action> extends MetaAction {
+public record ConditionalMetaAction(Condition condition, Action ifAction, Optional<Action> elseAction) implements IConditionalMetaAction<Condition, Action> {
 
-	C condition();
-
-	A ifAction();
-
-	Optional<A> elseAction();
+	public static final MapCodec<ConditionalMetaAction> CODEC = MapCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.createCodec(Condition.CODEC, Action.CODEC, ConditionalMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.createStreamCodec(Condition.STREAM_CODEC, Action.STREAM_CODEC, ConditionalMetaAction::new));
 
 	@Override
-	default void execute(Context context) {
-
-		Context conditionContext = context.forChild(".condition");
-		boolean shouldExecute = condition().test(conditionContext);
-
-		if (!conditionContext.hasErrors()) {
-
-			if (shouldExecute) {
-				ifAction().execute(context.forChild(".if_action"));
-			}
-
-			else {
-				elseAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".else_action")));
-			}
-
-		}
-
-	}
-
-	@Override
-	default void validate(Context.Validator validator) {
-
-		MetaAction.super.validate(validator);
-		condition().validate(validator.forChild(".condition"));
-
-		ifAction().validate(validator.forChild(".if_action"));
-		elseAction().ifPresent(elseAction -> elseAction.validate(validator.forChild(".else_action")));
-
-	}
-
-	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> MapCodec<M> createCodec(Codec<C> conditionCodec, Codec<A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			conditionCodec.fieldOf("condition").forGetter(ConditionalMetaAction::condition),
-			actionCodec.fieldOf("if_action").forGetter(ConditionalMetaAction::ifAction),
-			actionCodec.optionalFieldOf("else_action").forGetter(ConditionalMetaAction::elseAction)
-		).apply(instance, constructor));
-	}
-
-	static <C extends Condition, A extends Action, M extends ConditionalMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
-		return StreamCodec.composite(
-			conditionCodec, ConditionalMetaAction::condition,
-			actionCodec, ConditionalMetaAction::ifAction,
-			ByteBufCodecs.optional(actionCodec), ConditionalMetaAction::elseAction,
-			constructor
-		);
+	public MetaActionType<?> getType() {
+		return MetaActionTypes.CONDITIONAL;
 	}
 
 }

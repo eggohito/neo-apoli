@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.event.ModifyValue;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -59,7 +59,7 @@ public abstract class DamageModifyingPower extends Power {
 	protected static <P extends DamageModifyingPower> MapCodec<P> createDamageModifyingCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 			.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(DamageModifyingPower::getModifiers))
-			.and(Action.CODEC.optionalFieldOf("on_modify_action", new NothingAction()).forGetter(DamageModifyingPower::getOnModifyAction))
+			.and(Action.CODEC.optionalFieldOf("on_modify_action", new NothingMetaAction()).forGetter(DamageModifyingPower::getOnModifyAction))
 			.apply(instance, constructor));
 	}
 

@@ -4,7 +4,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
@@ -33,7 +33,7 @@ import java.util.Optional;
 public class TogglePower extends Power {
 
 	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("action", new NothingAction()).forGetter(TogglePower::getAction))
+		.and(Action.CODEC.optionalFieldOf("action", new NothingMetaAction()).forGetter(TogglePower::getAction))
 		.and(KeyCondition.CODEC.fieldOf("key_condition").forGetter(TogglePower::getKeyCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))

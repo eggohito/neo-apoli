@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.ChoiceMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.IChoiceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
@@ -12,10 +12,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record ChoiceEntityAction(List<Case<EntityCondition, EntityAction>> cases, EntityAction defaultAction) implements EntityAction, ChoiceMetaAction<EntityCondition, EntityAction> {
+public record ChoiceEntityAction(List<Case<EntityCondition, EntityAction>> cases, EntityAction defaultAction) implements EntityAction, IChoiceMetaAction<EntityCondition, EntityAction> {
 
-	public static final MapCodec<ChoiceEntityAction> CODEC = MapCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> ChoiceMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, ChoiceEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> ChoiceMetaAction.createStreamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ChoiceEntityAction::new));
+	public static final MapCodec<ChoiceEntityAction> CODEC = MapCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, ChoiceEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ChoiceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {

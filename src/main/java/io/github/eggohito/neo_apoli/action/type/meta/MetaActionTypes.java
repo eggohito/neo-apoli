@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.action.type.meta;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.custom.*;
-import io.github.eggohito.neo_apoli.action.custom.meta.MetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.*;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -11,15 +10,15 @@ import net.minecraft.resources.ResourceLocation;
 
 public class MetaActionTypes {
 
-	public static final MetaActionType<ChoiceAction> CHOICE = registerInternal("choice", ChoiceAction.CODEC, ChoiceAction.STREAM_CODEC);
-	public static final MetaActionType<ConditionalAction> CONDITIONAL = registerInternal("conditional", ConditionalAction.CODEC, ConditionalAction.STREAM_CODEC);
-	public static final MetaActionType<ExecuteOnEntityAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityAction.CODEC, ExecuteOnEntityAction.STREAM_CODEC);
-	public static final MetaActionType<LoopAction> LOOP = registerInternal("loop", LoopAction.CODEC, LoopAction.STREAM_CODEC);
-	public static final MetaActionType<NothingAction> NOTHING = registerInternal("nothing", NothingAction.CODEC, NothingAction.STREAM_CODEC);
-	public static final MetaActionType<RandomChanceAction> RANDOM = registerInternal("random", RandomChanceAction.CODEC, RandomChanceAction.STREAM_CODEC);
-	public static final MetaActionType<ReferenceAction> REFERENCE = registerInternal("reference", ReferenceAction.CODEC, ReferenceAction.STREAM_CODEC);
-	public static final MetaActionType<SequenceAction> SEQUENCE = registerInternal("sequence", SequenceAction.CODEC, SequenceAction.STREAM_CODEC);
-	public static final MetaActionType<WeightedAction> WEIGHTED = registerInternal("weighted", WeightedAction.CODEC, WeightedAction.STREAM_CODEC);
+	public static final MetaActionType<ChoiceMetaAction> CHOICE = registerInternal("choice", ChoiceMetaAction.CODEC, ChoiceMetaAction.STREAM_CODEC);
+	public static final MetaActionType<ConditionalMetaAction> CONDITIONAL = registerInternal("conditional", ConditionalMetaAction.CODEC, ConditionalMetaAction.STREAM_CODEC);
+	public static final MetaActionType<ExecuteOnEntityMetaAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityMetaAction.CODEC, ExecuteOnEntityMetaAction.STREAM_CODEC);
+	public static final MetaActionType<LoopMetaAction> LOOP = registerInternal("loop", LoopMetaAction.CODEC, LoopMetaAction.STREAM_CODEC);
+	public static final MetaActionType<NothingMetaAction> NOTHING = registerInternal("nothing", NothingMetaAction.CODEC, NothingMetaAction.STREAM_CODEC);
+	public static final MetaActionType<RandomChanceMetaAction> RANDOM = registerInternal("random", RandomChanceMetaAction.CODEC, RandomChanceMetaAction.STREAM_CODEC);
+	public static final MetaActionType<ReferenceMetaAction> REFERENCE = registerInternal("reference", ReferenceMetaAction.CODEC, ReferenceMetaAction.STREAM_CODEC);
+	public static final MetaActionType<SequenceMetaAction> SEQUENCE = registerInternal("sequence", SequenceMetaAction.CODEC, SequenceMetaAction.STREAM_CODEC);
+	public static final MetaActionType<WeightedMetaAction> WEIGHTED = registerInternal("weighted", WeightedMetaAction.CODEC, WeightedMetaAction.STREAM_CODEC);
 
 	public static void registerAll() {
 

@@ -1,73 +1,25 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import io.github.eggohito.neo_apoli.condition.type.ConditionType;
+import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
-import java.util.ListIterator;
-import java.util.function.Function;
 
-public interface AllOfMetaCondition<C extends Condition> extends MetaCondition {
+public record AllOfMetaCondition(List<Condition> conditions) implements IAllOfMetaCondition<Condition> {
 
-	List<C> conditions();
+	public static final MapCodec<AllOfMetaCondition> CODEC = MapCodecUtil.lazy(AllOfMetaCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(Condition.CODEC, AllOfMetaCondition::new));
 
-	@Override
-	default boolean test(Context context) {
-
-		ListIterator<C> listIterator = conditions().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			C condition = listIterator.next();
-
-			Context conditionContext = context.forChild(".conditions[" + index + "]");
-			boolean result = condition.test(conditionContext);
-
-			if (!conditionContext.hasErrors() && !result) {
-				return false;
-			}
-
-		}
-
-		return true;
-
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfMetaCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(Condition.STREAM_CODEC, AllOfMetaCondition::new));
 
 	@Override
-	default void validate(Context.Validator validator) {
-
-		ListIterator<C> listIterator = conditions().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			C condition = listIterator.next();
-
-			condition.validate(validator.forChild(".conditions[" + index + "]"));
-
-		}
-
-	}
-
-	static <C extends Condition, M extends AllOfMetaCondition<C>> MapCodec<M> createCodec(Codec<C> conditionCodec, Function<List<C>, M> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			conditionCodec.listOf().fieldOf("conditions").forGetter(AllOfMetaCondition::conditions)
-		).apply(instance, constructor));
-	}
-
-	static <C extends Condition, M extends AllOfMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
-		return StreamCodec.composite(
-			ByteBufCodecs.collection(ObjectArrayList::new, conditionCodec), AllOfMetaCondition::conditions,
-			constructor
-		);
+	public ConditionType<?> getType() {
+		return MetaConditionTypes.ALL_OF;
 	}
 
 }

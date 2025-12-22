@@ -1,58 +1,24 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
-import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.action.type.ActionType;
+import io.github.eggohito.neo_apoli.action.type.meta.MetaActionTypes;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
-import java.util.function.Supplier;
-import java.util.stream.Stream;
+public record NothingMetaAction() implements INothingMetaAction {
 
-public interface NothingMetaAction extends MetaAction {
+	public static final Codec<NothingMetaAction> INLINE_CODEC = INothingMetaAction.createEmptyInputCodec(NothingMetaAction::new);
+
+	public static final MapCodec<NothingMetaAction> CODEC = MapCodec.unit(NothingMetaAction::new);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, NothingMetaAction> STREAM_CODEC = StreamCodecUtil.unit(NothingMetaAction::new);
 
 	@Override
-	default void execute(Context context) {
-
-	}
-
-	@Override
-	default void validate(Context.Validator validator) {
-
-	}
-
-	static <M extends NothingMetaAction> MapCodec<M> createEmptyInputMapCodec(Supplier<M> constructor) {
-		return new MapCodec<>() {
-
-			@Override
-			public <T> Stream<T> keys(DynamicOps<T> ops) {
-				return Stream.empty();
-			}
-
-			@Override
-			public <T> DataResult<M> decode(DynamicOps<T> ops, MapLike<T> input) {
-
-				long fieldCount = input
-					.entries()
-					.count();
-
-				if (fieldCount == 0) {
-					return DataResult.success(constructor.get());
-				}
-
-				else {
-					return DataResult.error(() -> "Couldn't consider input as empty, as it has " + fieldCount + " field(s)!");
-				}
-
-			}
-
-			@Override
-			public <T> RecordBuilder<T> encode(M input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-				return prefix;
-			}
-
-		};
-	}
-
-	static <M extends NothingMetaAction> Codec<M> createEmptyInputCodec(Supplier<M> constructor) {
-		return createEmptyInputMapCodec(constructor).codec();
+	public ActionType<?> getType() {
+		return MetaActionTypes.NOTHING;
 	}
 
 }

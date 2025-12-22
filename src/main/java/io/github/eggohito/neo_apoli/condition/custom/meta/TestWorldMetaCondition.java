@@ -1,40 +1,20 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.condition.type.ConditionType;
+import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-import java.util.function.Function;
+public record TestWorldMetaCondition(WorldCondition condition) implements ITestWorldMetaCondition {
 
-public interface TestWorldMetaCondition extends MetaCondition {
-
-	WorldCondition condition();
-
-	@Override
-	default boolean test(Context context) {
-		return condition().test(context.forChild(".condition"));
-	}
+	public static final MapCodec<TestWorldMetaCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldMetaCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldMetaCondition::new);
 
 	@Override
-	default void validate(Context.Validator validator) {
-		MetaCondition.super.validate(validator);
-		condition().validate(validator.forChild(".condition"));
-	}
-
-	static <M extends TestWorldMetaCondition> MapCodec<M> createCodec(Function<WorldCondition, M> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> instance
-			.group(WorldCondition.CODEC.fieldOf("condition").forGetter(TestWorldMetaCondition::condition))
-			.apply(instance, constructor));
-	}
-
-	static <M extends TestWorldMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<WorldCondition, M> constructor) {
-		return StreamCodec.composite(
-			WorldCondition.STREAM_CODEC, TestWorldMetaCondition::condition,
-			constructor
-		);
+	public ConditionType<?> getType() {
+		return MetaConditionTypes.TEST_WORLD;
 	}
 
 }

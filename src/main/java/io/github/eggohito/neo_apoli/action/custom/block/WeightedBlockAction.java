@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.WeightedMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.IWeightedMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -10,10 +10,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
-public record WeightedBlockAction(ShufflingList<BlockAction> entries) implements BlockAction, WeightedMetaAction<BlockAction> {
+public record WeightedBlockAction(ShufflingList<BlockAction> entries) implements BlockAction, IWeightedMetaAction<BlockAction> {
 
-	public static final MapCodec<WeightedBlockAction> CODEC = MapCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> WeightedMetaAction.createCodec(BlockAction.CODEC, WeightedBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> WeightedMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, WeightedBlockAction::new));
+	public static final MapCodec<WeightedBlockAction> CODEC = MapCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(BlockAction.CODEC, WeightedBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, WeightedBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

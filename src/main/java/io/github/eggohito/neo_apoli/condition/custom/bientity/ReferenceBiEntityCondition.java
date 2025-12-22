@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEntityCondition, ReferenceMetaCondition<BiEntityCondition> {
+public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEntityCondition, IReferenceMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<ReferenceBiEntityCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceBiEntityCondition::new);
+	public static final MapCodec<ReferenceBiEntityCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceBiEntityCondition::new);
 
 	@Override
 	public Pair<Class<BiEntityCondition>, String> classAndName() {

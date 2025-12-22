@@ -5,8 +5,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -38,7 +38,7 @@ import java.util.function.BiPredicate;
 public class PhasingPower extends Power {
 
 	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(new IsSneakingEntityCondition(), NeoApoliContextKeys.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
+		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityMetaCondition(new IsSneakingEntityCondition(), NeoApoliContextKeys.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
 		.and(RenderType.CODEC.optionalFieldOf("render_type", RenderType.BLINDNESS).forGetter(PhasingPower::getRenderType))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));

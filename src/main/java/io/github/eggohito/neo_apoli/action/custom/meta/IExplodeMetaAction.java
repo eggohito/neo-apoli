@@ -38,7 +38,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.Set;
 
-public interface ExplodeMetaAction extends MetaAction {
+public interface IExplodeMetaAction extends MetaAction {
 
 	BiEntityCondition damageableBiEntityCondition();
 
@@ -125,7 +125,7 @@ public interface ExplodeMetaAction extends MetaAction {
 	@AllArgsConstructor
 	class DamageCalculator extends ExplosionDamageCalculator {
 
-		private final ExplodeMetaAction action;
+		private final IExplodeMetaAction action;
 		private final Context context;
 
 		@Override

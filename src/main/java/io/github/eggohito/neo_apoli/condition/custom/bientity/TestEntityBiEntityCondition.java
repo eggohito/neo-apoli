@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
-import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.ITestEntityMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
@@ -13,10 +13,10 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.Set;
 
-public record TestEntityBiEntityCondition(EntityCondition condition, TypedContextKey<Entity> entity) implements BiEntityCondition, TestEntityMetaCondition {
+public record TestEntityBiEntityCondition(EntityCondition condition, TypedContextKey<Entity> entity) implements BiEntityCondition, ITestEntityMetaCondition {
 
-	public static final MapCodec<TestEntityBiEntityCondition> CODEC = TestEntityMetaCondition.createCodec(TestEntityBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestEntityBiEntityCondition> STREAM_CODEC = TestEntityMetaCondition.createStreamCodec(TestEntityBiEntityCondition::new);
+	public static final MapCodec<TestEntityBiEntityCondition> CODEC = ITestEntityMetaCondition.createCodec(TestEntityBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestEntityBiEntityCondition> STREAM_CODEC = ITestEntityMetaCondition.createStreamCodec(TestEntityBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {
@@ -25,7 +25,7 @@ public record TestEntityBiEntityCondition(EntityCondition condition, TypedContex
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return TestEntityMetaCondition.super.getRequiredParameters();
+		return ITestEntityMetaCondition.super.getRequiredParameters();
 	}
 
 	@Override

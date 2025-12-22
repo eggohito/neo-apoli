@@ -1,66 +1,23 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.type.ActionType;
+import io.github.eggohito.neo_apoli.action.type.meta.MetaActionTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
-import java.util.ListIterator;
-import java.util.function.Function;
+public record WeightedMetaAction(ShufflingList<Action> entries) implements IWeightedMetaAction<Action> {
 
-public interface WeightedMetaAction<A extends Action> extends MetaAction {
-
-	ShufflingList<A> entries();
+	public static final MapCodec<WeightedMetaAction> CODEC = MapCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(Action.CODEC, WeightedMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(Action.STREAM_CODEC, WeightedMetaAction::new));
 
 	@Override
-	default void execute(Context context) {
-
-		entries().shuffle();
-		ListIterator<A> listIterator = entries().stream().toList().listIterator();
-
-		if (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			A entry = listIterator.next();
-
-			entry.execute(context.forChild(".entries[" + index + "]"));
-
-		}
-
-	}
-
-	@Override
-	default void validate(Context.Validator validator) {
-
-		ListIterator<A> listIterator = this.entries().stream().toList().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			A entry = listIterator.next();
-
-			entry.validate(validator.forChild(".entries[" + index + "]"));
-
-		}
-
-	}
-
-	static <A extends Action, M extends WeightedMetaAction<A>> MapCodec<M> createCodec(Codec<A> entryCodec, Function<ShufflingList<A>, M> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			ShufflingList.codec(entryCodec).fieldOf("entries").forGetter(WeightedMetaAction::entries)
-		).apply(instance, constructor));
-	}
-
-	static <A extends Action, M extends WeightedMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, A> entryCodec, Function<ShufflingList<A>, M> constructor) {
-		return StreamCodec.composite(
-			StreamCodecUtil.weightedList(entryCodec), WeightedMetaAction::entries,
-			constructor
-		);
+	public ActionType<?> getType() {
+		return MetaActionTypes.WEIGHTED;
 	}
 
 }

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IAllOfMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -11,10 +11,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record AllOfFluidCondition(List<FluidCondition> conditions) implements FluidCondition, AllOfMetaCondition<FluidCondition> {
+public record AllOfFluidCondition(List<FluidCondition> conditions) implements FluidCondition, IAllOfMetaCondition<FluidCondition> {
 
-	public static final MapCodec<AllOfFluidCondition> CODEC = MapCodecUtil.lazy(AllOfFluidCondition.class.getSimpleName(), () -> AllOfMetaCondition.createCodec(FluidCondition.CODEC, AllOfFluidCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfFluidCondition.class.getSimpleName(), () -> AllOfMetaCondition.createStreamCodec(FluidCondition.STREAM_CODEC, AllOfFluidCondition::new));
+	public static final MapCodec<AllOfFluidCondition> CODEC = MapCodecUtil.lazy(AllOfFluidCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(FluidCondition.CODEC, AllOfFluidCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfFluidCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(FluidCondition.STREAM_CODEC, AllOfFluidCondition::new));
 
 	@Override
 	public FluidConditionType<?> getType() {

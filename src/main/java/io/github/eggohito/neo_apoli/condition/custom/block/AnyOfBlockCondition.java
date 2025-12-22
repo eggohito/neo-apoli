@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.AnyOfMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IAnyOfMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -11,10 +11,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record AnyOfBlockCondition(List<BlockCondition> conditions) implements BlockCondition, AnyOfMetaCondition<BlockCondition> {
+public record AnyOfBlockCondition(List<BlockCondition> conditions) implements BlockCondition, IAnyOfMetaCondition<BlockCondition> {
 
-	public static final MapCodec<AnyOfBlockCondition> CODEC = MapCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> AnyOfMetaCondition.createCodec(BlockCondition.CODEC, AnyOfBlockCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> AnyOfMetaCondition.createStreamCodec(BlockCondition.STREAM_CODEC, AnyOfBlockCondition::new));
+	public static final MapCodec<AnyOfBlockCondition> CODEC = MapCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(BlockCondition.CODEC, AnyOfBlockCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(BlockCondition.STREAM_CODEC, AnyOfBlockCondition::new));
 
 	@Override
 	public BlockConditionType<?> getType() {

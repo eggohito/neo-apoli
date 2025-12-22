@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.ChoiceMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.IChoiceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
@@ -12,10 +12,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record ChoiceBlockAction(List<Case<BlockCondition, BlockAction>> cases, BlockAction defaultAction) implements BlockAction, ChoiceMetaAction<BlockCondition, BlockAction> {
+public record ChoiceBlockAction(List<Case<BlockCondition, BlockAction>> cases, BlockAction defaultAction) implements BlockAction, IChoiceMetaAction<BlockCondition, BlockAction> {
 
-	public static final MapCodec<ChoiceBlockAction> CODEC = MapCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> ChoiceMetaAction.createCodec(BlockCondition.CODEC, BlockAction.CODEC, ChoiceBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> ChoiceMetaAction.createStreamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ChoiceBlockAction::new));
+	public static final MapCodec<ChoiceBlockAction> CODEC = MapCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(BlockCondition.CODEC, BlockAction.CODEC, ChoiceBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ChoiceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {

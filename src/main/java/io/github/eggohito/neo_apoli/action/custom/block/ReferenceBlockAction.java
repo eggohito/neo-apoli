@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.IReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceBlockAction(ResourceLocation value) implements BlockAction, ReferenceMetaAction<BlockAction> {
+public record ReferenceBlockAction(ResourceLocation value) implements BlockAction, IReferenceMetaAction<BlockAction> {
 
-	public static final MapCodec<ReferenceBlockAction> CODEC = ReferenceMetaAction.createCodec(ReferenceBlockAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = ReferenceMetaAction.createStreamCodec(ReferenceBlockAction::new);
+	public static final MapCodec<ReferenceBlockAction> CODEC = IReferenceMetaAction.createCodec(ReferenceBlockAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = IReferenceMetaAction.createStreamCodec(ReferenceBlockAction::new);
 
 	@Override
 	public Pair<Class<BlockAction>, String> classAndName() {

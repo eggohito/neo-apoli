@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.condition.custom.damage;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceDamageCondition(ResourceLocation value) implements DamageCondition, ReferenceMetaCondition<DamageCondition> {
+public record ReferenceDamageCondition(ResourceLocation value) implements DamageCondition, IReferenceMetaCondition<DamageCondition> {
 
-	public static final MapCodec<ReferenceDamageCondition> CODEC = ReferenceMetaCondition.createCodec(ReferenceDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = ReferenceMetaCondition.createStreamCodec(ReferenceDamageCondition::new);
+	public static final MapCodec<ReferenceDamageCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceDamageCondition::new);
 
 	@Override
 	public Pair<Class<DamageCondition>, String> classAndName() {

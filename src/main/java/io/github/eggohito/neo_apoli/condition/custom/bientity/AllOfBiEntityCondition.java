@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.IAllOfMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -11,10 +11,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record AllOfBiEntityCondition(List<BiEntityCondition> conditions) implements BiEntityCondition, AllOfMetaCondition<BiEntityCondition> {
+public record AllOfBiEntityCondition(List<BiEntityCondition> conditions) implements BiEntityCondition, IAllOfMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<AllOfBiEntityCondition> CODEC = MapCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> AllOfMetaCondition.createCodec(BiEntityCondition.CODEC, AllOfBiEntityCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> AllOfMetaCondition.createStreamCodec(BiEntityCondition.STREAM_CODEC, AllOfBiEntityCondition::new));
+	public static final MapCodec<AllOfBiEntityCondition> CODEC = MapCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(BiEntityCondition.CODEC, AllOfBiEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(BiEntityCondition.STREAM_CODEC, AllOfBiEntityCondition::new));
 
 	@Override
 	public BiEntityConditionType<?> getType() {

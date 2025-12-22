@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.type.meta;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.condition.custom.*;
-import io.github.eggohito.neo_apoli.condition.custom.meta.MetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.*;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -11,16 +10,16 @@ import net.minecraft.resources.ResourceLocation;
 
 public class MetaConditionTypes extends ConditionTypes {
 
-	public static final MetaConditionType<AllOfCondition> ALL_OF = registerInternal("all_of", AllOfCondition.CODEC, AllOfCondition.STREAM_CODEC);
-	public static final MetaConditionType<AnyOfCondition> ANY_OF = registerInternal("any_of", AnyOfCondition.CODEC, AnyOfCondition.STREAM_CODEC);
-	public static final MetaConditionType<CompareCondition> COMPARE = registerInternal("compare", CompareCondition.CODEC, CompareCondition.STREAM_CODEC);
-	public static final MetaConditionType<CompareToRangeCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeCondition.CODEC, CompareToRangeCondition.STREAM_CODEC);
-	public static final MetaConditionType<ConstantCondition> CONSTANT = registerInternal("constant", ConstantCondition.CODEC, ConstantCondition.STREAM_CODEC);
-	public static final MetaConditionType<DynamicCondition> DYNAMIC = registerInternal("dynamic", DynamicCondition.CODEC, DynamicCondition.STREAM_CODEC);
-	public static final MetaConditionType<InvertedCondition> INVERTED = registerInternal("inverted", InvertedCondition.CODEC, InvertedCondition.STREAM_CODEC);
-	public static final MetaConditionType<ReferenceCondition> REFERENCE = registerInternal("reference", ReferenceCondition.CODEC, ReferenceCondition.STREAM_CODEC);
-	public static final MetaConditionType<TestEntityCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityCondition.CODEC, TestEntityCondition.STREAM_CODEC);
-	public static final MetaConditionType<TestWorldCondition> TEST_WORLD = registerInternal("test_world", TestWorldCondition.CODEC, TestWorldCondition.STREAM_CODEC);
+	public static final MetaConditionType<AllOfMetaCondition> ALL_OF = registerInternal("all_of", AllOfMetaCondition.CODEC, AllOfMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<AnyOfMetaCondition> ANY_OF = registerInternal("any_of", AnyOfMetaCondition.CODEC, AnyOfMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<CompareMetaCondition> COMPARE = registerInternal("compare", CompareMetaCondition.CODEC, CompareMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<CompareToRangeMetaCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeMetaCondition.CODEC, CompareToRangeMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<ConstantMetaCondition> CONSTANT = registerInternal("constant", ConstantMetaCondition.CODEC, ConstantMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<DynamicMetaCondition> DYNAMIC = registerInternal("dynamic", DynamicMetaCondition.CODEC, DynamicMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<InvertedMetaCondition> INVERTED = registerInternal("inverted", InvertedMetaCondition.CODEC, InvertedMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<ReferenceMetaCondition> REFERENCE = registerInternal("reference", ReferenceMetaCondition.CODEC, ReferenceMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<TestEntityMetaCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityMetaCondition.CODEC, TestEntityMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<TestWorldMetaCondition> TEST_WORLD = registerInternal("test_world", TestWorldMetaCondition.CODEC, TestWorldMetaCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 
