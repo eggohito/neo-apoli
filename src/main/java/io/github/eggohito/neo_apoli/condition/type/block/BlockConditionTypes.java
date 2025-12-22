@@ -12,16 +12,16 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BlockConditionTypes extends ConditionTypes {
 
-	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerMetaInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerMetaInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerMetaInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerMetaInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerMetaInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<DynamicBlockCondition> DYNAMIC = registerMetaInternal("dynamic", DynamicBlockCondition.CODEC, DynamicBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerMetaInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerMetaInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerMetaInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.STREAM_CODEC);
-	public static final BlockConditionType<TestWorldBlockCondition> TEST_WORLD = registerMetaInternal("test_world", TestWorldBlockCondition.CODEC, TestWorldBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.CODEC, AllOfBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.CODEC, AnyOfBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<CompareBlockCondition> COMPARE = registerInternal("compare", CompareBlockCondition.CODEC, CompareBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<CompareToRangeBlockCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeBlockCondition.CODEC, CompareToRangeBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<ConstantBlockCondition> CONSTANT = registerInternal("constant", ConstantBlockCondition.CODEC, ConstantBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<DynamicBlockCondition> DYNAMIC = registerInternal("dynamic", DynamicBlockCondition.CODEC, DynamicBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<InvertedBlockCondition> INVERTED = registerInternal("inverted", InvertedBlockCondition.CODEC, InvertedBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<OffsetBlockCondition> OFFSET = registerInternal("offset", OffsetBlockCondition.CODEC, OffsetBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<ReferenceBlockCondition> REFERENCE = registerInternal("reference", ReferenceBlockCondition.CODEC, ReferenceBlockCondition.STREAM_CODEC);
+	public static final BlockConditionType<TestWorldBlockCondition> TEST_WORLD = registerInternal("test_world", TestWorldBlockCondition.CODEC, TestWorldBlockCondition.STREAM_CODEC);
 
 	public static final BlockConditionType<BlockStatePropertyBlockCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyBlockCondition.CODEC, BlockStatePropertyBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<FluidBlockCondition> FLUID = registerInternal("fluid", FluidBlockCondition.CODEC, FluidBlockCondition.STREAM_CODEC);
@@ -34,21 +34,13 @@ public class BlockConditionTypes extends ConditionTypes {
 
 	}
 
-	private static <C extends BlockCondition> BlockConditionType<C> registerMetaInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		return registerMeta(NeoApoli.id(path), mapCodec, streamCodec);
-	}
-
 	private static <C extends BlockCondition> BlockConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <C extends BlockCondition> BlockConditionType<C> registerMeta(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		return Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, id, new BlockConditionType<>(mapCodec, streamCodec));
-	}
-
 	public static <C extends BlockCondition> BlockConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 		ResourceLocation prefixedId = id.withPrefix(BlockConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, registerMeta(prefixedId, mapCodec, streamCodec));
+		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.BLOCK_CONDITION_TYPE, prefixedId, new BlockConditionType<>(mapCodec, streamCodec)));
 	}
 
 }

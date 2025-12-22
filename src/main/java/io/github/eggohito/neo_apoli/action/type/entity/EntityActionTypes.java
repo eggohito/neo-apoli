@@ -12,16 +12,16 @@ import net.minecraft.resources.ResourceLocation;
 
 public class EntityActionTypes {
 
-	public static final EntityActionType<ChoiceEntityAction> CHOICE = registerMetaInternal("choice", ChoiceEntityAction.CODEC, ChoiceEntityAction.STREAM_CODEC);
-	public static final EntityActionType<ConditionalEntityAction> CONDITIONAL = registerMetaInternal("conditional", ConditionalEntityAction.CODEC, ConditionalEntityAction.STREAM_CODEC);
-	public static final EntityActionType<ExecuteOnEntityEntityAction> EXECUTE_ON_ENTITY = registerMetaInternal("execute_on_entity", ExecuteOnEntityEntityAction.CODEC, ExecuteOnEntityEntityAction.STREAM_CODEC);
-	public static final EntityActionType<LoopEntityAction> LOOP = registerMetaInternal("loop", LoopEntityAction.CODEC, LoopEntityAction.STREAM_CODEC);
-	public static final EntityActionType<NothingEntityAction> NOTHING = registerMetaInternal("nothing", NothingEntityAction.CODEC, NothingEntityAction.STREAM_CODEC);
-	public static final EntityActionType<OffsetEntityAction> OFFSET = registerMetaInternal("offset", OffsetEntityAction.CODEC, OffsetEntityAction.STREAM_CODEC);
-	public static final EntityActionType<RandomChanceEntityAction> RANDOM_CHANCE = registerMetaInternal("random_chance", RandomChanceEntityAction.CODEC, RandomChanceEntityAction.STREAM_CODEC);
-	public static final EntityActionType<ReferenceEntityAction> REFERENCE = registerMetaInternal("reference", ReferenceEntityAction.CODEC, ReferenceEntityAction.STREAM_CODEC);
-	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerMetaInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.STREAM_CODEC);
-	public static final EntityActionType<WeightedEntityAction> WEIGHTED = registerMetaInternal("weighted", WeightedEntityAction.CODEC, WeightedEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ChoiceEntityAction> CHOICE = registerInternal("choice", ChoiceEntityAction.CODEC, ChoiceEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ConditionalEntityAction> CONDITIONAL = registerInternal("conditional", ConditionalEntityAction.CODEC, ConditionalEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ExecuteOnEntityEntityAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityEntityAction.CODEC, ExecuteOnEntityEntityAction.STREAM_CODEC);
+	public static final EntityActionType<LoopEntityAction> LOOP = registerInternal("loop", LoopEntityAction.CODEC, LoopEntityAction.STREAM_CODEC);
+	public static final EntityActionType<NothingEntityAction> NOTHING = registerInternal("nothing", NothingEntityAction.CODEC, NothingEntityAction.STREAM_CODEC);
+	public static final EntityActionType<OffsetEntityAction> OFFSET = registerInternal("offset", OffsetEntityAction.CODEC, OffsetEntityAction.STREAM_CODEC);
+	public static final EntityActionType<RandomChanceEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceEntityAction.CODEC, RandomChanceEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ReferenceEntityAction> REFERENCE = registerInternal("reference", ReferenceEntityAction.CODEC, ReferenceEntityAction.STREAM_CODEC);
+	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.STREAM_CODEC);
+	public static final EntityActionType<WeightedEntityAction> WEIGHTED = registerInternal("weighted", WeightedEntityAction.CODEC, WeightedEntityAction.STREAM_CODEC);
 
 	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.CODEC, AddExperienceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<AreaOfEffectEntityAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectEntityAction.CODEC, AreaOfEffectEntityAction.STREAM_CODEC);
@@ -41,21 +41,13 @@ public class EntityActionTypes {
 
 	}
 
-	private static <C extends EntityAction> EntityActionType<C> registerMetaInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		return registerMeta(NeoApoli.id(path), mapCodec, streamCodec);
-	}
-
 	private static <C extends EntityAction> EntityActionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <C extends EntityAction> EntityActionType<C> registerMeta(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		return Registry.register(NeoApoliRegistries.ENTITY_ACTION_TYPE, id, new EntityActionType<>(mapCodec, streamCodec));
-	}
-
 	public static <C extends EntityAction> EntityActionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 		ResourceLocation prefixedId = id.withPrefix(EntityActionType.PREFIX);
-		return ActionTypes.register(prefixedId, registerMeta(prefixedId, mapCodec, streamCodec));
+		return ActionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.ENTITY_ACTION_TYPE, prefixedId, new EntityActionType<>(mapCodec, streamCodec)));
 	}
 
 }
