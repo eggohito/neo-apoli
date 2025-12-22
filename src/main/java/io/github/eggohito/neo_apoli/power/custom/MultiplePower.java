@@ -11,7 +11,7 @@ import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -27,6 +27,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -218,26 +219,30 @@ public class MultiplePower extends Power {
 	 * 	</ul>
 	 */
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(ResourceLocation id, JsonReloadListener.ObjectElementWithSource elementWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
+	public static void preProcessSubPowers(ResourceLocation id, JsonObjectWithSource jsonObjectWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
 
-		JsonObject powerJson = elementWithSource.element();
+		JsonObject powerJson = jsonObjectWithSource.element();
 		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
 
-		if (!powerTypeResult.mapOrElse(type -> Objects.equals(type, PowerTypes.MULTIPLE), error -> false)) {
+		if (!powerTypeResult.mapOrElse(PowerTypes.MULTIPLE::equals, error -> false)) {
 			return;
 		}
 
-		powerJson.entrySet().removeIf(e -> !isKeyIgnored(e.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, e.getValue(), directoryPath, ops));
-		JsonObject copy = powerJson.deepCopy();
+		Map<String, JsonElement> powerJsonMap = powerJson.asMap();
+		String separator = Character.toString(PowerReference.SubPower.SEPARATOR);
 
-		powerJson.asMap().clear();
+		powerJsonMap.entrySet().removeIf(entry -> !isKeyIgnored(entry.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, entry.getValue(), directoryPath, ops));
+
+		JsonObject copy = powerJson.deepCopy();
+		powerJsonMap.clear();
+
 		copy.asMap().forEach((key, value) -> {
 
 			if (!isKeyIgnored(key)) {
 
-				key = id + Character.toString(PowerReference.SubPower.SEPARATOR) + key;
+				key = id + separator + key;
 
-				//	Append the sub-power's reference into its value object for proper parsing
+				//	Append the sub-power's reference into its value object for proper parsing later
 				if (value instanceof JsonObject jsonObject) {
 					jsonObject.addProperty(PowerEntry.REFERENCE_KEY, key);
 				}

@@ -16,7 +16,8 @@ import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
@@ -42,6 +43,7 @@ import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -105,7 +107,7 @@ public final class ActionManager implements JsonReloadListener {
 	@Override
 	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<ResourceLocation, ElementWithSource>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<ResourceLocation, JsonElementWithSource>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> prepareElements(manager, Profiler.get()), prepareExecutor);
 		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
 			.supplyAsync(() -> preparePendingTags(manager, Profiler.get()), prepareExecutor);
@@ -138,9 +140,9 @@ public final class ActionManager implements JsonReloadListener {
 
 	}
 
-	private Map<ResourceLocation, ElementWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<ResourceLocation, JsonElementWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<ResourceLocation, ElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, JsonElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -148,24 +150,26 @@ public final class ActionManager implements JsonReloadListener {
 
 			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
+				JsonFormat jsonFormat = this.getFormat(fileId);
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
+
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 				switch (jsonElement) {
-					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) ->
-						prepared.put(resourceId, new ElementWithSource() {
+					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) -> {
 
-							@Override
-							public String source() {
-								return packId;
-							}
+						var newElement = JsonElementWithSource.of(packId, asIs, jsonFormat);
+						var oldElement = prepared.get(resourceId);
 
-							@Override
-							public JsonElement element() {
-								return asIs;
-							}
+						if (oldElement != null) {
+							throw new IllegalStateException("Duplicate of an action JSON with the same name but a different file extension! (extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
+						}
 
-						});
+						else {
+							prepared.put(resourceId, newElement);
+						}
+
+					}
 					case null ->
 						throw new JsonParseException("JSON file cannot be empty!");
 					default -> {
@@ -202,7 +206,7 @@ public final class ActionManager implements JsonReloadListener {
 
 	}
 
-	private void applyElements(Map<ResourceLocation, ElementWithSource> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
+	private void applyElements(Map<ResourceLocation, JsonElementWithSource> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
 		BY_ID.clear();

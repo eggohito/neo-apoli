@@ -16,7 +16,8 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacke
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -47,6 +48,7 @@ import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
@@ -110,7 +112,7 @@ public final class PowerManager implements JsonReloadListener {
 	@Override
 	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<PowerReference.Power, ObjectElementWithSource>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<PowerReference.Power, JsonObjectWithSource>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
 			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
@@ -150,46 +152,50 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private Map<PowerReference.Power, ObjectElementWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<PowerReference.Power, JsonObjectWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<PowerReference.Power, ObjectElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
+		Map<PowerReference.Power, JsonObjectWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
-			String packName = resource.sourcePackId();
+			String packId = resource.sourcePackId();
 			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
 
 			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
+				JsonFormat jsonFormat = this.getFormat(fileId);
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
+
+				PowerReference.Power reference = PowerReference.ofPower(resourceId);
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
-				if (jsonElement == null) {
-					throw new JsonSyntaxException("JSON file cannot be empty!");
-				}
+				switch (jsonElement) {
+					case JsonObject jsonObject when MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops) -> {
 
-				else if (jsonElement instanceof JsonObject jsonObject) {
+						var newElement = new JsonObjectWithSource(packId, jsonObject, jsonFormat);
+						var oldElement = prepared.get(reference);
 
-					if (MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops)) {
+						if (oldElement != null) {
+							throw new IllegalStateException("Duplicate of a power JSON with the same name but a different file extension! (file extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
+						}
 
-						ObjectElementWithSource elementWithSource = new ObjectElementWithSource(packName, jsonObject);
-						PowerPreparation.EVENT.invoker().prepare(resourceId, elementWithSource, DIRECTORY, ops);
-
-						if (prepared.putIfAbsent(PowerReference.ofPower(resourceId), elementWithSource) != null) {
-							throw new IllegalStateException("Duplicate power JSON file!");
+						else {
+							prepared.put(reference, newElement);
 						}
 
 					}
-
-				}
-
-				else {
-					throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
+					case JsonObject ignored -> {
+						//	No-op since the resource conditions weren't fulfilled
+					}
+					case null ->
+						throw new JsonSyntaxException("JSON file cannot be empty!");
+					default ->
+						throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
 				}
 
 			}
 
 			catch (Exception e) {
-				LOGGER.error("Error trying to prepare power JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packName, e);
+				LOGGER.error("Error trying to prepare power JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packId, e);
 			}
 
 		});
@@ -198,7 +204,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private void applyElements(Map<PowerReference.Power, ObjectElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	private void applyElements(Map<PowerReference.Power, JsonObjectWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 

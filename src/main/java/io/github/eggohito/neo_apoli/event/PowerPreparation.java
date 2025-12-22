@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.event;
 
 import com.google.gson.JsonElement;
-import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.RegistryOps;
@@ -11,15 +11,15 @@ public interface PowerPreparation {
 
 	Event<PowerPreparation> EVENT = EventFactory.createArrayBacked(
 		PowerPreparation.class,
-		callbacks -> (id, elementWithSource, directoryPath, registryOps) -> {
+		callbacks -> (id, jsonObjectWithSource, directoryPath, registryOps) -> {
 
 			for (var callback : callbacks) {
-				callback.prepare(id, elementWithSource, directoryPath, registryOps);
+				callback.prepare(id, jsonObjectWithSource, directoryPath, registryOps);
 			}
 
 		}
 	);
 
-	void prepare(ResourceLocation id, JsonReloadListener.ObjectElementWithSource elementWithSource, String directoryPath, RegistryOps<JsonElement> ops);
+	void prepare(ResourceLocation id, JsonObjectWithSource jsonObjectWithSource, String directoryPath, RegistryOps<JsonElement> ops);
 
 }

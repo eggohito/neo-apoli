@@ -1,13 +1,12 @@
-package io.github.eggohito.neo_apoli.resource;
+package io.github.eggohito.neo_apoli.resource.json;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import org.apache.commons.io.FilenameUtils;
 import org.quiltmc.parsers.json.JsonFormat;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -25,17 +24,21 @@ public interface JsonReloadListener extends PreparableReloadListener, Identifiab
 
 	default JsonFormat getFormat(ResourceLocation fileId) {
 
-		String fileExtension = FilenameUtils.getExtension(fileId.getPath());
-		JsonFormat format = this.getSupportedFormats().get(fileExtension);
+		String extension = this.getExtension(fileId);
+		JsonFormat format = this.getSupportedFormats().get(extension);
 
 		if (format != null) {
 			return format;
 		}
 
 		else {
-			throw new NoSuchElementException("No supported JSON formats was found for file extension: '" + fileExtension + "'");
+			throw new NoSuchElementException("No supported JSON formats was found for file extension: '" + extension + "'");
 		}
 
+	}
+
+	default String getExtension(ResourceLocation fileId) {
+		return FilenameUtils.getExtension(fileId.getPath()).toLowerCase(Locale.ROOT);
 	}
 
 	default ResourceLocation trimExtension(ResourceLocation fileId, String directory) {
@@ -44,27 +47,17 @@ public interface JsonReloadListener extends PreparableReloadListener, Identifiab
 
 	default boolean supportsFormat(ResourceLocation fileId) {
 
-		for (String supportedJsonFileExtension : this.getSupportedFormats().keySet()) {
+		for (String supportedExtension : this.getSupportedFormats().keySet()) {
 
-			if (fileId.getPath().endsWith(supportedJsonFileExtension)) {
+			String extension = this.getExtension(fileId);
+
+			if (extension.equalsIgnoreCase(supportedExtension)) {
 				return true;
 			}
 
 		}
 
 		return false;
-
-	}
-
-	interface ElementWithSource {
-
-		String source();
-
-		JsonElement element();
-
-	}
-
-	record ObjectElementWithSource(String source, JsonObject element) implements ElementWithSource {
 
 	}
 

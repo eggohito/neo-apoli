@@ -12,7 +12,8 @@ import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.event.DependencyManager;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -33,19 +34,17 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
+import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
 import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonReloadListener.ElementWithSource>> implements JsonReloadListener {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElementWithSource>> implements JsonReloadListener {
 
 	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
@@ -68,9 +67,9 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected Map<ResourceLocation, ElementWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
+	protected Map<ResourceLocation, JsonElementWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
 
-		Map<ResourceLocation, ElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, JsonElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -78,28 +77,30 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 			try (BufferedReader resourceReader = resource.openAsReader()) {
 
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, this.getFormat(fileId)));
+				JsonFormat jsonFormat = this.getFormat(fileId);
+				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
+
 				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
 
 				switch (jsonElement) {
-					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) ->
-						prepared.put(resourceId, new ElementWithSource() {
+					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) -> {
 
-							@Override
-							public String source() {
-								return packId;
-							}
+						var newElement = JsonElementWithSource.of(packId, asIs, jsonFormat);
+						var oldElement = prepared.get(resourceId);
 
-							@Override
-							public JsonElement element() {
-								return asIs;
-							}
+						if (oldElement != null) {
+							throw new IllegalStateException("Duplicate of a condition JSON with the same name but a different file extension! (file extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
+						}
 
-						});
+						else {
+							prepared.put(resourceId, newElement);
+						}
+
+					}
 					case null ->
 						throw new JsonParseException("JSON file cannot be empty!");
 					default -> {
-						//	No-op
+						//	No-op since the resource conditions weren't fulfilled
 					}
 				}
 
@@ -116,7 +117,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected void apply(Map<ResourceLocation, ElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<ResourceLocation, JsonElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
