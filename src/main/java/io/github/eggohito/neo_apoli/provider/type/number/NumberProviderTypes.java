@@ -19,6 +19,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<ConditionalNumberProvider> CONDITIONAL = registerInternal("conditional", ConditionalNumberProvider.CODEC, ConditionalNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ConstantNumberProvider> CONSTANT = registerInternal("constant", ConstantNumberProvider.CODEC, ConstantNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DivideNumberProvider> DIVIDE = registerInternal("divide", DivideNumberProvider.CODEC, DivideNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<ExponentialNumberProvider> EXPONENTIAL = registerInternal("exponential", ExponentialNumberProvider.CODEC, ExponentialNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<LinearInterpolatedNumberProvider> LINEAR_INTERPOLATED = registerInternal("linear_interpolated", LinearInterpolatedNumberProvider.CODEC, LinearInterpolatedNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<MaxNumberProvider> MAX = registerInternal("max", MaxNumberProvider.CODEC, MaxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<MinNumberProvider> MIN = registerInternal("min", MinNumberProvider.CODEC, MinNumberProvider.STREAM_CODEC);
