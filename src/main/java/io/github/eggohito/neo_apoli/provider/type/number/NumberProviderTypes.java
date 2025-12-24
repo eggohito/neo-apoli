@@ -33,6 +33,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BlocksCollidingBoxNumberProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxNumberProvider.CODEC, BlocksCollidingBoxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BlocksInRadiusNumberProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusNumberProvider.CODEC, BlocksInRadiusNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BlocksIntersectingBoxNumberProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxNumberProvider.CODEC, BlocksIntersectingBoxNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<BoxComponentNumberProvider> BOX_COMPONENT = registerInternal("box/component", BoxComponentNumberProvider.CODEC, BoxComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.CODEC, CommandResultNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ContextKeyNumberProvider> CONTEXT_KEY = registerInternal("context_key", ContextKeyNumberProvider.CODEC, ContextKeyNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CooldownProgressNumberProvider> COOLDOWN_PROGRESS = registerInternal("cooldown/progress", CooldownProgressNumberProvider.CODEC, CooldownProgressNumberProvider.STREAM_CODEC);
