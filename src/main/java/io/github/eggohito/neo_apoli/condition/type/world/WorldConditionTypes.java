@@ -24,6 +24,7 @@ public class WorldConditionTypes extends ConditionTypes {
 	public static final WorldConditionType<DifficultyWorldCondition> DIFFICULTY = registerInternal("difficulty", DifficultyWorldCondition.CODEC, DifficultyWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsInTagWorldCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagWorldCondition.CODEC, IsInTagWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsOfWorldCondition> IS_OF = registerInternal("is_of", IsOfWorldCondition.CODEC, IsOfWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<IsRainingAtWorldCondition> IS_RAINING_AT = registerInternal("is_raining_at", IsRainingAtWorldCondition.CODEC, IsRainingAtWorldCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 
