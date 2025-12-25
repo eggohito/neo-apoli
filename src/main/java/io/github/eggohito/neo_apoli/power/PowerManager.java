@@ -178,9 +178,8 @@ public final class PowerManager implements JsonReloadListener {
 							throw new IllegalStateException("Duplicate of a power JSON with the same name but a different file extension! (file extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
 						}
 
-						else {
-							prepared.put(reference, newElement);
-						}
+						PowerPreparation.EVENT.invoker().prepare(resourceId, newElement, DIRECTORY, ops);
+						prepared.put(reference, newElement);
 
 					}
 					case JsonObject ignored -> {
