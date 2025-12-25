@@ -217,12 +217,18 @@ public final class PowerManager implements JsonReloadListener {
 			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 
 			DynamicResourceLocation.setCurrent(powerReference.id());
-			MiscUtil.resultOrPartial(
-				PowerEntry.CODEC.parse(ops, element),
-				PowerManager::register,
-				warn -> LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerReference.asDisplayString(false), elementWithSource.source(), warn),
-				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference.asDisplayString(false), elementWithSource.source(), error)
-			);
+			PowerEntry.CODEC.parse(ops, element)
+				.ifSuccess(PowerManager::register)
+				.ifError(error -> error
+					.resultOrPartial()
+					.filter(entry -> entry.power() instanceof MultiplePower)
+					.ifPresentOrElse(
+						entry -> {
+							LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message());
+							register(entry);
+						},
+						() -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message())
+					));
 
 			DynamicResourceLocation.setCurrent(null);
 

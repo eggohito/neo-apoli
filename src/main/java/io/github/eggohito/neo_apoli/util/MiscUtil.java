@@ -5,7 +5,6 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -39,7 +38,7 @@ import java.util.function.Function;
 
 public class MiscUtil {
 
-	public static ImmutableBiMap<String, InteractionResult> ACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
+	public static final ImmutableBiMap<String, InteractionResult> ACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
 		.put("success", InteractionResult.SUCCESS)
 		.put("success_server", InteractionResult.SUCCESS_SERVER)
 		.put("consume", InteractionResult.CONSUME)
@@ -146,14 +145,6 @@ public class MiscUtil {
 	public static boolean hasEntity(CollisionContext collisionContext) {
 		return collisionContext instanceof EntityCollisionContext entityCollisionContext
 			&& entityCollisionContext.getEntity() != null;
-	}
-
-	public static <T> DataResult<T> resultOrPartial(DataResult<T> result, Consumer<T> onSuccessOrPartial, Consumer<String> onPartial, Consumer<String> onError) {
-		return result
-			.ifSuccess(onSuccessOrPartial)
-			.ifError(error -> error
-				.resultOrPartial(onPartial)
-				.ifPresentOrElse(onSuccessOrPartial, () -> onError.accept(error.message())));
 	}
 
 	public static HolderLookup.Provider getLookupProvider(ReloadableServerResources resources) {
