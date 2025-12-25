@@ -204,12 +204,12 @@ public interface IExplodeMetaAction extends MetaAction {
 
 		public static final MapCodec<Display> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			SoundEvent.CODEC.optionalFieldOf("sound", SoundEvents.GENERIC_EXPLODE).forGetter(Display::sound),
-			NeoApoliParticleTypes.EFFECT_CODEC.optionalFieldOf("particle").forGetter(Display::particle)
+			NeoApoliParticleTypes.OPTIONS_CODEC.optionalFieldOf("particle").forGetter(Display::particle)
 		).apply(instance, Display::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Display> STREAM_CODEC = StreamCodec.composite(
 			SoundEvent.STREAM_CODEC, Display::sound,
-			ByteBufCodecs.optional(NeoApoliParticleTypes.EFFECT_STREAM_CODEC), Display::particle,
+			ByteBufCodecs.optional(NeoApoliParticleTypes.OPTIONS_STREAM_CODEC), Display::particle,
 			Display::new
 		);
 

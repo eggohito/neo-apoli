@@ -10,11 +10,13 @@ import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
+import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
@@ -23,6 +25,8 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTagVisitor;
@@ -43,6 +47,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 public class NeoApoliCodecs {
 
@@ -154,5 +159,14 @@ public class NeoApoliCodecs {
 	public static final Codec<LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyCodec(PowerManager.TAG_LOOKUP);
 
 	public static final Codec<LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyCodec(ActionManager.TAG_LOOKUP);
+
+	public static final Codec<SimpleParticleType> SIMPLE_PARTICLE = NeoApoliParticleTypes.CODEC.comapFlatMap(
+		particleType -> particleType instanceof SimpleParticleType simpleParticleType
+			? DataResult.success(simpleParticleType)
+			: DataResult.error(() -> "Particle \"" + RegistryUtil.getId(BuiltInRegistries.PARTICLE_TYPE, particleType) + "\" requires parameters!"),
+		Function.identity()
+	);
+
+	public static final Codec<ParticleOptions> PARTICLE_OPTIONS = Codec.withAlternative(NeoApoliParticleTypes.OPTIONS_CODEC, SIMPLE_PARTICLE);
 
 }

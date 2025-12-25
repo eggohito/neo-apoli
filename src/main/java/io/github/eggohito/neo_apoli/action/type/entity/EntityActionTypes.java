@@ -21,6 +21,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<RandomChanceEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceEntityAction.CODEC, RandomChanceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ReferenceEntityAction> REFERENCE = registerInternal("reference", ReferenceEntityAction.CODEC, ReferenceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.CODEC, SequenceEntityAction.STREAM_CODEC);
+	public static final EntityActionType<SpawnParticlesEntityAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesEntityAction.CODEC, SpawnParticlesEntityAction.STREAM_CODEC);
 	public static final EntityActionType<WeightedEntityAction> WEIGHTED = registerInternal("weighted", WeightedEntityAction.CODEC, WeightedEntityAction.STREAM_CODEC);
 
 	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.CODEC, AddExperienceEntityAction.STREAM_CODEC);

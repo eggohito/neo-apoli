@@ -20,6 +20,7 @@ public class BlockActionTypes {
 	public static final BlockActionType<RandomChanceBlockAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBlockAction.CODEC, RandomChanceBlockAction.STREAM_CODEC);
 	public static final BlockActionType<ReferenceBlockAction> REFERENCE = registerInternal("reference", ReferenceBlockAction.CODEC, ReferenceBlockAction.STREAM_CODEC);
 	public static final BlockActionType<SequenceBlockAction> SEQUENCE = registerInternal("sequence", SequenceBlockAction.CODEC, SequenceBlockAction.STREAM_CODEC);
+	public static final BlockActionType<SpawnParticlesBlockAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesBlockAction.CODEC, SpawnParticlesBlockAction.STREAM_CODEC);
 	public static final BlockActionType<WeightedBlockAction> WEIGHTED = registerInternal("weighted", WeightedBlockAction.CODEC, WeightedBlockAction.STREAM_CODEC);
 
 	public static final BlockActionType<AreaOfEffectBlockAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectBlockAction.CODEC, AreaOfEffectBlockAction.STREAM_CODEC);

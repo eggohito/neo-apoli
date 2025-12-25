@@ -25,8 +25,8 @@ public final class NeoApoliParticleTypes {
 	public static final Codec<ParticleType<?>> CODEC = ALIASES.createCodec();
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleType<?>> STREAM_CODEC = ByteBufCodecs.registry(Registries.PARTICLE_TYPE);
 
-	public static final Codec<ParticleOptions> EFFECT_CODEC = CODEC.dispatch(ParticleOptions::getType, ParticleType::codec);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleOptions> EFFECT_STREAM_CODEC = STREAM_CODEC.dispatch(ParticleOptions::getType, ParticleType::streamCodec);
+	public static final Codec<ParticleOptions> OPTIONS_CODEC = CODEC.dispatch(ParticleOptions::getType, ParticleType::codec);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleOptions> OPTIONS_STREAM_CODEC = STREAM_CODEC.dispatch(ParticleOptions::getType, ParticleType::streamCodec);
 
 	public static final SimpleParticleType NOTHING = registerInternal("nothing", false);
 
