@@ -34,6 +34,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<ExtinguishEntityAction> EXTINGUISH = registerInternal("extinguish", ExtinguishEntityAction.CODEC, ExtinguishEntityAction.STREAM_CODEC);
 	public static final EntityActionType<GiveItemsEntityAction> GIVE_ITEMS = registerInternal("give_items", GiveItemsEntityAction.CODEC, GiveItemsEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SetOnFireEntityAction> SET_ON_FIRE = registerInternal("set_on_fire", SetOnFireEntityAction.CODEC, SetOnFireEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ShootEntityAction> SHOOT = registerInternal("shoot", ShootEntityAction.CODEC, ShootEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SwingHandEntityAction> SWING_HAND = registerInternal("swing_hand", SwingHandEntityAction.CODEC, SwingHandEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ToggleEntityAction> TOGGLE = registerInternal("toggle", ToggleEntityAction.CODEC, ToggleEntityAction.STREAM_CODEC);
 	public static final EntityActionType<TriggerCooldownEntityAction> TRIGGER_COOLDOWN = registerInternal("trigger_cooldown", TriggerCooldownEntityAction.CODEC, TriggerCooldownEntityAction.STREAM_CODEC);

@@ -28,8 +28,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.StringTagVisitor;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -86,7 +86,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<InteractionResult> ACTION_RESULT = CodecUtil.mapped(MiscUtil.ACTION_RESULTS);
 
-	public static final Codec<Tag> STRINGIFIED_NBT = Codec.STRING.comapFlatMap(
+	public static final Codec<Tag> STRINGIFIED_TAG = Codec.STRING.comapFlatMap(
 		str -> {
 
 			try {
@@ -98,22 +98,22 @@ public class NeoApoliCodecs {
 			}
 
 		},
-		nbtElement -> {
-
-			StringTagVisitor nbtWriter = new StringTagVisitor();
-			nbtElement.accept(nbtWriter);
-
-			return nbtWriter.build();
-
-		}
+		Tag::toString
 	);
 
-	public static final Codec<Tag> NBT_ELEMENT = Codec.PASSTHROUGH.xmap(
+	public static final Codec<Tag> TAG = Codec.PASSTHROUGH.xmap(
 		dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(),
 		nbtElement -> new Dynamic<>(NbtOps.INSTANCE, nbtElement)
 	);
 
-	public static final Codec<Tag> REGULAR_OR_STRINGIFIED_NBT_ELEMENT = new MultiAlternativeCodec<>(NBT_ELEMENT, STRINGIFIED_NBT);
+	public static final Codec<Tag> REGULAR_OR_STRINGIFIED_TAG = new MultiAlternativeCodec<>(TAG, STRINGIFIED_TAG);
+
+	public static final Codec<CompoundTag> REGULAR_OR_STRINGIFIED_COMPOUND_TAG = REGULAR_OR_STRINGIFIED_TAG.comapFlatMap(
+		tag -> tag instanceof CompoundTag compoundTag
+			? DataResult.success(compoundTag)
+			: DataResult.error(() -> "Not a compound tag: " + tag.toString()),
+		Function.identity()
+	);
 
 	public static final Codec<BlockState> STRINGIFIED_BLOCK_STATE = Codec.STRING.comapFlatMap(
 		str -> {
