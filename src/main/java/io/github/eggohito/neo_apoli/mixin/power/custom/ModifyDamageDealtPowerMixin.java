@@ -17,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -31,8 +32,8 @@ public abstract class ModifyDamageDealtPowerMixin {
 	@Mixin(value = LivingEntity.class, priority = 1001)
 	public static abstract class BaseImpl extends DamageModifyingPowerMixin {
 
-		@Override
-		protected Context neo_apoli$getOrCreateDamageModifyingContext(DamageSource source, float amount) {
+		@Unique
+		protected Context neo_apoli$getOrCreateModifyingDamageDealtContext(DamageSource source, float amount) {
 
 			Context context = Optional.ofNullable(this.neo_apoli$damageModifyingContext.get())
 				.flatMap(reference -> Optional.ofNullable(reference.get()))
@@ -53,7 +54,7 @@ public abstract class ModifyDamageDealtPowerMixin {
 				return original;
 			}
 
-			Context context = this.neo_apoli$getOrCreateDamageModifyingContext(source, original);
+			Context context = this.neo_apoli$getOrCreateModifyingDamageDealtContext(source, original);
 			float modified = DamageModifyingPower.modify(PowerTypes.MODIFY_DAMAGE_DEALT, context, instances, original);
 
 			modifiedDamageAmountRef.set(modifiedDamageAmountRef.get() || modified != original);

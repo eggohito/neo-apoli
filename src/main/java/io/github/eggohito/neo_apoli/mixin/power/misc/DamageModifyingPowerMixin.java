@@ -27,9 +27,6 @@ public abstract class DamageModifyingPowerMixin {
 	@Unique
 	protected final ThreadLocal<WeakReference<Context>> neo_apoli$damageModifyingContext = new ThreadLocal<>();
 
-	@Unique
-	protected abstract Context neo_apoli$getOrCreateDamageModifyingContext(DamageSource source, float amount);
-
 	@Mixin(value = LivingEntity.class, priority = 1001)
 	public static abstract class BaseLiving extends DamageModifyingPowerMixin {
 

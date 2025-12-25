@@ -60,7 +60,7 @@ public class ModifyDamageTakenPower extends DamageModifyingPower {
 			.addNullable(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY, damageSource.getDirectEntity())
 			.add(NeoApoliContextKeys.THIS_ENTITY, target)
 			.add(NeoApoliContextKeys.THIS_POS, target.position())
-			.build(actor.level());
+			.build(target.level());
 	}
 
 }
