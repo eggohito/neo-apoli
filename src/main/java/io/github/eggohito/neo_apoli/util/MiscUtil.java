@@ -46,6 +46,8 @@ public class MiscUtil {
 		.put("pass", InteractionResult.PASS)
 		.build();
 
+	public static final String ERROR_PADDING = "\n\t";
+
 	public static CommandSyntaxException createCommandException(Message message) {
 		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message);
 	}
@@ -149,6 +151,28 @@ public class MiscUtil {
 
 	public static HolderLookup.Provider getLookupProvider(ReloadableServerResources resources) {
 		return ((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries();
+	}
+
+	public static String mergeErrors(String firstError, String secondError) {
+
+		String firstPrefix = padError(firstError);
+		String secondPrefix = padError(secondError);
+
+		return 	firstPrefix + firstError +
+				secondPrefix + secondError;
+
+	}
+
+	private static String padError(String error) {
+
+		if (error.startsWith(ERROR_PADDING)) {
+			return "";
+		}
+
+		else {
+			return ERROR_PADDING + " - ";
+		}
+
 	}
 
 }
