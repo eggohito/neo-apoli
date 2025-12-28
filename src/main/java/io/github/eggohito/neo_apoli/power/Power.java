@@ -116,31 +116,30 @@ public abstract class Power implements ContextAware {
 
 		public final void syncData() {
 
-			DataResult<PowerReference> referenceResult = PowerManager.getReferenceAsResult(this.getPower());
+			PowerReference reference = this.getEntry().reference();
 			RegistryOps<Tag> nbtOps = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-			switch (referenceResult) {
-				case DataResult.Success<PowerReference> referenceSuccess when !holder.level().isClientSide()	-> {
+			if (!holder.level().isClientSide()) {
 
-					switch (this.encodeData(nbtOps)) {
-						case DataResult.Success<Tag> dataSuccess -> {
+				switch (this.encodeData(nbtOps)) {
+					case DataResult.Success<Tag> success -> {
 
-							SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(holder.getId(), referenceSuccess.value(), new Dynamic<>(nbtOps, dataSuccess.value()));
+						Dynamic<Tag> data = new Dynamic<>(nbtOps, success.value());
+						SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(holder.getId(), reference, data);
 
-							for (ServerPlayer trackingPlayer: MiscUtil.getTrackingPlayers(holder)) {
-								ServerPlayNetworking.send(trackingPlayer, packet);
-							}
-
+						for (ServerPlayer trackingPlayer : MiscUtil.getTrackingPlayers(holder)) {
+							ServerPlayNetworking.send(trackingPlayer, packet);
 						}
-						case DataResult.Error<Tag> dataError ->
-							NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", referenceSuccess.value().asDisplayString(false), holder.getName().getString(), dataError.message());
-					}
 
+					}
+					case DataResult.Error<Tag> error ->
+						NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error.message());
 				}
-				case DataResult.Success<PowerReference> referenceSuccess ->
-					NeoApoli.LOGGER.warn("Couldn't initiate syncing data of {} from entity {} in the client!", referenceSuccess.value().asDisplayString(false), holder.getName().getString());
-				case DataResult.Error<PowerReference> ignored ->
-					NeoApoli.LOGGER.warn("Couldn't initiate syncing data of unregistered power ({}) of entity {}!", this.getPower(), holder.getName().getString());
+
+			}
+
+			else {
+				NeoApoli.LOGGER.warn("Couldn't initialize syncing data of {} from entity {} in the client!", reference.asDisplayString(false), holder.getName().getString());
 			}
 
 		}
@@ -199,7 +198,7 @@ public abstract class Power implements ContextAware {
 			}
 
 			else {
-				return DataResult.error(() -> "Power entry \"" + e.reference() + "\" from power manager doesn't match! (Passed power: " + power + ", from entry: " + e.power() + ")");
+				return DataResult.error(() -> "Power entry \"" + e.reference() + "\" from power manager doesn't match! (Power from instance: " + power + ", power from entry: " + e.power() + ")");
 			}
 
 		});

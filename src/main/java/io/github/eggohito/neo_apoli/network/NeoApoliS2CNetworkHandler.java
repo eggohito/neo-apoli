@@ -15,7 +15,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
 import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.player.LocalPlayer;
@@ -115,38 +114,42 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onPowerDataSynchronized(SynchronizePowerDataS2CPacket payload, ClientPlayNetworking.Context context) {
 
-		Entity entity = context.player().level().getEntity(payload.entityId());
-		PowerReference powerReference = payload.powerReference();
+		Level level = context.player().level();
+		Entity entity = level.getEntity(payload.entityId());
 
-		if (!PowerManager.contains(powerReference)) {
-			NeoApoli.LOGGER.warn("Couldn't sync data of unregistered {}!", powerReference.asDisplayString(false));
-		}
+		payload.powersAndData().forEach((reference, data) -> {
 
-		else if (entity == null) {
-			NeoApoli.LOGGER.warn("Couldn't sync data of {} to non-existent entity!", powerReference.asDisplayString(false));
-		}
+			if (!PowerManager.contains(reference)) {
+				NeoApoli.LOGGER.warn("Couldn't sync data of unregistered {}!", reference.asDisplayString(false));
+			}
 
-		else {
+			else if (entity == null) {
+				NeoApoli.LOGGER.warn("Couldn't sync data of {} to non-existent entity!", reference.asDisplayString(false));
+			}
 
-			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
-			RegistryOps<Tag> nbtOps = entity.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+			else {
 
-			if (powersComponent.hasInstance(powerReference)) {
+				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+				RegistryOps<Tag> nbtOps = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-				Power.Instance<?> instance = powersComponent.getInstance(powerReference);
-				Tag nbtData = payload.data().convert(nbtOps).getValue();
+				if (powersComponent.hasInstance(reference)) {
 
-				if (instance.decodeData(nbtOps, nbtData) instanceof DataResult.Error<Unit> error) {
-					NeoApoli.LOGGER.warn("Couldn't decode data of {} to be synced to entity {}: {}", powerReference.asDisplayString(false), entity.getName().getString(), error.message());
+					Power.Instance<?> instance = powersComponent.getInstance(reference);
+					Tag nbtData = data.convert(nbtOps).getValue();
+
+					if (instance.decodeData(nbtOps, nbtData) instanceof DataResult.Error<Unit> error) {
+						NeoApoli.LOGGER.warn("Couldn't decode data of {} to be synced to entity {}: {}", reference.asDisplayString(false), entity.getName().getString(), error.message());
+					}
+
+				}
+
+				else {
+					NeoApoli.LOGGER.warn("Couldn't sync data of {} to entity {} as it wasn't granted!", reference.asDisplayString(false), entity.getName().getString());
 				}
 
 			}
 
-			else {
-				NeoApoli.LOGGER.warn("Couldn't sync data of {} to entity {} as it wasn't granted!", powerReference.asDisplayString(false), entity.getName().getString());
-			}
-
-		}
+		});
 
 	}
 

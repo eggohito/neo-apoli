@@ -108,48 +108,65 @@ public interface PowersComponent extends Component, AutoSyncedComponent, CommonT
 	}
 
 
-	boolean grantPower(PowerEntry<?> entry, ResourceLocation source);
+	boolean grantPower(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks);
 
-	default boolean grantPower(PowerReference reference, ResourceLocation source) {
-		return PowerManager.getEntryAsResult(reference)
-			.map(entry -> this.grantPower(entry, source))
-			.mapOrElse(Function.identity(), error -> false);
+	default boolean grantPower(PowerEntry<?> entry, ResourceLocation source) {
+		return this.grantPower(entry, source, true);
 	}
 
-	boolean grantPowerImmediately(PowerEntry<?> entry, ResourceLocation source);
+	default boolean grantPowerNoCallback(PowerEntry<?> entry, ResourceLocation source) {
+		return this.grantPower(entry, source, false);
+	}
 
-	default boolean grantPowerImmediately(PowerReference reference, ResourceLocation source) {
-		return PowerManager.getEntryAsResult(reference)
-			.map(entry -> this.grantPowerImmediately(entry, source))
-			.mapOrElse(Function.identity(), error -> false);
+	default boolean grantPowerImmediately(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+
+		boolean result = this.grantPower(entry, source, invokeCallbacks);
+		this.updateGrantedPowers();
+
+		return result;
+
+	}
+
+	default boolean grantPowerImmediately(PowerEntry<?> entry, ResourceLocation source) {
+		return this.grantPowerImmediately(entry, source, true);
+	}
+
+	default boolean grantPowerImmediatelyNoCallback(PowerEntry<?> entry, ResourceLocation source) {
+		return this.grantPowerImmediately(entry, source, false);
 	}
 
 
-	boolean revokePower(PowerEntry<?> entry, ResourceLocation source);
+	boolean revokePower(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks);
 
-	default boolean revokePower(PowerReference reference, ResourceLocation source) {
-		return PowerManager.getEntryAsResult(reference)
-			.map(entry -> this.revokePower(entry, source))
-			.mapOrElse(Function.identity(), error -> false);
+	default boolean revokePower(PowerEntry<?> entry, ResourceLocation source) {
+		return this.revokePower(entry, source, true);
 	}
 
-	boolean revokePowerImmediately(PowerEntry<?> entry, ResourceLocation source);
+	default boolean revokePowerNoCallback(PowerEntry<?> entry, ResourceLocation source) {
+		return this.revokePower(entry, source, false);
+	}
 
-	default boolean revokePowerImmediately(PowerReference reference, ResourceLocation source) {
-		return PowerManager.getEntryAsResult(reference)
-			.map(entry -> this.revokePowerImmediately(entry, source))
-			.mapOrElse(Function.identity(), error -> false);
+	default boolean revokePowerImmediately(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+
+		boolean result = this.revokePower(entry, source, invokeCallbacks);
+		this.updateRevokedPowers();
+
+		return result;
+
+	}
+
+	default boolean revokePowerImmediately(PowerEntry<?> entry, ResourceLocation source) {
+		return this.revokePowerImmediately(entry, source, true);
+	}
+
+	default boolean revokePowerImmediatelyNoCallback(PowerEntry<?> entry, ResourceLocation source) {
+		return this.revokePowerImmediately(entry, source, false);
 	}
 
 
 	void updateGrantedPowers();
 
 	void updateRevokedPowers();
-
-	default void updateChanges() {
-		updateGrantedPowers();
-		updateRevokedPowers();
-	}
 
 
 	static <I extends Power.Instance<?>> List<I> getInstances(Entity holder, Class<I> instanceClass, Predicate<I> instanceFilter) {
