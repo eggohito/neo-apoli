@@ -64,6 +64,7 @@
 		"power.custom.ModifyInvisibilityPowerMixin$ScalingProxyImpl",
 		"power.custom.ModifyItemUsePowerMixin$BlockItemUse",
 		"power.custom.ModifyItemUsePowerMixin$StackUse",
+		"power.custom.ModifyPlayerSpawnPowerMixin$ModifyRespawnPoint",
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",
 		"power.custom.PhasingPowerMixin$PhasingImpl",
 		"power.misc.DamageModifyingPowerMixin",

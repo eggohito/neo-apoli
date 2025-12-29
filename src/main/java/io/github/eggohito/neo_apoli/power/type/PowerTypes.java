@@ -50,6 +50,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model/color/other", ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model/color/self", ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyModelShakingPower> MODIFY_MODEL_SHAKING = registerInternal("modify/model/shaking", ModifyModelShakingPower.CODEC, ModifyModelShakingPower.STREAM_CODEC);
+	public static final PowerType<ModifyPlayerSpawnPower> MODIFY_PLAYER_SPAWN = registerInternal("modify/player/spawn", ModifyPlayerSpawnPower.CODEC, ModifyPlayerSpawnPower.STREAM_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.STREAM_CODEC);
 	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK, NeoApoliContextKeySets.ENTITY);
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.STREAM_CODEC, NeoApoliContextKeySets.ENTITY);
