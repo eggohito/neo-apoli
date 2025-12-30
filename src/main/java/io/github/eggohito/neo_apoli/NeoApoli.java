@@ -16,6 +16,7 @@ import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
+import io.github.eggohito.neo_apoli.power.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
@@ -28,7 +29,6 @@ import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -38,18 +38,13 @@ import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
-
-import java.util.Set;
 
 public class NeoApoli implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "neo-apoli";
 	public static final Logger LOGGER = NeoApoliLogger.INSTANCE;
 
-	@ApiStatus.Internal
-	public static final Set<String> LOGS = new ObjectOpenHashSet<>();
 	private static MinecraftServer server;
 
 	@Override
@@ -95,6 +90,8 @@ public class NeoApoli implements ModInitializer {
 
 		PowerTypes.registerAll();
 		PowerManager.init();
+
+		GlobalPowerSetManager.init();
 
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();

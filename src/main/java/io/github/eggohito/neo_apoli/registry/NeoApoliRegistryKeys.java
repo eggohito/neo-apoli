@@ -32,6 +32,7 @@ import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
+import io.github.eggohito.neo_apoli.power.GlobalPowerSet;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
@@ -52,6 +53,8 @@ public class NeoApoliRegistryKeys {
 
 	public static final ResourceKey<Registry<PowerEntry<?>>> POWER = create("power");
 	public static final ResourceKey<Registry<PowerType<?>>> POWER_TYPE = create("power_type");
+
+	public static final ResourceKey<Registry<GlobalPowerSet>> GLOBAL_POWER_SET = create("global_power");
 
 	public static final ResourceKey<Registry<Action>> ACTION = create("action");
 	public static final ResourceKey<Registry<BiEntityAction>> BIENTITY_ACTION = create("action/bientity");
