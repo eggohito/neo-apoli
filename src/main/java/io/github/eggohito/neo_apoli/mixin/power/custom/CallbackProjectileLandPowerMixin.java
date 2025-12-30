@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.CallbackProjectileLandPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;
@@ -16,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 @Mixin(Projectile.class)
 public abstract class CallbackProjectileLandPowerMixin extends Entity implements TraceableEntity {
 
@@ -28,17 +29,25 @@ public abstract class CallbackProjectileLandPowerMixin extends Entity implements
 	}
 
 	@Inject(method = "onHit", at = @At("TAIL"))
-	private void executeActions(HitResult hitResult, CallbackInfo ci) {
+	private void executeActions(HitResult result, CallbackInfo ci) {
 
 		Entity owner = this.getOwner();
-		HitResult.Type hitType = hitResult.getType();
+		Projectile thisAsProjectile = (Projectile) (Object) this;
 
-		if (owner == null || hitType == HitResult.Type.MISS) {
+		if (result.getType() == HitResult.Type.MISS) {
 			return;
 		}
 
-		Context context = CallbackProjectileLandPower.createContext(owner, (Projectile) (Object) this, hitResult);
-		CallbackProjectileLandPower.execute(context, PowersComponent.getInstances(owner, CallbackProjectileLandPower.Instance.class));
+		List<CallbackProjectileLandPower.Instance> ownerInstances = PowersComponent.getInstances(owner, CallbackProjectileLandPower.Instance.class);
+		List<CallbackProjectileLandPower.Instance> projectileInstances = PowersComponent.getInstances(thisAsProjectile, CallbackProjectileLandPower.Instance.class);
+
+		if (!ownerInstances.isEmpty() && owner != null) {
+			CallbackProjectileLandPower.execute(CallbackProjectileLandPower.createOwnerContext(owner, thisAsProjectile, result), ownerInstances);
+		}
+
+		if (!projectileInstances.isEmpty()) {
+			CallbackProjectileLandPower.execute(CallbackProjectileLandPower.createProjectileContext(owner, thisAsProjectile, result), projectileInstances);
+		}
 
 	}
 

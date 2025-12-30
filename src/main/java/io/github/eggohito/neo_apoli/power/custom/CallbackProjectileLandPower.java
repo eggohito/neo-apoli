@@ -24,6 +24,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -86,16 +87,24 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 
 	}
 
-	public static Context createContext(Entity owner, Projectile projectile, HitResult hitResult) {
+	public static Context createOwnerContext(@NotNull Entity owner, Projectile projectile, HitResult result) {
+		return createContext(owner, owner, projectile, result);
+	}
+
+	public static Context createProjectileContext(@Nullable Entity owner, Projectile projectile, HitResult result) {
+		return createContext(owner, projectile, projectile, result);
+	}
+
+	private static Context createContext(@Nullable Entity owner, @NotNull Entity holder, Projectile projectile, HitResult result) {
 
 		Level level = projectile.level();
-		Vec3 pos = hitResult.getLocation();
+		Vec3 pos = result.getLocation();
 
 		Entity target;
 		BlockPos blockPos;
 		Direction side;
 
-		switch (hitResult) {
+		switch (result) {
 			case EntityHitResult entityHitResult -> {
 				target = entityHitResult.getEntity();
 				blockPos = BlockPos.containing(pos);
@@ -114,15 +123,15 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 		}
 
 		return PowerTypes.CALLBACK_PROJECTILE_LAND.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR_ENTITY, owner)
+			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, owner)
 			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, target)
 			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
 			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(blockPos))
 			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 			.addNullable(NeoApoliContextKeys.DIRECTION, side)
 			.add(NeoApoliContextKeys.PROJECTILE_ENTITY, projectile)
-			.add(NeoApoliContextKeys.THIS_ENTITY, owner)
-			.add(NeoApoliContextKeys.THIS_POS, owner.position())
+			.add(NeoApoliContextKeys.THIS_ENTITY, holder)
+			.add(NeoApoliContextKeys.THIS_POS, holder.position())
 			.build(level);
 
 	}
