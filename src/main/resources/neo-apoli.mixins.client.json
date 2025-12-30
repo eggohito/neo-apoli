@@ -9,6 +9,7 @@
 		"accessor.ModelManagerAccessor",
 		"accessor.RecipeBookPageAccessor",
 		"accessor.TextureAtlasAccessor",
+		"accessor.WingsLayerAccessor",
 		"misc.ClientLevelMixin",
 		"misc.EntityRenderDispatcherMixin",
 		"misc.EntityRendererMixin",

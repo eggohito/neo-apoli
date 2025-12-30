@@ -8,6 +8,7 @@
 		"access.ContextMapAccessor",
 		"access.ContextMapAccessor$BuilderAccessor",
 		"access.ExecuteCommandAccessor",
+		"access.ItemStackAccessor",
 		"access.RegistryAccessor",
 		"access.RegistryOpsAccessor",
 		"access.ReloadableServerRegistriesAccessor",
