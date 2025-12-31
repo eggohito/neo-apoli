@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.renderer.entity.layers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.client.mixin.accessor.WingsLayerAccessor;
-import io.github.eggohito.neo_apoli.mixin.access.ItemStackAccessor;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraRenderPower;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -17,16 +16,17 @@ import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
-import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.equipment.EquipmentAsset;
+
+import java.util.Optional;
 
 /**
  * 	A modified version of {@link WingsLayer}, which easily allows for rendering wings from powers
@@ -76,19 +76,21 @@ public class PowerWingsLayer<S extends HumanoidRenderState, M extends EntityMode
 			}
 
 			Context colorContext = context.forChild(".color");
-			int color = instance.getColor(colorContext);
+			Optional<DyedItemColor> color = instance.getDyedColor(colorContext);
 
-			DataComponentMap components = DataComponentMap.builder()
-				.addAll(DataComponents.COMMON_ITEM_COMPONENTS)
-				.set(DataComponents.DYED_COLOR, new DyedItemColor(ARGB.color(255, color)))
-				.set(DataComponents.TRIM, instance.getNullableTrim())
-				.build();
+			ItemStack stack = Items.ELYTRA.getDefaultInstance();
+			DataComponentPatch.Builder componentPatch = DataComponentPatch.builder();
+
+			color.ifPresent(dyedColor -> componentPatch.set(DataComponents.DYED_COLOR, dyedColor));
+			instance.getTrim().ifPresent(trim -> componentPatch.set(DataComponents.TRIM, trim));
+
+			stack.applyComponentsAndValidate(componentPatch.build());
 
 			this.equipmentRenderer.renderLayers(
 				EquipmentClientInfo.LayerType.WINGS,
 				assetId,
 				elytraModel,
-				ItemStackAccessor.create(Items.EGG, 1, new PatchedDataComponentMap(components)),
+				stack,
 				poseStack,
 				bufferSource,
 				packedLight,

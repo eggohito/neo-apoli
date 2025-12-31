@@ -23,6 +23,7 @@
 		"power.custom.CraftingRecipePowerMixin$PowerRecipeDisplayCache",
 		"power.custom.CraftingRecipePowerMixin$RecipeCollectionFilter",
 		"power.custom.ModifyAirSpeedPowerMixin",
+		"power.custom.ModifyElytraRenderPowerMixin",
 		"power.custom.ModifyGlowingOtherPowerMixin$CustomGlowingColor",
 		"power.custom.ModifyGlowingOtherPowerMixin$GlowingProxy",
 		"power.custom.ModifyGlowingSelfPowerMixin$CustomGlowingColor",

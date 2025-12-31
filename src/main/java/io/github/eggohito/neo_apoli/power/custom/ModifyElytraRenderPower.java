@@ -28,11 +28,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -89,15 +89,14 @@ public class ModifyElytraRenderPower extends Power implements Prioritized<Modify
 			return power.getAssetId();
 		}
 
-		@Nullable
-		public ArmorTrim getNullableTrim() {
-			return power.getTrim().orElse(null);
+		public Optional<ArmorTrim> getTrim() {
+			return power.getTrim();
 		}
 
-		public int getColor(Context context) {
+		public Optional<DyedItemColor> getDyedColor(Context context) {
 			return power.getColor()
-				.map(innerColor -> innerColor.getValue(context.forChild(".color")))
-				.orElse(0);
+				.map(color -> color.getValue(context.forChild(".color")))
+				.map(DyedItemColor::new);
 		}
 
 	}
