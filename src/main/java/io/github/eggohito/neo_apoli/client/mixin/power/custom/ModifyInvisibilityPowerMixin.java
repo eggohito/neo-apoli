@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.Minecraft;
@@ -24,7 +25,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 public abstract class ModifyInvisibilityPowerMixin {
 
@@ -55,8 +58,11 @@ public abstract class ModifyInvisibilityPowerMixin {
 
 			if (original) {
 
+				List<ModifyInvisibilityPower.Instance> instances = PowersComponent.getInstances(renderedEntity, ModifyInvisibilityPower.Instance.class);
 				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderedEntity);
-				boolean result = !ModifyInvisibilityPower.doesApply(context, (instance, ctx) -> !instance.shouldRenderOutline(ctx));
+
+				BiPredicate<ModifyInvisibilityPower.Instance, Context> renderOutline = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderOutline;
+				boolean result = !ModifyInvisibilityPower.doesApply(context, instances, renderOutline.negate(), () -> false);
 
 				this.neo_apoli$invisibilityContext.clear();
 				return result;
@@ -72,19 +78,24 @@ public abstract class ModifyInvisibilityPowerMixin {
 		@WrapWithCondition(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/RenderLayer;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/EntityRenderState;FF)V"))
 		private boolean showOrHideArmorFeatureWhenInvisible(RenderLayer<S, M> featureRenderer, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int light, EntityRenderState state, float limbAngle, float limbDistance) {
 
-			if (featureRenderer instanceof HumanoidArmorLayer<?, ?, ?> && state instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
-
-				Context context = this.neo_apoli$getOrCreateInvisibilityContext(renderCache.neo_apoli$getEntity());
-				boolean result = ModifyInvisibilityPower.doesApply(context, (instance, ctx) -> !instance.shouldRenderArmor(ctx));
-
-				this.neo_apoli$invisibilityContext.clear();
-				return result;
-
-			}
-
-			else {
+			if (!(state instanceof EntityRenderCache renderCache) || !(featureRenderer instanceof HumanoidArmorLayer<?, ?, ?>)) {
 				return true;
 			}
+
+			Entity entity = renderCache.neo_apoli$getEntity();
+			List<ModifyInvisibilityPower.Instance> instances = PowersComponent.getInstances(entity, ModifyInvisibilityPower.Instance.class);
+
+			if (entity == null) {
+				return true;
+			}
+
+			Context context = this.neo_apoli$getOrCreateInvisibilityContext(entity);
+			BiPredicate<ModifyInvisibilityPower.Instance, Context> renderArmor = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderArmor;
+
+			boolean result = !ModifyInvisibilityPower.doesApply(context, instances, renderArmor.negate(), () -> false);
+			this.neo_apoli$invisibilityContext.clear();
+
+			return result;
 
 		}
 

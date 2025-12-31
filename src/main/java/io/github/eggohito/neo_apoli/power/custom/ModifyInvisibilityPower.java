@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 
 @EqualsAndHashCode
 @Getter
@@ -83,28 +83,24 @@ public class ModifyInvisibilityPower extends Power {
 				&& power.getInvisibleToCondition().test(context.forChild(".invisible_to_condition"));
 		}
 
-		public boolean shouldRenderArmor(Context context) {
+		public boolean isActiveAndShouldRenderArmor(Context context) {
 			return this.isActive(context)
 				&& power.getRenderArmor().next(context.forChild(".render_armor"));
 		}
 
-		public boolean shouldRenderOutline(Context context) {
+		public boolean isActiveAndShouldRenderOutline(Context context) {
 			return this.isActive(context)
 				&& power.getRenderOutline().next(context.forChild(".render_outline"));
 		}
 
 	}
 
-	public static boolean doesApply(Context context, BiPredicate<Instance, Context> tester) {
-
-		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
+	public static boolean doesApply(Context context, List<Instance> instances, BiPredicate<Instance, Context> tester, BooleanSupplier defaultValue) {
 
 		for (var instance : instances) {
 
-			Context.Validator validator = instance.getValidator();
 			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
+				.withValidator(instance.getValidator())
 				.build(context.getLevel());
 
 			try {
@@ -121,7 +117,7 @@ public class ModifyInvisibilityPower extends Power {
 
 		}
 
-		return false;
+		return defaultValue.getAsBoolean();
 
 	}
 
