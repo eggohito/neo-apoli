@@ -42,12 +42,14 @@ public class PowerTypes {
 	public static final PowerType<ModifyDamageTakenPower> MODIFY_DAMAGE_TAKEN = registerInternal("modify/damage/taken", ModifyDamageTakenPower.CODEC, ModifyDamageTakenPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.DAMAGE);
 	public static final PowerType<ModifyEffectImmunityPower> MODIFY_EFFECT_IMMUNITY = registerInternal("modify/effect/immunity", ModifyEffectImmunityPower.CODEC, ModifyEffectImmunityPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.EFFECT);
 	public static final PowerType<ModifyElytraFlightPower> MODIFY_ELYTRA_FLIGHT = registerInternal("modify/elytra/flight", ModifyElytraFlightPower.CODEC, ModifyElytraFlightPower.STREAM_CODEC);
+	public static final PowerType<ModifyElytraRenderPower> MODIFY_ELYTRA_RENDER = registerInternal("modify/elytra/render", ModifyElytraRenderPower.CODEC, ModifyElytraRenderPower.STREAM_CODEC);
 	public static final PowerType<ModifyEntityTypeTagPower> MODIFY_ENTITY_TYPE_TAG = registerInternal("modify/entity/type_tag", ModifyEntityTypeTagPower.CODEC, ModifyEntityTypeTagPower.STREAM_CODEC);
 	public static final PowerType<ModifyFallingPower> MODIFY_FALLING = registerInternal("modify/falling", ModifyFallingPower.CODEC, ModifyFallingPower.STREAM_CODEC);
 	public static final PowerType<ModifyGlowingOtherPower> MODIFY_GLOWING_OTHER_POWER = registerInternal("modify/glowing/other", ModifyGlowingOtherPower.CODEC, ModifyGlowingOtherPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyGlowingSelfPower> MODIFY_GLOWING_SELF_POWER = registerInternal("modify/glowing/self", ModifyGlowingSelfPower.CODEC, ModifyGlowingSelfPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyInvisibilityPower> MODIFY_INVISIBILITY = registerInternal("modify/invisibility", ModifyInvisibilityPower.CODEC, ModifyInvisibilityPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyItemUsePower> MODIFY_ITEM_USE = registerInternal("modify/item/use", ModifyItemUsePower.CODEC, ModifyItemUsePower.STREAM_CODEC, NeoApoliContextKeySets.ITEM);
+	public static final PowerType<ModifyItemWearablePower> MODIFY_ITEM_WEARABLE = registerInternal("modify/item/wearable", ModifyItemWearablePower.CODEC, ModifyItemWearablePower.STREAM_CODEC, NeoApoliContextKeySets.ITEM);
 	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal("modify/model/color/other", ModifyModelColorOtherPower.CODEC, ModifyModelColorOtherPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyModelColorSelfPower> MODIFY_MODEL_COLOR_SELF = registerInternal("modify/model/color/self", ModifyModelColorSelfPower.CODEC, ModifyModelColorSelfPower.STREAM_CODEC, NeoApoliContextKeySets.BIENTITY);
 	public static final PowerType<ModifyModelShakingPower> MODIFY_MODEL_SHAKING = registerInternal("modify/model/shaking", ModifyModelShakingPower.CODEC, ModifyModelShakingPower.STREAM_CODEC);
@@ -55,7 +57,6 @@ public class PowerTypes {
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.STREAM_CODEC);
 	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK, NeoApoliContextKeySets.ENTITY);
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.STREAM_CODEC, NeoApoliContextKeySets.ENTITY);
-	public static final PowerType<ModifyElytraRenderPower> MODIFY_ELYTRA_RENDER = registerInternal("modify/elytra/render", ModifyElytraRenderPower.CODEC, ModifyElytraRenderPower.STREAM_CODEC);
 
 	public static void registerAll() {
 
