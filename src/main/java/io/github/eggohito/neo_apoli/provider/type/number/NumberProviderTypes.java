@@ -46,6 +46,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<EquippedEnchantmentLevelNumberProvider> EQUIPPED_ENCHANTMENT_LEVEL = registerInternal("equipped_enchantment_level", EquippedEnchantmentLevelNumberProvider.CODEC, EquippedEnchantmentLevelNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<FluidHeightFromEntityNumberProvider> FLUID_HEIGHT_FROM_ENTITY = registerInternal("fluid_height/from_entity", FluidHeightFromEntityNumberProvider.CODEC, FluidHeightFromEntityNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<FuelAmountNumberProvider> FUEL_AMOUNT = registerInternal("fuel_amount", FuelAmountNumberProvider.CODEC, FuelAmountNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<ItemAttributeNumberProvider> ITEM_ATTRIBUTE = registerInternal("item/attribute", ItemAttributeNumberProvider.CODEC, ItemAttributeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ItemCountMaxNumberProvider> ITEM_COUNT_MAX = registerInternal("item_count/max", ItemCountMaxNumberProvider.CODEC, ItemCountMaxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ItemCountNumberProvider> ITEM_COUNT = registerInternal("item_count", ItemCountNumberProvider.CODEC, ItemCountNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<KeyPressedTicksNumberProvider> KEY_PRESSED_TICKS = registerInternal("key_pressed/ticks", KeyPressedTicksNumberProvider.CODEC, KeyPressedTicksNumberProvider.STREAM_CODEC);
