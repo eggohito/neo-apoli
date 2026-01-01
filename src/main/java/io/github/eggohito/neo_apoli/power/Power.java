@@ -80,17 +80,14 @@ public abstract class Power implements ContextAware {
 	@Getter
 	public abstract static class Instance<P extends Power> implements ContextAware {
 
+		protected final P power;
 		protected final Entity holder;
 		protected final PowerEntry<P> entry;
 
-		protected final P power;
-		protected final Context.Validator validator;
-
 		protected Instance(@NotNull Entity holder, @NotNull P power) {
+			this.power = power;
 			this.holder = holder;
 			this.entry = getMatchingEntry(power);
-			this.power = power;
-			this.validator = this.entry.createValidator().withLookupProvider(holder.level().registryAccess());
 		}
 
 		@Override
@@ -103,9 +100,13 @@ public abstract class Power implements ContextAware {
 			power.validate(validator);
 		}
 
+		public Context.Validator createValidator() {
+			return this.entry.createValidator().withLookupProvider(holder.level().registryAccess());
+		}
+
 		public Context.Builder createHolderContextBuilder() {
 			return power.getType().contextBuilder()
-				.withValidator(this.getValidator())
+				.withValidator(this.createValidator())
 				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
 				.add(NeoApoliContextKeys.THIS_POS, holder.position());
 		}

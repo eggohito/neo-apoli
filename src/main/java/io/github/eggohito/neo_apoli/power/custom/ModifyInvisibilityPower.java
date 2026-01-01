@@ -100,7 +100,7 @@ public class ModifyInvisibilityPower extends Power {
 		for (var instance : instances) {
 
 			Context instanceContext = new Context.Builder(context)
-				.withValidator(instance.getValidator())
+				.withValidator(instance.createValidator())
 				.build(context.getLevel());
 
 			try {

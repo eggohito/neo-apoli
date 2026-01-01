@@ -112,7 +112,7 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			Context.Validator validator = instance.getValidator();
+			Context.Validator validator = instance.createValidator();
 			Context instanceContext = new Context.Builder(context)
 				.withValidator(validator)
 				.build(context.getLevel());
@@ -144,7 +144,7 @@ public class PhasingPower extends Power {
 
 		for (var instance : instances) {
 
-			Context.Validator validator = instance.getValidator();
+			Context.Validator validator = instance.createValidator();
 			Context instanceContext = new Context.Builder(context)
 				.withValidator(validator)
 				.build(context.getLevel());
