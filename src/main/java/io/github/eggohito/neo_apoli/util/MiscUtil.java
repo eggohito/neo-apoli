@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableBiMap;
 import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
@@ -31,6 +32,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.DecimalFormat;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -173,6 +175,10 @@ public class MiscUtil {
 			return ERROR_PADDING + " - ";
 		}
 
+	}
+
+	public static DecimalFormat decimalPlacesFormat(int decimals) {
+		return new DecimalFormat("#." + Strings.repeat("#", Math.max(decimals, 1)));
 	}
 
 }

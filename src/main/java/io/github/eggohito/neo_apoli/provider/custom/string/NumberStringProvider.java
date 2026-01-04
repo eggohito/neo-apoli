@@ -5,13 +5,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
-import joptsimple.internal.Strings;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
-
-import java.text.DecimalFormat;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
@@ -42,7 +40,7 @@ public record NumberStringProvider(NumberProvider number, NumberProvider decimal
 		}
 
 		else {
-			return new DecimalFormat("#." + Strings.repeat('#', decimals)).format(number().nextDouble(numberContext));
+			return MiscUtil.decimalPlacesFormat(decimals).format(number().nextDouble(numberContext));
 		}
 
 	}
