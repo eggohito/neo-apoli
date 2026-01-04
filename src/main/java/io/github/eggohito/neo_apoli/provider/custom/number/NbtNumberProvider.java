@@ -1,17 +1,22 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.commands.arguments.NbtPathArgument;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements NumberProvider {
 
@@ -38,12 +43,44 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 		Tag source = source().next(sourceContext);
 
 		if (sourceContext.hasErrors()) {
-			return 0.0d;
+			return 0;
 		}
 
-		else {
-			return this.path().countMatching(source);
+		try {
+
+			List<Tag> tags = path().get(source);
+			int size = tags.size();
+
+			if (size == 1) {
+				return switch (tags.getFirst()) {
+					case NumericTag numericTag ->
+						numericTag.doubleValue();
+					case CollectionTag collectionTag ->
+						collectionTag.size();
+					case CompoundTag compoundTag ->
+						compoundTag.size();
+					case StringTag(String value) ->
+						value.length();
+					default ->
+						throw MiscUtil.createCommandException(Component.translatableEscape("commands.data.get.unknown", this.path()));
+				};
+			}
+
+			else if (size > 1) {
+				return path().countMatching(source);
+			}
+
+			else {
+				return 0;
+			}
+
 		}
+
+		catch (CommandSyntaxException e) {
+			context.getValidator().report("Error trying to get a numeric value in NBT path \"" + this.path() + " from NBT \"" + source + "\": " + e.getMessage());
+		}
+
+		return 0;
 
 	}
 
