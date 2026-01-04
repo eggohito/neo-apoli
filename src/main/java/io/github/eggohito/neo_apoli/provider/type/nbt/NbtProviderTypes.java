@@ -17,6 +17,7 @@ public class NbtProviderTypes {
 	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.STREAM_CODEC);
 	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.STREAM_CODEC);
 	public static final NbtProviderType<ItemNbtProvider> ITEM = registerInternal("item", ItemNbtProvider.CODEC, ItemNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<PowerNbtProvider> POWER = registerInternal("power", PowerNbtProvider.CODEC, PowerNbtProvider.STREAM_CODEC);
 	public static final NbtProviderType<StorageNbtProvider> STORAGE = registerInternal("storage", StorageNbtProvider.CODEC, StorageNbtProvider.STREAM_CODEC);
 
 	public static void registerAll() {
