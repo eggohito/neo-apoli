@@ -6,6 +6,7 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -18,6 +19,8 @@ import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
@@ -179,6 +182,12 @@ public class MiscUtil {
 
 	public static DecimalFormat decimalPlacesFormat(int decimals) {
 		return new DecimalFormat("#." + Strings.repeat("#", Math.max(decimals, 1)));
+	}
+
+	public static DataResult<CompoundTag> asCompoundTag(Tag tag) {
+		return tag instanceof CompoundTag compoundTag
+			? DataResult.success(compoundTag)
+			: DataResult.error(() -> "Not a compound tag: " + tag.toString());
 	}
 
 }

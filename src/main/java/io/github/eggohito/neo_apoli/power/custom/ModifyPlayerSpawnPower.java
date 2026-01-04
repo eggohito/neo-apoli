@@ -1,8 +1,7 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
+import com.mojang.datafixers.util.Unit;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -28,7 +27,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.level.Level;
@@ -95,7 +93,7 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 
 	public static class Instance extends Power.Instance<ModifyPlayerSpawnPower> {
 
-		private static final Codec<Optional<ServerPlayer.RespawnConfig>> RESPAWN_CONFIG_CODEC = ExtraCodecs.optionalEmptyMap(ServerPlayer.RespawnConfig.CODEC);
+		private static final MapCodec<Optional<ServerPlayer.RespawnConfig>> DATA_CODEC = ExtraCodecs.optionalEmptyMap(ServerPlayer.RespawnConfig.CODEC).fieldOf("respawn");
 
 		@Getter
 		private Optional<ServerPlayer.RespawnConfig> respawnConfig;
@@ -135,15 +133,15 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
-			return RESPAWN_CONFIG_CODEC.parse(ops, data)
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+			return DATA_CODEC.decode(ops, mapInput)
 				.ifSuccess(this::setRespawn)
-				.map(config -> Unit.INSTANCE);
+				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
-			return RESPAWN_CONFIG_CODEC.encodeStart(ops, this.respawnConfig);
+		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+			return DATA_CODEC.encode(this.getRespawnConfig(), ops, prefix);
 		}
 
 		private void setRespawn(Optional<ServerPlayer.RespawnConfig> config) {

@@ -1,4 +1,9 @@
 {
+	"commands.neo-apoli.data.power.modified": "Modified data of power '%s' from entity %s",
+	"commands.neo-apoli.data.power.query": "Power '%s' from entity %s has the following data: %s",
+	"commands.neo-apoli.data.power.query.scaled": "%s on power '%s' from entity %s after scale factor of %s is %s",
+	"commands.neo-apoli.data.power.ungranted": "Entity %s didn't have the power '%s'",
+	"commands.neo-apoli.data.power.unsupported": "Modifying data of power '%s' is unsupported",
 	"commands.neo-apoli.power.clear.fail.multiple": "%s entities didn't have any powers to clear",
 	"commands.neo-apoli.power.clear.fail.single": "Entity %s didn't have any powers to clear",
 	"commands.neo-apoli.power.clear.success.multiple": "%s entities had %s power(s) cleared in total",

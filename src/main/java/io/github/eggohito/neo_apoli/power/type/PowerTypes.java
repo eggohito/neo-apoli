@@ -55,6 +55,7 @@ public class PowerTypes {
 	public static final PowerType<ModifyModelShakingPower> MODIFY_MODEL_SHAKING = registerInternal("modify/model/shaking", ModifyModelShakingPower.CODEC, ModifyModelShakingPower.STREAM_CODEC);
 	public static final PowerType<ModifyPlayerSpawnPower> MODIFY_PLAYER_SPAWN = registerInternal("modify/player/spawn", ModifyPlayerSpawnPower.CODEC, ModifyPlayerSpawnPower.STREAM_CODEC);
 	public static final PowerType<MultiplePower> MULTIPLE = register(MultiplePower.ID, MultiplePower.CODEC, MultiplePower.STREAM_CODEC);
+	public static final PowerType<NbtPower> NBT = registerInternal("nbt", NbtPower.CODEC, NbtPower.STREAM_CODEC);
 	public static final PowerType<PhasingPower> PHASING = registerInternal("phasing", PhasingPower.CODEC, PhasingPower.STREAM_CODEC, NeoApoliContextKeySets.BLOCK, NeoApoliContextKeySets.ENTITY);
 	public static final PowerType<TogglePower> TOGGLE = registerInternal("toggle", TogglePower.CODEC, TogglePower.STREAM_CODEC, NeoApoliContextKeySets.ENTITY);
 

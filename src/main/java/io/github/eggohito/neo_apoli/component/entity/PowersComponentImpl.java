@@ -78,7 +78,7 @@ public final class PowersComponentImpl implements PowersComponent {
 	@Override
 	public void readFromNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
 
-		RegistryOps<Tag> nbtOps = provider.createSerializationContext(NbtOps.INSTANCE);
+		RegistryOps<Tag> ops = provider.createSerializationContext(NbtOps.INSTANCE);
 		ListTag powersNbt = compoundTag.getListOrEmpty("powers");
 
 		this.instances.clear();
@@ -93,7 +93,7 @@ public final class PowersComponentImpl implements PowersComponent {
 			try {
 
 				Data<?> data = Data.CODEC
-					.parse(nbtOps, powerNbt)
+					.parse(ops, powerNbt)
 					.getOrThrow();
 
 				PowerReference reference = data.reference();
@@ -102,14 +102,14 @@ public final class PowersComponentImpl implements PowersComponent {
 				switch (entryResult) {
 					case DataResult.Success<PowerEntry<?>> success -> {
 
-						Dynamic<Tag> encodedData = data.encoded().convert(nbtOps);
+						Dynamic<Tag> encodedData = data.encoded().convert(ops);
 						Set<ResourceLocation> sources = data.sources();
 
 						PowerEntry<?> entry = success.value();
 						Power.Instance<?> instance = entry.power().createInstance(holder);
 
 						if (Objects.equals(data.type(), entry.power().getType())) {
-							instance.decodeData(nbtOps, encodedData.getValue())
+							instance.decodeData(ops, encodedData.getValue())
 								.mapError(error -> "Error decoding data of " + reference.asDisplayString(false) + " from NBT (skipping): " + error)
 								.error()
 								.map(DataResult.Error::message)
@@ -141,19 +141,19 @@ public final class PowersComponentImpl implements PowersComponent {
 	@Override
 	public void writeToNbt(CompoundTag compoundTag, HolderLookup.Provider provider) {
 
-		RegistryOps<Tag> nbtOps = provider.createSerializationContext(NbtOps.INSTANCE);
+		RegistryOps<Tag> ops = provider.createSerializationContext(NbtOps.INSTANCE);
 		ListTag powersNbt = new ListTag();
 
 		this.instances.forEach((entry, instance) -> {
 
 			Set<ResourceLocation> sources = this.sources.getOrDefault(entry, Set.of());
-			Tag encodedData = instance.encodeData(nbtOps)
+			Tag encodedData = instance.encodeData(ops)
 				.mapError(error -> "Error trying to encode data of " + entry.reference().asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
-				.orElseGet(nbtOps::emptyMap);
+				.orElseGet(ops::emptyMap);
 
-			Data<Tag> data = new Data<>(entry.reference(), entry.power().getType(), sources, new Dynamic<>(nbtOps, encodedData));
-			Data.CODEC.encodeStart(nbtOps, data)
+			Data<Tag> data = new Data<>(entry.reference(), entry.power().getType(), sources, new Dynamic<>(ops, encodedData));
+			Data.CODEC.encodeStart(ops, data)
 				.mapError(error -> "Error trying to encode " + entry.reference().asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.ifPresent(powersNbt::add);

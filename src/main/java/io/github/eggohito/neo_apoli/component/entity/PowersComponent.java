@@ -18,6 +18,7 @@ import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
 import org.ladysnake.cca.api.v3.entity.RespawnableComponent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -69,6 +70,15 @@ public interface PowersComponent extends Component, AutoSyncedComponent, CommonT
 		return PowerManager.getEntryAsResult(reference)
 			.map(this::getNullableInstance)
 			.mapOrElse(Function.identity(), error -> null);
+	}
+
+
+	default Optional<Power.Instance<?>> getOptionalInstance(PowerEntry<?> entry) {
+		return Optional.ofNullable(this.getNullableInstance(entry));
+	}
+
+	default Optional<Power.Instance<?>> getOptionalInstance(PowerReference reference) {
+		return Optional.ofNullable(this.getNullableInstance(reference));
 	}
 
 

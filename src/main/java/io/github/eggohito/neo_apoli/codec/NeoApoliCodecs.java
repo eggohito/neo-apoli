@@ -31,6 +31,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
@@ -106,14 +107,26 @@ public class NeoApoliCodecs {
 		nbtElement -> new Dynamic<>(NbtOps.INSTANCE, nbtElement)
 	);
 
+	public static final Codec<CompoundTag> STRINGIFIED_COMPOUND_TAG = Codec.STRING.comapFlatMap(
+		str -> {
+
+			try {
+				return DataResult.success(TagParser.parseCompoundFully(str));
+			}
+
+			catch (CommandSyntaxException e) {
+				return DataResult.error(() -> "Error parsing string NBT: " + e.getMessage());
+			}
+
+		},
+		CompoundTag::toString
+	);
+
+	public static final Codec<CompoundTag> COMPOUND_TAG = TAG.comapFlatMap(MiscUtil::asCompoundTag, Function.identity());
+
 	public static final Codec<Tag> REGULAR_OR_STRINGIFIED_TAG = new MultiAlternativeCodec<>(TAG, STRINGIFIED_TAG);
 
-	public static final Codec<CompoundTag> REGULAR_OR_STRINGIFIED_COMPOUND_TAG = REGULAR_OR_STRINGIFIED_TAG.comapFlatMap(
-		tag -> tag instanceof CompoundTag compoundTag
-			? DataResult.success(compoundTag)
-			: DataResult.error(() -> "Not a compound tag: " + tag.toString()),
-		Function.identity()
-	);
+	public static final Codec<CompoundTag> REGULAR_OR_STRINGIFIED_COMPOUND_TAG = new MultiAlternativeCodec<>(COMPOUND_TAG, STRINGIFIED_COMPOUND_TAG);
 
 	public static final Codec<BlockState> STRINGIFIED_BLOCK_STATE = Codec.STRING.comapFlatMap(
 		str -> {

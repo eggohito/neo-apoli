@@ -1,10 +1,8 @@
 package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.datafixers.Products;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.MapCodec;
+import com.mojang.datafixers.util.Unit;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
@@ -24,7 +22,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Unit;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -145,12 +142,20 @@ public abstract class Power implements ContextAware {
 
 		}
 
-		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
-			return DataResult.success(ops.emptyMap());
+		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+			return prefix;
 		}
 
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
+		public final <O> DataResult<O> encodeData(RegistryOps<O> ops) {
+			return this.encodeData(ops, ops.mapBuilder()).build(ops.empty());
+		}
+
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
 			return DataResult.success(Unit.INSTANCE);
+		}
+
+		public final <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I input) {
+			return ops.getMap(input).flatMap(mapInput -> this.decodeData(ops, mapInput));
 		}
 
 		public void onAdded() {
@@ -175,6 +180,10 @@ public abstract class Power implements ContextAware {
 
 		public void onTick() {
 
+		}
+
+		public boolean isImmutable() {
+			return true;
 		}
 
 		public boolean shouldTick() {

@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -33,5 +34,7 @@ public class NeoApoliMapCodecs {
 		Recipe.KEY_CODEC.fieldOf("id").forGetter(RecipeHolder::id),
 		CRAFTING_RECIPE.forGetter(RecipeHolder::value)
 	).apply(instance, RecipeHolder::new));
+
+	public static final MapCodec<CompoundTag> COMPOUND_TAG = MapCodec.assumeMapUnsafe(CompoundTag.CODEC);
 
 }

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
+import com.mojang.datafixers.util.Unit;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
@@ -24,7 +24,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.Mth;
-import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,6 +76,7 @@ public class CooldownPower extends Power {
 
 	public static class Instance extends Power.Instance<CooldownPower> {
 
+		protected static final MapCodec<Long> DATA_CODEC = Codec.LONG.fieldOf("last_use_time");
 		protected long lastUseTime;
 
 		protected Instance(@NotNull Entity holder, @NotNull CooldownPower power) {
@@ -97,15 +97,15 @@ public class CooldownPower extends Power {
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
-			return ops.getNumberValue(data)
-				.ifSuccess(number -> this.lastUseTime = number.longValue())
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+			return DATA_CODEC.decode(ops, mapInput)
+				.map(value -> this.lastUseTime = value)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
-			return DataResult.success(ops.createLong(lastUseTime));
+		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+			return DATA_CODEC.encode(this.lastUseTime, ops, prefix);
 		}
 
 		public HudElement getHudElement() {

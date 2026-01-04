@@ -23,6 +23,7 @@
 		"misc.CommandStorageMixin",
 		"misc.ComponentSerializationMixin",
 		"misc.ComponentSerializationMixin$StrictEitherMixin",
+		"misc.DataCommandsMixin",
 		"misc.DataResultMixin",
 		"misc.EitherCodecMixin",
 		"misc.EntityMixin",
@@ -78,5 +79,8 @@
 	],
 	"injectors": {
 		"defaultRequire": 1
+	},
+	"mixinextras": {
+		"minVersion": "0.5.0"
 	}
 }

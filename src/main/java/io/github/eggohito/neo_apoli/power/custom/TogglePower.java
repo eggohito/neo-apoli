@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
+import com.mojang.datafixers.util.Unit;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
@@ -21,7 +21,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -74,23 +73,28 @@ public class TogglePower extends Power {
 
 	public static class Instance extends Power.Instance<TogglePower> {
 
+		private static final MapCodec<Boolean> DATA_CODEC = Codec.BOOL.fieldOf("toggled");
 		private boolean toggled;
 
 		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
 			super(holder, power);
-			this.toggled = power.getActiveByDefault().next(this.createHolderContext().forChild(".active_by_default"));
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I data) {
-			return ops.getBooleanValue(data)
+		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+			return DATA_CODEC.decode(ops, mapInput)
 				.ifSuccess(bool -> this.toggled = bool)
-				.map(bool -> Unit.INSTANCE);
+				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <I> DataResult<I> encodeData(RegistryOps<I> ops) {
-			return DataResult.success(ops.createBoolean(this.toggled));
+		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+			return DATA_CODEC.encode(this.toggled, ops, prefix);
+		}
+
+		@Override
+		public void onGranted() {
+			this.toggled = power.getActiveByDefault().next(this.createHolderContext().forChild(".active_by_default"));
 		}
 
 		@Override
