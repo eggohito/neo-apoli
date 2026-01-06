@@ -26,6 +26,7 @@ public class EntityActionTypes {
 
 	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.CODEC, AddExperienceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<AddVelocityEntityAction> ADD_VELOCITY = registerInternal("velocity/add", AddVelocityEntityAction.CODEC, AddVelocityEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ApplyEffectsEntityAction> APPLY_EFFECTS = registerInternal("apply_effects", ApplyEffectsEntityAction.CODEC, ApplyEffectsEntityAction.STREAM_CODEC);
 	public static final EntityActionType<AreaOfEffectEntityAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectEntityAction.CODEC, AreaOfEffectEntityAction.STREAM_CODEC);
 	public static final EntityActionType<BlockActionAtEntityAction> BLOCK_ACTION_AT = registerInternal("block_action_at", BlockActionAtEntityAction.CODEC, BlockActionAtEntityAction.STREAM_CODEC);
 	public static final EntityActionType<DamageEntityAction> DAMAGE = registerInternal("damage", DamageEntityAction.CODEC, DamageEntityAction.STREAM_CODEC);
