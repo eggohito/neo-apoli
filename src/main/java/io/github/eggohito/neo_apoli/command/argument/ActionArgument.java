@@ -15,9 +15,9 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
+public class ActionArgument extends ObjectEntryArgument<Action> {
 
-	protected ActionArgumentType(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
+	protected ActionArgument(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
 		super(wrapperLookup, ActionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
@@ -26,19 +26,19 @@ public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 		return SharedSuggestionProvider.suggestResource(ActionManager.ids(), builder);
 	}
 
-	public static ActionArgumentType inlineAction(CommandBuildContext registryAccess) {
-		return new ActionArgumentType(registryAccess, true);
+	public static ActionArgument inlineAction(CommandBuildContext registryAccess) {
+		return new ActionArgument(registryAccess, true);
 	}
 
-	public static ActionArgumentType action(CommandBuildContext registryAccess) {
-		return new ActionArgumentType(registryAccess, false);
+	public static ActionArgument action(CommandBuildContext registryAccess) {
+		return new ActionArgument(registryAccess, false);
 	}
 
 	public static Action getAction(CommandContext<CommandSourceStack> context, String argumentName) {
 		return context.getArgument(argumentName, Action.class);
 	}
 
-	public record Info() implements ArgumentTypeInfo<ActionArgumentType, Info.Template> {
+	public record Info() implements ArgumentTypeInfo<ActionArgument, Info.Template> {
 
 		@Override
 		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
@@ -56,15 +56,15 @@ public class ActionArgumentType extends ObjectEntryArgumentType<Action> {
 		}
 
 		@Override
-		public Template unpack(ActionArgumentType argumentType) {
+		public Template unpack(ActionArgument argumentType) {
 			return new Template(this, argumentType.codec.allowInlineDefinitions());
 		}
 
-		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ActionArgumentType> {
+		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ActionArgument> {
 
 			@Override
-			public ActionArgumentType instantiate(CommandBuildContext commandBuildContext) {
-				return new ActionArgumentType(commandBuildContext, allowInlineDefinitions());
+			public ActionArgument instantiate(CommandBuildContext commandBuildContext) {
+				return new ActionArgument(commandBuildContext, allowInlineDefinitions());
 			}
 
 		}

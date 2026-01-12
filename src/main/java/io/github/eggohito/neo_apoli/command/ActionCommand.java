@@ -9,7 +9,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.command.argument.ActionArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.ActionArgument;
 import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
@@ -17,7 +17,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -49,7 +49,7 @@ public class ActionCommand {
 		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
 			var node = literal("dump")
-				.then(argument("action", ActionArgumentType.action(registryAccess))
+				.then(argument("action", ActionArgument.action(registryAccess))
 					.executes(DumpSubCommand::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(DumpSubCommand::withSpecificIndent)));
@@ -71,7 +71,7 @@ public class ActionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			Action action = ActionArgumentType.getAction(commandContext, "action");
+			Action action = ActionArgument.getAction(commandContext, "action");
 
 			return switch (Action.CODEC.encodeStart(ops, action)) {
 				case DataResult.Success<JsonElement> success -> {
@@ -97,27 +97,10 @@ public class ActionCommand {
 			CommandNode<CommandSourceStack> executeNode = literal("execute").build();
 			CommandNode<CommandSourceStack> withNode = literal("with").build();
 			CommandNode<CommandSourceStack> onNode = literal("on")
-				.then(argument("action", ActionArgumentType.inlineAction(registryAccess))
+				.then(argument("action", ActionArgument.inlineAction(registryAccess))
 					.executes(ExecuteSubCommand::execute)).build();
 
-			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
-
-				String id = parameter.name().toString();
-				TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
-
-				if (parameterCommandBuilder == null) {
-					continue;
-				}
-
-				CommandNode<CommandSourceStack> parameterNode = literal(id).build();
-				parameterCommandBuilder.addArguments(registryAccess, executeNode, parameterNode);
-
-				withNode.addChild(parameterNode);
-
-			}
-
-			executeNode.addChild(withNode);
-			executeNode.addChild(onNode);
+			NeoApoliContextKeys.addAsArguments(registryAccess, executeNode, withNode, onNode);
 
 			return executeNode;
 
@@ -128,7 +111,7 @@ public class ActionCommand {
 			CommandSourceStack source = commandContext.getSource();
 			Context.Builder contextBuilder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
 
-			Action action = ActionArgumentType.getAction(commandContext, "action");
+			Action action = ActionArgument.getAction(commandContext, "action");
 			String display = action.asDisplayString(false);
 
 			try {

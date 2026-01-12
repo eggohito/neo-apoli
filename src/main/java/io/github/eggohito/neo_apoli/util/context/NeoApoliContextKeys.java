@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util.context;
 
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -16,6 +17,8 @@ import io.github.eggohito.neo_apoli.util.context.parameter.fluid.FluidStateConte
 import io.github.eggohito.neo_apoli.util.context.parameter.item.ItemStackContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.item.StackReferenceContextKey;
 import io.github.eggohito.neo_apoli.util.context.parameter.number.FloatContextKey;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
@@ -35,6 +38,8 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.function.Function;
+
+import static net.minecraft.commands.Commands.literal;
 
 public final class NeoApoliContextKeys {
 
@@ -97,5 +102,28 @@ public final class NeoApoliContextKeys {
 	public static <T, P extends TypedContextKey<T>> TypedContextKey<T> register(P parameter) {
 		return Registry.register(NeoApoliRegistries.TYPED_CONTEXT_KEY, parameter.name(), parameter);
 	}
+
+    public static void addAsArguments(CommandBuildContext registryAccess, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> withNode, CommandNode<CommandSourceStack> onNode) {
+
+		for (var key : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
+
+            String id = key.name().toString();
+            TypedContextKey.CommandBuilder commandBuilder = key.getCommandBuilder();
+
+            if (commandBuilder == null) {
+                continue;
+            }
+
+            CommandNode<CommandSourceStack> parameterNode = literal(id).build();
+            commandBuilder.addArguments(registryAccess, baseNode, parameterNode);
+
+            withNode.addChild(parameterNode);
+
+        }
+
+        baseNode.addChild(withNode);
+        baseNode.addChild(onNode);
+
+    }
 
 }

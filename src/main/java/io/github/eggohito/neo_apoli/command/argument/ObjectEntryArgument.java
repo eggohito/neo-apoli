@@ -13,12 +13,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-public abstract class ObjectEntryArgumentType<E> implements ArgumentType<E> {
+public abstract class ObjectEntryArgument<E> implements ArgumentType<E> {
 
 	protected final HolderLookup.Provider wrapperLookup;
 	protected final ValueSuppliedElementCodec<E> codec;
 
-	protected ObjectEntryArgumentType(HolderLookup.Provider wrapperLookup, ValueSuppliedElementCodec<E> codec) {
+	protected ObjectEntryArgument(HolderLookup.Provider wrapperLookup, ValueSuppliedElementCodec<E> codec) {
 		this.wrapperLookup = wrapperLookup;
 		this.codec = codec;
 	}

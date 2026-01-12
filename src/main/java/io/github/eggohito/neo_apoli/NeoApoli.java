@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
-import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
+import io.github.eggohito.neo_apoli.command.argument.NeoApoliArguments;
 import io.github.eggohito.neo_apoli.command.data.provider.NeoApoliDataProviders;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
@@ -69,7 +69,7 @@ public class NeoApoli implements ModInitializer {
 
 		});
 
-		NeoApoliArgumentTypes.registerAll();
+		NeoApoliArguments.registerAll();
 		ValueProviderTypes.registerAll();
 
 		ConditionManager.init();

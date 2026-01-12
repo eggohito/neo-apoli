@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.commands.CommandBuildContext;
@@ -18,27 +19,28 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public record PowerArgumentType(boolean allowTags) implements ArgumentType<PowerArgumentType.PowerArgument> {
+public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgument.Type> {
 
 	@Override
-	public PowerArgument parse(StringReader reader) throws CommandSyntaxException {
+	public Type parse(StringReader reader) throws CommandSyntaxException {
 
 		if (reader.canRead() && reader.peek() == '#' && allowTags()) {
 
 			reader.skip();
 			ResourceLocation id = ResourceLocation.read(reader);
 
-			return new Tag(id);
+			return new Type.Collection(TagKey.create(NeoApoliRegistryKeys.POWER, id));
 
 		}
 
 		else {
 			PowerReference reference = PowerReference.read(reader);
-			return new Power(reference);
+			return new Type.Singleton(reference);
 		}
 
 	}
@@ -54,70 +56,74 @@ public record PowerArgumentType(boolean allowTags) implements ArgumentType<Power
 
 	}
 
-	public static PowerArgumentType power() {
-		return new PowerArgumentType(false);
+	public static PowerArgument power() {
+		return new PowerArgument(false);
 	}
 
-	public static PowerArgumentType powerOrTag() {
-		return new PowerArgumentType(true);
+	public static PowerArgument powerOrTag() {
+		return new PowerArgument(true);
 	}
 
-	public static PowerArgument getArgument(CommandContext<CommandSourceStack> context, String name) {
-		return context.getArgument(name, PowerArgument.class);
+	public static Type getArgument(CommandContext<CommandSourceStack> context, String name) {
+		return context.getArgument(name, Type.class);
 	}
 
 	public static PowerEntry<?> getPower(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return switch (getArgument(context, name)) {
-			case Power power ->
-				power.get(context).getFirst();
-			case Tag tag ->
-				throw MiscUtil.createCommandException(() -> "Expected a power, but got power tag with ID \"" + tag.id() + "\"!");
+			case Type.Singleton singleton ->
+				singleton.get(context).getFirst();
+			case Type.Collection collection ->
+				throw MiscUtil.createCommandException(() -> "Expected a power, but got tag \"#" + collection.id() + "\"");
 		};
 	}
 
 	public static List<PowerEntry<?>> getTag(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return switch (getArgument(context, name)) {
-			case Power power ->
-				throw MiscUtil.createCommandException(() -> "Expected a tag, but got " + power.reference().asDisplayString(false) + "!");
-			case Tag tag ->
-				tag.get(context);
+			case Type.Singleton singleton ->
+				throw MiscUtil.createCommandException(() -> "Expected a tag, but got power " + singleton.id() + "!");
+			case Type.Collection collection ->
+				collection.get(context);
 		};
 	}
 
-	public static Either<Power, Tag> getPowerOrTag(CommandContext<CommandSourceStack> context, String name) {
+	public static Either<Type.Singleton, Type.Collection> getPowerOrTag(CommandContext<CommandSourceStack> context, String name) {
 		return switch (getArgument(context, name)) {
-			case Power power ->
-				Either.left(power);
-			case Tag tag ->
-				Either.right(tag);
+			case Type.Singleton singleton ->
+				Either.left(singleton);
+			case Type.Collection collection ->
+				Either.right(collection);
 		};
 	}
 
-	public sealed interface PowerArgument permits Power, Tag {
+	public sealed interface Type permits Type.Singleton, Type.Collection {
 
 		List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException;
 
-	}
+		record Singleton(PowerReference id) implements Type {
 
-	public record Power(PowerReference reference) implements PowerArgument {
+			@Override
+			public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+				return List.of(PowerManager.getEntryAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
+			}
 
-		@Override
-		public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-			return List.of(PowerManager.getEntryAsResult(reference()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
+		}
+
+		record Collection(TagKey<PowerEntry<?>> tag) implements Type {
+
+			@Override
+			public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+				return PowerManager.getEntriesFromTag(tag()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+			}
+
+			public ResourceLocation id() {
+				return tag().location();
+			}
+
 		}
 
 	}
 
-	public record Tag(ResourceLocation id) implements PowerArgument {
-
-		@Override
-		public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-			return PowerManager.getEntriesFromTag(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
-		}
-
-	}
-
-	public record Info() implements ArgumentTypeInfo<PowerArgumentType, Info.Template> {
+	public record Info() implements ArgumentTypeInfo<PowerArgument, Info.Template> {
 
 		@Override
 		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
@@ -135,15 +141,15 @@ public record PowerArgumentType(boolean allowTags) implements ArgumentType<Power
 		}
 
 		@Override
-		public Template unpack(PowerArgumentType argumentType) {
+		public Template unpack(PowerArgument argumentType) {
 			return new Template(this, argumentType.allowTags());
 		}
 
-		public record Template(Info type, boolean allowTags) implements ArgumentTypeInfo.Template<PowerArgumentType> {
+		public record Template(Info type, boolean allowTags) implements ArgumentTypeInfo.Template<PowerArgument> {
 
 			@Override
-			public PowerArgumentType instantiate(CommandBuildContext commandBuildContext) {
-				return new PowerArgumentType(allowTags());
+			public PowerArgument instantiate(CommandBuildContext commandBuildContext) {
+				return new io.github.eggohito.neo_apoli.command.argument.PowerArgument(allowTags());
 			}
 
 		}

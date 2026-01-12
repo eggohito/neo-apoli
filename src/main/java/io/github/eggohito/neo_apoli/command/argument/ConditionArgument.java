@@ -15,9 +15,9 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
+public class ConditionArgument extends ObjectEntryArgument<Condition> {
 
-	protected ConditionArgumentType(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
+	protected ConditionArgument(HolderLookup.Provider wrapperLookup, boolean allowInlineDefinitions) {
 		super(wrapperLookup, ConditionManager.createEntryCodec(allowInlineDefinitions));
 	}
 
@@ -26,19 +26,19 @@ public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 		return SharedSuggestionProvider.suggestResource(ConditionManager.ids(), builder);
 	}
 
-	public static ConditionArgumentType inlineCondition(CommandBuildContext registryAccess) {
-		return new ConditionArgumentType(registryAccess, true);
+	public static ConditionArgument inlineCondition(CommandBuildContext registryAccess) {
+		return new ConditionArgument(registryAccess, true);
 	}
 
-	public static ConditionArgumentType condition(CommandBuildContext registryAccess) {
-		return new ConditionArgumentType(registryAccess, false);
+	public static ConditionArgument condition(CommandBuildContext registryAccess) {
+		return new ConditionArgument(registryAccess, false);
 	}
 
 	public static Condition getCondition(CommandContext<CommandSourceStack> context, String argumentName) {
 		return context.getArgument(argumentName, Condition.class);
 	}
 
-	public record Info() implements ArgumentTypeInfo<ConditionArgumentType, Info.Template> {
+	public record Info() implements ArgumentTypeInfo<ConditionArgument, Info.Template> {
 
 		@Override
 		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
@@ -56,15 +56,15 @@ public class ConditionArgumentType extends ObjectEntryArgumentType<Condition> {
 		}
 
 		@Override
-		public Template unpack(ConditionArgumentType argumentType) {
-			return new Template(this, argumentType.codec.allowInlineDefinitions());
+		public Template unpack(ConditionArgument argument) {
+			return new Template(this, argument.codec.allowInlineDefinitions());
 		}
 
-		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ConditionArgumentType> {
+		public record Template(Info type, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ConditionArgument> {
 
 			@Override
-			public ConditionArgumentType instantiate(CommandBuildContext commandBuildContext) {
-				return new ConditionArgumentType(commandBuildContext, allowInlineDefinitions());
+			public ConditionArgument instantiate(CommandBuildContext buildContext) {
+				return new ConditionArgument(buildContext, allowInlineDefinitions());
 			}
 
 		}

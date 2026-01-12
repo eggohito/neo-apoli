@@ -7,7 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
@@ -17,7 +17,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -48,7 +48,7 @@ public class ConditionCommand {
 		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
 
 			var node = literal("dump")
-				.then(argument("condition", ConditionArgumentType.condition(registryAccess))
+				.then(argument("condition", ConditionArgument.condition(registryAccess))
 					.executes(DumpSubCommand::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(DumpSubCommand::withSpecificIndent)));
@@ -70,7 +70,7 @@ public class ConditionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
+			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
 
 			return switch (Condition.CODEC.encodeStart(ops, condition)) {
 				case DataResult.Success<JsonElement> success -> {
@@ -96,29 +96,12 @@ public class ConditionCommand {
 			CommandNode<CommandSourceStack> baseNode = literal("test").build();
 			CommandNode<CommandSourceStack> withNode = literal("with").build();
 			CommandNode<CommandSourceStack> onNode = literal("on")
-				.then(argument("condition", ConditionArgumentType.inlineCondition(registryAccess))
+				.then(argument("condition", ConditionArgument.inlineCondition(registryAccess))
 					.executes(TestSubCommand::testAsInt)).build();
 
-			for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
+			 NeoApoliContextKeys.addAsArguments(registryAccess, baseNode, withNode, onNode);
 
-				String id = parameter.name().toString();
-				TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
-
-				if (parameterCommandBuilder == null) {
-					continue;
-				}
-
-				CommandNode<CommandSourceStack> parameterNode = literal(id).build();
-				parameterCommandBuilder.addArguments(registryAccess, baseNode, parameterNode);
-
-				withNode.addChild(parameterNode);
-
-			}
-
-			baseNode.addChild(withNode);
-			baseNode.addChild(onNode);
-
-			return baseNode;
+			 return baseNode;
 
 		}
 
@@ -140,7 +123,7 @@ public class ConditionCommand {
 			CommandSourceStack source = commandContext.getSource();
 			Context.Builder contextBuilder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
 
-			Condition condition = ConditionArgumentType.getCondition(commandContext, "condition");
+			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
 			String display = condition.asDisplayString(false);
 
 			try {

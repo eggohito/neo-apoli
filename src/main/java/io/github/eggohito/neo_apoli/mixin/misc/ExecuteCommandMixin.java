@@ -6,9 +6,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
-import io.github.eggohito.neo_apoli.command.argument.ConditionArgumentType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
+import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.commands.ExecuteCommand;
@@ -35,30 +34,12 @@ public abstract class ExecuteCommandMixin {
 		CommandNode<CommandSourceStack> onNode = literal("on")
 			.then(addConditional(
 				rootNode,
-				argument("condition", ConditionArgumentType.inlineCondition(registryAccess)),
+				argument("condition", ConditionArgument.inlineCondition(registryAccess)),
 				positive,
 				ConditionCommand.TestSubCommand::test
 			)).build();
 
-		for (var parameter : NeoApoliRegistries.TYPED_CONTEXT_KEY) {
-
-			String id = parameter.name().toString();
-			TypedContextKey.CommandBuilder parameterCommandBuilder = parameter.getCommandBuilder();
-
-			if (parameterCommandBuilder == null) {
-				continue;
-			}
-
-			CommandNode<CommandSourceStack> parameterNode = literal(id).build();
-			parameterCommandBuilder.addArguments(registryAccess, baseNode, parameterNode);
-
-			withNode.addChild(parameterNode);
-
-		}
-
-		baseNode.addChild(withNode);
-		baseNode.addChild(onNode);
-
+		NeoApoliContextKeys.addAsArguments(registryAccess, baseNode, withNode, onNode);
 		return builder.then(baseNode);
 
 	}
