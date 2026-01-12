@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.client.util;
 
 import com.mojang.serialization.DataResult;
-import io.github.eggohito.neo_apoli.client.mixin.accessor.AtlasSetAccessor;
-import io.github.eggohito.neo_apoli.client.mixin.accessor.ModelManagerAccessor;
-import io.github.eggohito.neo_apoli.client.mixin.accessor.TextureAtlasAccessor;
+import io.github.eggohito.neo_apoli.client.mixin.access.AtlasSetAccessor;
+import io.github.eggohito.neo_apoli.client.mixin.access.ModelManagerAccessor;
+import io.github.eggohito.neo_apoli.client.mixin.access.TextureAtlasAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;

@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.mixin.accessor;
+package io.github.eggohito.neo_apoli.client.mixin.access;
 
 import net.minecraft.client.resources.model.AtlasSet;
 import net.minecraft.resources.ResourceLocation;

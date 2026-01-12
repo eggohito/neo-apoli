@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
-import io.github.eggohito.neo_apoli.client.mixin.accessor.WingsLayerAccessor;
+import io.github.eggohito.neo_apoli.client.mixin.access.WingsLayerAccessor;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraRenderPower;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.util.context.Context;

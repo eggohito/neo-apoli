@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.mixin.accessor;
+package io.github.eggohito.neo_apoli.client.mixin.access;
 
 import net.minecraft.client.KeyMapping;
 import org.spongepowered.asm.mixin.Mixin;

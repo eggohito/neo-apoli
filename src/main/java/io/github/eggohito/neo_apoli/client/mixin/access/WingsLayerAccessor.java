@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.mixin.accessor;
+package io.github.eggohito.neo_apoli.client.mixin.access;
 
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;

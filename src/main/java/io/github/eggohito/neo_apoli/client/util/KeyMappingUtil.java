@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.util;
 
-import io.github.eggohito.neo_apoli.client.mixin.accessor.KeyMappingAccessor;
+import io.github.eggohito.neo_apoli.client.mixin.access.KeyMappingAccessor;
 import io.github.eggohito.neo_apoli.util.alias.StringAlias;
 import net.minecraft.client.KeyMapping;
 
