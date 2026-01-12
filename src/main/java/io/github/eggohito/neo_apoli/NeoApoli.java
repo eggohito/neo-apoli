@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArgumentTypes;
+import io.github.eggohito.neo_apoli.command.data.provider.NeoApoliDataProviders;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
@@ -79,6 +80,7 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliContainerTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();
+		NeoApoliDataProviders.registerAll();
 
 		NeoApoliRecipeSerializers.registerAll();
 		NeoApoliRecipeBookCategories.registerAll();
