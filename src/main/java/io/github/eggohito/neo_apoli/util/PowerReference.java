@@ -5,7 +5,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
+import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.context.ReferenceKey;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ResourceLocationException;
@@ -16,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
-public sealed interface PowerReference extends ReferenceKey, StringDisplayable permits PowerReference.Power, PowerReference.SubPower {
+public sealed interface PowerReference extends ReferenceKey, StringDisplayable, ContextAware permits PowerReference.Power, PowerReference.SubPower {
 
 	Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::ofValidated, PowerReference::toString);
 
@@ -25,6 +28,11 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 	String createTranslationKey();
 
 	boolean isSubPower();
+
+	@Override
+	default void validate(Context.Validator validator) {
+		PowerManager.getAsResult(this).ifError(error -> validator.report(error.message()));
+	}
 
 	static PowerReference.Power ofPower(ResourceLocation id) {
 		return new Power(id);

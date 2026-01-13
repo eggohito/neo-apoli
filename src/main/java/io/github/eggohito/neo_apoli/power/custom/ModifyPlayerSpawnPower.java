@@ -85,7 +85,7 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 	@Override
 	public void validate(Context.Validator validator) {
 		super.validate(validator);
-		RegistryUtil.validateEntry(validator.forChild(".dimension"), this.getDimension());
+		RegistryUtil.validateKey(validator.forChild(".dimension"), this.getDimension());
 		this.getBiomeTag().ifPresent(biomeTag -> RegistryUtil.validateTag(validator.forChild(".biome_tag"), biomeTag));
 		this.getStructureTag().ifPresent(structureTag -> RegistryUtil.validateTag(validator.forChild(".structure_tag"), structureTag));
 	}

@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -50,7 +49,7 @@ public record TriggerCooldownEntityAction(PowerReference power) implements Entit
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
+		this.power().validate(validator.forChild(".power"));
 	}
 
 }

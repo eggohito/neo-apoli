@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -47,7 +46,7 @@ public record ToggleEntityAction(PowerReference power) implements EntityAction {
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
+		this.power().validate(validator.forChild(".power"));
 	}
 
 }

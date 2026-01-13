@@ -77,7 +77,7 @@ public record ModifyItemAction(TypedContextKey<Entity> entity, ResourceKey<LootI
 	@Override
 	public void validate(Context.Validator validator) {
 		ItemAction.super.validate(validator);
-		RegistryUtil.validateEntry(validator, this.modifier());
+		RegistryUtil.validateKey(validator, this.modifier());
 	}
 
 }

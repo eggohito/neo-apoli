@@ -24,7 +24,7 @@ public final class RegistryUtil {
 		return getId(registry, obj).getPath();
 	}
 
-	public static <T> void validateEntry(Context.Validator validator, ResourceKey<T> key) {
+	public static <T> void validateKey(Context.Validator validator, ResourceKey<T> key) {
 		validate(validator, Either.left(key));
 	}
 

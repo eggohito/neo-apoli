@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -64,7 +63,7 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
+		this.power().validate(validator.forChild(".power"));
 	}
 
 }

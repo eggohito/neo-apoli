@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
@@ -65,7 +64,7 @@ public record PowerNbtProvider(PowerReference power, TypedContextKey<Entity> ent
 	@Override
 	public void validate(Context.Validator validator) {
 		NbtProvider.super.validate(validator);
-		PowerManager.getAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
+		this.power().validate(validator.forChild(".power"));
 	}
 
 	private Optional<Tag> getAndCreate(Context context, PowersComponent powersComponent) {
