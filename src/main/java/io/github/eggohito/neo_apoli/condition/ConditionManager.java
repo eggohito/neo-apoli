@@ -14,8 +14,8 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CP
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -124,12 +124,12 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 		prepared.forEach((id, entry) -> {
 
-			DynamicResourceLocation.setCurrent(id);
+			ResourceLocationUtil.setCurrent(id);
 			Condition.CODEC.parse(ops, entry.element())
 				.ifSuccess(condition -> register(id, condition))
 				.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
 
-			DynamicResourceLocation.setCurrent(null);
+			ResourceLocationUtil.setCurrent(null);
 
 		});
 

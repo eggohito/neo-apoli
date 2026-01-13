@@ -11,8 +11,8 @@ import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -124,14 +124,14 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 		Map<ResourceLocation, List<GlobalPowerSet.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
 		prepared.forEach((id, elementWithSources) -> {
 
-			DynamicResourceLocation.setCurrent(id);
+			ResourceLocationUtil.setCurrent(id);
 			elementWithSources.forEach(jsonObjectWithSource -> GlobalPowerSet.CODEC.compressedDecode(ops, jsonObjectWithSource.element())
 				.ifError(error -> LOGGER.error("Error trying to parse global power set \"{}\" from data pack [{}] (skipping): {}", id, jsonObjectWithSource.source(), error.message()))
 				.ifSuccess(set -> parsed
 					.computeIfAbsent(id, k -> new ObjectArrayList<>())
 					.add(new GlobalPowerSet.WithSource(set, id, jsonObjectWithSource.source()))));
 
-			DynamicResourceLocation.setCurrent(null);
+			ResourceLocationUtil.setCurrent(null);
 
 		});
 

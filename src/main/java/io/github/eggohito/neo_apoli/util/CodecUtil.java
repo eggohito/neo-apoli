@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JavaOps;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
@@ -155,25 +156,22 @@ public class CodecUtil {
 		);
 	}
 
-	public static <T> Codec<TagKey<T>> hashedTag(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+	public static <T> Codec<TagKey<T>> tagWithDefaultNamespace(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+		return ResourceLocationUtil.codecWithDefaultNamespace(defaultNamespace).xmap(location -> TagKey.create(registryRef, location), TagKey::location);
+	}
+
+	public static <T> Codec<TagKey<T>> hashedTagWithDefaultNamespace(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+		Codec<ResourceLocation> locationCodec = ResourceLocationUtil.codecWithDefaultNamespace(defaultNamespace);
 		return Codec.STRING.comapFlatMap(
-			string -> string.startsWith("#")
-				? DynamicResourceLocation.parse(string.substring(1), defaultNamespace).map(location -> TagKey.create(registryRef, location))
-				: DataResult.error(() -> "Not a tag ID: \"" + string + "\""),
+			input -> input.startsWith("#")
+				? locationCodec.parse(JavaOps.INSTANCE, input).map(location -> TagKey.create(registryRef, location))
+				: DataResult.error(() -> "Not a tag id"),
 			tag -> "#" + tag.location()
 		);
 	}
 
-	public static <T> Codec<TagKey<T>> hashedTag(ResourceKey<? extends Registry<T>> registryRef) {
-		return hashedTag(registryRef, ResourceLocation.DEFAULT_NAMESPACE);
-	}
-
-	public static <T> Codec<ResourceKey<T>> resourceKey(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
-		return DynamicResourceLocation.createCodec(defaultNamespace).xmap(location -> ResourceKey.create(registryRef, location), ResourceKey::location);
-	}
-
-	public static <T> Codec<ResourceKey<T>> resourceKey(ResourceKey<? extends Registry<T>> registryRef) {
-		return resourceKey(registryRef, ResourceLocation.DEFAULT_NAMESPACE);
+	public static <T> Codec<ResourceKey<T>> resourceKeyWithDefaultNamespace(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
+		return ResourceLocationUtil.codecWithDefaultNamespace(defaultNamespace).xmap(location -> ResourceKey.create(registryRef, location), ResourceKey::location);
 	}
 
 }

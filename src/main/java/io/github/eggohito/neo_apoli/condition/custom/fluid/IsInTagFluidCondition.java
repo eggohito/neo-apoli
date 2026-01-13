@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -17,7 +16,7 @@ import net.minecraft.world.level.material.Fluid;
 public record IsInTagFluidCondition(TagKey<Fluid> tag) implements FluidCondition {
 
 	public static final MapCodec<IsInTagFluidCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(CodecUtil.hashedTag(Registries.FLUID).fieldOf("tag").forGetter(IsInTagFluidCondition::tag))
+		.group(TagKey.hashedCodec(Registries.FLUID).fieldOf("tag").forGetter(IsInTagFluidCondition::tag))
 		.apply(instance, IsInTagFluidCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsInTagFluidCondition> STREAM_CODEC = StreamCodec.composite(

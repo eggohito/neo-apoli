@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.ContextAware;
@@ -142,9 +141,9 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		);
 
 		public static final Codec<SpriteLocation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			DynamicResourceLocation.CODEC.fieldOf("background").forGetter(SpriteLocation::background),
-			DynamicResourceLocation.CODEC.fieldOf("fill").forGetter(SpriteLocation::fill),
-			DynamicResourceLocation.CODEC.fieldOf("icon").forGetter(SpriteLocation::icon)
+			ResourceLocation.CODEC.fieldOf("background").forGetter(SpriteLocation::background),
+			ResourceLocation.CODEC.fieldOf("fill").forGetter(SpriteLocation::fill),
+			ResourceLocation.CODEC.fieldOf("icon").forGetter(SpriteLocation::icon)
 		).apply(instance, SpriteLocation::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, SpriteLocation> STREAM_CODEC = StreamCodec.composite(

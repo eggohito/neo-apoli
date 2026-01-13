@@ -18,10 +18,10 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -215,7 +215,7 @@ public final class PowerManager implements JsonReloadListener {
 			JsonObject element = elementWithSource.element();
 			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
 
-			DynamicResourceLocation.setCurrent(powerReference.id());
+			ResourceLocationUtil.setCurrent(powerReference.id());
 			PowerEntry.CODEC.parse(ops, element)
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> error
@@ -229,7 +229,7 @@ public final class PowerManager implements JsonReloadListener {
 						() -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message())
 					));
 
-			DynamicResourceLocation.setCurrent(null);
+			ResourceLocationUtil.setCurrent(null);
 
 		});
 

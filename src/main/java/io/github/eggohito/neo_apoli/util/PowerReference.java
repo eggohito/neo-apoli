@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
@@ -60,17 +59,14 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 			String parent = value.substring(0, separatorIndex);
 			String name = value.substring(separatorIndex + 1);
 
-			Pair<String, String> parentNamespaceAndPath = DynamicResourceLocation.split(parent);
-			ResourceLocation parentId = DynamicResourceLocation.of(parentNamespaceAndPath.getFirst(), parentNamespaceAndPath.getSecond());
-
+			ResourceLocation parentId = ResourceLocation.parse(parent);
 			return ofSubPower(ResourceLocationUtil.nonEmpty(parentId), name);
 
 		}
 
 		else {
 
-			Pair<String, String> namespaceAndPath = DynamicResourceLocation.split(value);
-			ResourceLocation id = DynamicResourceLocation.of(namespaceAndPath.getFirst(), namespaceAndPath.getSecond());
+			ResourceLocation id = ResourceLocation.parse(value);
 
 			return ofPower(id);
 
@@ -107,7 +103,8 @@ public sealed interface PowerReference extends ReferenceKey, StringDisplayable p
 
 	static boolean isAllowed(char ch) {
 		return ch == SubPower.SEPARATOR
-			|| DynamicResourceLocation.isAllowed(ch);
+			|| ResourceLocation.isAllowedInResourceLocation(ch)
+			|| ResourceLocationUtil.isEnabledAndPlaceholder(ch);
 	}
 
 	record Power(ResourceLocation id) implements PowerReference {

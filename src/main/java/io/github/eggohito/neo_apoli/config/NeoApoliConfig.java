@@ -17,6 +17,9 @@ public class NeoApoliConfig {
 	@SerialEntry
 	public final Command command = new Command();
 
+	@SerialEntry
+	public final Identifier identifier = new Identifier();
+
 	public static class Command {
 
 		@SerialEntry
@@ -24,6 +27,17 @@ public class NeoApoliConfig {
 
 		@SerialEntry
 		public int permissionLevel = 2;
+
+	}
+
+	@SerialEntry
+	public static class Identifier {
+
+		@SerialEntry
+		public char placeholder = '*';
+
+		@SerialEntry
+		public boolean enabled = true;
 
 	}
 

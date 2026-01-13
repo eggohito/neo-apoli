@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
@@ -24,7 +23,7 @@ import java.util.Set;
 public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, TypedContextKey<Entity> entity) implements NumberProvider {
 
 	public static final MapCodec<FluidHeightFromEntityNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		CodecUtil.hashedTag(Registries.FLUID).fieldOf("fluid_tag").forGetter(FluidHeightFromEntityNumberProvider::fluidTag),
+		TagKey.hashedCodec(Registries.FLUID).fieldOf("fluid_tag").forGetter(FluidHeightFromEntityNumberProvider::fluidTag),
 		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(FluidHeightFromEntityNumberProvider::entity)
 	).apply(instance, FluidHeightFromEntityNumberProvider::new));
 

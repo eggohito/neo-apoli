@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -23,7 +22,7 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 
 	public static final MapCodec<HasPowerEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(HasPowerEntityCondition::power),
-		DynamicResourceLocation.CODEC.optionalFieldOf("source").forGetter(HasPowerEntityCondition::source)
+		ResourceLocation.CODEC.optionalFieldOf("source").forGetter(HasPowerEntityCondition::source)
 	).apply(instance, HasPowerEntityCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, HasPowerEntityCondition> STREAM_CODEC = StreamCodec.composite(

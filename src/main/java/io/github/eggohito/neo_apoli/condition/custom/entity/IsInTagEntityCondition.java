@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.registries.Registries;
@@ -17,7 +16,7 @@ import net.minecraft.world.entity.EntityType;
 public record IsInTagEntityCondition(TagKey<EntityType<?>> tag) implements EntityCondition {
 
 	public static final MapCodec<IsInTagEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(CodecUtil.hashedTag(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(IsInTagEntityCondition::tag))
+		.group(TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(IsInTagEntityCondition::tag))
 		.apply(instance, IsInTagEntityCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsInTagEntityCondition> STREAM_CODEC = StreamCodec.composite(

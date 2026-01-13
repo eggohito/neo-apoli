@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Lifecycle;
 import io.github.eggohito.neo_apoli.exception.AliasAlreadyTakenException;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
@@ -72,7 +72,7 @@ public record RegistryFixedAlias<T>(Registry<T> registry, ResourceLocationAlias 
 
 	public Codec<Holder.Reference<T>> createReferenceCodec(String defaultNamespace) {
 
-		Codec<Holder.Reference<T>> codec = DynamicResourceLocation.createCodec(defaultNamespace).comapFlatMap(
+		Codec<Holder.Reference<T>> codec = ResourceLocationUtil.codecWithDefaultNamespace(defaultNamespace).comapFlatMap(
 			this::resolve,
 			reference -> reference.key().location()
 		);

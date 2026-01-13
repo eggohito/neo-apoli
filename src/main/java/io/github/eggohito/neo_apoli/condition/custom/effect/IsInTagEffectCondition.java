@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
@@ -18,7 +17,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 public record IsInTagEffectCondition(TagKey<MobEffect> tag) implements EffectCondition {
 
 	public static final MapCodec<IsInTagEffectCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(CodecUtil.hashedTag(Registries.MOB_EFFECT).fieldOf("tag").forGetter(IsInTagEffectCondition::tag))
+		.group(TagKey.hashedCodec(Registries.MOB_EFFECT).fieldOf("tag").forGetter(IsInTagEffectCondition::tag))
 		.apply(instance, IsInTagEffectCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsInTagEffectCondition> STREAM_CODEC = StreamCodec.composite(

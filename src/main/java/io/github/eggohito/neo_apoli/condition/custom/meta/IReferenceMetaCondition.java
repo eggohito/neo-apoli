@@ -6,7 +6,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.util.DynamicResourceLocation;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -84,7 +83,7 @@ public interface IReferenceMetaCondition<C extends Condition> extends MetaCondit
 
 	static <C extends Condition, M extends IReferenceMetaCondition<C>> MapCodec<M> createCodec(Function<ResourceLocation, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			DynamicResourceLocation.CODEC.fieldOf("value").forGetter(IReferenceMetaCondition::value)
+			ResourceLocation.CODEC.fieldOf("value").forGetter(IReferenceMetaCondition::value)
 		).apply(instance, constructor));
 	}
 

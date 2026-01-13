@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.Registry;
@@ -17,7 +16,7 @@ import net.minecraft.world.level.Level;
 public record IsInTagWorldCondition(TagKey<Level> tag) implements WorldCondition {
 
 	public static final MapCodec<IsInTagWorldCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(CodecUtil.hashedTag(Registries.DIMENSION).fieldOf("tag").forGetter(IsInTagWorldCondition::tag))
+		.group(TagKey.hashedCodec(Registries.DIMENSION).fieldOf("tag").forGetter(IsInTagWorldCondition::tag))
 		.apply(instance, IsInTagWorldCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsInTagWorldCondition> STREAM_CODEC = StreamCodec.composite(
