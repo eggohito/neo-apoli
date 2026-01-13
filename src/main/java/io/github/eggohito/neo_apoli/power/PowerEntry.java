@@ -68,6 +68,10 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 			.forChildWithReference("{\"" + reference() + "\"}", reference());
 	}
 
+	public boolean canBePartiallyParsed() {
+		return power().canBePartiallyParsed();
+	}
+
 	public boolean isSubPower() {
 		return reference().isSubPower();
 	}

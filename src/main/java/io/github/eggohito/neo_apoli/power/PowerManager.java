@@ -220,7 +220,7 @@ public final class PowerManager implements JsonReloadListener {
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> error
 					.resultOrPartial()
-					.filter(entry -> entry.power() instanceof MultiplePower)
+					.filter(PowerEntry::canBePartiallyParsed)
 					.ifPresentOrElse(
 						entry -> {
 							LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message());

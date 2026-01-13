@@ -208,6 +208,11 @@ public class MultiplePower extends Power {
 		return new Instance<>(holder, this) {};
 	}
 
+	@Override
+	public boolean canBePartiallyParsed() {
+		return true;
+	}
+
 	/**
 	 * 	<p>Pre-process the sub-powers of a multiple power to prepare the sub-powers for proper parsing. This takes care
 	 * 	of two things:</p>
