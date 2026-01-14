@@ -70,11 +70,11 @@ public abstract class PhasingPowerMixin {
 
 			if (camera.getEntity() instanceof LivingEntity entity) {
 
-				SavedBlockPosition inWallBlock = MiscUtil.getInWallBlock(entity);
+				SavedBlockPosition viewBlocking = MiscUtil.getViewBlocking(entity);
 
-				if (inWallBlock != null) {
+				if (viewBlocking != null) {
 
-					Context context = this.neo_apoli$getOrCreatePhasingContext(entity, inWallBlock);
+					Context context = this.neo_apoli$getOrCreatePhasingContext(entity, viewBlocking);
 					float viewDistanceCopy = viewDistance;
 
 					viewDistance = PhasingPower.getViewDistanceOrElse(context, () -> viewDistanceCopy);
@@ -108,7 +108,7 @@ public abstract class PhasingPowerMixin {
 		@Unique
 		private static boolean neo_apoli$shouldApplyBlindnessEffects(Camera camera) {
 			return camera.getEntity() instanceof LivingEntity livingEntity
-				&& MiscUtil.getInWallBlock(livingEntity) != null
+				&& MiscUtil.getViewBlocking(livingEntity) != null
 				&& PowersComponent.hasInstances(livingEntity, PhasingPower.Instance.class, instance -> instance.getRenderType() == PhasingPower.RenderType.BLINDNESS);
 		}
 
@@ -135,11 +135,11 @@ public abstract class PhasingPowerMixin {
 		@WrapWithCondition(method = "renderScreenEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderTex(Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V"))
 		private static boolean preventOverlayWhenPhasing(TextureAtlasSprite sprite, PoseStack matrices, MultiBufferSource vertexConsumers, @Local Player player) {
 
-			SavedBlockPosition inWallBlock = MiscUtil.getInWallBlock(player);
+			SavedBlockPosition viewBlocking = MiscUtil.getViewBlocking(player);
 
-			if (inWallBlock != null) {
+			if (viewBlocking != null) {
 
-				Context context = neo_apoli$getOrCreatePhasingContext(player, inWallBlock);
+				Context context = neo_apoli$getOrCreatePhasingContext(player, viewBlocking);
 				boolean result = !PowersComponent.hasInstances(player, PhasingPower.Instance.class, instance -> instance.isActive(context));
 
 				neo_apoli$phasingContext.clear();

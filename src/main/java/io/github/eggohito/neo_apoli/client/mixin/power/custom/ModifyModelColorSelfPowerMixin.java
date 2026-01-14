@@ -5,8 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
-import io.github.eggohito.neo_apoli.client.duck.PlayerRendererHelper;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.duck.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.Minecraft;
@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -79,38 +79,39 @@ public abstract class ModifyModelColorSelfPowerMixin {
 	}
 
 	@Mixin(PlayerRenderer.class)
-	public static abstract class PlayerArmPartApplier implements PlayerRendererHelper {
+	public static abstract class PlayerArmPartApplier implements EntityCache {
 
 		@Unique
-		protected WeakReference<Player> neo_apoli$player = new WeakReference<>(null);
+		protected WeakReference<Entity> neo_apoli$entity = null;
 
+		@Nullable
 		@Override
-		public Player neo_apoli$getPlayer() {
-			return this.neo_apoli$player.get();
-		}
+		public Entity neo_apoli$getEntity() {
 
-		@Override
-		public void neo_apoli$setPlayer(@Nullable Player player) {
-
-			if (player == null) {
-				this.neo_apoli$player.clear();
+			if (neo_apoli$entity != null) {
+				return neo_apoli$entity.get();
 			}
 
 			else {
-				this.neo_apoli$player = new WeakReference<>(player);
+				return null;
 			}
 
+		}
+
+		@Override
+		public void neo_apoli$setEntity(@Nullable Entity entity) {
+			this.neo_apoli$entity = entity == null ? null : new WeakReference<>(entity);
 		}
 
 		@WrapOperation(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"))
 		private void impl(ModelPart armPart, PoseStack matrices, VertexConsumer vertices, int light, int overlay, Operation<Void> original) {
 
-			Player player = this.neo_apoli$getPlayer();
-			List<ModifyModelColorSelfPower.Instance> instances = PowersComponent.getInstances(player, ModifyModelColorSelfPower.Instance.class);
+			Entity entity = this.neo_apoli$getEntity();
+			List<ModifyModelColorSelfPower.Instance> instances = PowersComponent.getInstances(entity, ModifyModelColorSelfPower.Instance.class);
 
-			if (player != null && !instances.isEmpty()) {
+			if (entity != null && !instances.isEmpty()) {
 
-				Context context = ModifyModelColorSelfPower.createContext(player, null);
+				Context context = ModifyModelColorSelfPower.createContext(entity, null);
 				int color = ModifyModelColorSelfPower.modify(context, instances, -1);
 
 				armPart.render(matrices, vertices, light, overlay, color);
@@ -135,8 +136,8 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@Inject(method = "renderArmWithItem", at = @At("HEAD"))
 		private void onFirstPersonRender(AbstractClientPlayer player, float tickProgress, float pitch, InteractionHand hand, float swingProgress, ItemStack item, float equipProgress, PoseStack matrices, MultiBufferSource vertexConsumers, int light, CallbackInfo ci) {
 
-			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper helper) {
-				helper.neo_apoli$setPlayer(player);
+			if (this.entityRenderDispatcher.getRenderer(player) instanceof EntityCache entityCache) {
+				entityCache.neo_apoli$setEntity(player);
 			}
 
 		}
@@ -144,8 +145,8 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@Inject(method = "renderArmWithItem", at = @At("TAIL"))
 		private void cleanUpAfter(AbstractClientPlayer player, float tickProgress, float pitch, InteractionHand hand, float swingProgress, ItemStack item, float equipProgress, PoseStack matrices, MultiBufferSource vertexConsumers, int light, CallbackInfo ci) {
 
-			if (this.entityRenderDispatcher.getRenderer(player) instanceof PlayerRendererHelper rendererHelper) {
-				rendererHelper.neo_apoli$setPlayer(null);
+			if (this.entityRenderDispatcher.getRenderer(player) instanceof EntityCache entityCache) {
+				entityCache.neo_apoli$setEntity(null);
 			}
 
 		}

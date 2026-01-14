@@ -130,7 +130,7 @@ public class MiscUtil {
 	}
 
 	@Nullable
-	public static SavedBlockPosition getInWallBlock(LivingEntity entity) {
+	public static SavedBlockPosition getViewBlocking(LivingEntity entity) {
 
 		Level level = entity.level();
 		BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
