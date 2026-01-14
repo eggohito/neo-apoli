@@ -20,6 +20,9 @@ public class NeoApoliConfig {
 	@SerialEntry
 	public final Identifier identifier = new Identifier();
 
+	@SerialEntry
+	public final ModifyPlayerSpawn modifyPlayerSpawn = new ModifyPlayerSpawn();
+
 	public static class Command {
 
 		@SerialEntry
@@ -30,7 +33,6 @@ public class NeoApoliConfig {
 
 	}
 
-	@SerialEntry
 	public static class Identifier {
 
 		@SerialEntry
@@ -38,6 +40,19 @@ public class NeoApoliConfig {
 
 		@SerialEntry
 		public boolean enabled = true;
+
+	}
+
+	public static class ModifyPlayerSpawn {
+
+		@SerialEntry
+		public int horizontalStep = 64;
+
+		@SerialEntry
+		public int verticalStep = 64;
+
+		@SerialEntry
+		public int radius = 6400;
 
 	}
 

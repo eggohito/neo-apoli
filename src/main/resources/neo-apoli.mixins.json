@@ -15,6 +15,7 @@
     "access.ReloadableServerRegistriesAccessor",
     "access.ReloadableServerRegistriesAccessor$HolderAccessor",
     "access.ResourceLocationAccessor",
+    "access.ServerPlayerAccessor",
     "access.ShufflingListAccessor",
     "access.TagEntryAccessor",
     "access.TagParserAccessor",

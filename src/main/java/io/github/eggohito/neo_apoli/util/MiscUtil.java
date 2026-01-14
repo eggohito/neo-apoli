@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
+import io.github.eggohito.neo_apoli.mixin.access.ServerPlayerAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
@@ -23,14 +24,23 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ReloadableServerResources;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
@@ -188,6 +198,62 @@ public class MiscUtil {
 		return tag instanceof CompoundTag compoundTag
 			? DataResult.success(compoundTag)
 			: DataResult.error(() -> "Not a compound tag: " + tag.toString());
+	}
+
+	public static BlockPos adjustSpawnLocationSafely(ServerPlayer serverPlayer, ServerLevel dimension, BlockPos blockPos) {
+		return adjustSpawnLocationSafely((player, dim, pos) -> true, serverPlayer, dimension, blockPos);
+	}
+
+	public static BlockPos adjustSpawnLocationSafely(TriPredicate<ServerPlayer, ServerLevel, BlockPos> safeLocationCondition, ServerPlayer serverPlayer, ServerLevel dimension, BlockPos pos) {
+
+		MinecraftServer server = dimension.getServer();
+		AABB boundingBox = serverPlayer.getDimensions(Pose.STANDING).makeBoundingBox(Vec3.ZERO);
+
+		if (server.getWorldData().getGameType() != GameType.ADVENTURE) {
+
+			int distanceToBorder = Mth.floor(dimension.getWorldBorder().getDistanceToBorder(pos.getX(), pos.getZ()));
+			int radius = Mth.clamp(Math.max(0, server.getSpawnRadius(dimension)), 1, distanceToBorder);
+
+			int diameter = radius * 2 + 1;
+			int max = diameter * diameter;
+
+			int coprime = ((ServerPlayerAccessor) serverPlayer).callGetCoprime(max);
+			int offset = RandomSource.create().nextInt(max);
+
+			for (int step = 0; step < max; step++) {
+
+				int q = (offset + coprime * step) % max;
+
+				int xOffset = q % diameter;
+				int zOffset = q / diameter;
+
+				int x = pos.getX() + xOffset - radius;
+				int z = pos.getZ() + zOffset - radius;
+
+				BlockPos candidate = BlockPos.containing(x, pos.getY(), z);
+				BlockPos safePos = Optional.ofNullable(DismountHelper.findSafeDismountLocation(serverPlayer.getType(), dimension, candidate, true))
+					.map(BlockPos::containing)
+					.orElse(null);
+
+				if (safePos != null && safeLocationCondition.test(serverPlayer, dimension, safePos)) {
+					return safePos;
+				}
+
+			}
+
+        }
+
+		BlockPos result = pos;
+		while (result.getY() < dimension.getMaxY() && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
+			result = result.above();
+		}
+
+		while (result.getY() > dimension.getMinY() + 1 && dimension.noCollision(serverPlayer, boundingBox.move(result.below().getBottomCenter()))) {
+			result = result.below();
+		}
+
+		return result;
+
 	}
 
 }
