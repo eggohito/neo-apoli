@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.FloatSupplier;
 import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
@@ -135,12 +134,12 @@ public class PhasingPower extends Power {
 
 	}
 
-	public static float getViewDistanceOrElse(Context context, FloatSupplier defaultValue) {
+	public static float modifyViewDistance(Context context, float defaultValue) {
 
 		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
 		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
 
-		float result = defaultValue.getAsFloat();
+		float result = defaultValue;
 
 		for (var instance : instances) {
 

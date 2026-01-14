@@ -130,16 +130,20 @@ public class MiscUtil {
 	}
 
 	@Nullable
-	public static SavedBlockPosition getViewBlocking(LivingEntity entity) {
+	public static SavedBlockPosition getViewBlocking(Entity entity) {
+
+		if (!(entity instanceof LivingEntity livingEntity)) {
+			return null;
+		}
 
 		Level level = entity.level();
 		BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
 		for (int i = 0; i < 8; i++) {
 
-			double d = entity.getX() + (i % 2 - 0.5F) * entity.getBbWidth() * 0.8F;
-			double e = entity.getEyeY() + ((i >> 1) % 2 - 0.5F) * 0.1F * entity.getScale();
-			double f = entity.getZ() + ((i >> 2) % 2 - 0.5F) * entity.getBbWidth() * 0.8F;
+			double d = livingEntity.getX() + (i % 2 - 0.5F) * livingEntity.getBbWidth() * 0.8F;
+			double e = livingEntity.getEyeY() + ((i >> 1) % 2 - 0.5F) * 0.1F * livingEntity.getScale();
+			double f = livingEntity.getZ() + ((i >> 2) % 2 - 0.5F) * livingEntity.getBbWidth() * 0.8F;
 
 			mutable.set(d, e, f);
 			BlockState blockState = level.getBlockState(mutable);

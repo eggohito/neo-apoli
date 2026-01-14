@@ -19,8 +19,8 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,10 +29,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
+//	FIXME: Modifying fog color/distance with this method doesn't work with shaders
 public abstract class PhasingPowerMixin {
 
 	@Mixin(LevelRenderer.class)
-	public abstract static class ModifyFogDistanceAndColor {
+	public abstract static class ModifyFogData {
 
 		@Unique
 		private WeakReference<Context> neo_apoli$phasingContext;
@@ -50,13 +51,10 @@ public abstract class PhasingPowerMixin {
 		}
 
 		@ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FogRenderer;computeFogColor(Lnet/minecraft/client/Camera;FLnet/minecraft/client/multiplayer/ClientLevel;IF)Lorg/joml/Vector4f;"))
-		private Vector4f modifyFogColor(Vector4f original, GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera) {
+		private Vector4f modifyColor(Vector4f original, GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera, @Local(ordinal = 0) float partialTick) {
 
 			if (neo_apoli$shouldApplyBlindnessEffects(camera)) {
-				return original
-					.setComponent(0, original.get(0) * 0.1F)
-					.setComponent(1, original.get(1) * 0.1F)
-					.setComponent(2, original.get(2) * 0.1F);
+				return original.lerp(original.mul(0.1F, 0.1F, 0.1F, 1.0F), partialTick);
 			}
 
 			else {
@@ -66,20 +64,17 @@ public abstract class PhasingPowerMixin {
 		}
 
 		@WrapOperation(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FogRenderer;setupFog(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;Lorg/joml/Vector4f;FZF)Lnet/minecraft/client/renderer/FogParameters;"))
-		private FogParameters modifyFogData(Camera camera, FogRenderer.FogMode fogType, Vector4f color, float viewDistance, boolean thickenFog, float tickProgress, Operation<FogParameters> original) {
+		private FogParameters modifyDistance(Camera camera, FogRenderer.FogMode fogType, Vector4f color, float viewDistance, boolean thickenFog, float tickProgress, Operation<FogParameters> original) {
 
-			if (camera.getEntity() instanceof LivingEntity entity) {
+			Entity entity = camera.getEntity();
+			SavedBlockPosition viewBlocking = MiscUtil.getViewBlocking(entity);
 
-				SavedBlockPosition viewBlocking = MiscUtil.getViewBlocking(entity);
+			if (viewBlocking != null) {
 
-				if (viewBlocking != null) {
+				Context context = this.neo_apoli$getOrCreatePhasingContext(entity, viewBlocking);
+				float originalDistance = viewDistance;
 
-					Context context = this.neo_apoli$getOrCreatePhasingContext(entity, viewBlocking);
-					float viewDistanceCopy = viewDistance;
-
-					viewDistance = PhasingPower.getViewDistanceOrElse(context, () -> viewDistanceCopy);
-
-				}
+				viewDistance = PhasingPower.modifyViewDistance(context, originalDistance);
 
 			}
 
@@ -92,24 +87,20 @@ public abstract class PhasingPowerMixin {
 			return !neo_apoli$shouldApplyBlindnessEffects(camera);
 		}
 
-		@ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getCloudsType()Lnet/minecraft/client/CloudStatus;"))
-		private CloudStatus skipRenderingCloudWhenBlindnessPhasing(CloudStatus original, GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera) {
-
-			if (neo_apoli$shouldApplyBlindnessEffects(camera)) {
-				return CloudStatus.OFF;
-			}
-
-			else {
-				return original;
-			}
-
+		@WrapWithCondition(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;FIF)V"))
+		private boolean skipRenderingCloudsWhenBlindessPhasing(LevelRenderer renderer, FrameGraphBuilder frameGraphBuilder, CloudStatus cloudStatus, Vec3 cameraPosition, float ticks, int cloudColor, float cloudHeight, @Local(argsOnly = true) Camera camera) {
+			return !neo_apoli$shouldApplyBlindnessEffects(camera);
 		}
 
 		@Unique
 		private static boolean neo_apoli$shouldApplyBlindnessEffects(Camera camera) {
-			return camera.getEntity() instanceof LivingEntity livingEntity
-				&& MiscUtil.getViewBlocking(livingEntity) != null
-				&& PowersComponent.hasInstances(livingEntity, PhasingPower.Instance.class, instance -> instance.getRenderType() == PhasingPower.RenderType.BLINDNESS);
+			return neo_apoli$shouldApplyBlindnessEffects(camera.getEntity());
+		}
+
+		@Unique
+		private static boolean neo_apoli$shouldApplyBlindnessEffects(Entity entity) {
+			return MiscUtil.getViewBlocking(entity) != null
+				&& PowersComponent.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderType() == PhasingPower.RenderType.BLINDNESS);
 		}
 
 	}
@@ -136,20 +127,15 @@ public abstract class PhasingPowerMixin {
 		private static boolean preventOverlayWhenPhasing(TextureAtlasSprite sprite, PoseStack matrices, MultiBufferSource vertexConsumers, @Local Player player) {
 
 			SavedBlockPosition viewBlocking = MiscUtil.getViewBlocking(player);
-
-			if (viewBlocking != null) {
-
-				Context context = neo_apoli$getOrCreatePhasingContext(player, viewBlocking);
-				boolean result = !PowersComponent.hasInstances(player, PhasingPower.Instance.class, instance -> instance.isActive(context));
-
-				neo_apoli$phasingContext.clear();
-				return result;
-
-			}
-
-			else {
+			if (viewBlocking == null) {
 				return true;
 			}
+
+			Context context = neo_apoli$getOrCreatePhasingContext(player, viewBlocking);
+			boolean result = !PowersComponent.hasInstances(player, PhasingPower.Instance.class, instance -> instance.isActive(context));
+
+			neo_apoli$phasingContext.clear();
+			return result;
 
 		}
 
