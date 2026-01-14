@@ -47,6 +47,8 @@
 	"config.neo-apoli.category.modify_player_spawn.name": "Modify Player Spawn",
 	"config.neo-apoli.category.modify_player_spawn.option.horizontal_step.description": "Determines the amount of horizontal steps used for searching for structures/biomes.",
 	"config.neo-apoli.category.modify_player_spawn.option.horizontal_step.name": "Horizontal Steps",
+	"config.neo-apoli.category.modify_player_spawn.option.radius.description": "Determines the radius (in blocks) used for searching structures/biomes.",
+	"config.neo-apoli.category.modify_player_spawn.option.radius.name": "Radius",
 	"config.neo-apoli.category.modify_player_spawn.option.vertical_step.description": "Determines the amount of vertical steps used for searching for structures/biomes.",
 	"config.neo-apoli.category.modify_player_spawn.option.vertical_step.name": "Vertical Steps",
 	"config.neo-apoli.category.resource_bars.name": "Resource bars",
