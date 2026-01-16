@@ -13,11 +13,34 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public enum Shape  {
+public enum Shape implements DistanceGetter {
 
-	CUBE((x, y, z) -> Math.max(Math.max(x, y), z), (x, y, z) -> 0),
-	STAR((x, y, z) -> x + y + z, (x, y, z) -> Math.abs(x) + Math.abs(y) + Math.abs(z)),
-	SPHERE((x, y, z) -> Math.sqrt(x * x + y * y + z * z), (x, y, z) -> Math.sqrt(x * x + y * y + z * z));
+	CUBE {
+
+		@Override
+		public double getDistance(double x, double y, double z) {
+			return Math.max(Math.max(x, y), z);
+		}
+
+	},
+
+	STAR {
+
+		@Override
+		public double getDistance(double x, double y, double z) {
+			return x + y + z;
+		}
+
+	},
+
+	SPHERE {
+
+		@Override
+		public double getDistance(double x, double y, double z) {
+			return Math.sqrt(x * x + y * y + z * z);
+		}
+
+	};
 
 	private static final ImmutableMap<String, Shape> ALIASES = ImmutableMap.<String, Shape>builder()
 		.put("chebyshev", CUBE)
@@ -28,23 +51,19 @@ public enum Shape  {
 	public static final Codec<Shape> CODEC = CodecUtil.enumType(Shape.class, ALIASES);
 	public static final StreamCodec<ByteBuf, Shape> STREAM_CODEC = StreamCodecUtil.enumType(Shape.class);
 
-	final DistanceGetter distanceGetter;
-	final BlockDistanceGetter blockDistanceGetter;
-
-	Shape(DistanceGetter distanceGetter, BlockDistanceGetter blockDistanceGetter) {
-		this.distanceGetter = distanceGetter;
-		this.blockDistanceGetter = blockDistanceGetter;
-	}
-
 	public List<BlockPos> getBlockPositions(BlockPos center, int radius) {
 
 		List<BlockPos> collected = new ObjectArrayList<>();
-		for (int x = -radius; x <= radius; x++) {
-			for (int y = -radius; y <= radius; y++) {
-				for (int z = -radius; z <= radius; z++) {
+		int x, y, z;
 
-					if (this.getBlockDistance(x, y, z) <= radius) {
-						collected.add(new BlockPos(center.offset(x, y, z)));
+		for (x = -radius; x <= radius; x++) {
+			for (y = -radius; y <= radius; y++) {
+				for (z = -radius; z <= radius; z++) {
+
+					BlockPos pos = center.offset(x, y, z);
+
+					if (this.getDistance(x, y, z) <= radius) {
+						collected.add(pos);
 					}
 
 				}
@@ -55,18 +74,18 @@ public enum Shape  {
 
 	}
 
-	public List<Entity> getEntities(Level world, Vec3 center, double radius) {
+	public List<Entity> getEntities(Level level, Vec3 center, double radius) {
 
 		List<Entity> collected = new ObjectArrayList<>();
 
 		double diameter = radius * 2;
 		double x, y, z;
 
-		for (Entity entity : world.getEntitiesOfClass(Entity.class, AABB.ofSize(center, diameter, diameter, diameter))) {
+		for (Entity entity : level.getEntitiesOfClass(Entity.class, AABB.ofSize(center, diameter, diameter, diameter))) {
 
-			x = Math.abs(entity.getX() - center.x());
-			y = Math.abs(entity.getY() - center.y());
-			z = Math.abs(entity.getZ() - center.z());
+			x = center.x() - entity.getX();
+			y = center.y() - entity.getY();
+			z = center.z() - entity.getZ();
 
 			if (this.getDistance(x, y, z) <= radius + 1) {
 				collected.add(entity);
@@ -76,24 +95,6 @@ public enum Shape  {
 
 		return collected;
 
-	}
-
-	public double getBlockDistance(int x, int y, int z) {
-		return blockDistanceGetter.get(x, y, z);
-	}
-
-	public double getDistance(double x, double y, double z) {
-		return distanceGetter.get(x, y, z);
-	}
-
-	@FunctionalInterface
-	public interface BlockDistanceGetter {
-		double get(int x, int y, int z);
-	}
-
-	@FunctionalInterface
-	public interface DistanceGetter {
-		double get(double x, double y, double z);
 	}
 
 }
