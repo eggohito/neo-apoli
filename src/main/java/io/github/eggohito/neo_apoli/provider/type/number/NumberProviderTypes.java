@@ -54,8 +54,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorComponentNumberProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentNumberProvider.CODEC, VectorComponentNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<VelocityComponentNumberProvider> VELOCITY_COMPONENT = registerInternal("velocity/component", VelocityComponentNumberProvider.CODEC, VelocityComponentNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<VelocityMagnitudeNumberProvider> VELOCITY_MAGNITUDE = registerInternal("velocity/magnitude", VelocityMagnitudeNumberProvider.CODEC, VelocityMagnitudeNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<VectorLengthNumberProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthNumberProvider.CODEC, VectorLengthNumberProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 
