@@ -37,8 +37,6 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BoxSizeNumberProvider> BOX_SIZE = registerInternal("box/size", BoxSizeNumberProvider.CODEC, BoxSizeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.CODEC, CommandResultNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ContextKeyNumberProvider> CONTEXT_KEY = registerInternal("context_key", ContextKeyNumberProvider.CODEC, ContextKeyNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<CooldownProgressNumberProvider> COOLDOWN_PROGRESS = registerInternal("cooldown/progress", CooldownProgressNumberProvider.CODEC, CooldownProgressNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<CooldownRemainingTicksNumberProvider> COOLDOWN_REMAINING_TICKS = registerInternal("cooldown/remaining_ticks", CooldownRemainingTicksNumberProvider.CODEC, CooldownRemainingTicksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DamageAmountNumberProvider> DAMAGE_AMOUNT = registerInternal("damage_amount", DamageAmountNumberProvider.CODEC, DamageAmountNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DistanceBetweenPositionsNumberProvider> DISTANCE_BETWEEN_POSITIONS = registerInternal("distance_between_positions", DistanceBetweenPositionsNumberProvider.CODEC, DistanceBetweenPositionsNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusFromEntityNumberProvider> ENTITIES_IN_RADIUS_FROM_ENTITY = registerInternal("entities_in_radius/from_entity", EntitiesInRadiusFromEntityNumberProvider.CODEC, EntitiesInRadiusFromEntityNumberProvider.STREAM_CODEC);
@@ -52,6 +50,8 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<KeyPressedTicksNumberProvider> KEY_PRESSED_TICKS = registerInternal("key_pressed/ticks", KeyPressedTicksNumberProvider.CODEC, KeyPressedTicksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<KeyPressedTimeNumberProvider> KEY_PRESSED_TIME = registerInternal("key_pressed/time", KeyPressedTimeNumberProvider.CODEC, KeyPressedTimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.CODEC, LightLevelNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<PowerCooldownProgressNumberProvider> POWER_COOLDOWN_PROGRESS = registerInternal("power/cooldown/progress", PowerCooldownProgressNumberProvider.CODEC, PowerCooldownProgressNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<PowerCooldownRemainingTicksNumberProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksNumberProvider.CODEC, PowerCooldownRemainingTicksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.CODEC, TimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorComponentNumberProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentNumberProvider.CODEC, VectorComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorLengthNumberProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthNumberProvider.CODEC, VectorLengthNumberProvider.STREAM_CODEC);

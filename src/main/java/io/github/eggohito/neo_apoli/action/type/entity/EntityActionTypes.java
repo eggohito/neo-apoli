@@ -25,7 +25,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<WeightedEntityAction> WEIGHTED = registerInternal("weighted", WeightedEntityAction.CODEC, WeightedEntityAction.STREAM_CODEC);
 
 	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.CODEC, AddExperienceEntityAction.STREAM_CODEC);
-	public static final EntityActionType<AddVelocityEntityAction> ADD_VELOCITY = registerInternal("velocity/add", AddVelocityEntityAction.CODEC, AddVelocityEntityAction.STREAM_CODEC);
+	public static final EntityActionType<AddVelocityEntityAction> ADD_VELOCITY = registerInternal("add_velocity", AddVelocityEntityAction.CODEC, AddVelocityEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ApplyEffectsEntityAction> APPLY_EFFECTS = registerInternal("apply_effects", ApplyEffectsEntityAction.CODEC, ApplyEffectsEntityAction.STREAM_CODEC);
 	public static final EntityActionType<AreaOfEffectEntityAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectEntityAction.CODEC, AreaOfEffectEntityAction.STREAM_CODEC);
 	public static final EntityActionType<BlockActionAtEntityAction> BLOCK_ACTION_AT = registerInternal("block_action_at", BlockActionAtEntityAction.CODEC, BlockActionAtEntityAction.STREAM_CODEC);
@@ -39,7 +39,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<ShootEntityAction> SHOOT = registerInternal("shoot", ShootEntityAction.CODEC, ShootEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SwingHandEntityAction> SWING_HAND = registerInternal("swing_hand", SwingHandEntityAction.CODEC, SwingHandEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ToggleEntityAction> TOGGLE = registerInternal("toggle", ToggleEntityAction.CODEC, ToggleEntityAction.STREAM_CODEC);
-	public static final EntityActionType<TriggerCooldownEntityAction> TRIGGER_COOLDOWN = registerInternal("trigger_cooldown", TriggerCooldownEntityAction.CODEC, TriggerCooldownEntityAction.STREAM_CODEC);
+	public static final EntityActionType<TriggerPowerCooldownEntityAction> TRIGGER_POWER_COOLDOWN = registerInternal("trigger_power_cooldown", TriggerPowerCooldownEntityAction.CODEC, TriggerPowerCooldownEntityAction.STREAM_CODEC);
 
 	public static void registerAll() {
 

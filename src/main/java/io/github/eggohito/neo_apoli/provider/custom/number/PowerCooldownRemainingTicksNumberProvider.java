@@ -20,22 +20,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record CooldownRemainingTicksNumberProvider(PowerReference power, TypedContextKey<Entity> entity) implements NumberProvider {
+public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, TypedContextKey<Entity> entity) implements NumberProvider {
 
-	public static final MapCodec<CooldownRemainingTicksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf("power").forGetter(CooldownRemainingTicksNumberProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(CooldownRemainingTicksNumberProvider::entity)
-	).apply(instance, CooldownRemainingTicksNumberProvider::new));
+	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
+	).apply(instance, PowerCooldownRemainingTicksNumberProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownRemainingTicksNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, CooldownRemainingTicksNumberProvider::power,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, CooldownRemainingTicksNumberProvider::entity,
-		CooldownRemainingTicksNumberProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownRemainingTicksNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		PowerReference.STREAM_CODEC, PowerCooldownRemainingTicksNumberProvider::power,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, PowerCooldownRemainingTicksNumberProvider::entity,
+		PowerCooldownRemainingTicksNumberProvider::new
 	);
 
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.COOLDOWN_REMAINING_TICKS;
+		return NumberProviderTypes.POWER_COOLDOWN_REMAINING_TICKS;
 	}
 
 	@Override

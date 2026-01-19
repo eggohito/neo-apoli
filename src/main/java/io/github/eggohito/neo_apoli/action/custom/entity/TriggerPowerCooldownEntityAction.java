@@ -14,20 +14,20 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record TriggerCooldownEntityAction(PowerReference power) implements EntityAction {
+public record TriggerPowerCooldownEntityAction(PowerReference power) implements EntityAction {
 
-	public static final MapCodec<TriggerCooldownEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(PowerReference.CODEC.fieldOf("power").forGetter(TriggerCooldownEntityAction::power))
-		.apply(instance, TriggerCooldownEntityAction::new));
+	public static final MapCodec<TriggerPowerCooldownEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(PowerReference.CODEC.fieldOf("power").forGetter(TriggerPowerCooldownEntityAction::power))
+		.apply(instance, TriggerPowerCooldownEntityAction::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, TriggerCooldownEntityAction> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, TriggerCooldownEntityAction::power,
-		TriggerCooldownEntityAction::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, TriggerPowerCooldownEntityAction> STREAM_CODEC = StreamCodec.composite(
+		PowerReference.STREAM_CODEC, TriggerPowerCooldownEntityAction::power,
+		TriggerPowerCooldownEntityAction::new
 	);
 
 	@Override
 	public EntityActionType<?> getType() {
-		return EntityActionTypes.TRIGGER_COOLDOWN;
+		return EntityActionTypes.TRIGGER_POWER_COOLDOWN;
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public record TriggerCooldownEntityAction(PowerReference power) implements Entit
 		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
 		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
-		if (powersComponent.hasInstance(this.power()) && powersComponent.getInstance(this.power()) instanceof CooldownPower.Instance cooldownInstance) {
+		if (powersComponent.getNullableInstance(this.power()) instanceof CooldownPower.Instance cooldownInstance) {
 			cooldownInstance.trigger();
 		}
 

@@ -20,22 +20,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record CooldownProgressNumberProvider(PowerReference power, TypedContextKey<Entity> entity) implements NumberProvider {
+public record PowerCooldownProgressNumberProvider(PowerReference power, TypedContextKey<Entity> entity) implements NumberProvider {
 
-	public static final MapCodec<CooldownProgressNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf("power").forGetter(CooldownProgressNumberProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(CooldownProgressNumberProvider::entity)
-	).apply(instance, CooldownProgressNumberProvider::new));
+	public static final MapCodec<PowerCooldownProgressNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownProgressNumberProvider::power),
+		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(PowerCooldownProgressNumberProvider::entity)
+	).apply(instance, PowerCooldownProgressNumberProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownProgressNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, CooldownProgressNumberProvider::power,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, CooldownProgressNumberProvider::entity,
-		CooldownProgressNumberProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownProgressNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		PowerReference.STREAM_CODEC, PowerCooldownProgressNumberProvider::power,
+		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, PowerCooldownProgressNumberProvider::entity,
+		PowerCooldownProgressNumberProvider::new
 	);
 
 	@Override
 	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.COOLDOWN_PROGRESS;
+		return NumberProviderTypes.POWER_COOLDOWN_PROGRESS;
 	}
 
 	@Override
