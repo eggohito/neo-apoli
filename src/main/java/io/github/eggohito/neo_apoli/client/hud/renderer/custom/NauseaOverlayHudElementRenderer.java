@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
 import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
 import io.github.eggohito.neo_apoli.util.context.Context;
+import lombok.NoArgsConstructor;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,10 +18,11 @@ import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.slf4j.event.Level;
 
-public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRenderer {
+@NoArgsConstructor
+public final class NauseaOverlayHudElementRenderer implements OverlayHudElementRenderer {
 
 	@Override
-	public void start(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
+	public void render(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
 		if (!(element instanceof NauseaOverlayHudElement nauseaOverlay) || !this.visibleBasedOnPerspective(context, nauseaOverlay)) {
 			return;
@@ -80,11 +82,6 @@ public record NauseaOverlayHudElementRenderer() implements OverlayHudElementRend
 		vertexBuffer.addVertex(matrices, x2, y1, 0.0F).setUv(maxU, minV).setColor(color);
 
 		validator.getErrorsFlattened().ifPresent(warn -> NeoApoliLogger.logOnce(Level.WARN, "Found warnings when rendering overlay HUD element(s) " + warn));
-
-	}
-
-	@Override
-	public void end(GuiGraphics graphics, DeltaTracker delta) {
 
 	}
 

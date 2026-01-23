@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.client.event.HudElementRenderEvents;
+import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.client.hud.renderer.custom.NauseaOverlayHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.hud.renderer.custom.ResourceBarHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.hud.renderer.custom.TextureOverlayHudElementRenderer;
@@ -25,8 +25,8 @@ public final class HudElementRenderers {
 
 		R renderer = rendererSupplier.get();
 
-		HudElementRenderEvents.START.register(id, renderer);
-		HudElementRenderEvents.END.register(id, renderer);
+		HudElementRendererEvents.RENDER.register(id, renderer);
+		HudElementRendererEvents.INIT.register(id, renderer);
 
 	}
 

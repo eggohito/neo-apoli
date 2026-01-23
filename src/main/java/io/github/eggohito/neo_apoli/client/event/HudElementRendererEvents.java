@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class HudElementRenderEvents {
+public class HudElementRendererEvents {
 
 	public static final Event<Prepare> PREPARE = EventFactory.createArrayBacked(
 		Prepare.class,
@@ -25,23 +25,23 @@ public class HudElementRenderEvents {
 		}
 	);
 
-	public static final Event<Start> START = EventFactory.createArrayBacked(
-		Start.class,
-		callbacks -> (context, element, graphics, delta) -> {
+	public static final Event<Init> INIT = EventFactory.createArrayBacked(
+		Init.class,
+		callbacks -> (graphics, delta) -> {
 
 			for (var callback : callbacks) {
-				callback.start(context, element, graphics, delta);
+				callback.init(graphics, delta);
 			}
 
 		}
 	);
 
-	public static final Event<End> END = EventFactory.createArrayBacked(
-		End.class,
-		callbacks -> (graphics, delta) -> {
+	public static final Event<Render> RENDER = EventFactory.createArrayBacked(
+		Render.class,
+		callbacks -> (context, element, graphics, delta) -> {
 
 			for (var callback : callbacks) {
-				callback.end(graphics, delta);
+				callback.render(context, element, graphics, delta);
 			}
 
 		}
@@ -51,12 +51,12 @@ public class HudElementRenderEvents {
 		void prepare(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
 	}
 
-	public interface Start {
-		void start(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta);
+	public interface Init {
+		void init(GuiGraphics graphics, DeltaTracker delta);
 	}
 
-	public interface End {
-		void end(GuiGraphics graphics, DeltaTracker delta);
+	public interface Render {
+		void render(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta);
 	}
 
 }

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
-import io.github.eggohito.neo_apoli.client.event.HudElementRenderEvents;
+import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
@@ -12,8 +12,8 @@ public class PowerIntegrationsClient {
 
 	public static void registerAll() {
 		ClientPlayConnectionEvents.DISCONNECT.register(CraftingRecipePower::resetRecipeDisplays);
-		HudElementRenderEvents.PREPARE.register(HudRenderPower::prepareHudElements);
-		HudElementRenderEvents.PREPARE.register(CooldownPower::prepareHudElements);
+		HudElementRendererEvents.PREPARE.register(HudRenderPower::prepareHudElements);
+		HudElementRendererEvents.PREPARE.register(CooldownPower::prepareHudElements);
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(ModifyElytraRenderPower::prepareRenderLayer);
 	}
 
