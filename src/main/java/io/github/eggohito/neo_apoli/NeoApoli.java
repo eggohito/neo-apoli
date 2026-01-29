@@ -11,9 +11,12 @@ import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
+import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
+import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
+import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
@@ -23,7 +26,7 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
-import io.github.eggohito.neo_apoli.util.NeoApoliLogger;
+import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
@@ -33,18 +36,19 @@ import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 public class NeoApoli implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "neo-apoli";
-	public static final Logger LOGGER = NeoApoliLogger.INSTANCE;
+	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
 	private static MinecraftServer server;
 
@@ -104,22 +108,23 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliContextKeys.init();
 		NeoApoliContextKeySets.init();
 
+		KeyStateManagerImpl.init();
+		NeoApoliLoggerImpl.init();
+
+		NeoApoliNestedTagCaches.registerAll();
+		NestedTagCacheImpl.init();
+
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
-
-		ServerTickEvents.END_SERVER_TICK.register(KeyStateManager::startTrackingServer);
-		ServerPlayConnectionEvents.DISCONNECT.register(KeyStateManager::stopTrackingServer);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).neo_apoli$sendAll(player));
 
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
 
-			if (!success) {
-				return;
+			if (success) {
+				NeoApoliConfig.HANDLER.load();
 			}
-
-			NeoApoliConfig.HANDLER.load();
-			NeoApoliLogger.afterServerReload(server, resourceManager);
 
 		});
 
@@ -146,6 +151,14 @@ public class NeoApoli implements ModInitializer {
 
 		else {
 			return CommandSource.NULL;
+		}
+
+	}
+
+	public static void logOnce(Level level, String message) {
+
+		if (NeoApoliLoggerImpl.CACHE.add(message)) {
+			LOGGER.atLevel(level).log(message);
 		}
 
 	}

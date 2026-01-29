@@ -39,7 +39,17 @@ repositories {
 }
 
 loom {
+
+	splitEnvironmentSourceSets()
 	accessWidenerPath = file("src/main/resources/neo-apoli.accesswidener")
+
+	mods {
+		"neo-apoli" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+
 }
 
 dependencies {
@@ -57,12 +67,12 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//	Lombok
-	compileOnly("org.projectlombok:lombok:1.18.38")
-	annotationProcessor("org.projectlombok:lombok:1.18.38")
+	compileOnly("org.projectlombok:lombok:${project.lombok_version}")
+	annotationProcessor("org.projectlombok:lombok:${project.lombok_version}")
 
 	//	QuiltMC's GSON parsers
-	include(implementation("org.quiltmc.parsers:json:0.2.1"))
-	include(implementation("org.quiltmc.parsers:gson:0.2.1"))
+	include(implementation("org.quiltmc.parsers:json:${project.quiltmc_parsers_version}"))
+	include(implementation("org.quiltmc.parsers:gson:${project.quiltmc_parsers_version}"))
 
 	include(modApi("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}"))
 	include(modApi("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}"))
@@ -73,15 +83,21 @@ dependencies {
 }
 
 processResources {
-	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": project.version,
+			"loader": loader_version,
+			"minecraft": minecraft_version,
+			"fabric": fabric_version,
+			"yacl": yacl_version,
+			"modmenu": modmenu_version,
+			"java": java_version
 	}
+
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = Integer.parseInt(java_version)
 }
 
 java {
@@ -90,8 +106,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.toVersion(java_version)
+	targetCompatibility = JavaVersion.toVersion(java_version)
 }
 
 jar {

@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power;
 
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.event.PowerParsingEvents;
+import io.github.eggohito.neo_apoli.api.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.util.ComponentUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.context.Context;

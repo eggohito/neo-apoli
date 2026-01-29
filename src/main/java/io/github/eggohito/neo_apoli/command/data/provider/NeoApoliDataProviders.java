@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.command.data.provider;
 
-import io.github.eggohito.neo_apoli.event.DataProviderRegistration;
+import io.github.eggohito.neo_apoli.api.event.DataProviderRegistration;
 import net.minecraft.server.commands.data.DataCommands;
 
 import java.util.function.Function;

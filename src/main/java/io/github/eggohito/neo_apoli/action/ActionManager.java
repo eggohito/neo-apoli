@@ -9,10 +9,10 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.event.DependencyManager;
-import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeActionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -22,9 +22,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -238,12 +235,8 @@ public final class ActionManager implements JsonReloadListener {
 
 	}
 
-	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		Objects.requireNonNull(context.client(), "client");
-		Objects.requireNonNull(context.responseSender(), "responseSender");
+	public static void receiveSyncPayload(SynchronizeActionsS2CPacket payload) {
 
 		BY_ID.clear();
 		BY_ACTION.clear();
@@ -266,12 +259,8 @@ public final class ActionManager implements JsonReloadListener {
 
 	}
 
-	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveTagSyncPayload(SynchronizeActionTagsS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		Objects.requireNonNull(context.client(), "client");
-		Objects.requireNonNull(context.responseSender(), "responseSender");
+	public static void receiveTagSyncPayload(SynchronizeActionTagsS2CPacket payload) {
 
 		TAGS.clear();
 		TAGS.putAll(payload.tags());

@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerRecipeDisplaysS2CPacket;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
@@ -12,9 +13,11 @@ import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
 import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.*;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
@@ -25,12 +28,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeMap;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import org.jetbrains.annotations.Nullable;
@@ -112,6 +110,17 @@ public abstract class CraftingRecipePowerMixin {
 		@Override
 		public Map<RecipeDisplayEntry, PowerReference> neo_apoli$getReferencesByDisplayEntry() {
 			return new Object2ObjectOpenHashMap<>(this.neo_apoli$referencesByDisplayEntry);
+		}
+
+		@Override
+		public void neo_apoli$sendAll(ServerPlayer recipient) {
+
+			SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getReferencesByDisplayEntry());
+
+			if (ServerPlayNetworking.canSend(recipient, packet.type())) {
+				ServerPlayNetworking.send(recipient, packet);
+			}
+
 		}
 
 	}

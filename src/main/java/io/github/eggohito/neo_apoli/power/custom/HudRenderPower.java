@@ -6,14 +6,10 @@ import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,8 +19,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.ListIterator;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @EqualsAndHashCode
 @Getter
@@ -82,39 +76,6 @@ public class HudRenderPower extends Power {
 		public List<HudElement> getHudElements() {
 			return power.getHudElements();
 		}
-
-	}
-
-	@Environment(EnvType.CLIENT)
-	public static void prepareHudElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
-
-		boolean hideGui = Minecraft.getInstance().options.hideGui;
-		Consumer<Power.Instance<?>> preparer = instance -> {
-
-			if (!(instance instanceof Instance hudRenderInstance)) {
-				return;
-			}
-
-			Context context = instance.createHolderContext();
-			ListIterator<HudElement> listIterator = hudRenderInstance.getHudElements().listIterator();
-
-			while (listIterator.hasNext()) {
-
-				int index = listIterator.nextIndex();
-				HudElement hudElement = listIterator.next();
-
-				Context hudContext = context.forChild(".hud_elements[" + index + "]");
-				boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);
-
-				if (doNotHide && hudElement.shouldRender(hudContext, renderPhase)) {
-					adder.accept(hudContext, hudElement);
-				}
-
-			}
-
-		};
-
-		prepare.accept(preparer);
 
 	}
 

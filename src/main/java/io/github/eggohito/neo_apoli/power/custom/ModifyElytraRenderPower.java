@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
@@ -13,21 +12,11 @@ import io.github.eggohito.neo_apoli.util.color.Color;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
-import net.minecraft.client.renderer.entity.ArmorStandRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
@@ -97,23 +86,6 @@ public class ModifyElytraRenderPower extends Power implements Prioritized<Modify
 			return power.getColor()
 				.map(color -> color.getValue(context.forChild(".color")))
 				.map(DyedItemColor::new);
-		}
-
-	}
-
-	@Environment(EnvType.CLIENT)
-	public static void prepareRenderLayer(EntityType<? extends LivingEntity> entityType, LivingEntityRenderer<?, ?, ?> renderer, LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper registrationHelper, EntityRendererProvider.Context context) {
-
-		switch (renderer) {
-			case HumanoidMobRenderer<?, ?, ?> humanoidMobRenderer ->
-				registrationHelper.register(new PowerWingsLayer<>(humanoidMobRenderer, context.getModelSet(), context.getEquipmentRenderer()));
-			case PlayerRenderer playerRenderer ->
-				registrationHelper.register(new PowerWingsLayer<>(playerRenderer, context.getModelSet(), context.getEquipmentRenderer()));
-			case ArmorStandRenderer armorStandRenderer ->
-				registrationHelper.register(new PowerWingsLayer<>(armorStandRenderer, context.getModelSet(), context.getEquipmentRenderer()));
-			default -> {
-				//	No-op because it's unsupported
-			}
 		}
 
 	}

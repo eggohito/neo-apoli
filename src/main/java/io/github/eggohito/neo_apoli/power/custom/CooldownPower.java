@@ -17,18 +17,12 @@ import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -154,31 +148,6 @@ public class CooldownPower extends Power {
 			this.syncData();
 
 		}
-
-	}
-
-	@Environment(EnvType.CLIENT)
-	public static void prepareHudElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
-
-		boolean hideGui = Minecraft.getInstance().options.hideGui;
-		Consumer<Power.Instance<?>> preparer = instance -> {
-
-			if (!(instance instanceof Instance cooldownInstance)) {
-				return;
-			}
-
-			Context hudContext = cooldownInstance.createHolderContext().forChild(".hud_element");
-			HudElement hudElement = cooldownInstance.getHudElement();
-
-			boolean doNotHide = !hideGui || !hudElement.hideWithHud(hudContext);
-
-			if (doNotHide && cooldownInstance.shouldRender(hudContext, renderPhase)) {
-				adder.accept(hudContext, hudElement);
-			}
-
-		};
-
-		prepare.accept(preparer);
 
 	}
 

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import io.github.eggohito.neo_apoli.event.DataProviderRegistration;
+import io.github.eggohito.neo_apoli.api.event.DataProviderRegistration;
 import net.minecraft.server.commands.data.DataCommands;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

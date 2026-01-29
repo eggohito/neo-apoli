@@ -7,10 +7,10 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.event.DependencyManager;
-import io.github.eggohito.neo_apoli.event.PowerPreparation;
-import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
-import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.PowerPreparation;
+import io.github.eggohito.neo_apoli.api.event.PowerReloadEvents;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -344,10 +343,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		Objects.requireNonNull(context.client(), "client");
-		Objects.requireNonNull(context.responseSender(), "responseSender");
+	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload) {
 
 		startLoading();
 		payload.powers().forEach(PowerManager::register);
@@ -357,10 +353,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncTagPayload(SynchronizePowerTagsS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		Objects.requireNonNull(context.client(), "client");
-		Objects.requireNonNull(context.responseSender(), "responseSender");
+	public static void receiveSyncTagPayload(SynchronizePowerTagsS2CPacket payload) {
 
 		TAGS.clear();
 		TAGS.putAll(payload.powerTags());

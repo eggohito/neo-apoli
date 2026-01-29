@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.key;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.api.key.KeyState;
+import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
-import io.github.eggohito.neo_apoli.key.KeyState;
-import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
@@ -18,6 +18,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 import java.util.UUID;
 
 public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider buffer) implements KeyCondition {
@@ -60,15 +61,15 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 
 		while (iterator.hasNext()) {
 
-			int index = iterator.nextIndex();
+			Context idContext = context.forChild(".ids[" + iterator.nextIndex() + "]");
 			StringProvider idProvider = iterator.next();
 
-			Context idContext = context.forChild(".ids[" + index + "]");
 			String id = idProvider.next(idContext);
+			Optional<KeyState> keyState = KeyStateManager.getState(uuid, id);
 
-			if (!idContext.hasErrors() && KeyStateManager.getState(uuid, id).isPresent()) {
+			if (!idContext.hasErrors() && keyState.isPresent()) {
 
-				KeyState state = KeyStateManager.getState(uuid, id).orElseThrow();
+				KeyState state = keyState.get();
 				long currentPressedTime = state.pressedTime();
 
 				if (state.pressed()) {

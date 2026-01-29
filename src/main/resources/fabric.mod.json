@@ -48,14 +48,14 @@
 		}
 	},
 	"depends": {
-		"fabricloader": ">=0.16.13",
-		"minecraft": "1.21.5",
-		"java": ">=21",
-		"fabric-api": "*",
-		"yet_another_config_lib_v3": ">=3.8.1+1.21.5-fabric"
+		"fabricloader": ">=${loader}",
+		"minecraft": "${minecraft}",
+		"java": ">=${java}",
+		"fabric-api": ">=${fabric}",
+		"yet_another_config_lib_v3": ">=${yacl}"
 	},
 	"suggests": {
-		"modmenu": ">=14.0.0"
+		"modmenu": ">={modmenu}"
 	},
 	"accessWidener": "neo-apoli.accesswidener"
 }

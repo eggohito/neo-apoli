@@ -8,8 +8,8 @@ import com.google.gson.JsonParseException;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
-import io.github.eggohito.neo_apoli.event.DependencyManager;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
@@ -17,9 +17,6 @@ import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -41,7 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElementWithSource>> implements JsonReloadListener {
@@ -159,12 +159,8 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 	}
 
-	@Environment(EnvType.CLIENT)
 	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizeConditionsS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		Objects.requireNonNull(context.client(), "client");
-		Objects.requireNonNull(context.responseSender(), "responseSender");
+	public static void receiveSyncPayload(SynchronizeConditionsS2CPacket payload) {
 
 		BY_ID.clear();
 		BY_CONDITION.clear();

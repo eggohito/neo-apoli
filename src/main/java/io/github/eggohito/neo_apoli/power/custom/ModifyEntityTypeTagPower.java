@@ -4,41 +4,28 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeEntityTypeTagCacheS2CPacket;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.resources.CloseableResourceManager;
-import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
-import net.minecraft.tags.TagLoader;
-import net.minecraft.util.DependencySorter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
@@ -54,7 +41,6 @@ public class ModifyEntityTypeTagPower extends Power {
 		ModifyEntityTypeTagPower::new
 	);
 
-	private static final Map<TagKey<EntityType<?>>, Set<TagKey<EntityType<?>>>> NESTED_TAGS_CACHE = new ConcurrentHashMap<>();
 	private final TagKey<EntityType<?>> tag;
 
 	public ModifyEntityTypeTagPower(Optional<Condition> activeCondition, TagKey<EntityType<?>> tag) {
@@ -78,37 +64,6 @@ public class ModifyEntityTypeTagPower extends Power {
 		RegistryUtil.validateTag(validator.forChild(".tag"), this.getTag());
 	}
 
-	@ApiStatus.Internal
-	public static <T> void setCache(TagEntry.Lookup<T> getter, DependencySorter<ResourceLocation, TagLoader.SortingEntry> dependencyTracker) {
-		dependencyTracker.orderByDependencies((id, dependencies) -> dependencies.entries()
-			.stream()
-			.map(TagLoader.EntryWithSource::entry)
-			.filter(tagEntry -> tagEntry.build(getter, value -> {}))
-			.map(TagEntryAccessor.class::cast)
-			.filter(TagEntryAccessor::isTag)
-			.map(entry -> TagKey.create(Registries.ENTITY_TYPE, entry.getId()))
-			.forEach(nestedTag -> NESTED_TAGS_CACHE
-				.computeIfAbsent(TagKey.create(Registries.ENTITY_TYPE, id), k -> new ObjectOpenHashSet<>())
-				.add(nestedTag)));
-	}
-
-	@ApiStatus.Internal
-	public static void resetCache(MinecraftServer ignoredServer, CloseableResourceManager ignoredManager) {
-		NESTED_TAGS_CACHE.clear();
-	}
-
-	@ApiStatus.Internal
-	public static void sendCache(ServerPlayer player, boolean ignoredJoined) {
-		ServerPlayNetworking.send(player, new SynchronizeEntityTypeTagCacheS2CPacket(NESTED_TAGS_CACHE));
-	}
-
-	@Environment(EnvType.CLIENT)
-	@ApiStatus.Internal
-	public static void receiveCache(SynchronizeEntityTypeTagCacheS2CPacket payload, ClientPlayNetworking.Context ignoredContext) {
-		NESTED_TAGS_CACHE.clear();
-		NESTED_TAGS_CACHE.putAll(payload.tags());
-	}
-
 	public static class Instance extends Power.Instance<ModifyEntityTypeTagPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyEntityTypeTagPower power) {
@@ -123,9 +78,7 @@ public class ModifyEntityTypeTagPower extends Power {
 
 			else {
 
-				Set<TagKey<EntityType<?>>> nestedTags = NESTED_TAGS_CACHE.getOrDefault(tag, new ObjectOpenHashSet<>());
-
-				for (var nestedTag: nestedTags) {
+				for (var nestedTag : NeoApoliNestedTagCaches.ENTITY_TYPE.getOrEmpty(tag)) {
 
 					if (this.doesApply(nestedTag)) {
 						return true;

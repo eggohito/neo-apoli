@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.key;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.api.key.KeyState;
+import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
-import io.github.eggohito.neo_apoli.key.KeyState;
-import io.github.eggohito.neo_apoli.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;

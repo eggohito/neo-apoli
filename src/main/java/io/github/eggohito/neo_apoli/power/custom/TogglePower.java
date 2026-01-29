@@ -5,10 +5,8 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
-import io.github.eggohito.neo_apoli.key.KeyState;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -22,7 +20,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -145,20 +142,6 @@ public class TogglePower extends Power {
 
 			finally {
 				context.markInActive(this);
-			}
-
-		}
-
-	}
-
-	public static void onKeyPressed(Player player, KeyState ignoredState) {
-
-		for (var instance : PowersComponent.getInstances(player, Instance.class)) {
-
-			Context instanceContext = instance.createHolderContext();
-
-			if (instance.shouldToggle(instanceContext)) {
-				instance.toggle(instanceContext);
 			}
 
 		}

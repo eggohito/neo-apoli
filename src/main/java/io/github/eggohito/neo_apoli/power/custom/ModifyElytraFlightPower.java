@@ -17,9 +17,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.gameevent.GameEvent;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -101,32 +98,6 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 		}
 
 		return defaultValue.getAsBoolean();
-
-	}
-
-	@ApiStatus.Internal
-	public static boolean onCustomFlight(LivingEntity entity, boolean tickElytra) {
-
-		InstanceCollection<Instance> instances = new InstanceCollection<>(entity, Instance.class);
-		Context context = createContext(entity);
-
-		boolean allow = modify(context, instances, () -> false);
-
-		if (tickElytra && allow) {
-			entity.gameEvent(GameEvent.ELYTRA_GLIDE);
-		}
-
-		return allow;
-
-	}
-
-	@ApiStatus.Internal
-	public static boolean allowFlight(LivingEntity entity) {
-
-		InstanceCollection<Instance> instances = new InstanceCollection<>(entity, Instance.class);
-		Context context = createContext(entity);
-
-		return modify(context, instances, () -> true);
 
 	}
 
