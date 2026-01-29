@@ -1,4 +1,4 @@
-accessWidener	v2	named
+classTweaker v1 named
 extendable	method	net/minecraft/network/chat/contents/TranslatableContents	decompose	()V
 accessible	field	net/minecraft/network/chat/contents/TranslatableContents	decomposedWith	Lnet/minecraft/locale/Language;
 accessible	field	net/minecraft/network/chat/contents/TranslatableContents	decomposedParts	Ljava/util/List;
@@ -11,3 +11,5 @@ accessible	class	net/minecraft/tags/TagLoader$SortingEntry
 mutable	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;
 accessible	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/minecraft/world/entity/player/StackedContents;
 accessible class net/minecraft/client/resources/model/AtlasSet$AtlasEntry
+transitive-inject-interface net/minecraft/resources/ResourceKey io/github/eggohito/neo_apoli/util/context/ReferenceKey
+transitive-inject-interface net/minecraft/resources/ResourceLocation io/github/eggohito/neo_apoli/util/context/ReferenceKey

@@ -37,15 +37,7 @@
 	"custom": {
 		"cardinal-components": [
 			"neo-apoli:powers"
-		],
-		"loom:injected_interfaces": {
-			"net/minecraft/class_2960": [
-				"io/github/eggohito/neo_apoli/util/context/ReferenceKey"
-			],
-			"net/minecraft/class_5321": [
-				"io/github/eggohito/neo_apoli/util/context/ReferenceKey"
-			]
-		}
+		]
 	},
 	"depends": {
 		"fabricloader": ">=${loader}",
@@ -57,5 +49,5 @@
 	"suggests": {
 		"modmenu": ">={modmenu}"
 	},
-	"accessWidener": "neo-apoli.accesswidener"
+	"accessWidener": "neo-apoli.classtweaker"
 }
