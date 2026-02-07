@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicEntityCondition(BooleanProvider value) implements EntityCondition, IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicEntityCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicEntityCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicEntityCondition::new);
+	public static final MapCodec<DynamicEntityCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicEntityCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.DYNAMIC;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

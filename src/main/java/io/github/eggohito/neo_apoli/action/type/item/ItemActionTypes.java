@@ -12,18 +12,18 @@ import net.minecraft.resources.ResourceLocation;
 
 public class ItemActionTypes {
 
-	public static final ItemActionType<ChoiceItemAction> CHOICE = registerInternal("choice", ChoiceItemAction.CODEC, ChoiceItemAction.STREAM_CODEC);
-	public static final ItemActionType<ConditionalItemAction> CONDITIONAL = registerInternal("conditional", ConditionalItemAction.CODEC, ConditionalItemAction.STREAM_CODEC);
-	public static final ItemActionType<LoopItemAction> LOOP = registerInternal("loop", LoopItemAction.CODEC, LoopItemAction.STREAM_CODEC);
-	public static final ItemActionType<NothingItemAction> NOTHING = registerInternal("nothing", NothingItemAction.CODEC, NothingItemAction.STREAM_CODEC);
-	public static final ItemActionType<RandomChanceItemAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceItemAction.CODEC, RandomChanceItemAction.STREAM_CODEC);
-	public static final ItemActionType<ReferenceItemAction> REFERENCE = registerInternal("reference", ReferenceItemAction.CODEC, ReferenceItemAction.STREAM_CODEC);
-	public static final ItemActionType<SequenceItemAction> SEQUENCE = registerInternal("sequence", SequenceItemAction.CODEC, SequenceItemAction.STREAM_CODEC);
-	public static final ItemActionType<WeightedItemAction> WEIGHTED = registerInternal("weighted", WeightedItemAction.CODEC, WeightedItemAction.STREAM_CODEC);
+	public static final ItemActionType<ChoiceItemAction> CHOICE = registerInternal("choice", ChoiceItemAction.MAP_CODEC, ChoiceItemAction.STREAM_CODEC);
+	public static final ItemActionType<ConditionalItemAction> CONDITIONAL = registerInternal("conditional", ConditionalItemAction.MAP_CODEC, ConditionalItemAction.STREAM_CODEC);
+	public static final ItemActionType<LoopItemAction> LOOP = registerInternal("loop", LoopItemAction.MAP_CODEC, LoopItemAction.STREAM_CODEC);
+	public static final ItemActionType<NothingItemAction> NOTHING = registerInternal("nothing", NothingItemAction.MAP_CODEC, NothingItemAction.STREAM_CODEC);
+	public static final ItemActionType<RandomChanceItemAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceItemAction.MAP_CODEC, RandomChanceItemAction.STREAM_CODEC);
+	public static final ItemActionType<ReferenceItemAction> REFERENCE = registerInternal("reference", ReferenceItemAction.MAP_CODEC, ReferenceItemAction.STREAM_CODEC);
+	public static final ItemActionType<SequenceItemAction> SEQUENCE = registerInternal("sequence", SequenceItemAction.MAP_CODEC, SequenceItemAction.STREAM_CODEC);
+	public static final ItemActionType<WeightedItemAction> WEIGHTED = registerInternal("weighted", WeightedItemAction.MAP_CODEC, WeightedItemAction.STREAM_CODEC);
 
-	public static final ItemActionType<ConsumeItemAction> CONSUME = registerInternal("consume", ConsumeItemAction.CODEC, ConsumeItemAction.STREAM_CODEC);
-	public static final ItemActionType<DamageItemAction> DAMAGE = registerInternal("damage", DamageItemAction.CODEC, DamageItemAction.STREAM_CODEC);
-	public static final ItemActionType<ModifyItemAction> MODIFY = registerInternal("modify", ModifyItemAction.CODEC, ModifyItemAction.STREAM_CODEC);
+	public static final ItemActionType<ConsumeItemAction> CONSUME = registerInternal("consume", ConsumeItemAction.MAP_CODEC, ConsumeItemAction.STREAM_CODEC);
+	public static final ItemActionType<DamageItemAction> DAMAGE = registerInternal("damage", DamageItemAction.MAP_CODEC, DamageItemAction.STREAM_CODEC);
+	public static final ItemActionType<ModifyItemAction> MODIFY = registerInternal("modify", ModifyItemAction.MAP_CODEC, ModifyItemAction.STREAM_CODEC);
 
 	public static void registerAll() {
 

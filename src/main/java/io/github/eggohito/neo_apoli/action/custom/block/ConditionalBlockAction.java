@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record ConditionalBlockAction(BlockCondition condition, BlockAction ifAction, Optional<BlockAction> elseAction) implements BlockAction, IConditionalMetaAction<BlockCondition, BlockAction> {
 
-	public static final MapCodec<ConditionalBlockAction> CODEC = MapCodecUtil.lazy(ConditionalBlockAction.class.getSimpleName(), () -> IConditionalMetaAction.createCodec(BlockCondition.CODEC, BlockAction.CODEC, ConditionalBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBlockAction.class.getSimpleName(), () -> IConditionalMetaAction.createStreamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ConditionalBlockAction::new));
+	public static final MapCodec<ConditionalBlockAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalBlockAction.class.getSimpleName(), () -> IConditionalMetaAction.mapCodec(BlockCondition.CODEC, BlockAction.CODEC, ConditionalBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBlockAction.class.getSimpleName(), () -> IConditionalMetaAction.streamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ConditionalBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.CONDITIONAL;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

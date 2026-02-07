@@ -1,8 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.power.custom.CallbackDamageDealtPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -25,18 +23,12 @@ public abstract class CallbackDamageDealtPowerMixin {
 			super(type, world);
 		}
 
-		@ModifyReturnValue(method = "hurtServer", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;resolveMobResponsibleForDamage(Lnet/minecraft/world/damagesource/DamageSource;)V")))
-		private boolean invokeActions(boolean original, ServerLevel world, DamageSource source, float amount) {
+		@Inject(method = "hurtServer", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;resolveMobResponsibleForDamage(Lnet/minecraft/world/damagesource/DamageSource;)V")))
+		private void invokeActions(ServerLevel level, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 
-			if (original && source.getEntity() != null) {
-
-				Context context = CallbackDamageDealtPower.createContext(source.getEntity(), this, source, amount);
-
-				CallbackDamageDealtPower.execute(context);
-
+			if (cir.getReturnValueZ() && source.getEntity() != null) {
+				CallbackDamageDealtPower.execute(source.getEntity(), this, source, amount);
 			}
-
-			return original;
 
 		}
 
@@ -53,11 +45,7 @@ public abstract class CallbackDamageDealtPowerMixin {
 		private void invokeAction(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 
 			if (cir.getReturnValueZ() && source.getEntity() != null) {
-
-				Context context = CallbackDamageDealtPower.createContext(source.getEntity(), this, source, amount);
-
-				CallbackDamageDealtPower.execute(context);
-
+				CallbackDamageDealtPower.execute(source.getEntity(), this, source, amount);
 			}
 
 		}

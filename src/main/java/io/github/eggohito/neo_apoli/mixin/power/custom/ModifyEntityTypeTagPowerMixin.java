@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.HolderSet;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -48,32 +47,6 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 	public static abstract class IsInTagProxy implements io.github.eggohito.neo_apoli.duck.EntityCache {
 
 		@Unique
-		protected final ThreadLocal<WeakReference<Context>> neo_apoli$modifiedTagContext = new ThreadLocal<>();
-
-		@SuppressWarnings("ConstantValue")
-		@Unique
-		protected Optional<Context> neo_apoli$getOrCreateModifiedTagContext() {
-
-			Entity entity = this.neo_apoli$getEntity();
-			WeakReference<Context> contextReference = this.neo_apoli$modifiedTagContext.get();
-
-			if (entity == null || entity.asComponentProvider().getComponentContainer() == null) {
-				return Optional.empty();
-			}
-
-			else {
-
-				if (contextReference == null || contextReference.get() == null) {
-					contextReference = new WeakReference<>(ModifyEntityTypeTagPower.createContext(entity));
-				}
-
-				return Optional.ofNullable(contextReference.get());
-
-			}
-
-		}
-
-		@Unique
 		protected final ThreadLocal<WeakReference<Entity>> neo_apoli$currentEntity = new ThreadLocal<>();
 
 		@Override
@@ -97,41 +70,29 @@ public abstract class ModifyEntityTypeTagPowerMixin {
 		}
 
 		@ModifyReturnValue(method = "is(Lnet/minecraft/tags/TagKey;)Z", at = @At("RETURN"))
-		private boolean normalProxy(boolean original, TagKey<EntityType<?>> tag) {
+		private boolean tagProxy(boolean original, TagKey<EntityType<?>> tag) {
 
-			if (original) {
-				return true;
+			try {
+				return original
+					|| ModifyEntityTypeTagPower.modify(this.neo_apoli$getEntity(), tag);
 			}
 
-			else {
-
-				boolean result = this.neo_apoli$getOrCreateModifiedTagContext()
-					.map(context -> ModifyEntityTypeTagPower.doesApply(context, tag))
-					.orElse(false);
-
-				this.neo_apoli$modifiedTagContext.remove();
-				return result;
-
+			finally {
+				ModifyEntityTypeTagPower.VISITOR.clear();
 			}
 
 		}
 
 		@ModifyReturnValue(method = "is(Lnet/minecraft/core/HolderSet;)Z", at = @At("RETURN"))
-		private boolean entryListProxy(boolean original, HolderSet<EntityType<?>> tagsEntryList) {
+		private boolean directTagProxy(boolean original, HolderSet<EntityType<?>> directTag) {
 
-			if (original) {
-				return true;
+			try {
+				return original
+					|| ModifyEntityTypeTagPower.modify(this.neo_apoli$getEntity(), directTag);
 			}
 
-			else {
-
-				boolean result = this.neo_apoli$getOrCreateModifiedTagContext()
-					.map(context -> ModifyEntityTypeTagPower.doesApply(context, tagsEntryList))
-					.orElse(false);
-
-				this.neo_apoli$modifiedTagContext.remove();
-				return result;
-
+			finally {
+				ModifyEntityTypeTagPower.VISITOR.clear();
 			}
 
 		}

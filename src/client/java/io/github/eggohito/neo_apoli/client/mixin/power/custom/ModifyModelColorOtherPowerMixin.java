@@ -5,23 +5,19 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorOtherPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-
-import java.util.List;
 
 public abstract class ModifyModelColorOtherPowerMixin {
 
@@ -34,22 +30,24 @@ public abstract class ModifyModelColorOtherPowerMixin {
 		@WrapOperation(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
 		private void impl(EntityModel<S> model, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, int color, Operation<Void> original, S methodRenderState, PoseStack methodPoseStack, MultiBufferSource methodBufferSource, int methodLight) {
 
-			Minecraft client = Minecraft.getInstance();
-			LocalPlayer viewer = client.player;
+			modifyColor:
+			if (methodRenderState instanceof EntityRenderCache renderCache) {
 
-			if (methodRenderState instanceof EntityRenderCache renderCache && viewer != null) {
+				Entity viewer = Minecraft.getInstance().getCameraEntity();
+				Entity rendered = renderCache.neo_apoli$getEntity();
 
-				List<ModifyModelColorOtherPower.Instance> instances = PowersComponent.getInstances(viewer, ModifyModelColorOtherPower.Instance.class);
-				Context context = ModifyModelColorOtherPower.createContext(viewer, renderCache.neo_apoli$getEntity());
+				if (viewer == null || rendered == null) {
+					break modifyColor;
+				}
 
-				if (!instances.isEmpty()) {
+				int originalColor = color;
+				color = ModifyModelColorOtherPower.modify(viewer, rendered, color);
 
-					color = ModifyModelColorOtherPower.modify(context, instances, color);
-					float alpha = ARGB.alphaFloat(color);
+				if (originalColor != color) {
 
 					renderCache.neo_apoli$setColor(color);
 
-					if (alpha < 1.0F) {
+					if (ARGB.alphaFloat(color) < 1.0F) {
 						vertexConsumer = methodBufferSource.getBuffer(RenderType.itemEntityTranslucentCull(this.getTextureLocation(methodRenderState)));
 					}
 

@@ -13,17 +13,12 @@ import java.util.List;
 
 public record SequenceBlockAction(List<BlockAction> actions) implements BlockAction, ISequenceMetaAction<BlockAction> {
 
-	public static final MapCodec<SequenceBlockAction> CODEC = MapCodecUtil.lazy(SequenceBlockAction.class.getSimpleName(), () -> ISequenceMetaAction.createCodec(BlockAction.CODEC, SequenceBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBlockAction.class.getSimpleName(), () -> ISequenceMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, SequenceBlockAction::new));
+	public static final MapCodec<SequenceBlockAction> MAP_CODEC = MapCodecUtil.lazy(SequenceBlockAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(BlockAction.CODEC, SequenceBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBlockAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(BlockAction.STREAM_CODEC, SequenceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.SEQUENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

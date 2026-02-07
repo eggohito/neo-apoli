@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record ConditionalBiEntityAction(BiEntityCondition condition, BiEntityAction ifAction, Optional<BiEntityAction> elseAction) implements BiEntityAction, IConditionalMetaAction<BiEntityCondition, BiEntityAction> {
 
-	public static final MapCodec<ConditionalBiEntityAction> CODEC = MapCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.createCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ConditionalBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.createStreamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ConditionalBiEntityAction::new));
+	public static final MapCodec<ConditionalBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.mapCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ConditionalBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.streamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ConditionalBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.CONDITIONAL;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

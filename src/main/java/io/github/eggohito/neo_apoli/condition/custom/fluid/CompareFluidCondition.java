@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareFluidCondition(Comparison comparison) implements FluidCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareFluidCondition> CODEC = ICompareMetaCondition.createCodec(CompareFluidCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareFluidCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareFluidCondition::new);
+	public static final MapCodec<CompareFluidCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareFluidCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

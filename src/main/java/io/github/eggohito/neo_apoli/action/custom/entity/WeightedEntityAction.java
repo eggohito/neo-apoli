@@ -12,17 +12,12 @@ import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
 public record WeightedEntityAction(ShufflingList<EntityAction> entries) implements EntityAction, IWeightedMetaAction<EntityAction> {
 
-	public static final MapCodec<WeightedEntityAction> CODEC = MapCodecUtil.lazy(WeightedEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(EntityAction.CODEC, WeightedEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(EntityAction.STREAM_CODEC, WeightedEntityAction::new));
+	public static final MapCodec<WeightedEntityAction> MAP_CODEC = MapCodecUtil.lazy(WeightedEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.mapCodec(EntityAction.CODEC, WeightedEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.streamCodec(EntityAction.STREAM_CODEC, WeightedEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.WEIGHTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

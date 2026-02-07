@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
@@ -11,10 +13,8 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -76,7 +76,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		Context minContext = context.forChild(".min");
 		double min = min()
 			.map(p -> p.nextDouble(minContext))
-			.or(() -> context.optional(NeoApoliContextKeys.MIN_VALUE))
+			.or(() -> context.getOptional(NeoApoliContextParams.MIN_VALUE))
 			.orElse(0.0D);
 
 		if (minContext.hasErrors()) {
@@ -86,7 +86,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		Context maxContext = context.forChild(".max");
 		double max = max()
 			.map(p -> p.nextDouble(maxContext))
-			.or(() -> context.optional(NeoApoliContextKeys.MAX_VALUE))
+			.or(() -> context.getOptional(NeoApoliContextParams.MAX_VALUE))
 			.orElse(min + 1.0);
 
 		if (maxContext.hasErrors()) {
@@ -96,7 +96,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		Context valueContext = context.forChild(".value");
 		double value = value()
 			.map(p -> p.nextDouble(valueContext))
-			.or(() -> context.optional(NeoApoliContextKeys.CURRENT_VALUE))
+			.or(() -> context.getOptional(NeoApoliContextParams.CURRENT_VALUE))
 			.orElse(min);
 
 		if (valueContext.hasErrors()) {
@@ -111,7 +111,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 	}
 
-	public record Properties(SpriteLocation spriteLocation, BooleanProvider inverted) implements ContextAware {
+	public record Properties(SpriteLocation spriteLocation, BooleanProvider inverted) implements ContextUser {
 
 		public static final MapCodec<Properties> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			SpriteLocation.CODEC.optionalFieldOf("sprite_location", SpriteLocation.DEFAULT).forGetter(Properties::spriteLocation),
@@ -126,7 +126,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 		@Override
 		public void validate(Context.Validator validator) {
-			ContextAware.super.validate(validator);
+			ContextUser.super.validate(validator);
 			inverted().validate(validator.forChild(".inverted"));
 		}
 

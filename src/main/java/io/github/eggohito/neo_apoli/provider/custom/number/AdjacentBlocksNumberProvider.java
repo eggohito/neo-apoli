@@ -3,23 +3,28 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3Provider position) implements NumberProvider {
 
-	public static final MapCodec<AdjacentBlocksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<AdjacentBlocksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("block_condition").forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
 	).apply(instance, AdjacentBlocksNumberProvider::new));
@@ -38,7 +43,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level level = context.getLevel();
+		Level level = context.level();
 		long matches = 0;
 
 		Context positionContext = context.forChild(".position");
@@ -57,10 +62,9 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 			}
 
 			Context blockContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-				.add(NeoApoliContextKeys.BLOCK_POS, offsetPos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(offsetPos))
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(offsetPos))
+				.withRequired(NeoApoliContextParams.BLOCK_POS, offsetPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(offsetPos))
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(offsetPos))
 				.build(level);
 
 			if (adjacentBlockCondition().test(blockContext.forChild(".block_condition"))) {
@@ -77,10 +81,8 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	public void validate(Context.Validator validator) {
 
 		NumberProvider.super.validate(validator);
-		adjacentBlockCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.forChild(".block_condition"));
 
+		adjacentBlockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
 		position().validate(validator.forChild(".position"));
 
 	}

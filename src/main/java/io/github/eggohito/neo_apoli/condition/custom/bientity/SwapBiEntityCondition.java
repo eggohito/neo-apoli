@@ -4,16 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEntityCondition {
 
-	public static final MapCodec<SwapBiEntityCondition> CODEC = MapCodecUtil.lazy(SwapBiEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<SwapBiEntityCondition> MAP_CODEC = MapCodecUtil.lazy(SwapBiEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.fieldOf("condition").forGetter(SwapBiEntityCondition::condition)
 	).apply(instance, SwapBiEntityCondition::new)));
 
@@ -31,9 +31,9 @@ public record SwapBiEntityCondition(BiEntityCondition condition) implements BiEn
 	public boolean test(Context context) {
 
 		Context conditionContext = new Context.Builder(context)
-			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
-			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY))
-			.build(context.getLevel());
+			.withNullable(NeoApoliContextParams.ACTOR_ENTITY, context.getNullable(NeoApoliContextParams.TARGET_ENTITY))
+			.withNullable(NeoApoliContextParams.TARGET_ENTITY, context.getNullable(NeoApoliContextParams.ACTOR_ENTITY))
+			.build(context.level());
 
 		return condition().test(conditionContext.forChild(".condition"));
 

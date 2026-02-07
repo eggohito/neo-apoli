@@ -12,18 +12,13 @@ public record ConstantEntityCondition(boolean value) implements EntityCondition,
 
 	public static final Codec<ConstantEntityCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantEntityCondition::new);
 
-	public static final MapCodec<ConstantEntityCondition> CODEC = IConstantMetaCondition.createCodec(ConstantEntityCondition::new);
+	public static final MapCodec<ConstantEntityCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantEntityCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantEntityCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantEntityCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

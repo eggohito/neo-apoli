@@ -7,10 +7,10 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public record PlaceBlockAction(BlockState block, Mode mode) implements BlockAction {
 
-	public static final MapCodec<PlaceBlockAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PlaceBlockAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_BLOCK_STATE.fieldOf("block").forGetter(PlaceBlockAction::block),
 		Mode.CODEC.optionalFieldOf("mode", Mode.DEFAULT).forGetter(PlaceBlockAction::mode)
 	).apply(instance, PlaceBlockAction::new));
@@ -41,11 +41,11 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.level() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
+		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
 		int flags = Block.UPDATE_CLIENTS | mode().flag;
 
 		boolean placeBlock = true;
@@ -61,7 +61,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 			case DEFAULT -> {
 
 				placeBlock = serverLevel.isEmptyBlock(blockPos);
-				Direction direction = context.nullable(NeoApoliContextKeys.DIRECTION);
+				Direction direction = context.getNullable(NeoApoliContextParams.DIRECTION);
 
 				if (!placeBlock && direction != null) {
 

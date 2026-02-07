@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceItemAction(ResourceLocation value) implements ItemAction, IReferenceMetaAction<ItemAction> {
 
-	public static final MapCodec<ReferenceItemAction> CODEC = IReferenceMetaAction.createCodec(ReferenceItemAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemAction> STREAM_CODEC = IReferenceMetaAction.createStreamCodec(ReferenceItemAction::new);
+	public static final MapCodec<ReferenceItemAction> MAP_CODEC = IReferenceMetaAction.mapCodec(ReferenceItemAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemAction> STREAM_CODEC = IReferenceMetaAction.streamCodec(ReferenceItemAction::new);
 
 	@Override
 	public Pair<Class<ItemAction>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceItemAction(ResourceLocation value) implements ItemAction,
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

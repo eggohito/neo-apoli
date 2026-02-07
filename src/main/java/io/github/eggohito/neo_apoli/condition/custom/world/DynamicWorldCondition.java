@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicWorldCondition(BooleanProvider value) implements WorldCondition, IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicWorldCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicWorldCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicWorldCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicWorldCondition::new);
+	public static final MapCodec<DynamicWorldCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicWorldCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicWorldCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicWorldCondition::new);
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.DYNAMIC;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

@@ -12,18 +12,13 @@ public record ConstantBlockCondition(boolean value) implements BlockCondition, I
 
 	public static final Codec<ConstantBlockCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantBlockCondition::new);
 
-	public static final MapCodec<ConstantBlockCondition> CODEC = IConstantMetaCondition.createCodec(ConstantBlockCondition::new);
+	public static final MapCodec<ConstantBlockCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantBlockCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBlockCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBlockCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

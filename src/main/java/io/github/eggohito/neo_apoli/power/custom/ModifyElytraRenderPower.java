@@ -4,12 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.color.Color;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @Getter
 public class ModifyElytraRenderPower extends Power implements Prioritized<ModifyElytraRenderPower> {
 
-	public static final MapCodec<ModifyElytraRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyElytraRenderPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ResourceKey.codec(EquipmentAssets.ROOT_ID).fieldOf("asset_id").forGetter(ModifyElytraRenderPower::getAssetId))
 		.and(ArmorTrim.CODEC.optionalFieldOf("trim").forGetter(ModifyElytraRenderPower::getTrim))
 		.and(Color.CODEC.optionalFieldOf("color").forGetter(ModifyElytraRenderPower::getColor))
@@ -84,7 +84,7 @@ public class ModifyElytraRenderPower extends Power implements Prioritized<Modify
 
 		public Optional<DyedItemColor> getDyedColor(Context context) {
 			return power.getColor()
-				.map(color -> color.getValue(context.forChild(".color")))
+				.map(color -> color.intValue(context.forChild(".color")))
 				.map(DyedItemColor::new);
 		}
 

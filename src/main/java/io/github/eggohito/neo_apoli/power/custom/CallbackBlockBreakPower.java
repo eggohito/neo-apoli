@@ -5,14 +5,14 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -33,7 +33,7 @@ import java.util.Optional;
 @Getter
 public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
 
-	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<CallbackBlockBreakPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
 		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::getOnlyWhenHarvested))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
@@ -84,8 +84,13 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 			super(holder, power);
 		}
 
-		public void execute(Context context) {
-			power.getOnBreakAction().execute(context.forChild(".on_break_action"));
+		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
+				.withNullable(NeoApoliContextParams.DIRECTION, side)
+				.buildWithRequirements(holder.level(), PowerTypes.CALLBACK_BLOCK_BREAK.keySet());
 		}
 
 		public boolean doesApply(Context context, boolean harvested) {
@@ -93,51 +98,24 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 				&& (!power.getOnlyWhenHarvested().next(context.forChild(".only_when_harvested")) || harvested);
 		}
 
-	}
-
-	public static void execute(Context context, boolean harvested) {
-
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
-
-		execute(context, instances, harvested);
-
-	}
-
-	public static void execute(Context context, InstanceCollection<Instance> instances, boolean harvested) {
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
-
-			try {
-
-				if (instanceContext.markActive(instance) && instance.doesApply(instanceContext, harvested)) {
-					instance.execute(instanceContext);
-				}
-
-			}
-
-			finally {
-				instanceContext.markInActive(instance);
-			}
-
+		public void execute(Context context) {
+			power.getOnBreakAction().execute(context.forChild(".on_break_action"));
 		}
 
 	}
 
-	public static Context createContext(Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
-		return PowerTypes.CALLBACK_BLOCK_BREAK.contextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
-			.addNullable(NeoApoliContextKeys.DIRECTION, direction)
-			.add(NeoApoliContextKeys.THIS_ENTITY, player)
-			.add(NeoApoliContextKeys.THIS_POS, player.position())
-			.build(player.level());
+	public static void execute(Player placer, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side, boolean harvested) {
+
+		for (var instance : new InstanceCollection<>(placer, Instance.class)) {
+
+			Context context = instance.createContext(blockPos, blockState, blockEntity, side);
+
+			if (instance.doesApply(context, harvested)) {
+				instance.execute(context);
+			}
+
+		}
+
 	}
 
 }

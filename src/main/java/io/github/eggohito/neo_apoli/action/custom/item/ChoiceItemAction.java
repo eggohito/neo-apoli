@@ -14,17 +14,12 @@ import java.util.List;
 
 public record ChoiceItemAction(List<Case<ItemCondition, ItemAction>> cases, ItemAction defaultAction) implements ItemAction, IChoiceMetaAction<ItemCondition, ItemAction> {
 
-	public static final MapCodec<ChoiceItemAction> CODEC = MapCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(ItemCondition.CODEC, ItemAction.CODEC, ChoiceItemAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(ItemCondition.STREAM_CODEC, ItemAction.STREAM_CODEC, ChoiceItemAction::new));
+	public static final MapCodec<ChoiceItemAction> MAP_CODEC = MapCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> IChoiceMetaAction.mapCodec(ItemCondition.CODEC, ItemAction.CODEC, ChoiceItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceItemAction.class.getSimpleName(), () -> IChoiceMetaAction.streamCodec(ItemCondition.STREAM_CODEC, ItemAction.STREAM_CODEC, ChoiceItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.CHOICE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

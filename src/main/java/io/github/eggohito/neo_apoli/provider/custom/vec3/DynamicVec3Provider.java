@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProvider z) implements Vec3Provider {
 
-	public static final MapCodec<DynamicVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DynamicVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("x").forGetter(DynamicVec3Provider::x),
 		NumberProvider.CODEC.fieldOf("y").forGetter(DynamicVec3Provider::y),
 		NumberProvider.CODEC.fieldOf("z").forGetter(DynamicVec3Provider::z)

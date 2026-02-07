@@ -12,18 +12,13 @@ public record ConstantBiEntityCondition(boolean value) implements BiEntityCondit
 
 	public static final Codec<ConstantBiEntityCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantBiEntityCondition::new);
 
-	public static final MapCodec<ConstantBiEntityCondition> CODEC = IConstantMetaCondition.createCodec(ConstantBiEntityCondition::new);
+	public static final MapCodec<ConstantBiEntityCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantBiEntityCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBiEntityCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantBiEntityCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

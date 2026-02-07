@@ -30,12 +30,12 @@ public abstract class MinecraftServerMixin implements CommandStorageHolder {
 	}
 
 	@Override
-	public CompoundTag neo_apoli$get(ResourceLocation id) {
+	public CompoundTag neo_apoli$getStorage(ResourceLocation id) {
 		return this.getCommandStorage().get(id);
 	}
 
 	@Override
-	public void neo_apoli$set(ResourceLocation id, CompoundTag nbt) {
+	public void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt) {
 		this.getCommandStorage().set(id, nbt);
 	}
 

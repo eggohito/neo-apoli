@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.client.event;
 
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.DeltaTracker;

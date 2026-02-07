@@ -1,11 +1,10 @@
 package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -18,10 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record BlockEntityNbtProvider() implements NbtProvider {
+public enum BlockEntityNbtProvider implements NbtProvider {
 
-	public static final MapCodec<BlockEntityNbtProvider> CODEC = MapCodec.unit(BlockEntityNbtProvider::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, BlockEntityNbtProvider> STREAM_CODEC = StreamCodecUtil.unit(BlockEntityNbtProvider::new);
+	INSTANCE;
+
+	public static final MapCodec<BlockEntityNbtProvider> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockEntityNbtProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public NbtProviderType<?> getType() {
@@ -31,11 +32,11 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 	@Override
 	public @NotNull Tag next(Context context) {
 
-		HolderLookup.Provider wrapperLookup = context.getLevel().registryAccess();
-		Optional<BlockEntity> optBlockEntity = context.optional(NeoApoliContextKeys.BLOCK_ENTITY);
+		HolderLookup.Provider wrapperLookup = context.level().registryAccess();
+		Optional<BlockEntity> optBlockEntity = context.getOptional(NeoApoliContextParams.BLOCK_ENTITY);
 
 		if (optBlockEntity.isEmpty()) {
-			context.getValidator().report("Couldn't get and provide NBT from non-existent block entity!");
+			context.reportProblem("Couldn't get and provide NBT from non-existent block entity!");
 		}
 
 		return optBlockEntity
@@ -46,7 +47,7 @@ public record BlockEntityNbtProvider() implements NbtProvider {
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_ENTITY);
+		return Set.of(NeoApoliContextParams.BLOCK_ENTITY);
 	}
 
 }

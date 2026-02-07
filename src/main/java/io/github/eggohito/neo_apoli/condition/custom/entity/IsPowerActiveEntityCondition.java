@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
 public record IsPowerActiveEntityCondition(PowerReference power) implements EntityCondition {
 
-	public static final MapCodec<IsPowerActiveEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<IsPowerActiveEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(PowerReference.CODEC.fieldOf("power").forGetter(IsPowerActiveEntityCondition::power))
 		.apply(instance, IsPowerActiveEntityCondition::new));
 
@@ -38,9 +38,9 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 
 		try {
 
-			if (context.markActive(this)) {
+			if (context.visitor().push(this)) {
 
-				Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
+				Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 				return powersComponent.hasInstance(this.power())
@@ -55,7 +55,7 @@ public record IsPowerActiveEntityCondition(PowerReference power) implements Enti
 		}
 
 		finally {
-			context.markInActive(this);
+			context.visitor().pop(this);
 		}
 
 	}

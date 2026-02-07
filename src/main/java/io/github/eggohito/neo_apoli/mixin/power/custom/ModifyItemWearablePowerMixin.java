@@ -3,9 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyItemWearablePower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -22,8 +20,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Slice;
 
-import java.util.List;
-
 public abstract class ModifyItemWearablePowerMixin {
 
 	@Mixin(targets = "net.minecraft.world.inventory.ArmorSlot")
@@ -32,10 +28,13 @@ public abstract class ModifyItemWearablePowerMixin {
 		@WrapOperation(method = "mayPlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isEquippableInSlot(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
 		private boolean onInsert(LivingEntity owner, ItemStack stack, EquipmentSlot slot, Operation<Boolean> original) {
 
-			List<ModifyItemWearablePower.Instance> instances = PowersComponent.getInstances(owner, ModifyItemWearablePower.Instance.class);
-			Context context = ModifyItemWearablePower.createContext(owner, stack);
+			try {
+				return ModifyItemWearablePower.modify(owner, stack, slot, () -> original.call(owner, stack, slot));
+			}
 
-			return ModifyItemWearablePower.modify(context, instances, slot, () -> original.call(owner, stack, slot));
+			finally {
+				ModifyItemWearablePower.VISITOR.clear();
+			}
 
 		}
 
@@ -47,7 +46,7 @@ public abstract class ModifyItemWearablePowerMixin {
 		@WrapOperation(method = "quickMoveStack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;hasItem()Z", ordinal = 0), slice = @Slice(from = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/EquipmentSlot$Type;HUMANOID_ARMOR:Lnet/minecraft/world/entity/EquipmentSlot$Type;", opcode = Opcodes.GETSTATIC)))
 		private boolean onArmorSlotOccupancyCheck(Slot slot, Operation<Boolean> original, @Local(ordinal = 1) ItemStack movingStack) {
 			return original.call(slot)
-				 || slot.mayPlace(movingStack);
+				 || !slot.mayPlace(movingStack);
 		}
 
 	}
@@ -61,10 +60,13 @@ public abstract class ModifyItemWearablePowerMixin {
 		@WrapOperation(method = "swapWithEquipmentSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/equipment/Equippable;canBeEquippedBy(Lnet/minecraft/world/entity/EntityType;)Z"))
 		private boolean onSwap(Equippable equippable, EntityType<?> entityType, Operation<Boolean> original, ItemStack stack, Player player) {
 
-			List<ModifyItemWearablePower.Instance> instances = PowersComponent.getInstances(player, ModifyItemWearablePower.Instance.class);
-			Context context = ModifyItemWearablePower.createContext(player, stack);
+			try {
+				return ModifyItemWearablePower.modify(player, stack, this.slot(), () -> original.call(equippable, entityType));
+			}
 
-			return ModifyItemWearablePower.modify(context, instances, this.slot(), () -> original.call(equippable, entityType));
+			finally {
+				ModifyItemWearablePower.VISITOR.clear();
+			}
 
 		}
 
@@ -80,10 +82,13 @@ public abstract class ModifyItemWearablePowerMixin {
 		@WrapOperation(method = "canEquipWithDispenser", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/equipment/Equippable;canBeEquippedBy(Lnet/minecraft/world/entity/EntityType;)Z"))
 		private boolean whenEquippable(Equippable equippable, EntityType<?> entityType, Operation<Boolean> original, ItemStack stack) {
 
-			List<ModifyItemWearablePower.Instance> instances = PowersComponent.getInstances(this, ModifyItemWearablePower.Instance.class);
-			Context context = ModifyItemWearablePower.createContext(this, stack);
+			try {
+				return ModifyItemWearablePower.modify(this, stack, equippable.slot(), () -> original.call(equippable, entityType));
+			}
 
-			return ModifyItemWearablePower.modify(context, instances, equippable.slot(), () -> original.call(equippable, entityType));
+			finally {
+				ModifyItemWearablePower.VISITOR.clear();
+			}
 
 		}
 

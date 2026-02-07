@@ -4,11 +4,8 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import io.github.eggohito.neo_apoli.mixin.access.ShufflingListAccessor;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ByIdMap;
@@ -16,7 +13,6 @@ import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.*;
 
 public final class StreamCodecUtil {
@@ -164,24 +160,6 @@ public final class StreamCodecUtil {
 			}
 
 		};
-	}
-
-	public static <T> StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<T>> createContextKeyCodec(String name, Class<T> typeClass) {
-		return NeoApoliContextKeys.STREAM_CODEC.map(
-			parameter -> {
-
-				if (typeClass.isAssignableFrom(parameter.getTypeClass())) {
-					//noinspection unchecked
-					return (TypedContextKey<T>) parameter;
-				}
-
-				else {
-					throw new IllegalArgumentException("Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.name() + "\"");
-				}
-
-			},
-			Function.identity()
-		);
 	}
 
 }

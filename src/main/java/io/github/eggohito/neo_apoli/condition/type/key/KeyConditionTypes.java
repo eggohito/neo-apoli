@@ -12,18 +12,18 @@ import net.minecraft.resources.ResourceLocation;
 
 public class KeyConditionTypes extends ConditionTypes {
 
-	public static final KeyConditionType<AllOfKeyCondition> ALL_OF = registerInternal("all_of", AllOfKeyCondition.CODEC, AllOfKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<AnyOfKeyCondition> ANY_OF = registerInternal("any_of", AnyOfKeyCondition.CODEC, AnyOfKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<CompareKeyCondition> COMPARE = registerInternal("compare", CompareKeyCondition.CODEC, CompareKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<CompareToRangeKeyCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeKeyCondition.CODEC, CompareToRangeKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<ConstantKeyCondition> CONSTANT = registerInternal("constant", ConstantKeyCondition.CODEC, ConstantKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<DynamicKeyCondition> DYNAMIC = registerInternal("dynamic", DynamicKeyCondition.CODEC, DynamicKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<InvertedKeyCondition> INVERTED = registerInternal("inverted", InvertedKeyCondition.CODEC, InvertedKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<ReferenceKeyCondition> REFERENCE = registerInternal("reference", ReferenceKeyCondition.CODEC, ReferenceKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<TestWorldKeyCondition> TEST_WORLD = registerInternal("test_world", TestWorldKeyCondition.CODEC, TestWorldKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<AllOfKeyCondition> ALL_OF = registerInternal("all_of", AllOfKeyCondition.MAP_CODEC, AllOfKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<AnyOfKeyCondition> ANY_OF = registerInternal("any_of", AnyOfKeyCondition.MAP_CODEC, AnyOfKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<CompareKeyCondition> COMPARE = registerInternal("compare", CompareKeyCondition.MAP_CODEC, CompareKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<CompareToRangeKeyCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeKeyCondition.MAP_CODEC, CompareToRangeKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<ConstantKeyCondition> CONSTANT = registerInternal("constant", ConstantKeyCondition.MAP_CODEC, ConstantKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<DynamicKeyCondition> DYNAMIC = registerInternal("dynamic", DynamicKeyCondition.MAP_CODEC, DynamicKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<InvertedKeyCondition> INVERTED = registerInternal("inverted", InvertedKeyCondition.MAP_CODEC, InvertedKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<ReferenceKeyCondition> REFERENCE = registerInternal("reference", ReferenceKeyCondition.MAP_CODEC, ReferenceKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<TestWorldKeyCondition> TEST_WORLD = registerInternal("test_world", TestWorldKeyCondition.MAP_CODEC, TestWorldKeyCondition.STREAM_CODEC);
 
-	public static final KeyConditionType<IsPressedKeyCondition> IS_PRESSED = registerInternal("is_pressed", IsPressedKeyCondition.CODEC, IsPressedKeyCondition.STREAM_CODEC);
-	public static final KeyConditionType<IsSimultaneouslyPressedKeyCondition> IS_SIMULTANEOUSLY_PRESSED = registerInternal("is_simultaneously_pressed", IsSimultaneouslyPressedKeyCondition.CODEC, IsSimultaneouslyPressedKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<IsPressedKeyCondition> IS_PRESSED = registerInternal("is_pressed", IsPressedKeyCondition.MAP_CODEC, IsPressedKeyCondition.STREAM_CODEC);
+	public static final KeyConditionType<IsSimultaneouslyPressedKeyCondition> IS_SIMULTANEOUSLY_PRESSED = registerInternal("is_simultaneously_pressed", IsSimultaneouslyPressedKeyCondition.MAP_CODEC, IsSimultaneouslyPressedKeyCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

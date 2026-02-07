@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.exception;
 
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+
+import java.util.function.UnaryOperator;
 
 public class AliasAlreadyTakenException extends RuntimeException {
 

@@ -182,7 +182,7 @@ public class MultiplePower extends Power {
 
 	};
 
-	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
+	public static final MapCodec<MultiplePower> MAP_CODEC = SUB_POWERS_CODEC.xmap(
 		MultiplePower::new,
 		MultiplePower::getSubPowers
 	);

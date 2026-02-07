@@ -13,17 +13,12 @@ import java.util.List;
 
 public record SequenceBiEntityAction(List<BiEntityAction> actions) implements BiEntityAction, ISequenceMetaAction<BiEntityAction> {
 
-	public static final MapCodec<SequenceBiEntityAction> CODEC = MapCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.createCodec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.createStreamCodec(BiEntityAction.STREAM_CODEC, SequenceBiEntityAction::new));
+	public static final MapCodec<SequenceBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(BiEntityAction.CODEC, SequenceBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(BiEntityAction.STREAM_CODEC, SequenceBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.SEQUENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

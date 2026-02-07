@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,13 +25,11 @@ public interface ISequenceMetaAction<A extends Action> extends MetaAction {
 
 		while (listIterator.hasNext()) {
 
-			int index = listIterator.nextIndex();
-			A action = listIterator.next();
+			Context actionContext = context.forChild(".actions[" + listIterator.nextIndex() + "]");
 
-			action.execute(context.forChild(".actions[" + index + "]"));
+			listIterator.next().execute(actionContext);
 
 		}
-
 
 	}
 
@@ -42,22 +40,21 @@ public interface ISequenceMetaAction<A extends Action> extends MetaAction {
 
 		while (listIterator.hasNext()) {
 
-			int index = listIterator.nextIndex();
-			A action = listIterator.next();
+			Context.Validator actionValidator = validator.forChild(".actions[" + listIterator.nextIndex() + "]");
 
-			action.validate(validator.forChild(".actions[" + index + "]"));
+			listIterator.next().validate(actionValidator);
 
 		}
 
 	}
 
-	static <A extends Action, M extends ISequenceMetaAction<A>> MapCodec<M> createCodec(Codec<A> actionCodec, Function<List<A>, M> constructor) {
+	static <A extends Action, M extends ISequenceMetaAction<A>> MapCodec<M> mapCodec(Codec<A> actionCodec, Function<List<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.listOf().fieldOf("actions").forGetter(ISequenceMetaAction::actions)
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends ISequenceMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function<List<A>, M> constructor) {
+	static <A extends Action, M extends ISequenceMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function<List<A>, M> constructor) {
 		return StreamCodec.composite(
 			ByteBufCodecs.collection(ObjectArrayList::new, actionCodec), ISequenceMetaAction::actions,
 			constructor

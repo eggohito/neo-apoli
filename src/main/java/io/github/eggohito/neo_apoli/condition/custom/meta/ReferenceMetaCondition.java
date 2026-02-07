@@ -11,9 +11,9 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceMetaCondition(ResourceLocation value) implements IReferenceMetaCondition<Condition> {
 
-	public static final MapCodec<ReferenceMetaCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceMetaCondition::new);
+	public static final MapCodec<ReferenceMetaCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceMetaCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceMetaCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceMetaCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceMetaCondition::new);
 
 	@Override
 	public Pair<Class<Condition>, String> classAndName() {

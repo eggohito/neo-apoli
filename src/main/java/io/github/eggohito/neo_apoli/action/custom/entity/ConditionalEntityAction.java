@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record ConditionalEntityAction(EntityCondition condition, EntityAction ifAction, Optional<EntityAction> elseAction) implements EntityAction, IConditionalMetaAction<EntityCondition, EntityAction> {
 
-	public static final MapCodec<ConditionalEntityAction> CODEC = MapCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, ConditionalEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.createStreamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ConditionalEntityAction::new));
+	public static final MapCodec<ConditionalEntityAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.mapCodec(EntityCondition.CODEC, EntityAction.CODEC, ConditionalEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.streamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ConditionalEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.CONDITIONAL;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

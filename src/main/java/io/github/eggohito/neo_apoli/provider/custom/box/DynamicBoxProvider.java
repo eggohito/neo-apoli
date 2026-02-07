@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements BoxProvider {
 
-	public static final MapCodec<DynamicBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DynamicBoxProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("min").forGetter(DynamicBoxProvider::min),
 		Vec3Provider.CODEC.fieldOf("max").forGetter(DynamicBoxProvider::max)
 	).apply(instance, DynamicBoxProvider::new));

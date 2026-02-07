@@ -4,13 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.HolderSet;
@@ -23,7 +23,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,7 +30,9 @@ import java.util.Optional;
 @Getter
 public class ModifyEntityTypeTagPower extends Power {
 
-	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyEntityTypeTagPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
 		.apply(instance, ModifyEntityTypeTagPower::new));
 
@@ -94,47 +95,34 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	}
 
-	public static Context createContext(@NotNull Entity entity) {
-		return PowerTypes.MODIFY_ENTITY_TYPE_TAG.contextBuilder()
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
+	public static boolean modify(Entity entity, HolderSet<EntityType<?>> directTag) {
+		return directTag.unwrapKey()
+			.map(tag -> modify(entity, tag))
+			.orElse(false);
 	}
 
-	public static boolean doesApply(Context context, TagKey<EntityType<?>> tag) {
+	public static boolean modify(Entity entity, TagKey<EntityType<?>> tag) {
 
-		Entity entity = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(entity, Instance.class);
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext) && instance.doesApply(tag)) {
+				if (VISITOR.push(instance) && instance.isActive(context) && instance.doesApply(tag)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
 		return false;
 
-	}
-
-	public static boolean doesApply(Context context, HolderSet<EntityType<?>> tagsEntryList) {
-		return tagsEntryList.unwrapKey()
-			.map(tag -> doesApply(context, tag))
-			.orElse(false);
 	}
 
 }

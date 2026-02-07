@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeDamageCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements DamageCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeDamageCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeDamageCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeDamageCondition::new);
+	public static final MapCodec<CompareToRangeDamageCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeDamageCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeDamageCondition::new);
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

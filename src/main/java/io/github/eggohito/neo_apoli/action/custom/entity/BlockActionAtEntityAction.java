@@ -5,21 +5,26 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.block.BlockAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
 public record BlockActionAtEntityAction(BlockAction blockAction) implements EntityAction {
 
-	public static final MapCodec<BlockActionAtEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final ContextKeySet ACTION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<BlockActionAtEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockAction.CODEC.fieldOf("block_action").forGetter(BlockActionAtEntityAction::blockAction)
 	).apply(instance, BlockActionAtEntityAction::new));
 
@@ -36,18 +41,17 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	@Override
 	public void execute(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextKeys.THIS_POS)) {
+		if (!context.hasParameter(NeoApoliContextParams.THIS_POS)) {
 			return;
 		}
 
-		Level level = context.getLevel();
-		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.THIS_POS));
+		Level level = context.level();
+		BlockPos blockPos = BlockPos.containing(context.getRequired(NeoApoliContextParams.THIS_POS));
 
 		Context blockContext = new Context.Builder(context)
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(blockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+			.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+			.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
+			.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 			.build(level);
 
 		blockAction().execute(blockContext.forChild(".block_action"));
@@ -56,15 +60,13 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_POS);
+		return Set.of(NeoApoliContextParams.THIS_POS);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		blockAction().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.forChild(".block_action"));
+		blockAction().validate(validator.withAdditionalKeysFromSets(ACTION_CONTEXT).forChild(".block_action"));
 	}
 
 }

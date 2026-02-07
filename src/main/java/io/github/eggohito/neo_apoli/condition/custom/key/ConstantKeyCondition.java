@@ -12,18 +12,13 @@ public record ConstantKeyCondition(boolean value) implements KeyCondition, ICons
 
 	public static final Codec<ConstantKeyCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantKeyCondition::new);
 
-	public static final MapCodec<ConstantKeyCondition> CODEC = IConstantMetaCondition.createCodec(ConstantKeyCondition::new);
+	public static final MapCodec<ConstantKeyCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantKeyCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantKeyCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantKeyCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {
 		return KeyConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

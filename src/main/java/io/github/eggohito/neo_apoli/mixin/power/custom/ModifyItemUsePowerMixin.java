@@ -57,12 +57,12 @@ public abstract class ModifyItemUsePowerMixin {
 		private ItemStack beforeFinishUsing(Item item, ItemStack stack, Level world, LivingEntity user, Operation<ItemStack> original) {
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.FINISH, PriorityPhase.BEFORE, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
-			ItemStack referredStack = stackReference.get();
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.FINISH, PriorityPhase.BEFORE, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
+			ItemStack accessedStack = slotAccess.get();
 
-			return original.call(referredStack.getItem(), referredStack, world, user);
+			return original.call(accessedStack.getItem(), accessedStack, world, user);
 
 		}
 
@@ -70,10 +70,10 @@ public abstract class ModifyItemUsePowerMixin {
 		private ItemStack afterFinishUsing(ItemStack original, Level world, LivingEntity user) {
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.FINISH, PriorityPhase.AFTER, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
-			return stackReference.get();
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.FINISH, PriorityPhase.AFTER, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
+			return slotAccess.get();
 
 		}
 
@@ -81,12 +81,12 @@ public abstract class ModifyItemUsePowerMixin {
 		private boolean beforeStoppedUsing(Item item, ItemStack stack, Level world, LivingEntity user, int remainingUseTicks, Operation<Boolean> original, @Share("stoppedUsingResult") LocalBooleanRef stoppedUsingResultRef) {
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.STOP, PriorityPhase.BEFORE, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
-			ItemStack referredStack = stackReference.get();
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.STOP, PriorityPhase.BEFORE, result -> {}, () -> InteractionResult.PASS, () -> InteractionResult.PASS);
+			ItemStack accessedStack = slotAccess.get();
 
-			boolean result = original.call(referredStack.getItem(), referredStack, world, user, remainingUseTicks);
+			boolean result = original.call(accessedStack.getItem(), accessedStack, world, user, remainingUseTicks);
 			stoppedUsingResultRef.set(result);
 
 			return result;
@@ -101,9 +101,9 @@ public abstract class ModifyItemUsePowerMixin {
 				: InteractionResult.PASS;
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.STOP, PriorityPhase.AFTER, newResult -> {}, () -> null, () -> result);
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.STOP, PriorityPhase.AFTER, newResult -> {}, () -> null, () -> result);
 
 		}
 
@@ -111,12 +111,12 @@ public abstract class ModifyItemUsePowerMixin {
 		private void beforeDuringTick(Item item, Level world, LivingEntity user, ItemStack stack, int remainingUseTicks, Operation<Void> original) {
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), newStack -> user.setItemInHand(hand, newStack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.DURING, PriorityPhase.BEFORE, newResult -> {}, () -> null, () -> InteractionResult.PASS);
-			ItemStack referredStack = stackReference.get();
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.DURING, PriorityPhase.BEFORE, newResult -> {}, () -> null, () -> InteractionResult.PASS);
+			ItemStack accessedStack = slotAccess.get();
 
-			original.call(referredStack.getItem(), world, user, referredStack, remainingUseTicks);
+			original.call(accessedStack.getItem(), world, user, accessedStack, remainingUseTicks);
 
 		}
 
@@ -124,9 +124,9 @@ public abstract class ModifyItemUsePowerMixin {
 		private void afterDuringTick(Level world, LivingEntity user, int remainingUseTicks, CallbackInfo ci) {
 
 			InteractionHand hand = user.getUsedItemHand();
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
 
-			ModifyItemUsePower.execute(world, user, hand, stackReference, ModifyItemUsePower.TriggerType.DURING, PriorityPhase.AFTER, newResult -> {}, () -> null, () -> InteractionResult.PASS);
+			ModifyItemUsePower.execute(world, user, hand, slotAccess, ModifyItemUsePower.TriggerType.DURING, PriorityPhase.AFTER, newResult -> {}, () -> null, () -> InteractionResult.PASS);
 
 		}
 
@@ -138,12 +138,12 @@ public abstract class ModifyItemUsePowerMixin {
 		@WrapOperation(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/Item;use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
 		private InteractionResult beforeOnConsumableUse(BlockItem blockItem, Level world, Player user, InteractionHand hand, Operation<InteractionResult> original, UseOnContext usageContext, @Share("zeroPriorityResult") LocalRef<InteractionResult> zeroPriorityResultRef) {
 
-			SlotAccess stackReference = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
+			SlotAccess slotAccess = SlotAccess.of(() -> user.getItemInHand(hand), stack -> user.setItemInHand(hand, stack));
 			ModifyItemUsePower.TriggerType triggerType = usageContext.getItemInHand().getUseDuration(user) == 0
 				? ModifyItemUsePower.TriggerType.INSTANT
 				: ModifyItemUsePower.TriggerType.START;
 
-			return ModifyItemUsePower.execute(world, user, hand, stackReference, triggerType, PriorityPhase.BEFORE, zeroPriorityResultRef::set, zeroPriorityResultRef::get, () -> original.call(blockItem, world, user, hand));
+			return ModifyItemUsePower.execute(world, user, hand, slotAccess, triggerType, PriorityPhase.BEFORE, zeroPriorityResultRef::set, zeroPriorityResultRef::get, () -> original.call(blockItem, world, user, hand));
 
 		}
 
@@ -155,12 +155,12 @@ public abstract class ModifyItemUsePowerMixin {
 
 			if (player != null) {
 
-				SlotAccess stackReference = SlotAccess.of(() -> player.getItemInHand(hand), stack -> player.setItemInHand(hand, stack));
+				SlotAccess slotAccess = SlotAccess.of(() -> player.getItemInHand(hand), stack -> player.setItemInHand(hand, stack));
 				ModifyItemUsePower.TriggerType triggerType = player.getItemInHand(hand).getUseDuration(player) == 0
 					? ModifyItemUsePower.TriggerType.INSTANT
 					: ModifyItemUsePower.TriggerType.START;
 
-				return ModifyItemUsePower.execute(usageContext.getLevel(), player, hand, stackReference, triggerType, PriorityPhase.AFTER, zeroPriorityResultRef::set, zeroPriorityResultRef::get, () -> original);
+				return ModifyItemUsePower.execute(usageContext.getLevel(), player, hand, slotAccess, triggerType, PriorityPhase.AFTER, zeroPriorityResultRef::set, zeroPriorityResultRef::get, () -> original);
 
 			}
 

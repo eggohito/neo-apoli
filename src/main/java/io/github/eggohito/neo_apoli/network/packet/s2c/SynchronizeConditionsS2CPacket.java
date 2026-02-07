@@ -3,12 +3,13 @@ package io.github.eggohito.neo_apoli.network.packet.s2c;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import java.util.Map;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.Map;
 
 public record SynchronizeConditionsS2CPacket(Map<ResourceLocation, Condition> conditions) implements CustomPacketPayload {
 

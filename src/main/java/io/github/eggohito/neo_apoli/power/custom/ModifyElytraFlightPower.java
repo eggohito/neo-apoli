@@ -4,13 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,7 +26,9 @@ import java.util.function.BooleanSupplier;
 @Getter
 public class ModifyElytraFlightPower extends Power implements Prioritized<ModifyElytraFlightPower> {
 
-	public static final MapCodec<ModifyElytraFlightPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyElytraFlightPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyElytraFlightPower::getAllow))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraFlightPower::getPriority))
 		.apply(instance, ModifyElytraFlightPower::new));
@@ -75,37 +77,28 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 
 	}
 
-	public static boolean modify(Context context, InstanceCollection<Instance> instances, BooleanSupplier defaultValue) {
+	public static boolean modify(Entity entity, BooleanSupplier defaultValue) {
 
-		for (var instance : instances) {
+		for (var instance : new InstanceCollection<>(entity, Instance.class)) {
 
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(instance.createValidator())
-				.build(context.getLevel());
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-					return instance.isAllowed(instanceContext);
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					return instance.isAllowed(context);
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
 		return defaultValue.getAsBoolean();
 
-	}
-
-	public static Context createContext(Entity entity) {
-		return PowerTypes.MODIFY_ELYTRA_FLIGHT.contextBuilder()
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
 	}
 
 }

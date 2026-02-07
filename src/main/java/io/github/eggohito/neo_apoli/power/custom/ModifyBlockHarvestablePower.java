@@ -4,13 +4,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -31,7 +32,9 @@ import java.util.function.BooleanSupplier;
 @Getter
 public class ModifyBlockHarvestablePower extends Power implements Prioritized<ModifyBlockHarvestablePower> {
 
-	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyBlockHarvestablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::getAllow))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::getPriority))
 		.apply(instance, ModifyBlockHarvestablePower::new));
@@ -68,15 +71,18 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 		getAllow().validate(validator.forChild(".allow"));
 	}
 
-	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> implements Comparable<Instance> {
+	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestablePower power) {
 			super(holder, power);
 		}
 
-		@Override
-		public int compareTo(@NotNull ModifyBlockHarvestablePower.Instance that) {
-			return this.getPower().compareTo(that.getPower());
+		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_BLOCK_HARVESTABLE.keySet());
 		}
 
 		public boolean isAllowed(Context context) {
@@ -85,50 +91,28 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	}
 
-	public static boolean modify(Context context, BooleanSupplier defaultValue) {
+	public static boolean modify(Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, BooleanSupplier defaultValue) {
 
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		for (var instance : new InstanceCollection<>(player, Instance.class)) {
 
-		return modify(context, instances, defaultValue);
-
-	}
-
-	public static boolean modify(Context context, InstanceCollection<Instance> instances, BooleanSupplier defaultValue) {
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(blockPos, blockState, blockEntity);
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-					return instance.isAllowed(instanceContext);
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					return instance.isAllowed(context);
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
 		return defaultValue.getAsBoolean();
 
-	}
-
-	public static Context createContext(Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-		return PowerTypes.MODIFY_BLOCK_HARVESTABLE.contextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
-			.add(NeoApoliContextKeys.THIS_ENTITY, player)
-			.add(NeoApoliContextKeys.THIS_POS, player.position())
-			.build(player.level());
 	}
 
 }

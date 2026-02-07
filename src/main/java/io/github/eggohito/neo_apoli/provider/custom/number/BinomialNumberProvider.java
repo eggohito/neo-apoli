@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BinomialNumberProvider(NumberProvider attempts, NumberProvider probability) implements NumberProvider {
 
-	public static final MapCodec<BinomialNumberProvider> CODEC = MapCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BinomialNumberProvider> MAP_CODEC = MapCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("attempts").forGetter(BinomialNumberProvider::attempts),
 		NumberProvider.CODEC.fieldOf("probability").forGetter(BinomialNumberProvider::probability)
 	).apply(instance, BinomialNumberProvider::new)));
@@ -33,7 +33,7 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	@Override
 	public @NotNull Number next(Context context) {
 
-		RandomSource random = context.getLevel().getRandom();
+		RandomSource random = context.level().getRandom();
 		long result = 0;
 
 		Context attemptsContext = context.forChild(".attempts");

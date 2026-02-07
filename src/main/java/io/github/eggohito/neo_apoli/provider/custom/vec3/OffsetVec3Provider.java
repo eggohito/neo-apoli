@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) implements Vec3Provider {
 
-	public static final MapCodec<OffsetVec3Provider> CODEC = MapCodecUtil.lazy(OffsetVec3Provider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<OffsetVec3Provider> MAP_CODEC = MapCodecUtil.lazy(OffsetVec3Provider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("vector").forGetter(OffsetVec3Provider::vector),
 		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetVec3Provider::offset)
 	).apply(instance, OffsetVec3Provider::new)));

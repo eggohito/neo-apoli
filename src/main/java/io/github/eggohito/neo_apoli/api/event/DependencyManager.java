@@ -5,20 +5,18 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;
 
-public class DependencyManager {
+public interface DependencyManager {
 
-	public static final Event<Adder> ACTIONS = create();
-	public static final Event<Adder> CONDITIONS = create();
-	public static final Event<Adder> POWERS = create();
-	public static final Event<Adder> GLOBAL_POWER_SETS = create();
+	Event<DependencyManager> ACTIONS = create();
+	Event<DependencyManager> CONDITIONS = create();
+	Event<DependencyManager> POWERS = create();
+	Event<DependencyManager> GLOBAL_POWER_SETS = create();
 
-	public interface Adder {
-		void add(ImmutableSet.Builder<ResourceLocation> dependencies);
-	}
+	void add(ImmutableSet.Builder<ResourceLocation> dependencies);
 
-	public static Event<Adder> create() {
+	private static Event<DependencyManager> create() {
 		return EventFactory.createArrayBacked(
-			Adder.class,
+			DependencyManager.class,
 			callbacks -> dependencies -> {
 
 				for (var callback : callbacks) {

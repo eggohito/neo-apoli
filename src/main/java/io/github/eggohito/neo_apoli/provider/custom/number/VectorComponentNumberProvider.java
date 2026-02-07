@@ -3,10 +3,10 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis axis) implements NumberProvider {
 
-	public static final MapCodec<VectorComponentNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<VectorComponentNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("vector").forGetter(VectorComponentNumberProvider::vector),
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(VectorComponentNumberProvider::axis)
 	).apply(instance, VectorComponentNumberProvider::new));

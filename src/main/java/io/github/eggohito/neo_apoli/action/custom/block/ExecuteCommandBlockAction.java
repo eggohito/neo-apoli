@@ -5,9 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,7 +21,7 @@ import net.minecraft.world.phys.Vec2;
 //	TODO: Generalize this action and add some sort of provider for command sources
 public record ExecuteCommandBlockAction(StringProvider command) implements BlockAction {
 
-	public static final MapCodec<ExecuteCommandBlockAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<ExecuteCommandBlockAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(StringProvider.CODEC.fieldOf("command").forGetter(ExecuteCommandBlockAction::command))
 		.apply(instance, ExecuteCommandBlockAction::new));
 
@@ -38,22 +38,21 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.level() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
-		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
-
-		Context commandContext = context.forChild(".command");
-		String command = command().next(commandContext);
-
-		if (commandContext.hasErrors() || command.isEmpty()) {
-			return;
-		}
+		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
+		BlockState blockState = context.getRequired(NeoApoliContextParams.BLOCK_STATE);
 
 		MinecraftServer server = serverLevel.getServer();
-		CommandSourceStack commandSource = new CommandSourceStack(
+		String command = command().next(context.forChild(".command"));
+
+		if (command.isEmpty()) {
+			return;
+		}
+
+		CommandSourceStack source = new CommandSourceStack(
 			NeoApoli.validateCommandOutput(server),
 			blockPos.getCenter(),
 			Vec2.ZERO,
@@ -65,7 +64,7 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 			null
 		);
 
-		server.getCommands().performPrefixedCommand(commandSource, command);
+		server.getCommands().performPrefixedCommand(source, command);
 
 	}
 

@@ -7,14 +7,15 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -28,7 +29,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -36,8 +36,10 @@ import java.util.function.BiPredicate;
 @Getter
 public class PhasingPower extends Power {
 
-	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityMetaCondition(new IsSneakingEntityCondition(), NeoApoliContextKeys.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<PhasingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityMetaCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
 		.and(RenderType.CODEC.optionalFieldOf("render_type", RenderType.BLINDNESS).forGetter(PhasingPower::getRenderType))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
@@ -84,48 +86,49 @@ public class PhasingPower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(CachedBlock cachedBlock) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.getPos())
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.getState())
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.getEntity())
+				.buildWithRequirements(holder.level(), PowerTypes.PHASING.keySet());
+		}
+
 		public RenderType getRenderType() {
 			return this.getPower().getRenderType();
+		}
+
+		public boolean doesApply(Context context, BlockPos blockPos, VoxelShape blockShape) {
+			return holder.getY() < (double) blockPos.getY() + blockShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
+				|| power.getPhaseDownCondition().test(context.forChild(".phase_down_condition"));
 		}
 
 		public float getViewDistance() {
 			return this.getPower().getViewDistance();
 		}
 
-		public boolean shouldPhase(Context context, VoxelShape collisionShape) {
-			BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
-			return holder.getY() < (double) blockPos.getY() + collisionShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
-				|| power.getPhaseDownCondition().test(context.forChild(".phase_down_condition"));
-		}
-
 	}
 
-	public static boolean shouldPhase(Context context, VoxelShape collisionShape) {
-		return shouldPhase(context, (instance, ctx) -> instance.isActive(ctx) && instance.shouldPhase(ctx, collisionShape));
+	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, VoxelShape blockShape) {
+		return doesApply(entity, cachedBlock, (instance, context) -> instance.isActive(context) && instance.doesApply(context, cachedBlock.getPos(), blockShape));
 	}
 
-	public static boolean shouldPhase(Context context, BiPredicate<Instance, Context> tester) {
+	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, BiPredicate<Instance, Context> tester) {
 
-		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(cachedBlock);
 
 			try {
 
-				if (instanceContext.markActive(instance) && tester.test(instance, context)) {
+				if (VISITOR.push(instance) && tester.test(instance, context)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
@@ -134,46 +137,28 @@ public class PhasingPower extends Power {
 
 	}
 
-	public static float modifyViewDistance(Context context, float defaultValue) {
+	public static float modifyViewDistance(Entity entity, CachedBlock cachedBlock, float viewDistance) {
 
-		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class, instance -> instance.getRenderType() == RenderType.BLINDNESS);
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-		float result = defaultValue;
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(cachedBlock);
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-					result = Math.min(result, instance.getViewDistance());
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					viewDistance = Math.min(viewDistance, instance.getViewDistance());
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		return result;
+		return viewDistance;
 
-	}
-
-	public static Context createContext(Entity entity, SavedBlockPosition savedBlock) {
-		return PowerTypes.PHASING.contextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, savedBlock.getPos())
-			.add(NeoApoliContextKeys.BLOCK_STATE, savedBlock.getState())
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, savedBlock.getEntity())
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
 	}
 
 	public enum RenderType implements StringRepresentable {

@@ -4,9 +4,7 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -15,7 +13,7 @@ import java.util.Set;
 
 public interface BiEntityAction extends Action {
 
-	Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionType.CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions), NothingBiEntityAction.INLINE_CODEC));
+	Codec<BiEntityAction> CODEC = Codec.recursive(BiEntityAction.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(BiEntityActionType.CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::mapCodec), codec.listOf().xmap(SequenceBiEntityAction::new, SequenceBiEntityAction::actions)));
 
 	StreamCodec<RegistryFriendlyByteBuf, BiEntityAction> STREAM_CODEC = BiEntityActionType.STREAM_CODEC.dispatch(BiEntityAction::getType, BiEntityActionType::streamCodec);
 
@@ -24,12 +22,7 @@ public interface BiEntityAction extends Action {
 
 	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
-		return NeoApoliContextKeySets.BIENTITY.allowed();
-	}
-
-	@Override
-	default String asDisplayString() {
-		return "Bi-entity action with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_ACTION_TYPE, this.getType()) + "\"";
+		return Set.of(NeoApoliContextParams.ACTOR_ENTITY, NeoApoliContextParams.TARGET_ENTITY);
 	}
 
 }

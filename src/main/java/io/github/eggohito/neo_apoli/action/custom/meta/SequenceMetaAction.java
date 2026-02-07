@@ -13,8 +13,8 @@ import java.util.List;
 
 public record SequenceMetaAction(List<Action> actions) implements ISequenceMetaAction<Action> {
 
-	public static final MapCodec<SequenceMetaAction> CODEC = MapCodecUtil.lazy(SequenceMetaAction.class.getSimpleName(), () -> ISequenceMetaAction.createCodec(Action.CODEC, SequenceMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceMetaAction.class.getSimpleName(), () -> ISequenceMetaAction.createStreamCodec(Action.STREAM_CODEC, SequenceMetaAction::new));
+	public static final MapCodec<SequenceMetaAction> MAP_CODEC = MapCodecUtil.lazy(SequenceMetaAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(Action.CODEC, SequenceMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceMetaAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(Action.STREAM_CODEC, SequenceMetaAction::new));
 
 	@Override
 	public ActionType<?> getType() {

@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -21,7 +21,7 @@ import java.util.Optional;
 
 public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provider position) implements NumberProvider {
 
-	public static final MapCodec<LightLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<LightLevelNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.LIGHT_TYPE.optionalFieldOf("light_type").forGetter(LightLevelNumberProvider::lightType),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(LightLevelNumberProvider::position)
 	).apply(instance, LightLevelNumberProvider::new));
@@ -47,7 +47,7 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 			return 0;
 		}
 
-		Level world = context.getLevel();
+		Level world = context.level();
 		BlockPos blockPos = BlockPos.containing(position);
 
 		return this.lightType()

@@ -6,25 +6,23 @@ import io.github.eggohito.neo_apoli.action.custom.bientity.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.custom.bientity.NothingBiEntityAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.ConstantNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.FloatSupplier;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -34,12 +32,18 @@ import net.minecraft.world.phys.Vec3;
 
 public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntityAction, NbtProvider tag, NumberProvider divergence, NumberProvider speed, NumberProvider count) implements EntityAction {
 
-	public static final MapCodec<ShootEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.ACTOR_ENTITY)
+		.required(NeoApoliContextParams.TARGET_ENTITY)
+		.required(NeoApoliContextParams.PROJECTILE_ENTITY)
+		.build();
+
+	public static final MapCodec<ShootEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityType.CODEC.fieldOf("entity_type").forGetter(ShootEntityAction::entityType),
-		BiEntityAction.CODEC.optionalFieldOf("bientity_action", new NothingBiEntityAction()).forGetter(ShootEntityAction::biEntityAction),
+		BiEntityAction.CODEC.optionalFieldOf("bientity_action", NothingBiEntityAction.INSTANCE).forGetter(ShootEntityAction::biEntityAction),
 		NbtProvider.CODEC.optionalFieldOf("tag", new ConstantNbtProvider(new CompoundTag())).forGetter(ShootEntityAction::tag),
 		NumberProvider.CODEC.optionalFieldOf("divergence", new ConstantNumberProvider(1.0F)).forGetter(ShootEntityAction::divergence),
-		NumberProvider.CODEC.optionalFieldOf("speed", new ConstantNumberProvider(1.5F)).forGetter(ShootEntityAction::speed),
+		NumberProvider.CODEC.optionalFieldOf("speed", new ConstantNumberProvider(1.0F)).forGetter(ShootEntityAction::speed),
 		NumberProvider.CODEC.optionalFieldOf("count", new ConstantNumberProvider(1)).forGetter(ShootEntityAction::count)
 	).apply(instance, ShootEntityAction::new));
 
@@ -61,48 +65,32 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasParameter(NeoApoliContextKeys.THIS_ENTITY)) {
+		if (!(context.level() instanceof ServerLevel serverLevel) || !context.hasParameter(NeoApoliContextParams.THIS_ENTITY)) {
 			return;
 		}
 
-		RandomSource random = serverLevel.getRandom();
-
-		Entity shooter = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		Entity shooter = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
 		Vec3 shooterMovement = shooter.getDeltaMovement();
 
 		float pitch = shooter.getViewXRot(1.0F);
 		float yaw = shooter.getViewYRot(1.0F);
 
-		Context countContext = context.forChild(".count");
-		int count = count().nextInt(countContext);
+		RandomSource random = serverLevel.getRandom();
+		int count = count().nextInt(context.forChild(".count"));
 
-		for (int i = 0; i < count && !countContext.hasErrors(); i++) {
+		for (int i = 0; i < count; i++) {
 
-			Context divergenceContext = context.forChild(".divergence");
-			float divergence = divergence().nextFloat(divergenceContext);
-
-			if (divergenceContext.hasErrors()) {
+			if (!(tag().next(context.forChild(".tag")) instanceof CompoundTag entityTag)) {
 				continue;
 			}
 
-			Context speedContext = context.forChild(".speed");
-			float speed = speed().nextFloat(speedContext);
-
-			if (speedContext.hasErrors()) {
-				continue;
-			}
-
-			Context tagContext = context.forChild(".tag");
-			Tag tag = tag().next(tagContext);
-
-			if (!(tag instanceof CompoundTag entityTag)) {
-				continue;
-			}
+			float divergence = divergence().nextFloat(context.forChild(".divergence"));
+			float speed = speed().nextFloat(context.forChild(".speed"));
 
 			CompoundTag entityDefinitionTag = entityTag.copy();
 			entityDefinitionTag.put("id", EntityType.CODEC.encodeStart(serverLevel.registryAccess().createSerializationContext(NbtOps.INSTANCE), entityType()).getOrThrow());
 
-			switch (EntityType.loadEntityRecursive(entityDefinitionTag, serverLevel, EntitySpawnReason.MOB_SUMMONED, e -> updatePos(e, shooter.getEyePosition(1.0F)))) {
+			switch (EntityType.loadEntityRecursive(entityDefinitionTag, serverLevel, EntitySpawnReason.MOB_SUMMONED, e -> update(e, shooter.getEyePosition(1.0F)))) {
 				case Projectile projectile -> {
 
 					if (projectile instanceof AbstractHurtingProjectile hurtingProjectile) {
@@ -152,17 +140,16 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 		serverLevel.tryAddFreshEntityWithPassengers(entity);
 
 		Context biEntityContext = new Context.Builder(context)
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY, NeoApoliContextKeySets.ENTITY))
-			.add(NeoApoliContextKeys.ACTOR_ENTITY, shooter)
-			.add(NeoApoliContextKeys.TARGET_ENTITY, entity)
-			.add(NeoApoliContextKeys.PROJECTILE_ENTITY, entity)
+			.withRequired(NeoApoliContextParams.ACTOR_ENTITY, shooter)
+			.withRequired(NeoApoliContextParams.TARGET_ENTITY, entity)
+			.withRequired(NeoApoliContextParams.PROJECTILE_ENTITY, entity)
 			.build(serverLevel);
 
 		biEntityAction().execute(biEntityContext.forChild(".bientity_action"));
 
 	}
 
-	private Entity updatePos(Entity entity, Vec3 pos) {
+	private Entity update(Entity entity, Vec3 pos) {
 		entity.snapTo(pos);
 		return entity;
 	}
@@ -171,9 +158,7 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 	public void validate(Context.Validator validator) {
 
 		EntityAction.super.validate(validator);
-		biEntityAction().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-			.forChild(".bientity_action"));
+		biEntityAction().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".bientity_action"));
 
 		tag().validate(validator.forChild(".tag"));
 		divergence().validate(validator.forChild(".divergence"));

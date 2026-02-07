@@ -7,20 +7,23 @@ import io.github.eggohito.neo_apoli.condition.custom.item.IsEmptyItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 
 public record HasEquippedItemEntityCondition(ItemCondition itemCondition, EquipmentSlotGroup slot) implements EntityCondition {
 
-	public static final MapCodec<HasEquippedItemEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		ItemCondition.CODEC.optionalFieldOf("item_condition", new InvertedItemCondition(new IsEmptyItemCondition())).forGetter(HasEquippedItemEntityCondition::itemCondition),
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.ITEM_STACK)
+		.build();
+
+	public static final MapCodec<HasEquippedItemEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ItemCondition.CODEC.optionalFieldOf("item_condition", new InvertedItemCondition(IsEmptyItemCondition.INSTANCE)).forGetter(HasEquippedItemEntityCondition::itemCondition),
 		EquipmentSlotGroup.CODEC.fieldOf("slot").forGetter(HasEquippedItemEntityCondition::slot)
 	).apply(instance, HasEquippedItemEntityCondition::new));
 
@@ -38,7 +41,7 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 	@Override
 	public boolean test(Context context) {
 
-		if (!(context.nullable(NeoApoliContextKeys.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
+		if (!(context.getNullable(NeoApoliContextParams.THIS_ENTITY) instanceof LivingEntity thisLiving)) {
 			return false;
 		}
 
@@ -48,12 +51,11 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 				continue;
 			}
 
-			Context itemContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ITEM))
-				.add(NeoApoliContextKeys.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot))
-				.build(context.getLevel());
+			Context conditionContext = new Context.Builder(context)
+				.withRequired(NeoApoliContextParams.ITEM_STACK, thisLiving.getItemBySlot(equipmentSlot))
+				.build(context.level());
 
-			if (itemCondition().test(itemContext.forChild(".item_condition"))) {
+			if (itemCondition().test(conditionContext.forChild(".item_condition"))) {
 				return true;
 			}
 
@@ -66,9 +68,7 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		itemCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ITEM))
-			.forChild(".item_condition"));
+		itemCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".item_condition"));
 	}
 
 }

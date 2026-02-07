@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record RandomChanceEntityAction(EntityAction successAction, Optional<EntityAction> failAction, NumberProvider chance) implements EntityAction, IRandomChanceMetaAction<EntityAction> {
 
-	public static final MapCodec<RandomChanceEntityAction> CODEC = MapCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createCodec(EntityAction.CODEC, RandomChanceEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createStreamCodec(EntityAction.STREAM_CODEC, RandomChanceEntityAction::new));
+	public static final MapCodec<RandomChanceEntityAction> MAP_CODEC = MapCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> IRandomChanceMetaAction.mapCodec(EntityAction.CODEC, RandomChanceEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> IRandomChanceMetaAction.streamCodec(EntityAction.STREAM_CODEC, RandomChanceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.RANDOM_CHANCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

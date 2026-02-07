@@ -5,11 +5,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -22,14 +23,15 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
 public class ModifyAirSpeedPower extends Power {
 
-	public static final MapCodec<ModifyAirSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyAirSpeedPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyAirSpeedPower::getModifiers))
 		.apply(instance, ModifyAirSpeedPower::new));
 
@@ -56,6 +58,12 @@ public class ModifyAirSpeedPower extends Power {
 		return new Instance(holder, this);
 	}
 
+	@Override
+	public void validate(Context.Validator validator) {
+		super.validate(validator);
+		MiscUtil.iterate(getModifiers(), (index, modifier) -> modifier.validate(validator.forChild(".modifiers[" + index + "]")));
+	}
+
 	public static class Instance extends Power.Instance<ModifyAirSpeedPower> {
 
 		protected Instance(@NotNull Entity holder, @NotNull ModifyAirSpeedPower power) {
@@ -68,56 +76,31 @@ public class ModifyAirSpeedPower extends Power {
 
 	}
 
-	public static float modify(Context context, float baseValue) {
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		return modify(context, PowersComponent.getInstances(holder, Instance.class), baseValue);
-	}
+	public static float modify(Entity entity, float airSpeed) {
 
-	public static float modify(Context context, List<Instance> instances, float baseValue) {
+		List<Modifier.Entry> entries = new ObjectArrayList<>();
 
-		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (!instanceContext.markActive(instance) && !instance.isActive(instanceContext)) {
-					continue;
-				}
-
-				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-
-				while (listIterator.hasNext()) {
-
-					int index = listIterator.nextIndex();
-					Modifier modifier = listIterator.next();
-
-					modifiers.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
-
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					MiscUtil.iterate(instance.getModifiers(), (index, modifier) -> entries.add(Modifier.entry(modifier, context.forChild(".modifiers[" + index + "]"))));
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_AIR_SPEED, modifiers, context, baseValue);
-		return (float) Modifier.applyAll(modifiers, baseValue);
+		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_AIR_SPEED, entries, airSpeed);
+		return (float) Modifier.applyAll(entries, airSpeed);
 
-	}
-
-	public static Context createContext(Entity entity) {
-		return PowerTypes.MODIFY_AIR_SPEED.contextBuilder()
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
 	}
 
 }

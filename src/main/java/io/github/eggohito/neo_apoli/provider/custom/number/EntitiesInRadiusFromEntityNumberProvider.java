@@ -6,19 +6,18 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -26,11 +25,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, TypedContextKey<Entity> actor, Shape shape, NumberProvider radius) implements NumberProvider {
+public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, ContextParameter<Entity> actor, Shape shape, NumberProvider radius) implements NumberProvider {
 
-	public static final MapCodec<EntitiesInRadiusFromEntityNumberProvider> CODEC = MapCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.ACTOR_ENTITY)
+		.required(NeoApoliContextParams.TARGET_ENTITY)
+		.build();
+
+	public static final MapCodec<EntitiesInRadiusFromEntityNumberProvider> MAP_CODEC = MapCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(EntitiesInRadiusFromEntityNumberProvider::biEntityCondition),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
 		Shape.CODEC.fieldOf("shape").forGetter(EntitiesInRadiusFromEntityNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromEntityNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromEntityNumberProvider::new)));
@@ -55,7 +59,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 			return 0;
 		}
 
-		Entity actor = context.required(actor());
+		Entity actor = context.getRequired(actor());
 		Level level = actor.level();
 
 		Context radiusContext = context.forChild(".radius");
@@ -71,9 +75,8 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 		for (Entity target : shape().getEntities(level, pos, radius)) {
 
 			Context biEntityContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-				.add(NeoApoliContextKeys.TARGET_ENTITY, target)
+				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, actor)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
 				.build(level);
 
 			if (biEntityCondition().test(biEntityContext.forChild(".bientity_condition"))) {
@@ -95,10 +98,8 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	public void validate(Context.Validator validator) {
 
 		NumberProvider.super.validate(validator);
-		biEntityCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-			.forChild(".bientity_condition"));
 
+		biEntityCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".bientity_condition"));
 		radius().validate(validator.forChild(".radius"));
 
 	}

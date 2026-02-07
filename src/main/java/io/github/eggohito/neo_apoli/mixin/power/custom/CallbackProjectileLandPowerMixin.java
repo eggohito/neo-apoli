@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.CallbackProjectileLandPower;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -14,8 +13,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
 
 @Mixin(Projectile.class)
 public abstract class CallbackProjectileLandPowerMixin extends Entity implements TraceableEntity {
@@ -38,16 +35,8 @@ public abstract class CallbackProjectileLandPowerMixin extends Entity implements
 			return;
 		}
 
-		List<CallbackProjectileLandPower.Instance> ownerInstances = PowersComponent.getInstances(owner, CallbackProjectileLandPower.Instance.class);
-		List<CallbackProjectileLandPower.Instance> projectileInstances = PowersComponent.getInstances(thisAsProjectile, CallbackProjectileLandPower.Instance.class);
-
-		if (!ownerInstances.isEmpty() && owner != null) {
-			CallbackProjectileLandPower.execute(CallbackProjectileLandPower.createOwnerContext(owner, thisAsProjectile, result), ownerInstances);
-		}
-
-		if (!projectileInstances.isEmpty()) {
-			CallbackProjectileLandPower.execute(CallbackProjectileLandPower.createProjectileContext(owner, thisAsProjectile, result), projectileInstances);
-		}
+		CallbackProjectileLandPower.executeAsOwner(owner, thisAsProjectile, result);
+		CallbackProjectileLandPower.executeAsProjectile(owner, thisAsProjectile, result);
 
 	}
 

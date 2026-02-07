@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,7 +17,7 @@ import net.minecraft.world.entity.Entity;
 
 public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider amount) implements BiEntityAction {
 
-	public static final MapCodec<DamageBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DamageBiEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		DamageType.CODEC.fieldOf("damage_type").forGetter(DamageBiEntityAction::damageType),
 		NumberProvider.CODEC.fieldOf("amount").forGetter(DamageBiEntityAction::amount)
 	).apply(instance, DamageBiEntityAction::new));
@@ -36,23 +36,19 @@ public record DamageBiEntityAction(Holder<DamageType> damageType, NumberProvider
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
+		if (!(context.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
-		Context amountContext = context.forChild(".amount");
-		float amount = amount().nextFloat(amountContext);
+		Entity actor = context.getNullable(NeoApoliContextParams.ACTOR_ENTITY);
+		Entity target = context.getNullable(NeoApoliContextParams.TARGET_ENTITY);
 
-		if (amountContext.hasErrors()) {
+		if (actor == null || target == null) {
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
-
-		if (actor != null && target != null) {
-			target.hurtServer(serverWorld, new DamageSource(this.damageType(), actor), amount);
-		}
+		float amount = amount().nextFloat(context.forChild(".amount"));
+		target.hurtServer(serverLevel, new DamageSource(this.damageType(), actor), amount);
 
 	}
 

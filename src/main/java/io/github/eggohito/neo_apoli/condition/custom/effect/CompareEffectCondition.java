@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareEffectCondition(Comparison comparison) implements EffectCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareEffectCondition> CODEC = ICompareMetaCondition.createCodec(CompareEffectCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareEffectCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareEffectCondition::new);
+	public static final MapCodec<CompareEffectCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareEffectCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareEffectCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareEffectCondition::new);
 
 	@Override
 	public EffectConditionType<?> getType() {
 		return EffectConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

@@ -3,17 +3,20 @@ package io.github.eggohito.neo_apoli.condition.custom.bientity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record EqualsBiEntityCondition() implements BiEntityCondition {
+import java.util.Objects;
 
-	public static final MapCodec<EqualsBiEntityCondition> CODEC = MapCodec.unit(EqualsBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, EqualsBiEntityCondition> STREAM_CODEC = StreamCodecUtil.unit(EqualsBiEntityCondition::new);
+public enum EqualsBiEntityCondition implements BiEntityCondition {
+
+	INSTANCE;
+
+	public static final MapCodec<EqualsBiEntityCondition> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, EqualsBiEntityCondition> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public BiEntityConditionType<?> getType() {
@@ -23,11 +26,10 @@ public record EqualsBiEntityCondition() implements BiEntityCondition {
 	@Override
 	public boolean test(Context context) {
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
+		Entity actor = context.getNullable(NeoApoliContextParams.ACTOR_ENTITY);
+		Entity target = context.getNullable(NeoApoliContextParams.TARGET_ENTITY);
 
-		return actor != null
-			&& actor.equals(target);
+		return Objects.equals(actor, target);
 
 	}
 

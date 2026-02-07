@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeEffectCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements EffectCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeEffectCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeEffectCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeEffectCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeEffectCondition::new);
+	public static final MapCodec<CompareToRangeEffectCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeEffectCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeEffectCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeEffectCondition::new);
 
 	@Override
 	public EffectConditionType<?> getType() {
 		return EffectConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

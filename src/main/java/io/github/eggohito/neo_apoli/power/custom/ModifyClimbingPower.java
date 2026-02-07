@@ -6,13 +6,14 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -23,7 +24,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -31,8 +31,10 @@ import java.util.function.BiPredicate;
 @Getter
 public class ModifyClimbingPower extends Power {
 
-	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityMetaCondition(new IsSneakingEntityCondition(), NeoApoliContextKeys.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyClimbingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityMetaCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 
@@ -78,6 +80,19 @@ public class ModifyClimbingPower extends Power {
 			super(holder, power);
 		}
 
+		@Override
+		public Context.Builder createHolderContextBuilder() {
+
+			Level level = holder.level();
+			BlockPos blockPos = holder.blockPosition();
+
+			return super.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos));
+
+		}
+
 		public boolean canHold(Context context) {
 			return this.isActive(context)
 				&& this.getPower().getAllowHolding().next(context.forChild(".allow_holding"))
@@ -86,54 +101,27 @@ public class ModifyClimbingPower extends Power {
 
 	}
 
-	public static boolean modify(Context context, BiPredicate<Instance, Context> tester) {
+	public static boolean modify(Entity entity, BiPredicate<Instance, Context> tester) {
 
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-		return modify(context, instances, tester);
-
-	}
-
-	public static boolean modify(Context context, List<Instance> instances, BiPredicate<Instance, Context> tester) {
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (instanceContext.markActive(instance) && tester.test(instance, instanceContext)) {
+				if (VISITOR.push(instance) && tester.test(instance, context)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
 		return false;
-
-	}
-
-	public static Context createContext(Entity entity) {
-
-		Level world = entity.level();
-		BlockPos blockPos = entity.blockPosition();
-
-		return PowerTypes.MODIFY_CLIMBING.contextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, entity.getInBlockState())
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(world);
 
 	}
 

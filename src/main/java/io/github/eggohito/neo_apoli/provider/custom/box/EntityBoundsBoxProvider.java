@@ -4,13 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -21,10 +21,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityBoundsBoxProvider(TypedContextKey<Entity> entity) implements BoxProvider {
+public record EntityBoundsBoxProvider(ContextParameter<Entity> entity) implements BoxProvider {
 
-	public static final MapCodec<EntityBoundsBoxProvider> CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
+	public static final MapCodec<EntityBoundsBoxProvider> MAP_CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
 	).apply(instance, EntityBoundsBoxProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityBoundsBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
@@ -41,10 +41,10 @@ public record EntityBoundsBoxProvider(TypedContextKey<Entity> entity) implements
 	public @NotNull AABB next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getValidator().report("Couldn't get the bounding box of the non-existing entity from parameter \"" + entity().name() + "\"!");
+			context.forChild(".entity").reportProblem("Couldn't get the bounding box of a non-existing entity!");
 		}
 
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.map(Entity::getBoundingBox)
 			.orElse(AABBUtil.EMPTY);
 
@@ -56,13 +56,13 @@ public record EntityBoundsBoxProvider(TypedContextKey<Entity> entity) implements
 	}
 
 	@Override
-	public CollisionContext getShapeContext(Context context) {
+	public CollisionContext getCollisionContext(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getValidator().report("Couldn't get shape context from non-existnet entity from parameter \"" + entity().name() + "\"!");
+			context.forChild(".entity").reportProblem("Couldn't get collision context from non-existent entity!");
 		}
 
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.map(CollisionContext::of)
 			.orElseGet(CollisionContext::empty);
 

@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record RandomChanceItemAction(ItemAction successAction, Optional<ItemAction> failAction, NumberProvider chance) implements ItemAction, IRandomChanceMetaAction<ItemAction> {
 
-	public static final MapCodec<RandomChanceItemAction> CODEC = MapCodecUtil.lazy(RandomChanceItemAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createCodec(ItemAction.CODEC, RandomChanceItemAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceItemAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createStreamCodec(ItemAction.STREAM_CODEC, RandomChanceItemAction::new));
+	public static final MapCodec<RandomChanceItemAction> MAP_CODEC = MapCodecUtil.lazy(RandomChanceItemAction.class.getSimpleName(), () -> IRandomChanceMetaAction.mapCodec(ItemAction.CODEC, RandomChanceItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceItemAction.class.getSimpleName(), () -> IRandomChanceMetaAction.streamCodec(ItemAction.STREAM_CODEC, RandomChanceItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.RANDOM_CHANCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

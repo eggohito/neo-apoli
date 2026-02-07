@@ -6,8 +6,8 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public record SwingHandEntityAction(Optional<InteractionHand> hand) implements EntityAction {
 
-	public static final MapCodec<SwingHandEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<SwingHandEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliCodecs.HAND.optionalFieldOf("hand").forGetter(SwingHandEntityAction::hand))
 		.apply(instance, SwingHandEntityAction::new));
 
@@ -35,10 +35,18 @@ public record SwingHandEntityAction(Optional<InteractionHand> hand) implements E
 
 	@Override
 	public void execute(Context context) {
-		context.optional(NeoApoliContextKeys.THIS_ENTITY)
+		context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.filter(LivingEntity.class::isInstance)
 			.map(LivingEntity.class::cast)
-			.ifPresent(livingEntity -> livingEntity.swing(hand().orElseGet(livingEntity::getUsedItemHand), livingEntity instanceof ServerPlayer));
+			.ifPresent(this::swingHand);
+	}
+
+	private InteractionHand getSpecifiedOrUsedHand(LivingEntity user) {
+		return hand().orElseGet(user::getUsedItemHand);
+	}
+
+	private void swingHand(LivingEntity entity) {
+		entity.swing(this.getSpecifiedOrUsedHand(entity), entity instanceof ServerPlayer);
 	}
 
 }

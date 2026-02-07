@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AnyOfDamageCondition(List<DamageCondition> conditions) implements DamageCondition, IAnyOfMetaCondition<DamageCondition> {
 
-	public static final MapCodec<AnyOfDamageCondition> CODEC = MapCodecUtil.lazy(AnyOfDamageCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(DamageCondition.CODEC, AnyOfDamageCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfDamageCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfDamageCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(DamageCondition.STREAM_CODEC, AnyOfDamageCondition::new));
+	public static final MapCodec<AnyOfDamageCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfDamageCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(DamageCondition.CODEC, AnyOfDamageCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfDamageCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfDamageCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(DamageCondition.STREAM_CODEC, AnyOfDamageCondition::new));
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.ANY_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

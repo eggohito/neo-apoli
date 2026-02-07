@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicDamageCondition(BooleanProvider value) implements DamageCondition, IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicDamageCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicDamageCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicDamageCondition::new);
+	public static final MapCodec<DynamicDamageCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicDamageCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicDamageCondition::new);
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.DYNAMIC;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

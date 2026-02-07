@@ -11,9 +11,9 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedMetaCondition(Condition condition) implements IInvertedMetaCondition<Condition> {
 
-	public static final MapCodec<InvertedMetaCondition> CODEC = MapCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(Condition.CODEC, InvertedMetaCondition::new));
+	public static final MapCodec<InvertedMetaCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(Condition.CODEC, InvertedMetaCondition::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(Condition.STREAM_CODEC, InvertedMetaCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(Condition.STREAM_CODEC, InvertedMetaCondition::new));
 
 	@Override
 	public ConditionType<?> getType() {

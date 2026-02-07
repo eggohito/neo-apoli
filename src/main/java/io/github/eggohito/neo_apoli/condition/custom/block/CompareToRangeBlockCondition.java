@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeBlockCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements BlockCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeBlockCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeBlockCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeBlockCondition::new);
+	public static final MapCodec<CompareToRangeBlockCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeBlockCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

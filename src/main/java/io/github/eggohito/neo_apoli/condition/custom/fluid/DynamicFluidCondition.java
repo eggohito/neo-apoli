@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicFluidCondition(BooleanProvider value) implements FluidCondition, IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicFluidCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicFluidCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicFluidCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicFluidCondition::new);
+	public static final MapCodec<DynamicFluidCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicFluidCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.DYNAMIC;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

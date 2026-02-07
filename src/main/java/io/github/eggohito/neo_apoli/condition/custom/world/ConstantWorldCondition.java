@@ -12,18 +12,13 @@ public record ConstantWorldCondition(boolean value) implements WorldCondition, I
 
 	public static final Codec<ConstantWorldCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantWorldCondition::new);
 
-	public static final MapCodec<ConstantWorldCondition> CODEC = IConstantMetaCondition.createCodec(ConstantWorldCondition::new);
+	public static final MapCodec<ConstantWorldCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantWorldCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantWorldCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantWorldCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantWorldCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantWorldCondition::new);
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

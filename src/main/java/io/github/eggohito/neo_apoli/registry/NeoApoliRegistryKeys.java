@@ -31,6 +31,7 @@ import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.GlobalPowerSet;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
@@ -44,7 +45,6 @@ import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -103,7 +103,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
 	public static final ResourceKey<Registry<HudElementType<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");
 
-	public static final ResourceKey<Registry<TypedContextKey<?>>> TYPED_CONTEXT_KEY = create("typed_context_key");
+	public static final ResourceKey<Registry<ContextParameter<?>>> CONTEXT_PARAMETER = create("context/parameter");
 
 	private static <T> ResourceKey<Registry<T>> create(String path) {
 		return ResourceKey.createRegistryKey(NeoApoli.id(path));

@@ -4,11 +4,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,7 +24,7 @@ import java.util.Set;
 
 public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements BoxProvider {
 
-	public static final MapCodec<BlockBoundsBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<BlockBoundsBoxProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliCodecs.BLOCK_CLIP_CONTEXT.optionalFieldOf("shape_type", ClipContext.Block.OUTLINE).forGetter(BlockBoundsBoxProvider::shapeType))
 		.apply(instance, BlockBoundsBoxProvider::new));
 
@@ -43,22 +43,22 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 
-			if (!context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
-				context.getValidator().report("Couldn't get bounding box of a block without its position!");
+			if (!context.hasParameter(NeoApoliContextParams.BLOCK_POS)) {
+				context.reportProblem("Couldn't get bounding box of a block without its position!");
 			}
 
-			if (!context.hasParameter(NeoApoliContextKeys.BLOCK_STATE)) {
-				context.getValidator().report("Couldn't get bounding box of a non-existing block!");
+			if (!context.hasParameter(NeoApoliContextParams.BLOCK_STATE)) {
+				context.reportProblem("Couldn't get bounding box of a non-existing block!");
 			}
 
 			return AABBUtil.EMPTY;
 
 		}
 
-		BlockPos blockPos = context.required(NeoApoliContextKeys.BLOCK_POS);
-		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
+		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
+		BlockState blockState = context.getRequired(NeoApoliContextParams.BLOCK_STATE);
 
-		VoxelShape shape = shapeType().get(blockState, context.getLevel(), blockPos, CollisionContext.empty());
+		VoxelShape shape = shapeType().get(blockState, context.level(), blockPos, CollisionContext.empty());
 		AABB bounds = shape.isEmpty()
 			? AABBUtil.EMPTY
 			: shape.bounds();
@@ -69,7 +69,7 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_POS, NeoApoliContextKeys.BLOCK_STATE);
+		return Set.of(NeoApoliContextParams.BLOCK_POS, NeoApoliContextParams.BLOCK_STATE);
 	}
 
 }

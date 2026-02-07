@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -21,7 +21,7 @@ import java.util.Set;
 
 public record BlockStatePropertyBlockCondition(StringProvider property, StringProvider value) implements BlockCondition {
 
-	public static final MapCodec<BlockStatePropertyBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BlockStatePropertyBlockCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("property").forGetter(BlockStatePropertyBlockCondition::property),
 		StringProvider.CODEC.fieldOf("value").forGetter(BlockStatePropertyBlockCondition::value)
 	).apply(instance, BlockStatePropertyBlockCondition::new));
@@ -40,22 +40,22 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	@Override
 	public boolean test(Context context) {
 
-		if (!context.hasParameter(NeoApoliContextKeys.BLOCK_STATE)) {
+		if (!context.hasParameter(NeoApoliContextParams.BLOCK_STATE)) {
 			return false;
 		}
 
 		Context propertyContext = context.forChild(".property");
 		String propertyName = property().next(propertyContext);
 
-		if (propertyContext.hasErrors()) {
+		if (propertyContext.hasErrors() || propertyName.isEmpty()) {
 			return false;
 		}
 
-		BlockState blockState = context.required(NeoApoliContextKeys.BLOCK_STATE);
+		BlockState blockState = context.getRequired(NeoApoliContextParams.BLOCK_STATE);
 		Property<?> property = blockState.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
-			propertyContext.getValidator().report("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
+			propertyContext.forChild(".property").reportProblem("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, blockState.getBlock()) + "\" doesn't have a block state property with name \"" + propertyName + "\"!");
 		}
 
 		return property != null
@@ -65,7 +65,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_STATE);
+		return Set.of(NeoApoliContextParams.BLOCK_STATE);
 	}
 
 	@Override

@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntityAction, IReferenceMetaAction<BiEntityAction> {
 
-	public static final MapCodec<ReferenceBiEntityAction> CODEC = IReferenceMetaAction.createCodec(ReferenceBiEntityAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = IReferenceMetaAction.createStreamCodec(ReferenceBiEntityAction::new);
+	public static final MapCodec<ReferenceBiEntityAction> MAP_CODEC = IReferenceMetaAction.mapCodec(ReferenceBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = IReferenceMetaAction.streamCodec(ReferenceBiEntityAction::new);
 
 	@Override
 	public Pair<Class<BiEntityAction>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntit
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

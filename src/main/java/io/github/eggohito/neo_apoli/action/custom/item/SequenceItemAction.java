@@ -13,17 +13,12 @@ import java.util.List;
 
 public record SequenceItemAction(List<ItemAction> actions) implements ItemAction, ISequenceMetaAction<ItemAction> {
 
-	public static final MapCodec<SequenceItemAction> CODEC = MapCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.createCodec(ItemAction.CODEC, SequenceItemAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.createStreamCodec(ItemAction.STREAM_CODEC, SequenceItemAction::new));
+	public static final MapCodec<SequenceItemAction> MAP_CODEC = MapCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(ItemAction.CODEC, SequenceItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(ItemAction.STREAM_CODEC, SequenceItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.SEQUENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

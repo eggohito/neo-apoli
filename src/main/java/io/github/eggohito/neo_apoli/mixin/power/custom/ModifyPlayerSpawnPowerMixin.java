@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.mixin.power.custom;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyPlayerSpawnPower;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.portal.TeleportTransition;
@@ -20,30 +20,38 @@ public abstract class ModifyPlayerSpawnPowerMixin {
 		@ModifyExpressionValue(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;findRespawnPositionAndUseSpawnBlock(ZLnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;"))
 		private TeleportTransition onRespawn(TeleportTransition original, ServerPlayer player) {
 
-			if (player.getRespawnConfig() != null && !original.missingRespawnBlock()) {
-				return original;
-			}
+			try {
 
-			for (var instance : new Prioritized.InstanceCollection<>(player, ModifyPlayerSpawnPower.Instance.class)) {
+				if (player.getRespawnConfig() != null && !original.missingRespawnBlock()) {
+					return original;
+				}
 
-				Context context = instance.createHolderContext();
-				Optional<TeleportTransition> destination = instance.getSpawnTeleport();
+				for (var instance : new Prioritized.InstanceCollection<>(player, ModifyPlayerSpawnPower.Instance.class)) {
 
-				try {
+					Context context = instance.createHolderContext();
+					Optional<TeleportTransition> destination = instance.getSpawnTeleport();
 
-					if (destination.isPresent() && context.markActive(instance) && instance.isActive(context)) {
-						return destination.get();
+					try {
+
+						if (destination.isPresent() && ModifyPlayerSpawnPower.VISITOR.push(instance) && instance.isActive(context)) {
+							return destination.get();
+						}
+
+					}
+
+					finally {
+						ModifyPlayerSpawnPower.VISITOR.pop(instance);
 					}
 
 				}
 
-				finally {
-					context.markInActive(instance);
-				}
+				return original;
 
 			}
 
-			return original;
+			finally {
+				ModifyPlayerSpawnPower.VISITOR.clear();
+			}
 
 		}
 

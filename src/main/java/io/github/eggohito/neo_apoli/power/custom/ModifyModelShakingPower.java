@@ -20,7 +20,7 @@ import java.util.Optional;
 @Getter
 public class ModifyModelShakingPower extends Power {
 
-	public static final MapCodec<ModifyModelShakingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyModelShakingPower::new));
+	public static final MapCodec<ModifyModelShakingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyModelShakingPower::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelShakingPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, ModifyModelShakingPower::new);
 
 	public ModifyModelShakingPower(Optional<Condition> activeCondition) {

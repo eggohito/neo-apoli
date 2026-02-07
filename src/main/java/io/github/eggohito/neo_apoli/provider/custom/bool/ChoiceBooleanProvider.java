@@ -13,8 +13,8 @@ import java.util.List;
 
 public record ChoiceBooleanProvider(List<Case<BooleanProvider>> cases, BooleanProvider defaultValue) implements BooleanProvider, ChoiceValueProvider<BooleanProvider, Boolean> {
 
-	public static final MapCodec<ChoiceBooleanProvider> CODEC = MapCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(BooleanProvider.CODEC, ChoiceBooleanProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(BooleanProvider.STREAM_CODEC, ChoiceBooleanProvider::new));
+	public static final MapCodec<ChoiceBooleanProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(BooleanProvider.CODEC, ChoiceBooleanProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(BooleanProvider.STREAM_CODEC, ChoiceBooleanProvider::new));
 
 	@Override
 	public BooleanProviderType<?> getType() {

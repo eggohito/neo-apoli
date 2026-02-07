@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.util.color.dynamic;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.color.Hsv;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -33,8 +33,8 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 	}
 
 	@Override
-	public int getValue(Context context) {
-		return new Hsv(hue(context), saturation(context), value(context), alpha(context)).getValue(context);
+	public int intValue(Context context) {
+		return new Hsv(hue(context), saturation(context), this.value(context), alpha(context)).intValue(context);
 	}
 
 	@Override

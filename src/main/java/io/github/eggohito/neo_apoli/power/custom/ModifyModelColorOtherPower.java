@@ -2,13 +2,14 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.color.Color;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,9 +17,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,7 +25,7 @@ import java.util.Optional;
 @Getter
 public class ModifyModelColorOtherPower extends Power {
 
-	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyModelColorOtherPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::getColor))
 		.apply(instance, ModifyModelColorOtherPower::new));
 
@@ -65,49 +64,33 @@ public class ModifyModelColorOtherPower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(@NotNull Entity rendered) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, rendered)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_MODEL_COLOR_OTHER.keySet());
+		}
+
 		public int getColor(Context context) {
-			return power.getColor().getValue(context.forChild(".color"));
+			return power.getColor().intValue(context.forChild(".color"));
 		}
 
 	}
 
-	public static int modify(Context context, List<Instance> instances, int original) {
+	public static int modify(@NotNull Entity viewer, @NotNull Entity rendered, int color) {
 
-		Entity renderedEntity = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
-		int color = original;
+		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-		for (var instance : instances) {
+			Context context = instance.createContext(rendered);
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
-
-			try {
-
-				if (instanceContext.markActive(instance) && !Objects.equals(instance.getHolder(), renderedEntity) && instance.isActive(instanceContext)) {
-					color = Color.mix(color, instance.getColor(instanceContext));
-				}
-
-			}
-
-			finally {
-				instanceContext.markInActive(instance);
+			if (!Objects.equals(instance.getHolder(), rendered) && instance.isActive(context)) {
+				color = Color.mix(color, instance.getColor(context));
 			}
 
 		}
 
 		return color;
 
-	}
-
-	public static Context createContext(@NotNull Entity viewer, @Nullable Entity renderedEntity) {
-		return PowerTypes.MODIFY_MODEL_COLOR_OTHER.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR_ENTITY, viewer)
-			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, renderedEntity)
-			.add(NeoApoliContextKeys.THIS_ENTITY, viewer)
-			.add(NeoApoliContextKeys.THIS_POS, viewer.position())
-			.build(viewer.level());
 	}
 
 }

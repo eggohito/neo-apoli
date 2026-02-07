@@ -5,8 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,19 +25,12 @@ public interface IRandomChanceMetaAction<A extends Action> extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		Context chanceContext = context.forChild(".chance");
-		float chance = Mth.clamp(chance().nextFloat(chanceContext), 0.0f, 1.0f);
+		if (context.level().getRandom().nextFloat() < Mth.clamp(chance().nextFloat(context.forChild(".chance")), 0.0F, 1.0F)) {
+			successAction().execute(context.forChild(".success_action"));
+		}
 
-		if (!chanceContext.hasErrors()) {
-
-			if (context.getLevel().getRandom().nextFloat() < chance) {
-				successAction().execute(context.forChild(".success_action"));
-			}
-
-			else {
-				failAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".fail_action")));
-			}
-
+		else {
+			failAction().ifPresent(failAction -> failAction.execute(context.forChild(".fail_action")));
 		}
 
 	}
@@ -54,7 +47,7 @@ public interface IRandomChanceMetaAction<A extends Action> extends MetaAction {
 
 	}
 
-	static <A extends Action, M extends IRandomChanceMetaAction<A>> MapCodec<M> createCodec(Codec<A> actionCodec, Function3<A, Optional<A>, NumberProvider, M> constructor) {
+	static <A extends Action, M extends IRandomChanceMetaAction<A>> MapCodec<M> mapCodec(Codec<A> actionCodec, Function3<A, Optional<A>, NumberProvider, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.fieldOf("success_action").forGetter(IRandomChanceMetaAction::successAction),
 			actionCodec.optionalFieldOf("fail_action").forGetter(IRandomChanceMetaAction::failAction),
@@ -62,7 +55,7 @@ public interface IRandomChanceMetaAction<A extends Action> extends MetaAction {
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends IRandomChanceMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<A, Optional<A>, NumberProvider, M> constructor) {
+	static <A extends Action, M extends IRandomChanceMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<A, Optional<A>, NumberProvider, M> constructor) {
 		return StreamCodec.composite(
 			actionCodec, IRandomChanceMetaAction::successAction,
 			ByteBufCodecs.optional(actionCodec), IRandomChanceMetaAction::failAction,

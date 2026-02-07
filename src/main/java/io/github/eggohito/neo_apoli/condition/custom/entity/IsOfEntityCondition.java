@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,7 +15,7 @@ import net.minecraft.world.entity.EntityType;
 
 public record IsOfEntityCondition(EntityType<?> entityType) implements EntityCondition {
 
-	public static final MapCodec<IsOfEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<IsOfEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(EntityType.CODEC.fieldOf("entity_type").forGetter(IsOfEntityCondition::entityType))
 		.apply(instance, IsOfEntityCondition::new));
 
@@ -31,7 +31,7 @@ public record IsOfEntityCondition(EntityType<?> entityType) implements EntityCon
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextKeys.THIS_ENTITY)
+		return context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.stream()
 			.map(Entity::getType)
 			.anyMatch(this.entityType()::equals);

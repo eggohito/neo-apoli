@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockAction {
 
-	public static final MapCodec<BoneMealBlockAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<BoneMealBlockAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BooleanProvider.CODEC.optionalFieldOf("show_effects", new ConstantBooleanProvider(true)).forGetter(BoneMealBlockAction::showEffects))
 		.apply(instance, BoneMealBlockAction::new));
 
@@ -37,10 +37,10 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 	@Override
 	public void execute(Context context) {
 
-		BlockPos blockPos = context.nullable(NeoApoliContextKeys.BLOCK_POS);
-		Direction direction = context.nullable(NeoApoliContextKeys.DIRECTION);
+		BlockPos blockPos = context.getNullable(NeoApoliContextParams.BLOCK_POS);
+		Direction direction = context.getNullable(NeoApoliContextParams.DIRECTION);
 
-		if (context.getLevel() instanceof ServerLevel serverLevel && blockPos != null) {
+		if (context.level() instanceof ServerLevel serverLevel && blockPos != null) {
 
 			if (BoneMealItem.growCrop(ItemStack.EMPTY, serverLevel, blockPos)) {
 				this.showEffects(context, blockPos);
@@ -68,11 +68,8 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 
 	private void showEffects(Context context, BlockPos blockPos) {
 
-		Context showEffectsContext = context.forChild(".show_effects");
-		boolean showEffects = showEffects().next(showEffectsContext);
-
-		if (!showEffectsContext.hasErrors() && showEffects) {
-			context.getLevel().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
+		if (showEffects().next(context.forChild(".show_effects"))) {
+			context.level().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
 		}
 
 	}

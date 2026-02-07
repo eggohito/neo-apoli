@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,10 +18,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityPositionVec3Provider(TypedContextKey<Entity> entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
+public record EntityPositionVec3Provider(ContextParameter<Entity> entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
 
-	public static final MapCodec<EntityPositionVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EntityPositionVec3Provider::entity),
+	public static final MapCodec<EntityPositionVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityPositionVec3Provider::entity),
 		NeoApoliCodecs.ENTITY_ANCHOR.optionalFieldOf("anchor", EntityAnchorArgument.Anchor.FEET).forGetter(EntityPositionVec3Provider::anchor)
 	).apply(instance, EntityPositionVec3Provider::new));
 
@@ -38,7 +38,7 @@ public record EntityPositionVec3Provider(TypedContextKey<Entity> entity, EntityA
 
 	@Override
 	public @NotNull Vec3 next(Context context) {
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.map(anchor()::apply)
 			.orElse(Vec3.ZERO);
 	}

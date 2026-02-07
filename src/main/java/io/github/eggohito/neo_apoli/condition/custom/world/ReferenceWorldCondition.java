@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceWorldCondition(ResourceLocation value) implements WorldCondition, IReferenceMetaCondition<WorldCondition> {
 
-	public static final MapCodec<ReferenceWorldCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceWorldCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceWorldCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceWorldCondition::new);
+	public static final MapCodec<ReferenceWorldCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceWorldCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceWorldCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceWorldCondition::new);
 
 	@Override
 	public Pair<Class<WorldCondition>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceWorldCondition(ResourceLocation value) implements WorldCo
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

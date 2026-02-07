@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeWorldCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements WorldCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeWorldCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeWorldCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeWorldCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeWorldCondition::new);
+	public static final MapCodec<CompareToRangeWorldCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeWorldCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeWorldCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeWorldCondition::new);
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

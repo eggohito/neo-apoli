@@ -12,17 +12,12 @@ import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
 public record WeightedBiEntityAction(ShufflingList<BiEntityAction> entries) implements BiEntityAction, IWeightedMetaAction<BiEntityAction> {
 
-	public static final MapCodec<WeightedBiEntityAction> CODEC = MapCodecUtil.lazy(WeightedBiEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(BiEntityAction.CODEC, WeightedBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBiEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(BiEntityAction.STREAM_CODEC, WeightedBiEntityAction::new));
+	public static final MapCodec<WeightedBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(WeightedBiEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.mapCodec(BiEntityAction.CODEC, WeightedBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBiEntityAction.class.getSimpleName(), () -> IWeightedMetaAction.streamCodec(BiEntityAction.STREAM_CODEC, WeightedBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.WEIGHTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

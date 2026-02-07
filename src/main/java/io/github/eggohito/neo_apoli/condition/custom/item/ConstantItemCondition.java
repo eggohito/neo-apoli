@@ -12,18 +12,13 @@ public record ConstantItemCondition(boolean value) implements ItemCondition, ICo
 
 	public static final Codec<ConstantItemCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantItemCondition::new);
 
-	public static final MapCodec<ConstantItemCondition> CODEC = IConstantMetaCondition.createCodec(ConstantItemCondition::new);
+	public static final MapCodec<ConstantItemCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantItemCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantItemCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantItemCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantItemCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantItemCondition::new);
 
 	@Override
 	public ItemConditionType<?> getType() {
 		return ItemConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemCondition.super.asDisplayString();
 	}
 
 }

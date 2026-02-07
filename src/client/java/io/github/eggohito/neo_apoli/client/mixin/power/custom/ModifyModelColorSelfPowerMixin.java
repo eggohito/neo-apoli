@@ -8,12 +8,10 @@ import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.duck.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -36,7 +34,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 public abstract class ModifyModelColorSelfPowerMixin {
 
@@ -49,22 +46,24 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@WrapOperation(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
 		private void impl(EntityModel<S> model, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, int color, Operation<Void> original, S methodRenderState, PoseStack methodPoseStack, MultiBufferSource methodBufferSource, int methodLight) {
 
-			Minecraft client = Minecraft.getInstance();
-			LocalPlayer viewer = client.player;
-
+			modifyColor:
 			if (methodRenderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
 
-				List<ModifyModelColorSelfPower.Instance> instances = PowersComponent.getInstances(renderCache.neo_apoli$getEntity(), ModifyModelColorSelfPower.Instance.class);
-				Context context = ModifyModelColorSelfPower.createContext(renderCache.neo_apoli$getEntity(), viewer);
+				Entity viewer = Minecraft.getInstance().getCameraEntity();
+				Entity rendered = renderCache.neo_apoli$getEntity();
 
-				if (!instances.isEmpty()) {
+				if (viewer == null || rendered == null) {
+					break modifyColor;
+				}
 
-					color = ModifyModelColorSelfPower.modify(context, instances, color);
-					float alpha = ARGB.alphaFloat(color);
+				int originalColor = color;
+				color = ModifyModelColorSelfPower.modify(viewer, rendered, color);
+
+				if (originalColor != color) {
 
 					renderCache.neo_apoli$setColor(color);
 
-					if (alpha < 1.0F) {
+					if (ARGB.alphaFloat(color) < 1.0F) {
 						vertexConsumer = methodBufferSource.getBuffer(RenderType.itemEntityTranslucentCull(this.getTextureLocation(methodRenderState)));
 					}
 
@@ -107,15 +106,9 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		private void impl(ModelPart armPart, PoseStack matrices, VertexConsumer vertices, int light, int overlay, Operation<Void> original) {
 
 			Entity entity = this.neo_apoli$getEntity();
-			List<ModifyModelColorSelfPower.Instance> instances = PowersComponent.getInstances(entity, ModifyModelColorSelfPower.Instance.class);
 
-			if (entity != null && !instances.isEmpty()) {
-
-				Context context = ModifyModelColorSelfPower.createContext(entity, null);
-				int color = ModifyModelColorSelfPower.modify(context, instances, -1);
-
-				armPart.render(matrices, vertices, light, overlay, color);
-
+			if (entity != null && PowersComponent.hasInstances(entity, ModifyModelColorSelfPower.Instance.class)) {
+				armPart.render(matrices, vertices, light, overlay, ModifyModelColorSelfPower.modify(null, entity, -1));
 			}
 
 			else {

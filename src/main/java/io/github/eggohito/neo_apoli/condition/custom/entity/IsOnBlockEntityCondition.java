@@ -6,19 +6,24 @@ import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements EntityCondition {
 
-	public static final MapCodec<IsOnBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<IsOnBlockEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(IsOnBlockEntityCondition::blockCondition))
 		.apply(instance, IsOnBlockEntityCondition::new));
 
@@ -39,26 +44,25 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 			return false;
 		}
 
-		Level level = context.getLevel();
-		Entity entity = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		Level level = context.level();
+		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
 
 		try {
 
-			if (context.markActive(this)) {
+			if (context.visitor().push(this)) {
 
 				if (!entity.onGround()) {
 					return false;
 				}
 
 				BlockPos steppingPos = entity.getOnPos();
-				Context blockContext = new Context.Builder(context)
-					.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-					.add(NeoApoliContextKeys.BLOCK_POS, steppingPos)
-					.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(steppingPos))
-					.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(steppingPos))
+				Context conditionContext = new Context.Builder(context)
+					.withRequired(NeoApoliContextParams.BLOCK_POS, steppingPos)
+					.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(steppingPos))
+					.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(steppingPos))
 					.build(level);
 
-				return blockCondition().test(blockContext.forChild(".block_condition"));
+				return blockCondition().test(conditionContext);
 
 			}
 
@@ -69,7 +73,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 		}
 
 		finally {
-			context.markInActive(this);
+			context.visitor().pop(this);
 		}
 
 	}
@@ -77,9 +81,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		blockCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.forChild(".block_condition"));
+		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
 	}
 
 }

@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.Level;
 
 public record IsOfWorldCondition(ResourceKey<Level> dimension) implements WorldCondition {
 
-	public static final MapCodec<IsOfWorldCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<IsOfWorldCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(IsOfWorldCondition::dimension))
 		.apply(instance, IsOfWorldCondition::new));
 
@@ -29,7 +29,7 @@ public record IsOfWorldCondition(ResourceKey<Level> dimension) implements WorldC
 
 	@Override
 	public boolean test(Context context) {
-		return context.getLevel().dimension().equals(this.dimension());
+		return context.level().dimension().equals(this.dimension());
 	}
 
 }

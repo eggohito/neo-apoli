@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedItemCondition(ItemCondition condition) implements ItemCondition, IInvertedMetaCondition<ItemCondition> {
 
-	public static final MapCodec<InvertedItemCondition> CODEC = MapCodecUtil.lazy(InvertedItemCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(ItemCondition.CODEC, InvertedItemCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedItemCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedItemCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(ItemCondition.STREAM_CODEC, InvertedItemCondition::new));
+	public static final MapCodec<InvertedItemCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedItemCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(ItemCondition.CODEC, InvertedItemCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedItemCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedItemCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(ItemCondition.STREAM_CODEC, InvertedItemCondition::new));
 
 	@Override
 	public ItemConditionType<?> getType() {
 		return ItemConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemCondition.super.asDisplayString();
 	}
 
 }

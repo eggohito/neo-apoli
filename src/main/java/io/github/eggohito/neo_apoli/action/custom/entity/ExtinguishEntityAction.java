@@ -3,17 +3,18 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record ExtinguishEntityAction() implements EntityAction {
+public enum ExtinguishEntityAction implements EntityAction {
 
-	public static final MapCodec<ExtinguishEntityAction> CODEC = MapCodec.unit(ExtinguishEntityAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ExtinguishEntityAction> STREAM_CODEC = StreamCodecUtil.unit(ExtinguishEntityAction::new);
+	INSTANCE;
+
+	public static final MapCodec<ExtinguishEntityAction> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ExtinguishEntityAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public EntityActionType<?> getType() {
@@ -22,7 +23,7 @@ public record ExtinguishEntityAction() implements EntityAction {
 
 	@Override
 	public void execute(Context context) {
-		context.optional(NeoApoliContextKeys.THIS_ENTITY).ifPresent(Entity::extinguishFire);
+		context.getOptional(NeoApoliContextParams.THIS_ENTITY).ifPresent(Entity::extinguishFire);
 	}
 
 }

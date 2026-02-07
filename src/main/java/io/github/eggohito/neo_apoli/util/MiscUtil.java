@@ -11,6 +11,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
+import io.github.eggohito.neo_apoli.mixin.access.ContextMapAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ServerPlayerAccessor;
@@ -30,6 +31,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -46,8 +48,11 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.DecimalFormat;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -130,7 +135,7 @@ public class MiscUtil {
 	}
 
 	@Nullable
-	public static SavedBlockPosition getViewBlocking(Entity entity) {
+	public static CachedBlock getViewBlocking(Entity entity) {
 
 		if (!(entity instanceof LivingEntity livingEntity)) {
 			return null;
@@ -149,7 +154,7 @@ public class MiscUtil {
 			BlockState blockState = level.getBlockState(mutable);
 
 			if (blockState.getRenderShape() != RenderShape.INVISIBLE && blockState.isViewBlocking(level, mutable)) {
-				return new SavedBlockPosition(level, mutable, blockState, level.getBlockEntity(mutable));
+				return new CachedBlock(level, mutable, blockState, level.getBlockEntity(mutable));
 			}
 
 		}
@@ -163,9 +168,15 @@ public class MiscUtil {
 			|| reader.peek() == ' ';
 	}
 
-	public static boolean hasEntity(CollisionContext collisionContext) {
-		return collisionContext instanceof EntityCollisionContext entityCollisionContext
-			&& entityCollisionContext.getEntity() != null;
+	@Nullable
+	public static Entity getEntityFromCollision(CollisionContext collisionContext) {
+		return collisionContext instanceof EntityCollisionContext entityCollision
+			? entityCollision.getEntity()
+			: null;
+	}
+
+	public static boolean collisionHasEntity(CollisionContext collisionContext) {
+		return getEntityFromCollision(collisionContext) != null;
 	}
 
 	public static HolderLookup.Provider getLookupProvider(ReloadableServerResources resources) {
@@ -257,6 +268,25 @@ public class MiscUtil {
 		}
 
 		return result;
+
+	}
+
+	public static ContextMap.Builder contextMapToBuilder(ContextMap params) {
+
+		ContextMap.Builder builder = new ContextMap.Builder();
+		((ContextMapAccessor) params).getParams().forEach((key, obj) -> ((ContextMapAccessor.BuilderAccessor) builder).getParams().put(key, obj));
+
+		return builder;
+
+	}
+
+	public static <E> void iterate(List<E> list, BiConsumer<Integer, E> iterator) {
+
+		ListIterator<E> listIterator = list.listIterator();
+
+		while (listIterator.hasNext()) {
+			iterator.accept(listIterator.nextIndex(), listIterator.next());
+		}
 
 	}
 

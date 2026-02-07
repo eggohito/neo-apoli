@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareBiEntityCondition(Comparison comparison) implements BiEntityCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareBiEntityCondition> CODEC = ICompareMetaCondition.createCodec(CompareBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareBiEntityCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareBiEntityCondition::new);
+	public static final MapCodec<CompareBiEntityCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareBiEntityCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

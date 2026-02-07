@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.util.color.dynamic;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
@@ -33,7 +33,7 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 	}
 
 	@Override
-	public int getValue(Context context) {
+	public int intValue(Context context) {
 		return ARGB.colorFromFloat(alpha(context), red(context), green(context), blue(context));
 	}
 

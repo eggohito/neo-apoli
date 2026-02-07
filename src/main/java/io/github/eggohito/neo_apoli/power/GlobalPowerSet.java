@@ -6,8 +6,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +15,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerEntry<?>> powers, boolean replace, int order) implements ContextAware, Comparable<GlobalPowerSet> {
+public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerEntry<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPowerSet> {
 
 	public static final ResourceLocation SOURCE = NeoApoli.id("global");
 
@@ -28,8 +28,8 @@ public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike
 
 	@Override
 	public void validate(Context.Validator validator) {
-		entityTypes().loadCache().ifError(error -> validator.forChild(".entity_types").report(error.message()));
-		powers().loadCache().ifError(error -> validator.forChild(".powers").report(error.message()));
+		entityTypes().loadCache().ifError(error -> validator.forChild(".entity_types").reportProblem(error.message()));
+		powers().loadCache().ifError(error -> validator.forChild(".powers").reportProblem(error.message()));
 	}
 
 	@Override

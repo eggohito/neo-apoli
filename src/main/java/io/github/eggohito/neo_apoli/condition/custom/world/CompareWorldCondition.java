@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareWorldCondition(Comparison comparison) implements WorldCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareWorldCondition> CODEC = ICompareMetaCondition.createCodec(CompareWorldCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareWorldCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareWorldCondition::new);
+	public static final MapCodec<CompareWorldCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareWorldCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareWorldCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareWorldCondition::new);
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

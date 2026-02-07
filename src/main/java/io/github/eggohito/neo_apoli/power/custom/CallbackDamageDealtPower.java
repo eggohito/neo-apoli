@@ -5,12 +5,12 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,7 +26,7 @@ import java.util.Optional;
 @Getter
 public class CallbackDamageDealtPower extends Power implements Prioritized<CallbackDamageDealtPower> {
 
-	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<CallbackDamageDealtPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::getOnHitAction))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::getPriority))
 		.apply(instance, CallbackDamageDealtPower::new));
@@ -69,57 +69,35 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 			super(holder, power);
 		}
 
+		public Context createContext(Entity target, DamageSource source, float amount) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
+				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
+				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
+				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
+				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
+				.buildWithRequirements(holder.level(), PowerTypes.CALLBACK_DAMAGE_DEALT.keySet());
+		}
+
 		public void execute(Context context) {
 			power.getOnHitAction().execute(context.forChild(".on_hit_action"));
 		}
 
 	}
 
-	public static void execute(Context context) {
+	public static void execute(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
 
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		for (var instance : new InstanceCollection<>(actor, Instance.class)) {
 
-		execute(context, instances);
+			Context context = instance.createContext(target, damageSource, damageAmount);
 
-	}
-
-	public static void execute(Context context, InstanceCollection<Instance> instances) {
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
-
-			try {
-
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-					instance.execute(instanceContext);
-				}
-
-			}
-
-			finally {
-				instanceContext.markInActive(instance);
+			if (instance.isActive(context)) {
+				instance.execute(context);
 			}
 
 		}
 
-	}
-
-	public static Context createContext(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
-		return PowerTypes.CALLBACK_DAMAGE_DEALT.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-			.add(NeoApoliContextKeys.TARGET_ENTITY, target)
-			.add(NeoApoliContextKeys.DAMAGE_SOURCE, damageSource)
-			.add(NeoApoliContextKeys.DAMAGE_AMOUNT, damageAmount)
-			.addNullable(NeoApoliContextKeys.DAMAGING_ENTITY, damageSource.getEntity())
-			.addNullable(NeoApoliContextKeys.DIRECT_DAMAGING_ENTITY, damageSource.getDirectEntity())
-			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
-			.add(NeoApoliContextKeys.THIS_POS, actor.position())
-			.build(actor.level());
 	}
 
 }

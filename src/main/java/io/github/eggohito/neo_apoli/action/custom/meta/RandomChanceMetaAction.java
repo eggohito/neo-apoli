@@ -14,8 +14,8 @@ import java.util.Optional;
 
 public record RandomChanceMetaAction(Action successAction, Optional<Action> failAction, NumberProvider chance) implements IRandomChanceMetaAction<Action> {
 
-	public static final MapCodec<RandomChanceMetaAction> CODEC = MapCodecUtil.lazy(RandomChanceMetaAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createCodec(Action.CODEC, RandomChanceMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceMetaAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createStreamCodec(Action.STREAM_CODEC, RandomChanceMetaAction::new));
+	public static final MapCodec<RandomChanceMetaAction> MAP_CODEC = MapCodecUtil.lazy(RandomChanceMetaAction.class.getSimpleName(), () -> IRandomChanceMetaAction.mapCodec(Action.CODEC, RandomChanceMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceMetaAction.class.getSimpleName(), () -> IRandomChanceMetaAction.streamCodec(Action.STREAM_CODEC, RandomChanceMetaAction::new));
 
 	@Override
 	public ActionType<?> getType() {

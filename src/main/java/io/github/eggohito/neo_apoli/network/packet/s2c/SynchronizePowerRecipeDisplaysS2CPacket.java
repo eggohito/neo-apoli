@@ -3,12 +3,13 @@ package io.github.eggohito.neo_apoli.network.packet.s2c;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import java.util.Map;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+
+import java.util.Map;
 
 public record SynchronizePowerRecipeDisplaysS2CPacket(Map<RecipeDisplayEntry, PowerReference> displays) implements CustomPacketPayload {
 

@@ -3,13 +3,15 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,7 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
@@ -33,7 +34,9 @@ public class ModifyItemWearablePower extends Power {
 	private static final Codec<EnumMap<EquipmentSlot, Condition>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, Condition.CODEC)).xmap(EnumMap::new, Function.identity());
 	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Condition>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Condition.STREAM_CODEC);
 
-	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyItemWearablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::getSlots),
 		BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyItemWearablePower::getAllow)
 	).apply(instance, ModifyItemWearablePower::new));
@@ -81,6 +84,12 @@ public class ModifyItemWearablePower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(ItemStack stack) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.ITEM_STACK, stack)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_WEARABLE.keySet());
+		}
+
 		public EnumMap<EquipmentSlot, Condition> getSlots() {
 			return power.getSlots();
 		}
@@ -91,18 +100,16 @@ public class ModifyItemWearablePower extends Power {
 
 	}
 
-	public static boolean modify(Context context, List<Instance> instances, EquipmentSlot insertedSlot, BooleanSupplier defaultValue) {
+	public static boolean modify(Entity equipper, ItemStack equippedStack, EquipmentSlot targetSlot, BooleanSupplier defaultValue) {
 
 		boolean allowed = false;
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(equipper, Instance.class)) {
 
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(instance.createValidator())
-				.build(context.getLevel());
+			Context instanceContext = instance.createContext(equippedStack);
 
 			try {
 
-				if (!instanceContext.markActive(instance) || !instance.isActive(instanceContext)) {
+				if (!VISITOR.push(instance) || !instance.isActive(instanceContext)) {
 					continue;
 				}
 
@@ -111,7 +118,7 @@ public class ModifyItemWearablePower extends Power {
 					EquipmentSlot slot = entry.getKey();
 					Condition condition = entry.getValue();
 
-					if (slot != insertedSlot) {
+					if (slot != targetSlot) {
 						continue;
 					}
 
@@ -134,22 +141,14 @@ public class ModifyItemWearablePower extends Power {
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		return defaultValue.getAsBoolean()
-			|| allowed;
+		return allowed
+			|| defaultValue.getAsBoolean();
 
-	}
-
-	public static Context createContext(Entity owner, ItemStack stack) {
-		return PowerTypes.MODIFY_ITEM_WEARABLE.contextBuilder()
-			.add(NeoApoliContextKeys.THIS_ENTITY, owner)
-			.add(NeoApoliContextKeys.THIS_POS, owner.position())
-			.add(NeoApoliContextKeys.ITEM_STACK, stack)
-			.build(owner.level());
 	}
 
 }

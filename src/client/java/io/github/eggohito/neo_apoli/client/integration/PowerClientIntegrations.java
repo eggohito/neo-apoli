@@ -2,13 +2,13 @@ package io.github.eggohito.neo_apoli.client.integration;
 
 import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.duck.EntityCache;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;

@@ -12,18 +12,13 @@ public record ConstantEffectCondition(boolean value) implements EffectCondition,
 
 	public static final Codec<ConstantEffectCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantEffectCondition::new);
 
-	public static final MapCodec<ConstantEffectCondition> CODEC = IConstantMetaCondition.createCodec(ConstantEffectCondition::new);
+	public static final MapCodec<ConstantEffectCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantEffectCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantEffectCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantEffectCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantEffectCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantEffectCondition::new);
 
 	@Override
 	public EffectConditionType<?> getType() {
 		return EffectConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

@@ -12,18 +12,18 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class FluidConditionTypes extends ConditionTypes {
 
-	public static final FluidConditionType<AllOfFluidCondition> ALL_OF = registerInternal("all_of", AllOfFluidCondition.CODEC, AllOfFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<AnyOfFluidCondition> ANY_OF = registerInternal("any_of", AnyOfFluidCondition.CODEC, AnyOfFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<CompareFluidCondition> COMPARE = registerInternal("compare", CompareFluidCondition.CODEC, CompareFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<CompareToRangeFluidCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeFluidCondition.CODEC, CompareToRangeFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<ConstantFluidCondition> CONSTANT = registerInternal("constant", ConstantFluidCondition.CODEC, ConstantFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<DynamicFluidCondition> DYNAMIC = registerInternal("dynamic", DynamicFluidCondition.CODEC, DynamicFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<InvertedFluidCondition> INVERTED = registerInternal("inverted", InvertedFluidCondition.CODEC, InvertedFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<ReferenceFluidCondition> REFERENCE = registerInternal("reference", ReferenceFluidCondition.CODEC, ReferenceFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<TestWorldFluidCondition> TEST_WORLD = registerInternal("test_world", TestWorldFluidCondition.CODEC, TestWorldFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<AllOfFluidCondition> ALL_OF = registerInternal("all_of", AllOfFluidCondition.MAP_CODEC, AllOfFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<AnyOfFluidCondition> ANY_OF = registerInternal("any_of", AnyOfFluidCondition.MAP_CODEC, AnyOfFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<CompareFluidCondition> COMPARE = registerInternal("compare", CompareFluidCondition.MAP_CODEC, CompareFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<CompareToRangeFluidCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeFluidCondition.MAP_CODEC, CompareToRangeFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<ConstantFluidCondition> CONSTANT = registerInternal("constant", ConstantFluidCondition.MAP_CODEC, ConstantFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<DynamicFluidCondition> DYNAMIC = registerInternal("dynamic", DynamicFluidCondition.MAP_CODEC, DynamicFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<InvertedFluidCondition> INVERTED = registerInternal("inverted", InvertedFluidCondition.MAP_CODEC, InvertedFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<ReferenceFluidCondition> REFERENCE = registerInternal("reference", ReferenceFluidCondition.MAP_CODEC, ReferenceFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<TestWorldFluidCondition> TEST_WORLD = registerInternal("test_world", TestWorldFluidCondition.MAP_CODEC, TestWorldFluidCondition.STREAM_CODEC);
 
-	public static final FluidConditionType<IsOfFluidCondition> IS_OF = registerInternal("is_of", IsOfFluidCondition.CODEC, IsOfFluidCondition.STREAM_CODEC);
-	public static final FluidConditionType<IsInTagFluidCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagFluidCondition.CODEC, IsInTagFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<IsOfFluidCondition> IS_OF = registerInternal("is_of", IsOfFluidCondition.MAP_CODEC, IsOfFluidCondition.STREAM_CODEC);
+	public static final FluidConditionType<IsInTagFluidCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagFluidCondition.MAP_CODEC, IsInTagFluidCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

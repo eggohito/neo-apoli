@@ -15,12 +15,12 @@ public abstract class MinecraftMixin implements CommandStorageHolder {
 	private final Object2ObjectOpenHashMap<ResourceLocation, CompoundTag> neo_apoli$commandStorageCache = new Object2ObjectOpenHashMap<>();
 
 	@Override
-	public CompoundTag neo_apoli$get(ResourceLocation id) {
+	public CompoundTag neo_apoli$getStorage(ResourceLocation id) {
 		return neo_apoli$commandStorageCache.getOrDefault(id, new CompoundTag());
 	}
 
 	@Override
-	public void neo_apoli$set(ResourceLocation id, CompoundTag nbt) {
+	public void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt) {
 
 		if (nbt.isEmpty()) {
 			neo_apoli$commandStorageCache.remove(id);

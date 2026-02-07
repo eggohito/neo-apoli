@@ -5,13 +5,14 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -44,7 +45,9 @@ import java.util.concurrent.CompletableFuture;
 @Getter
 public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyPlayerSpawnPower> {
 
-	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyPlayerSpawnPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::getDimension))
 		.and(TagKey.hashedCodec(Registries.BIOME).optionalFieldOf("biome_tag").forGetter(ModifyPlayerSpawnPower::getBiomeTag))
 		.and(TagKey.hashedCodec(Registries.STRUCTURE).optionalFieldOf("structure_tag").forGetter(ModifyPlayerSpawnPower::getStructureTag))

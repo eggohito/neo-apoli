@@ -68,16 +68,11 @@ public class Reporter implements ProblemReporter {
 
 	}
 
-	public boolean pathHasErrors(String path) {
-		return this.errors.containsKey(path)
-			&& !this.errors.get(path).isEmpty();
-	}
-
-	public boolean selfPathHasErrors() {
-		return this.pathHasErrors(this.getPath());
-	}
-
 	public boolean hasErrors() {
+		return this.errors.containsKey(this.getPath());
+	}
+
+	public boolean hasAnyErrors() {
 		return !this.errors.isEmpty();
 	}
 

@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AllOfEntityCondition(List<EntityCondition> conditions) implements EntityCondition, IAllOfMetaCondition<EntityCondition> {
 
-	public static final MapCodec<AllOfEntityCondition> CODEC = MapCodecUtil.lazy(AllOfEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(EntityCondition.CODEC, AllOfEntityCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(EntityCondition.STREAM_CODEC, AllOfEntityCondition::new));
+	public static final MapCodec<AllOfEntityCondition> MAP_CODEC = MapCodecUtil.lazy(AllOfEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.mapCodec(EntityCondition.CODEC, AllOfEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.streamCodec(EntityCondition.STREAM_CODEC, AllOfEntityCondition::new));
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.ALL_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

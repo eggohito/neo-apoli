@@ -12,8 +12,8 @@ import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
 public record WeightedMetaAction(ShufflingList<Action> entries) implements IWeightedMetaAction<Action> {
 
-	public static final MapCodec<WeightedMetaAction> CODEC = MapCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(Action.CODEC, WeightedMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(Action.STREAM_CODEC, WeightedMetaAction::new));
+	public static final MapCodec<WeightedMetaAction> MAP_CODEC = MapCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.mapCodec(Action.CODEC, WeightedMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedMetaAction.class.getSimpleName(), () -> IWeightedMetaAction.streamCodec(Action.STREAM_CODEC, WeightedMetaAction::new));
 
 	@Override
 	public ActionType<?> getType() {

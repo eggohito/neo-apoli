@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicBlockCondition(BooleanProvider value) implements BlockCondition, IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicBlockCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicBlockCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicBlockCondition::new);
+	public static final MapCodec<DynamicBlockCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicBlockCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.DYNAMIC;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

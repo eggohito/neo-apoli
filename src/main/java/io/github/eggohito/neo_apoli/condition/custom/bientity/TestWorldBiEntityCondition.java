@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldBiEntityCondition(WorldCondition condition) implements BiEntityCondition, ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldBiEntityCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldBiEntityCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldBiEntityCondition::new);
+	public static final MapCodec<TestWorldBiEntityCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldBiEntityCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldBiEntityCondition::new);
 
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.TEST_WORLD;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedEffectCondition(EffectCondition condition) implements EffectCondition, IInvertedMetaCondition<EffectCondition> {
 
-	public static final MapCodec<InvertedEffectCondition> CODEC = MapCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(EffectCondition.CODEC, InvertedEffectCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(EffectCondition.STREAM_CODEC, InvertedEffectCondition::new));
+	public static final MapCodec<InvertedEffectCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(EffectCondition.CODEC, InvertedEffectCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(EffectCondition.STREAM_CODEC, InvertedEffectCondition::new));
 
 	@Override
 	public EffectConditionType<?> getType() {
 		return EffectConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

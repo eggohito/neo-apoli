@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareEntityCondition(Comparison comparison) implements EntityCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareEntityCondition> CODEC = ICompareMetaCondition.createCodec(CompareEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareEntityCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareEntityCondition::new);
+	public static final MapCodec<CompareEntityCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareEntityCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

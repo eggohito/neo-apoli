@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -10,10 +11,9 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class CooldownPower extends Power {
 
-	public static final MapCodec<CooldownPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<CooldownPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberBoundHudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::getHudElement),
 		NumberProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::getCooldown)
 	).apply(instance, CooldownPower::new));
@@ -70,7 +70,7 @@ public class CooldownPower extends Power {
 
 	public static class Instance extends Power.Instance<CooldownPower> {
 
-		protected static final MapCodec<Long> DATA_CODEC = Codec.LONG.fieldOf("last_use_time");
+		protected static final MapCodec<Long> LAST_USE_TIME_CODEC = Codec.LONG.fieldOf("last_use_time");
 		protected long lastUseTime;
 
 		protected Instance(@NotNull Entity holder, @NotNull CooldownPower power) {
@@ -84,22 +84,22 @@ public class CooldownPower extends Power {
 			Context context = builder.build(holder.level());
 
 			return builder
-				.add(NeoApoliContextKeys.MIN_VALUE, 0.0D)
-				.add(NeoApoliContextKeys.MAX_VALUE, power.getCooldown().nextDouble(context.forChild(".cooldown")))
-				.add(NeoApoliContextKeys.CURRENT_VALUE, (double) this.getRemainingTicks(context));
+				.withRequired(NeoApoliContextParams.MIN_VALUE, 0.0D)
+				.withRequired(NeoApoliContextParams.MAX_VALUE, power.getCooldown().nextDouble(context.forChild(".cooldown")))
+				.withRequired(NeoApoliContextParams.CURRENT_VALUE, (double) this.getRemainingTicks(context));
 
 		}
 
 		@Override
 		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
-			return DATA_CODEC.decode(ops, mapInput)
+			return LAST_USE_TIME_CODEC.decode(ops, mapInput)
 				.map(value -> this.lastUseTime = value)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
 		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
-			return DATA_CODEC.encode(this.lastUseTime, ops, prefix);
+			return LAST_USE_TIME_CODEC.encode(this.lastUseTime, ops, prefix);
 		}
 
 		public HudElement getHudElement() {

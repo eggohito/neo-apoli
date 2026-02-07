@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public record TimeNumberProvider(Optional<NumberProvider> period) implements NumberProvider {
 
-	public static final MapCodec<TimeNumberProvider> CODEC = MapCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<TimeNumberProvider> MAP_CODEC = MapCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("period").forGetter(TimeNumberProvider::period)
 	).apply(instance, TimeNumberProvider::new)));
 
@@ -34,7 +34,7 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level world = context.getLevel();
+		Level world = context.level();
 		long time = world.getGameTime();
 
 		if (period().isPresent()) {

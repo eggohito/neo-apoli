@@ -4,16 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEntityAction {
 
-	public static final MapCodec<SwapBiEntityAction> CODEC = MapCodecUtil.lazy(SwapBiEntityAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<SwapBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(SwapBiEntityAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityAction.CODEC.fieldOf("bientity_action").forGetter(SwapBiEntityAction::biEntityAction)
 	).apply(instance, SwapBiEntityAction::new)));
 
@@ -31,9 +31,9 @@ public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEnt
 	public void execute(Context context) {
 
 		Context actionContext = new Context.Builder(context)
-			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(NeoApoliContextKeys.TARGET_ENTITY))
-			.addNullable(NeoApoliContextKeys.TARGET_ENTITY, context.nullable(NeoApoliContextKeys.ACTOR_ENTITY))
-			.build(context.getLevel());
+			.withNullable(NeoApoliContextParams.ACTOR_ENTITY, context.getNullable(NeoApoliContextParams.TARGET_ENTITY))
+			.withNullable(NeoApoliContextParams.TARGET_ENTITY, context.getNullable(NeoApoliContextParams.ACTOR_ENTITY))
+			.build(context.level());
 
 		biEntityAction().execute(actionContext.forChild(".bientity_action"));
 

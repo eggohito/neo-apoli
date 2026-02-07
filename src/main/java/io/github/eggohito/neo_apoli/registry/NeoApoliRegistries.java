@@ -15,6 +15,7 @@ import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
@@ -26,7 +27,6 @@ import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.container_type.ContainerType;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.core.Registry;
@@ -66,7 +66,7 @@ public class NeoApoliRegistries {
 	public static final Registry<ColorType<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
 	public static final Registry<HudElementType<?>> HUD_ELEMENT_TYPE = create(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
 
-	public static final Registry<TypedContextKey<?>> TYPED_CONTEXT_KEY = create(NeoApoliRegistryKeys.TYPED_CONTEXT_KEY);
+	public static final Registry<ContextParameter<?>> CONTEXT_PARAMETER = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER);
 
 	private static <T> Registry<T> create(ResourceKey<Registry<T>> key) {
 		return FabricRegistryBuilder.createSimple(key).buildAndRegister();

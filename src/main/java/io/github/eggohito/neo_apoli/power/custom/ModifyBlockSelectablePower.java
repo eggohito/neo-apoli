@@ -4,13 +4,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -20,19 +21,18 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 @EqualsAndHashCode
 @Getter
 public class ModifyBlockSelectablePower extends Power implements Prioritized<ModifyBlockSelectablePower> {
 
-	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyBlockSelectablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::getAllow))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::getPriority))
 		.apply(instance, ModifyBlockSelectablePower::new));
@@ -75,64 +75,42 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 			super(holder, power);
 		}
 
+		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_BLOCK_SELECTABLE.keySet());
+		}
+
 		public boolean isAllowed(Context context) {
 			return power.getAllow().next(context.forChild(".allow"));
 		}
 
 	}
 
-	public static VoxelShape modify(Context context, Supplier<@NotNull VoxelShape> defaultValue) {
+	public static boolean shouldBeEmpty(Entity entity, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 
-		Entity holder = context.required(NeoApoliContextKeys.THIS_ENTITY);
-		InstanceCollection<Instance> instances = new InstanceCollection<>(holder, Instance.class);
+		for (var instance : new InstanceCollection<>(entity, Instance.class)) {
 
-		return modify(context, instances, defaultValue);
-
-	}
-
-	public static VoxelShape modify(Context context, InstanceCollection<Instance> instances, Supplier<@NotNull VoxelShape> defaultValue) {
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(blockPos, blockState, blockEntity);
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-
-					if (instance.isAllowed(instanceContext)) {
-						return defaultValue.get();
-					}
-
-					else {
-						return Shapes.empty();
-					}
-
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					return !instance.isAllowed(context);
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		return defaultValue.get();
+		return false;
 
-	}
-
-	public static Context createContext(@NotNull Entity entity, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-		return PowerTypes.MODIFY_BLOCK_SELECTABLE.contextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, blockState)
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, blockEntity)
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
 	}
 
 }

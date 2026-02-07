@@ -14,17 +14,12 @@ import java.util.List;
 
 public record ChoiceBiEntityAction(List<Case<BiEntityCondition, BiEntityAction>> cases, BiEntityAction defaultAction) implements BiEntityAction, IChoiceMetaAction<BiEntityCondition, BiEntityAction> {
 
-	public static final MapCodec<ChoiceBiEntityAction> CODEC = MapCodecUtil.lazy(ChoiceBiEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ChoiceBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBiEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ChoiceBiEntityAction::new));
+	public static final MapCodec<ChoiceBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(ChoiceBiEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.mapCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ChoiceBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBiEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.streamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ChoiceBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.CHOICE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

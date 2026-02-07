@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record LoopItemAction(Optional<ItemAction> beforeAction, Optional<ItemAction> afterAction, NumberProvider iterations, ItemAction action) implements ItemAction, ILoopMetaAction<ItemAction> {
 
-	public static final MapCodec<LoopItemAction> CODEC = MapCodecUtil.lazy(LoopItemAction.class.getSimpleName(), () -> ILoopMetaAction.createCodec(ItemAction.CODEC, LoopItemAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, LoopItemAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopItemAction.class.getSimpleName(), () -> ILoopMetaAction.createStreamCodec(ItemAction.STREAM_CODEC, LoopItemAction::new));
+	public static final MapCodec<LoopItemAction> MAP_CODEC = MapCodecUtil.lazy(LoopItemAction.class.getSimpleName(), () -> ILoopMetaAction.mapCodec(ItemAction.CODEC, LoopItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopItemAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopItemAction.class.getSimpleName(), () -> ILoopMetaAction.streamCodec(ItemAction.STREAM_CODEC, LoopItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.LOOP;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

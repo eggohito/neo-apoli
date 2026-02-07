@@ -19,7 +19,7 @@ import java.util.Optional;
 @Getter
 public class DummyPower extends Power {
 
-	public static final MapCodec<DummyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, DummyPower::new));
+	public static final MapCodec<DummyPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, DummyPower::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, DummyPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, DummyPower::new);
 
 	public DummyPower(Optional<Condition> activeCondition) {

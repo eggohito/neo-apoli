@@ -10,16 +10,16 @@ import net.minecraft.resources.ResourceLocation;
 
 public class MetaConditionTypes extends ConditionTypes {
 
-	public static final MetaConditionType<AllOfMetaCondition> ALL_OF = registerInternal("all_of", AllOfMetaCondition.CODEC, AllOfMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<AnyOfMetaCondition> ANY_OF = registerInternal("any_of", AnyOfMetaCondition.CODEC, AnyOfMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<CompareMetaCondition> COMPARE = registerInternal("compare", CompareMetaCondition.CODEC, CompareMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<CompareToRangeMetaCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeMetaCondition.CODEC, CompareToRangeMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<ConstantMetaCondition> CONSTANT = registerInternal("constant", ConstantMetaCondition.CODEC, ConstantMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<DynamicMetaCondition> DYNAMIC = registerInternal("dynamic", DynamicMetaCondition.CODEC, DynamicMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<InvertedMetaCondition> INVERTED = registerInternal("inverted", InvertedMetaCondition.CODEC, InvertedMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<ReferenceMetaCondition> REFERENCE = registerInternal("reference", ReferenceMetaCondition.CODEC, ReferenceMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<TestEntityMetaCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityMetaCondition.CODEC, TestEntityMetaCondition.STREAM_CODEC);
-	public static final MetaConditionType<TestWorldMetaCondition> TEST_WORLD = registerInternal("test_world", TestWorldMetaCondition.CODEC, TestWorldMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<AllOfMetaCondition> ALL_OF = registerInternal("all_of", AllOfMetaCondition.MAP_CODEC, AllOfMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<AnyOfMetaCondition> ANY_OF = registerInternal("any_of", AnyOfMetaCondition.MAP_CODEC, AnyOfMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<CompareMetaCondition> COMPARE = registerInternal("compare", CompareMetaCondition.MAP_CODEC, CompareMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<CompareToRangeMetaCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeMetaCondition.MAP_CODEC, CompareToRangeMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<ConstantMetaCondition> CONSTANT = registerInternal("constant", ConstantMetaCondition.MAP_CODEC, ConstantMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<DynamicMetaCondition> DYNAMIC = registerInternal("dynamic", DynamicMetaCondition.MAP_CODEC, DynamicMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<InvertedMetaCondition> INVERTED = registerInternal("inverted", InvertedMetaCondition.MAP_CODEC, InvertedMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<ReferenceMetaCondition> REFERENCE = registerInternal("reference", ReferenceMetaCondition.MAP_CODEC, ReferenceMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<TestEntityMetaCondition> TEST_ENTITY = registerInternal("test_entity", TestEntityMetaCondition.MAP_CODEC, TestEntityMetaCondition.STREAM_CODEC);
+	public static final MetaConditionType<TestWorldMetaCondition> TEST_WORLD = registerInternal("test_world", TestWorldMetaCondition.MAP_CODEC, TestWorldMetaCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

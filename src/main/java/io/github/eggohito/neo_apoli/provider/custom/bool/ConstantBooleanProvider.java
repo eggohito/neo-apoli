@@ -3,9 +3,9 @@ package io.github.eggohito.neo_apoli.provider.custom.bool;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConstantBooleanProvider(boolean value) implements BooleanProvider {
 
-	public static final MapCodec<ConstantBooleanProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConstantBooleanProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.BOOL.fieldOf("value").forGetter(ConstantBooleanProvider::value)
 	).apply(instance, ConstantBooleanProvider::new));
 

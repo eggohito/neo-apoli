@@ -4,15 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.SlotAccess;
 
 public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 
-	public static final MapCodec<ConsumeItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConsumeItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("amount").forGetter(ConsumeItemAction::amount)
 	).apply(instance, ConsumeItemAction::new));
 
@@ -29,16 +30,14 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 	@Override
 	public void execute(Context context) {
 
-		if (!context.getLevel().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (context.level().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Context amountContext = context.forChild(".amount");
-		int amount = Math.abs(amount().nextInt(amountContext));
+		SlotAccess slotAccess = context.getRequired(NeoApoliContextParams.SLOT_ACCESS);
+		int amount = Math.abs(amount().nextInt(context.forChild(".amount")));
 
-		if (!amountContext.hasErrors()) {
-			context.required(NeoApoliContextKeys.STACK_REFERENCE).get().shrink(amount);
-		}
+		slotAccess.get().shrink(amount);
 
 	}
 

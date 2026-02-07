@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedKeyCondition(KeyCondition condition) implements KeyCondition, IInvertedMetaCondition<KeyCondition> {
 
-	public static final MapCodec<InvertedKeyCondition> CODEC = MapCodecUtil.lazy(InvertedKeyCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(KeyCondition.CODEC, InvertedKeyCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedKeyCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedKeyCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(KeyCondition.STREAM_CODEC, InvertedKeyCondition::new));
+	public static final MapCodec<InvertedKeyCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedKeyCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(KeyCondition.CODEC, InvertedKeyCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedKeyCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedKeyCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(KeyCondition.STREAM_CODEC, InvertedKeyCondition::new));
 
 	@Override
 	public KeyConditionType<?> getType() {
 		return KeyConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

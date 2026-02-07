@@ -12,6 +12,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.chat.contents.TranslatableFormatException;
+
 import java.util.List;
 import java.util.Optional;
 

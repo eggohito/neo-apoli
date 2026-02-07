@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -24,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record PowerNbtProvider(PowerReference power, TypedContextKey<Entity> entity) implements NbtProvider {
+public record PowerNbtProvider(PowerReference power, ContextParameter<Entity> entity) implements NbtProvider {
 
-	public static final MapCodec<PowerNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PowerNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(PowerNbtProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(PowerNbtProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(PowerNbtProvider::entity)
 	).apply(instance, PowerNbtProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerNbtProvider> STREAM_CODEC = StreamCodec.composite(
@@ -46,10 +46,10 @@ public record PowerNbtProvider(PowerReference power, TypedContextKey<Entity> ent
 	public @NotNull Tag next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getValidator().report("Couldn't get and provide NBT of " + power().asDisplayString(false) + " from non-existent entity from parameter \"" + entity().name() + "\"!");
+			context.reportProblem("Couldn't get and provide NBT of " + power().asDisplayString(false) + " from non-existent entity from parameter \"" + entity().name() + "\"!");
 		}
 
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
 			.flatMap(powersComponent -> this.getAndCreate(context, powersComponent))
 			.orElseGet(CompoundTag::new);
@@ -68,10 +68,10 @@ public record PowerNbtProvider(PowerReference power, TypedContextKey<Entity> ent
 	}
 
 	private Optional<Tag> getAndCreate(Context context, PowersComponent powersComponent) {
-		RegistryOps<Tag> ops = context.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+		RegistryOps<Tag> ops = context.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		return powersComponent.getOptionalInstance(this.power())
 			.flatMap(instance -> instance.encodeData(ops)
-				.resultOrPartial(err -> context.getValidator().report("Error while encoding and providing data of " + power().asDisplayString(false) + ": " + err)));
+				.resultOrPartial(err -> context.reportProblem("Error while encoding and providing data of " + power().asDisplayString(false) + ": " + err)));
 	}
 
 }

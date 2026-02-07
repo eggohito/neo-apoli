@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 public record IsInTagEffectCondition(TagKey<MobEffect> tag) implements EffectCondition {
 
-	public static final MapCodec<IsInTagEffectCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<IsInTagEffectCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(TagKey.hashedCodec(Registries.MOB_EFFECT).fieldOf("tag").forGetter(IsInTagEffectCondition::tag))
 		.apply(instance, IsInTagEffectCondition::new));
 
@@ -32,7 +32,7 @@ public record IsInTagEffectCondition(TagKey<MobEffect> tag) implements EffectCon
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextKeys.EFFECT_INSTANCE)
+		return context.getOptional(NeoApoliContextParams.EFFECT_INSTANCE)
 			.map(MobEffectInstance::getEffect)
 			.map(effect -> effect.is(this.tag()))
 			.orElse(false);

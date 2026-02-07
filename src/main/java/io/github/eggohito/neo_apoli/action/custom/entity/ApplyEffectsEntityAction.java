@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -18,7 +18,7 @@ import java.util.List;
 
 public record ApplyEffectsEntityAction(List<MobEffectInstance> effects) implements EntityAction {
 
-	public static final MapCodec<ApplyEffectsEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<ApplyEffectsEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(ExtraCodecs.nonEmptyList(MobEffectInstance.CODEC.listOf()).fieldOf("effects").forGetter(ApplyEffectsEntityAction::effects))
 		.apply(instance, ApplyEffectsEntityAction::new));
 
@@ -35,7 +35,7 @@ public record ApplyEffectsEntityAction(List<MobEffectInstance> effects) implemen
 	@Override
 	public void execute(Context context) {
 
-		if (context.nullable(NeoApoliContextKeys.THIS_ENTITY) instanceof LivingEntity livingEntity && !context.getLevel().isClientSide()) {
+		if (context.getNullable(NeoApoliContextParams.THIS_ENTITY) instanceof LivingEntity livingEntity && !context.level().isClientSide()) {
 			effects().forEach(livingEntity::addEffect);
 		}
 

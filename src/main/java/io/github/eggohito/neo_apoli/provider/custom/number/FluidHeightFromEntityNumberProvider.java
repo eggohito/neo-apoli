@@ -4,11 +4,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,11 +20,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, TypedContextKey<Entity> entity) implements NumberProvider {
+public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, ContextParameter<Entity> entity) implements NumberProvider {
 
-	public static final MapCodec<FluidHeightFromEntityNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<FluidHeightFromEntityNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		TagKey.hashedCodec(Registries.FLUID).fieldOf("fluid_tag").forGetter(FluidHeightFromEntityNumberProvider::fluidTag),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(FluidHeightFromEntityNumberProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(FluidHeightFromEntityNumberProvider::entity)
 	).apply(instance, FluidHeightFromEntityNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, FluidHeightFromEntityNumberProvider> STREAM_CODEC = StreamCodec.composite(
@@ -40,7 +40,7 @@ public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, TypedC
 
 	@Override
 	public @NotNull Number next(Context context) {
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.map(entity -> entity.getFluidHeight(this.fluidTag()))
 			.orElse(0.0D);
 	}

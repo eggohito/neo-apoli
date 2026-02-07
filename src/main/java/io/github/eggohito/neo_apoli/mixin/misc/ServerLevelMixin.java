@@ -19,13 +19,13 @@ public abstract class ServerLevelMixin implements CommandStorageHolder {
 	public abstract MinecraftServer getServer();
 
 	@Override
-	public CompoundTag neo_apoli$get(ResourceLocation id) {
-		return this.neo_apoli$getStorageHolder().neo_apoli$get(id);
+	public CompoundTag neo_apoli$getStorage(ResourceLocation id) {
+		return this.neo_apoli$getStorageHolder().neo_apoli$getStorage(id);
 	}
 
 	@Override
-	public void neo_apoli$set(ResourceLocation id, CompoundTag nbt) {
-		this.neo_apoli$getStorageHolder().neo_apoli$set(id, nbt);
+	public void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt) {
+		this.neo_apoli$getStorageHolder().neo_apoli$setStorage(id, nbt);
 	}
 
 	@Override

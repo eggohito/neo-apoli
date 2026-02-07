@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceKeyCondition(ResourceLocation value) implements KeyCondition, IReferenceMetaCondition<KeyCondition> {
 
-	public static final MapCodec<ReferenceKeyCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceKeyCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceKeyCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceKeyCondition::new);
+	public static final MapCodec<ReferenceKeyCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceKeyCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {
@@ -22,11 +22,6 @@ public record ReferenceKeyCondition(ResourceLocation value) implements KeyCondit
 	@Override
 	public Pair<Class<KeyCondition>, String> classAndName() {
 		return Pair.of(KeyCondition.class, "Key condition");
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

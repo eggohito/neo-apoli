@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements BoxProvider {
 
-	public static final MapCodec<OffsetBoxProvider> CODEC = MapCodecUtil.lazy(OffsetBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<OffsetBoxProvider> MAP_CODEC = MapCodecUtil.lazy(OffsetBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BoxProvider.CODEC.fieldOf("box").forGetter(OffsetBoxProvider::box),
 		BoxProvider.CODEC.fieldOf("offset").forGetter(OffsetBoxProvider::offset)
 	).apply(instance, OffsetBoxProvider::new)));

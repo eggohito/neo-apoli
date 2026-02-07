@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceEntityCondition(ResourceLocation value) implements EntityCondition, IReferenceMetaCondition<EntityCondition> {
 
-	public static final MapCodec<ReferenceEntityCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceEntityCondition::new);
+	public static final MapCodec<ReferenceEntityCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceEntityCondition::new);
 
 	@Override
 	public Pair<Class<EntityCondition>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceEntityCondition(ResourceLocation value) implements Entity
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

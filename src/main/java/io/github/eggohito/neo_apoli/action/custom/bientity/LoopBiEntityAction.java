@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record LoopBiEntityAction(Optional<BiEntityAction> beforeAction, Optional<BiEntityAction> afterAction, NumberProvider iterations, BiEntityAction action) implements BiEntityAction, ILoopMetaAction<BiEntityAction> {
 
-	public static final MapCodec<LoopBiEntityAction> CODEC = MapCodecUtil.lazy(LoopBiEntityAction.class.getSimpleName(), () -> ILoopMetaAction.createCodec(BiEntityAction.CODEC, LoopBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBiEntityAction.class.getSimpleName(), () -> ILoopMetaAction.createStreamCodec(BiEntityAction.STREAM_CODEC, LoopBiEntityAction::new));
+	public static final MapCodec<LoopBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(LoopBiEntityAction.class.getSimpleName(), () -> ILoopMetaAction.mapCodec(BiEntityAction.CODEC, LoopBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBiEntityAction.class.getSimpleName(), () -> ILoopMetaAction.streamCodec(BiEntityAction.STREAM_CODEC, LoopBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {
 		return BiEntityActionTypes.LOOP;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityAction.super.asDisplayString();
 	}
 
 }

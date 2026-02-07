@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldBlockCondition(WorldCondition condition) implements BlockCondition, ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldBlockCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldBlockCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldBlockCondition::new);
+	public static final MapCodec<TestWorldBlockCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldBlockCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldBlockCondition::new);
 
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.TEST_WORLD;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

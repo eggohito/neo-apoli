@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEntityCondition, IReferenceMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<ReferenceBiEntityCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceBiEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceBiEntityCondition::new);
+	public static final MapCodec<ReferenceBiEntityCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceBiEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceBiEntityCondition::new);
 
 	@Override
 	public Pair<Class<BiEntityCondition>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEn
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

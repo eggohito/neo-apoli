@@ -8,8 +8,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
 import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -136,24 +134,6 @@ public class CodecUtil {
 			ExtraCodecs.idResolverCodec(toOrdinal, fromOrdinal, -1)
 		);
 
-	}
-
-	public static <T> Codec<TypedContextKey<T>> createContextKeyCodec(String name, Class<T> typeClass) {
-		return NeoApoliContextKeys.CODEC.comapFlatMap(
-			parameter -> {
-
-				if (typeClass.isAssignableFrom(parameter.getTypeClass())) {
-					//noinspection unchecked
-					return DataResult.success((TypedContextKey<T>) parameter);
-				}
-
-				else {
-					return DataResult.error(() -> "Unknown " + name.toLowerCase(Locale.ROOT) + " parameter with ID: \"" + parameter.name() + "\"");
-				}
-
-			},
-			Function.identity()
-		);
 	}
 
 	public static <T> Codec<TagKey<T>> tagWithDefaultNamespace(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {

@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceBlockCondition(ResourceLocation value) implements BlockCondition, IReferenceMetaCondition<BlockCondition> {
 
-	public static final MapCodec<ReferenceBlockCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceBlockCondition::new);
+	public static final MapCodec<ReferenceBlockCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceBlockCondition::new);
 
 	@Override
 	public Pair<Class<BlockCondition>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceBlockCondition(ResourceLocation value) implements BlockCo
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

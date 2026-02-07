@@ -5,8 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,7 +31,7 @@ public interface ILoopMetaAction<A extends Action> extends MetaAction {
 		Context iterationsContext = context.forChild(".iterations");
 		int iterations = iterations().nextInt(iterationsContext);
 
-		for (int i = 0; !iterationsContext.hasErrors() && i < iterations; i++) {
+		for (int i = 0; i < iterations; i++) {
 			action().execute(context.forChild(".action"));
 		}
 
@@ -52,7 +52,7 @@ public interface ILoopMetaAction<A extends Action> extends MetaAction {
 
 	}
 
-	static <A extends Action, M extends ILoopMetaAction<A>> MapCodec<M> createCodec(Codec<A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
+	static <A extends Action, M extends ILoopMetaAction<A>> MapCodec<M> mapCodec(Codec<A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			actionCodec.optionalFieldOf("before_action").forGetter(ILoopMetaAction::beforeAction),
 			actionCodec.optionalFieldOf("after_action").forGetter(ILoopMetaAction::afterAction),
@@ -61,7 +61,7 @@ public interface ILoopMetaAction<A extends Action> extends MetaAction {
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends ILoopMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
+	static <A extends Action, M extends ILoopMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function4<Optional<A>, Optional<A>, NumberProvider, A, M> constructor) {
 		StreamCodec<RegistryFriendlyByteBuf, Optional<A>> optionalCodec = ByteBufCodecs.optional(actionCodec);
 		return StreamCodec.composite(
 			optionalCodec, ILoopMetaAction::beforeAction,

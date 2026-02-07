@@ -1,30 +1,23 @@
 package io.github.eggohito.neo_apoli.action.custom.item;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.INothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record NothingItemAction() implements ItemAction, INothingMetaAction {
+public enum NothingItemAction implements ItemAction, INothingMetaAction {
 
-	public static final Codec<NothingItemAction> INLINE_CODEC = INothingMetaAction.createEmptyInputCodec(NothingItemAction::new);
+	INSTANCE;
 
-	public static final MapCodec<NothingItemAction> CODEC = MapCodec.unit(NothingItemAction::new);
+	public static final MapCodec<NothingItemAction> MAP_CODEC = MapCodec.unit(INSTANCE);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, NothingItemAction> STREAM_CODEC = StreamCodecUtil.unit(NothingItemAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, NothingItemAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public ItemActionType<?> getType() {
 		return ItemActionTypes.NOTHING;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemAction.super.asDisplayString();
 	}
 
 }

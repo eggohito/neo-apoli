@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -24,13 +24,13 @@ public interface ITestWorldMetaCondition extends MetaCondition {
 		condition().validate(validator.forChild(".condition"));
 	}
 
-	static <M extends ITestWorldMetaCondition> MapCodec<M> createCodec(Function<WorldCondition, M> constructor) {
+	static <M extends ITestWorldMetaCondition> MapCodec<M> mapCodec(Function<WorldCondition, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance
 			.group(WorldCondition.CODEC.fieldOf("condition").forGetter(ITestWorldMetaCondition::condition))
 			.apply(instance, constructor));
 	}
 
-	static <M extends ITestWorldMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<WorldCondition, M> constructor) {
+	static <M extends ITestWorldMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<WorldCondition, M> constructor) {
 		return StreamCodec.composite(
 			WorldCondition.STREAM_CODEC, ITestWorldMetaCondition::condition,
 			constructor

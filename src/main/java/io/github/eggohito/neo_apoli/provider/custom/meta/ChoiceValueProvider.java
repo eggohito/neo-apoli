@@ -4,9 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -28,16 +28,17 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	@NotNull
 	default V next(Context context) {
 
-		ListIterator<Case<P>> caseListIterator = cases().listIterator();
-		while (caseListIterator.hasNext()) {
+		ListIterator<Case<P>> listIterator = cases().listIterator();
 
-			int index = caseListIterator.nextIndex();
-			Case<P> aCase = caseListIterator.next();
+		while (listIterator.hasNext()) {
 
-			Context caseContext = context.forChild(".cases[" + index + "]");
-			boolean shouldProvide = aCase.condition().test(caseContext.forChild(".condition"));
+			Context caseContext = context.forChild(".cases[" + listIterator.nextIndex() + "]");
+			Case<P> aCase = listIterator.next();
 
-			if (!caseContext.hasErrors() && shouldProvide) {
+			Context conditionContext = caseContext.forChild(".condition");
+			boolean provides = aCase.condition().test(conditionContext);
+
+			if (!conditionContext.hasErrors() && provides) {
 				return aCase.value().next(caseContext.forChild(".value"));
 			}
 
@@ -51,27 +52,26 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 	default void validate(Context.Validator validator) {
 
 		ValueProvider.super.validate(validator);
-		ListIterator<Case<P>> caseListIterator = cases().listIterator();
+		ListIterator<Case<P>> listIterator = cases().listIterator();
 
-		while (caseListIterator.hasNext()) {
+		while (listIterator.hasNext()) {
 
-			int index = caseListIterator.nextIndex();
-			Case<P> aCase = caseListIterator.next();
+			Context.Validator caseValidator = validator.forChild(".cases[" + listIterator.nextIndex() + "]");
 
-			aCase.validate(validator.forChild(".cases[" + index + "]"));
+			listIterator.next().validate(caseValidator);
 
 		}
 
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> MapCodec<M> createCodec(Codec<P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
+	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> MapCodec<M> mapCodec(Codec<P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			ExtraCodecs.nonEmptyList(Case.createCodec(providerCodec).listOf()).fieldOf("cases").forGetter(ChoiceValueProvider::cases),
 			providerCodec.fieldOf("default").forGetter(ChoiceValueProvider::defaultValue)
 		).apply(instance, constructor));
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
+	static <P extends ValueProvider<V>, V, M extends ChoiceValueProvider<P, V>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, BiFunction<List<Case<P>>, P, M> constructor) {
 		return StreamCodec.composite(
 			ByteBufCodecs.collection(ObjectArrayList::new, Case.createStreamCodec(providerCodec)), ChoiceValueProvider::cases,
 			providerCodec, ChoiceValueProvider::defaultValue,
@@ -79,12 +79,12 @@ public interface ChoiceValueProvider<P extends ValueProvider<V>, V> extends Valu
 		);
 	}
 
-	record Case<P extends ValueProvider<?>>(Condition condition, P value) implements ContextAware {
+	record Case<P extends ValueProvider<?>>(Condition condition, P value) implements ContextUser {
 
 		@Override
 		public void validate(Context.Validator validator) {
 
-			ContextAware.super.validate(validator);
+			ContextUser.super.validate(validator);
 
 			condition().validate(validator.forChild(".condition"));
 			value().validate(validator.forChild(".value"));

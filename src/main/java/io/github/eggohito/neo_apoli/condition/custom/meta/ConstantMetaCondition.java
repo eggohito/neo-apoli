@@ -11,9 +11,9 @@ public record ConstantMetaCondition(boolean value) implements IConstantMetaCondi
 
 	public static final Codec<ConstantMetaCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantMetaCondition::new);
 
-	public static final MapCodec<ConstantMetaCondition> CODEC = IConstantMetaCondition.createCodec(ConstantMetaCondition::new);
+	public static final MapCodec<ConstantMetaCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantMetaCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantMetaCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantMetaCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantMetaCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

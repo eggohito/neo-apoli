@@ -3,12 +3,13 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -30,7 +31,7 @@ import java.util.Optional;
 @Getter
 public class ModifyEffectDurationPower extends Power {
 
-	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyEffectDurationPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::getModifiers))
 		.apply(instance, ModifyEffectDurationPower::new));
 
@@ -63,59 +64,48 @@ public class ModifyEffectDurationPower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(MobEffectInstance effectInstance, @Nullable Entity source) {
+			return this.createHolderContextBuilder()
+				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_EFFECT_DURATION.keySet());
+		}
+
 		public List<Modifier> getModifiers() {
 			return power.getModifiers();
 		}
 
 	}
 
-	public static int modify(Context context, List<Instance> instances, int original) {
+	public static int modify(Entity holder, MobEffectInstance effectInstance, @Nullable Entity source, int duration) {
 
 		List<Modifier.Entry> entries = new ObjectArrayList<>();
 
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
 
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(instance.createValidator())
-				.build(context.getLevel());
+			Context context = instance.createContext(effectInstance, source);
 
-			try {
-
-				if (!instanceContext.markActive(instance) || !instance.isActive(instanceContext)) {
-					continue;
-				}
-
-				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-				while (listIterator.hasNext()) {
-
-					int index = listIterator.nextIndex();
-					Modifier modifier = listIterator.next();
-
-					entries.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
-
-				}
-
+			if (!instance.isActive(context)) {
+				continue;
 			}
 
-			finally {
-				instanceContext.markInActive(instance);
+			ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
+
+			while (listIterator.hasNext()) {
+
+				Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
+				Modifier modifier = listIterator.next();
+
+				entries.add(Modifier.entry(modifier, modifierContext));
+
 			}
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_EFFECT_DURATION, entries, context, original);
-		return (int) Math.round(Modifier.applyAll(entries, original));
+		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
+		return (int) Math.round(Modifier.applyAll(entries, duration));
 
-	}
-
-	public static Context createContext(@NotNull Entity holder, @Nullable Entity source, MobEffectInstance effectInstance) {
-		return PowerTypes.MODIFY_EFFECT_DURATION.contextBuilder()
-			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, source)
-			.add(NeoApoliContextKeys.TARGET_ENTITY, holder)
-			.add(NeoApoliContextKeys.THIS_ENTITY, holder)
-			.add(NeoApoliContextKeys.THIS_POS, holder.position())
-			.add(NeoApoliContextKeys.EFFECT_INSTANCE, effectInstance)
-			.build(holder.level());
 	}
 
 }

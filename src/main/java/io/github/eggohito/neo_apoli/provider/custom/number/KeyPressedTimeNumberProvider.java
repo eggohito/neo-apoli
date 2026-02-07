@@ -4,11 +4,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberProvider {
 
-	public static final MapCodec<KeyPressedTimeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<KeyPressedTimeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("id").forGetter(KeyPressedTimeNumberProvider::id)
 	).apply(instance, KeyPressedTimeNumberProvider::new));
 
@@ -43,11 +43,11 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 		Context idContext = context.forChild(".id");
 		String id = id().next(idContext);
 
-		if (idContext.hasErrors()) {
+		if (idContext.hasErrors() || id.isEmpty()) {
 			return 0L;
 		}
 
-		UUID uuid = context.required(NeoApoliContextKeys.THIS_ENTITY).getUUID();
+		UUID uuid = context.getRequired(NeoApoliContextParams.THIS_ENTITY).getUUID();
 		return KeyStateManager.getState(uuid, id)
 			.filter(KeyState::pressed)
 			.map(KeyState::pressedTime)
@@ -57,7 +57,7 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_ENTITY);
+		return Set.of(NeoApoliContextParams.THIS_ENTITY);
 	}
 
 	@Override

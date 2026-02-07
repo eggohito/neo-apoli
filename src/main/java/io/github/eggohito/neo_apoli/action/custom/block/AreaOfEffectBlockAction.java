@@ -6,21 +6,19 @@ import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockCondition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.List;
-
 public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition blockCondition, Shape shape, NumberProvider radius) implements BlockAction {
 
-	public static final MapCodec<AreaOfEffectBlockAction> CODEC = MapCodecUtil.lazy(AreaOfEffectBlockAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<AreaOfEffectBlockAction> MAP_CODEC = MapCodecUtil.lazy(AreaOfEffectBlockAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockAction.CODEC.fieldOf("block_action").forGetter(AreaOfEffectBlockAction::blockAction),
 		BlockCondition.CODEC.optionalFieldOf("block_condition", new ConstantBlockCondition(true)).forGetter(AreaOfEffectBlockAction::blockCondition),
 		Shape.CODEC.optionalFieldOf("shape", Shape.CUBE).forGetter(AreaOfEffectBlockAction::shape),
@@ -43,30 +41,23 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasParameter(NeoApoliContextKeys.BLOCK_POS)) {
+		if (!(context.level() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Context radiusContext = context.forChild(".radius");
-		int radius = radius().nextInt(radiusContext);
+		BlockPos originBlockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
+		int radius = radius().nextInt(context.forChild(".radius"));
 
-		if (radiusContext.hasErrors() || radius <= 0) {
-			return;
-		}
+		for (var blockPos : shape().getBlockPositions(originBlockPos, radius)) {
 
-		BlockPos origin = context.required(NeoApoliContextKeys.BLOCK_POS);
-		List<BlockPos> collectedPos = shape().getBlockPositions(origin, radius);
-
-		for (var pos : collectedPos) {
-
-			if (!serverLevel.hasChunkAt(pos)) {
+			if (!serverLevel.hasChunkAt(blockPos)) {
 				continue;
 			}
 
 			Context blockContext = new Context.Builder(context)
-				.add(NeoApoliContextKeys.BLOCK_POS, pos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, serverLevel.getBlockState(pos))
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, serverLevel.getBlockEntity(pos))
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, serverLevel.getBlockState(blockPos))
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, serverLevel.getBlockEntity(blockPos))
 				.build(serverLevel);
 
 			if (blockCondition().test(blockContext.forChild(".block_condition"))) {

@@ -5,20 +5,21 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.fluid.FluidCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 
-import java.util.Optional;
-
 public record FluidBlockCondition(FluidCondition fluidCondition) implements BlockCondition {
 
-	public static final MapCodec<FluidBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.FLUID_STATE)
+		.build();
+
+	public static final MapCodec<FluidBlockCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(FluidCondition.CODEC.fieldOf("fluid_condition").forGetter(FluidBlockCondition::fluidCondition))
 		.apply(instance, FluidBlockCondition::new));
 
@@ -35,24 +36,25 @@ public record FluidBlockCondition(FluidCondition fluidCondition) implements Bloc
 	@Override
 	public boolean test(Context context) {
 
-		Level level = context.getLevel();
-		Optional<FluidState> fluidState = context.optional(NeoApoliContextKeys.BLOCK_POS).map(level::getFluidState);
+		if (!context.hasAllParameters(this.getRequiredParameters())) {
+			return false;
+		}
 
-		Context fluidContext = new Context.Builder(context)
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.FLUID))
-			.addOptional(NeoApoliContextKeys.FLUID_STATE, fluidState)
+		Level level = context.level();
+		FluidState fluidState = context.getRequired(NeoApoliContextParams.BLOCK_STATE).getFluidState();
+
+		Context conditionContext = new Context.Builder(context)
+			.withRequired(NeoApoliContextParams.FLUID_STATE, fluidState)
 			.build(level);
 
-		return fluidCondition().test(fluidContext.forChild(".fluid_condition"));
+		return fluidCondition().test(conditionContext.forChild(".fluid_condition"));
 
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		BlockCondition.super.validate(validator);
-		fluidCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.FLUID))
-			.forChild(".fluid_condition"));
+		fluidCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".fluid_condition"));
 	}
 
 }

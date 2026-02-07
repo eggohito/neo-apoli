@@ -2,9 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConditionResultBooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -31,13 +31,13 @@ public interface IDynamicMetaCondition extends MetaCondition {
 		value().validate(validator.forChild(".value"));
 	}
 
-	static <M extends IDynamicMetaCondition> MapCodec<M> createCodec(Function<BooleanProvider, M> constructor) {
+	static <M extends IDynamicMetaCondition> MapCodec<M> mapCodec(Function<BooleanProvider, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance
 			.group(BooleanProvider.CODEC.fieldOf("value").forGetter(IDynamicMetaCondition::value))
 			.apply(instance, constructor));
 	}
 
-	static <M extends IDynamicMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<BooleanProvider, M> constructor) {
+	static <M extends IDynamicMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<BooleanProvider, M> constructor) {
 		return StreamCodec.composite(
 			BooleanProvider.STREAM_CODEC, ConditionResultBooleanProvider::new,
 			constructor

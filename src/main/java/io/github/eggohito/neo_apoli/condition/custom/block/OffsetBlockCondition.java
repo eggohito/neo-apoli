@@ -4,15 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -20,7 +21,13 @@ import java.util.Set;
 
 public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset) implements BlockCondition {
 
-	public static final MapCodec<OffsetBlockCondition> CODEC = MapCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<OffsetBlockCondition> MAP_CODEC = MapCodecUtil.lazy(OffsetBlockCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("condition").forGetter(OffsetBlockCondition::condition),
 		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetBlockCondition::offset)
 	).apply(instance, OffsetBlockCondition::new)));
@@ -50,8 +57,8 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 			return false;
 		}
 
-		Level level = context.getLevel();
-		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
+		Level level = context.level();
+		BlockPos offsetBlockPos = BlockPos.containing(context.getRequired(NeoApoliContextParams.BLOCK_POS)
 			.getCenter()
 			.add(offset));
 
@@ -60,9 +67,9 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 		}
 
 		Context conditionContext = new Context.Builder(context)
-			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(offsetBlockPos))
+			.withRequired(NeoApoliContextParams.BLOCK_POS, offsetBlockPos)
+			.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(offsetBlockPos))
+			.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(offsetBlockPos))
 			.build(level);
 
 		return condition().test(conditionContext.forChild(".condition"));
@@ -71,7 +78,7 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_POS);
+		return Set.of(NeoApoliContextParams.BLOCK_POS);
 	}
 
 	@Override
@@ -79,7 +86,7 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 
 		BlockCondition.super.validate(validator);
 
-		condition().validate(validator.forChild(".condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".condition"));
 		offset().validate(validator.forChild(".offset"));
 
 	}

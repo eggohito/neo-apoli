@@ -8,12 +8,13 @@ import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -34,6 +35,7 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
@@ -214,10 +216,12 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 			ResourceLocation id = entry.getKey();
 			GlobalPowerSet set = entry.getValue();
 
-			Context.Validator validator = new Context.Validator().withLookupProvider(MiscUtil.getLookupProvider(resources));
+			Reporter reporter = new Reporter("{\"" + id + "\"");
+			Context.Validator validator = new Context.Validator(LootContextParamSets.EMPTY, reporter).withResolver(MiscUtil.getLookupProvider(resources));
+
 			set.validate(validator);
 
-			validator.getErrorsFlattened().ifPresent(error -> {
+			reporter.getErrorsFlattened().ifPresent(error -> {
 				LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error);
 				iterator.remove();
 			});

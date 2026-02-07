@@ -2,18 +2,18 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record DivideNumberProvider(NumberProvider dividend, NumberProvider divisor) implements NumberProvider {
 
-	public static final MapCodec<DivideNumberProvider> CODEC = MapCodecUtil.lazy(DivideNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DivideNumberProvider> MAP_CODEC = MapCodecUtil.lazy(DivideNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("dividend").forGetter(DivideNumberProvider::dividend),
 		NumberProvider.CODEC.fieldOf("divisor").forGetter(DivideNumberProvider::divisor)
 	).apply(instance, DivideNumberProvider::new)));

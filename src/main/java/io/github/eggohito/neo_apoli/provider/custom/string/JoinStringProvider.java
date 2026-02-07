@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -18,7 +18,7 @@ import java.util.ListIterator;
 
 public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
 
-	public static final MapCodec<JoinStringProvider> CODEC = MapCodecUtil.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<JoinStringProvider> MAP_CODEC = MapCodecUtil.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ExtraCodecs.nonEmptyList(StringProvider.CODEC.listOf()).fieldOf("strings").forGetter(JoinStringProvider::strings),
 		StringProvider.CODEC.fieldOf("separator").forGetter(JoinStringProvider::separator)
 	).apply(instance, JoinStringProvider::new)));

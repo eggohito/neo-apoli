@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -23,13 +23,13 @@ public interface ICompareMetaCondition extends MetaCondition {
 		comparison().validate(validator.forChild(".comparison"));
 	}
 
-	static <M extends ICompareMetaCondition> MapCodec<M> createCodec(Function<Comparison, M> constructor) {
+	static <M extends ICompareMetaCondition> MapCodec<M> mapCodec(Function<Comparison, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Comparison.CODEC.fieldOf("comparison").forGetter(ICompareMetaCondition::comparison)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ICompareMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function<Comparison, M> constructor) {
+	static <M extends ICompareMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<Comparison, M> constructor) {
 		return StreamCodec.composite(
 			Comparison.STREAM_CODEC, ICompareMetaCondition::comparison,
 			constructor

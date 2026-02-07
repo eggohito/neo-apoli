@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AllOfKeyCondition(List<KeyCondition> conditions) implements KeyCondition, IAllOfMetaCondition<KeyCondition> {
 
-	public static final MapCodec<AllOfKeyCondition> CODEC = MapCodecUtil.lazy(AllOfKeyCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(KeyCondition.CODEC, AllOfKeyCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfKeyCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfKeyCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(KeyCondition.STREAM_CODEC, AllOfKeyCondition::new));
+	public static final MapCodec<AllOfKeyCondition> MAP_CODEC = MapCodecUtil.lazy(AllOfKeyCondition.class.getSimpleName(), () -> IAllOfMetaCondition.mapCodec(KeyCondition.CODEC, AllOfKeyCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfKeyCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfKeyCondition.class.getSimpleName(), () -> IAllOfMetaCondition.streamCodec(KeyCondition.STREAM_CODEC, AllOfKeyCondition::new));
 
 	@Override
 	public KeyConditionType<?> getType() {
 		return KeyConditionTypes.ALL_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

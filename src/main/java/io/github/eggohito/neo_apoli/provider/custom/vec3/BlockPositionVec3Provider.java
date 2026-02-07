@@ -1,11 +1,10 @@
 package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,10 +14,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record BlockPositionVec3Provider() implements Vec3Provider {
+public enum BlockPositionVec3Provider implements Vec3Provider {
 
-	public static final MapCodec<BlockPositionVec3Provider> CODEC = MapCodec.unit(BlockPositionVec3Provider::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, BlockPositionVec3Provider> STREAM_CODEC = StreamCodecUtil.unit(BlockPositionVec3Provider::new);
+	INSTANCE;
+
+	public static final MapCodec<BlockPositionVec3Provider> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockPositionVec3Provider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public Vec3ProviderType<?> getType() {
@@ -27,14 +28,14 @@ public record BlockPositionVec3Provider() implements Vec3Provider {
 
 	@Override
 	public @NotNull Vec3 next(Context context) {
-		return context.optional(NeoApoliContextKeys.BLOCK_POS)
+		return context.getOptional(NeoApoliContextParams.BLOCK_POS)
 			.map(BlockPos::getCenter)
 			.orElse(Vec3.ZERO);
 	}
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.BLOCK_POS);
+		return Set.of(NeoApoliContextParams.BLOCK_POS);
 	}
 
 }

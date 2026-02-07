@@ -2,18 +2,18 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record NumberStringProvider(NumberProvider number, NumberProvider decimals) implements StringProvider {
 
-	public static final MapCodec<NumberStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NumberStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
 		NumberProvider.CODEC.fieldOf("decimals").forGetter(NumberStringProvider::decimals)
 	).apply(instance, NumberStringProvider::new));

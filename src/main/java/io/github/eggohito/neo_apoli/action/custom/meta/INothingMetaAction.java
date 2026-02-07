@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
 import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;

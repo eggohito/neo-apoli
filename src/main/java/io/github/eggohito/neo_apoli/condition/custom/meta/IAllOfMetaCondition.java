@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,13 +25,10 @@ public interface IAllOfMetaCondition<C extends Condition> extends MetaCondition 
 
 		while (listIterator.hasNext()) {
 
-			int index = listIterator.nextIndex();
+			Context conditionContext = context.forChild(".conditions[" + listIterator.nextIndex() + "]");
 			C condition = listIterator.next();
 
-			Context conditionContext = context.forChild(".conditions[" + index + "]");
-			boolean result = condition.test(conditionContext);
-
-			if (!conditionContext.hasErrors() && !result) {
+			if (!condition.test(conditionContext) && !conditionContext.hasErrors()) {
 				return false;
 			}
 
@@ -48,22 +45,21 @@ public interface IAllOfMetaCondition<C extends Condition> extends MetaCondition 
 
 		while (listIterator.hasNext()) {
 
-			int index = listIterator.nextIndex();
-			C condition = listIterator.next();
+			Context.Validator conditionValidator = validator.forChild(".conditions[" + listIterator.nextIndex() + "]");
 
-			condition.validate(validator.forChild(".conditions[" + index + "]"));
+			listIterator.next().validate(conditionValidator);
 
 		}
 
 	}
 
-	static <C extends Condition, M extends IAllOfMetaCondition<C>> MapCodec<M> createCodec(Codec<C> conditionCodec, Function<List<C>, M> constructor) {
+	static <C extends Condition, M extends IAllOfMetaCondition<C>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Function<List<C>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			conditionCodec.listOf().fieldOf("conditions").forGetter(IAllOfMetaCondition::conditions)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, M extends IAllOfMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
+	static <C extends Condition, M extends IAllOfMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
 		return StreamCodec.composite(
 			ByteBufCodecs.collection(ObjectArrayList::new, conditionCodec), IAllOfMetaCondition::conditions,
 			constructor

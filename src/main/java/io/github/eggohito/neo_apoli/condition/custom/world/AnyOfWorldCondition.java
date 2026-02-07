@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AnyOfWorldCondition(List<WorldCondition> conditions) implements WorldCondition, IAnyOfMetaCondition<WorldCondition> {
 
-	public static final MapCodec<AnyOfWorldCondition> CODEC = MapCodecUtil.lazy(AnyOfWorldCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(WorldCondition.CODEC, AnyOfWorldCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfWorldCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfWorldCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(WorldCondition.STREAM_CODEC, AnyOfWorldCondition::new));
+	public static final MapCodec<AnyOfWorldCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfWorldCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(WorldCondition.CODEC, AnyOfWorldCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfWorldCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfWorldCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(WorldCondition.STREAM_CODEC, AnyOfWorldCondition::new));
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.ANY_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

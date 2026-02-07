@@ -11,14 +11,14 @@ import net.minecraft.resources.ResourceLocation;
 
 public class NbtProviderTypes {
 
-	public static final NbtProviderType<BlockEntityNbtProvider> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityNbtProvider.CODEC, BlockEntityNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<ChoiceNbtProvider> CHOICE = registerInternal("choice", ChoiceNbtProvider.CODEC, ChoiceNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<ConditionalNbtProvider> CONDITIONAL = registerInternal("conditional", ConditionalNbtProvider.CODEC, ConditionalNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<ItemNbtProvider> ITEM = registerInternal("item", ItemNbtProvider.CODEC, ItemNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<PowerNbtProvider> POWER = registerInternal("power", PowerNbtProvider.CODEC, PowerNbtProvider.STREAM_CODEC);
-	public static final NbtProviderType<StorageNbtProvider> STORAGE = registerInternal("storage", StorageNbtProvider.CODEC, StorageNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<BlockEntityNbtProvider> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityNbtProvider.MAP_CODEC, BlockEntityNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<ChoiceNbtProvider> CHOICE = registerInternal("choice", ChoiceNbtProvider.MAP_CODEC, ChoiceNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<ConditionalNbtProvider> CONDITIONAL = registerInternal("conditional", ConditionalNbtProvider.MAP_CODEC, ConditionalNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.MAP_CODEC, ConstantNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.MAP_CODEC, EntityNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<ItemNbtProvider> ITEM = registerInternal("item", ItemNbtProvider.MAP_CODEC, ItemNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<PowerNbtProvider> POWER = registerInternal("power", PowerNbtProvider.MAP_CODEC, PowerNbtProvider.STREAM_CODEC);
+	public static final NbtProviderType<StorageNbtProvider> STORAGE = registerInternal("storage", StorageNbtProvider.MAP_CODEC, StorageNbtProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

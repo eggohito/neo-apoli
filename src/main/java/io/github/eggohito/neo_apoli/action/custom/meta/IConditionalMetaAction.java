@@ -6,7 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,19 +24,12 @@ public interface IConditionalMetaAction<C extends Condition, A extends Action> e
 	@Override
 	default void execute(Context context) {
 
-		Context conditionContext = context.forChild(".condition");
-		boolean shouldExecute = condition().test(conditionContext);
+		if (condition().test(context.forChild(".condition"))) {
+			ifAction().execute(context.forChild(".if_action"));
+		}
 
-		if (!conditionContext.hasErrors()) {
-
-			if (shouldExecute) {
-				ifAction().execute(context.forChild(".if_action"));
-			}
-
-			else {
-				elseAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".else_action")));
-			}
-
+		else {
+			elseAction().ifPresent(elseAction -> elseAction.execute(context.forChild(".else_action")));
 		}
 
 	}
@@ -52,7 +45,7 @@ public interface IConditionalMetaAction<C extends Condition, A extends Action> e
 
 	}
 
-	static <C extends Condition, A extends Action, M extends IConditionalMetaAction<C, A>> MapCodec<M> createCodec(Codec<C> conditionCodec, Codec<A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
+	static <C extends Condition, A extends Action, M extends IConditionalMetaAction<C, A>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			conditionCodec.fieldOf("condition").forGetter(IConditionalMetaAction::condition),
 			actionCodec.fieldOf("if_action").forGetter(IConditionalMetaAction::ifAction),
@@ -60,7 +53,7 @@ public interface IConditionalMetaAction<C extends Condition, A extends Action> e
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, A extends Action, M extends IConditionalMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
+	static <C extends Condition, A extends Action, M extends IConditionalMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, Function3<C, A, Optional<A>, M> constructor) {
 		return StreamCodec.composite(
 			conditionCodec, IConditionalMetaAction::condition,
 			actionCodec, IConditionalMetaAction::ifAction,

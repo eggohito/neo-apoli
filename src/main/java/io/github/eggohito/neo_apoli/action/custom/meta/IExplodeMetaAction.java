@@ -6,14 +6,16 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
-import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.util.context.*;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
 import lombok.AllArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -27,6 +29,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Explosion;
@@ -40,13 +43,24 @@ import java.util.Set;
 
 public interface IExplodeMetaAction extends MetaAction {
 
+	ContextKeySet DAMAGEABLE_PARAMS = new ContextKeySet.Builder()
+		.optional(NeoApoliContextParams.ACTOR_ENTITY)
+		.optional(NeoApoliContextParams.TARGET_ENTITY)
+		.build();
+
+	ContextKeySet DESTRUCTIBLE_PARAMS = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
 	BiEntityCondition damageableBiEntityCondition();
 
 	BlockCondition destructibleBlockCondition();
 
 	Vec3Provider position();
 
-	TypedContextKey<Entity> actor();
+	ContextParameter<Entity> actor();
 
 	Property property();
 
@@ -55,7 +69,7 @@ public interface IExplodeMetaAction extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
+		if (!(context.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
@@ -80,15 +94,15 @@ public interface IExplodeMetaAction extends MetaAction {
 			return;
 		}
 
-		Entity actor = context.nullable(actor());
+		Entity actor = context.getNullable(actor());
 		DamageCalculator damageCalculator = new DamageCalculator(this, context);
 
-		ServerExplosion explosion = new ServerExplosion(serverWorld, actor, Explosion.getDefaultDamageSource(serverWorld, actor), damageCalculator, position, power, createFire, property().destructionType());
+		ServerExplosion explosion = new ServerExplosion(serverLevel, actor, Explosion.getDefaultDamageSource(serverLevel, actor), damageCalculator, position, power, createFire, property().blockInteraction());
 		explosion.explode();
 
 		ParticleOptions particle = display().getParticleOrDefault(explosion);
 
-		for (var player : serverWorld.players()) {
+		for (var player : serverLevel.players()) {
 
 			if (player.distanceToSqr(position) >= 4096.0) {
 				continue;
@@ -112,10 +126,10 @@ public interface IExplodeMetaAction extends MetaAction {
 		MetaAction.super.validate(validator);
 
 		damageableBiEntityCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY))
+			.withAdditionalKeysFromSets(DAMAGEABLE_PARAMS)
 			.forChild(".damageable_bientity_condition"));
 		destructibleBlockCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
+			.withAdditionalKeysFromSets(DESTRUCTIBLE_PARAMS)
 			.forChild(".destructible_block_condition"));
 
 		property().validate(validator);
@@ -129,16 +143,15 @@ public interface IExplodeMetaAction extends MetaAction {
 		private final Context context;
 
 		@Override
-		public boolean shouldBlockExplode(Explosion explosion, BlockGetter world, BlockPos pos, BlockState state, float power) {
+		public boolean shouldBlockExplode(Explosion explosion, BlockGetter blockGetter, BlockPos blockPos, BlockState blockState, float power) {
 
-			Context blockContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-				.add(NeoApoliContextKeys.BLOCK_POS, pos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, state)
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(pos))
-				.build(context.getLevel());
+			Context conditionContext = new Context.Builder(context)
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockGetter.getBlockEntity(blockPos))
+				.build(context.level());
 
-			return action.destructibleBlockCondition().test(blockContext.forChild(".destructible_block_condition"));
+			return action.destructibleBlockCondition().test(conditionContext.forChild(".destructible_block_condition"));
 
 		}
 
@@ -146,10 +159,9 @@ public interface IExplodeMetaAction extends MetaAction {
 		public boolean shouldDamageEntity(Explosion explosion, Entity entity) {
 
 			Context biEntityContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity)
-				.build(context.getLevel());
+				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, context.getNullable(action.actor()))
+				.withNullable(NeoApoliContextParams.TARGET_ENTITY, entity)
+				.build(context.level());
 
 			return action.damageableBiEntityCondition().test(biEntityContext.forChild(".damageable_bientity_condition"));
 
@@ -159,10 +171,9 @@ public interface IExplodeMetaAction extends MetaAction {
 		public float getKnockbackMultiplier(Entity entity) {
 
 			Context knockbackContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, context.nullable(action.actor()))
-				.addNullable(NeoApoliContextKeys.TARGET_ENTITY, entity)
-				.build(context.getLevel());
+				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, context.getNullable(action.actor()))
+				.withNullable(NeoApoliContextParams.TARGET_ENTITY, entity)
+				.build(context.level());
 
 			return action.property().knockbackMultiplier().nextFloat(knockbackContext.forChild(".knockback_multiplier"));
 
@@ -170,17 +181,22 @@ public interface IExplodeMetaAction extends MetaAction {
 
 	}
 
-	record Property(Explosion.BlockInteraction destructionType, NumberProvider power, NumberProvider knockbackMultiplier, BooleanProvider createFire) implements ContextAware {
+	record Property(Explosion.BlockInteraction blockInteraction, NumberProvider power, NumberProvider knockbackMultiplier, BooleanProvider createFire) implements ContextUser {
+
+		private static final ContextKeySet KNOCKBACK_PARAMS = new ContextKeySet.Builder()
+			.optional(NeoApoliContextParams.ACTOR_ENTITY)
+			.optional(NeoApoliContextParams.TARGET_ENTITY)
+			.build();
 
 		public static final MapCodec<Property> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			NeoApoliCodecs.DESTRUCTION_TYPE.fieldOf("destruction_type").forGetter(Property::destructionType),
+			NeoApoliCodecs.DESTRUCTION_TYPE.fieldOf("block_interaction").forGetter(Property::blockInteraction),
 			NumberProvider.CODEC.fieldOf("power").forGetter(Property::power),
 			NumberProvider.CODEC.optionalFieldOf("knockback_multiplier", new ConstantNumberProvider(1.0)).forGetter(Property::knockbackMultiplier),
 			BooleanProvider.CODEC.optionalFieldOf("create_fire", new ConstantBooleanProvider(true)).forGetter(Property::createFire)
 		).apply(instance, Property::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Property> STREAM_CODEC = StreamCodec.composite(
-			NeoApoliStreamCodecs.DESTRUCTION_TYPE, Property::destructionType,
+			NeoApoliStreamCodecs.DESTRUCTION_TYPE, Property::blockInteraction,
 			NumberProvider.STREAM_CODEC, Property::power,
 			NumberProvider.STREAM_CODEC, Property::knockbackMultiplier,
 			BooleanProvider.STREAM_CODEC, Property::createFire,
@@ -190,10 +206,10 @@ public interface IExplodeMetaAction extends MetaAction {
 		@Override
 		public void validate(Context.Validator validator) {
 
-			ContextAware.super.validate(validator);
+			ContextUser.super.validate(validator);
 
 			power().validate(validator.forChild(".power"));
-			knockbackMultiplier().validate(validator.forChild(".knockback_multiplier"));
+			knockbackMultiplier().validate(validator.withAdditionalKeysFromSets(KNOCKBACK_PARAMS).forChild(".knockback_multiplier"));
 			createFire().validate(validator.forChild(".create_fire"));
 
 		}

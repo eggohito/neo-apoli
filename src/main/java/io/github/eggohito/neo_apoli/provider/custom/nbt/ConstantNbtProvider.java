@@ -4,9 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConstantNbtProvider(Tag value) implements NbtProvider {
 
-	public static final MapCodec<ConstantNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConstantNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_TAG.fieldOf("value").forGetter(ConstantNbtProvider::value)
 	).apply(instance, ConstantNbtProvider::new));
 

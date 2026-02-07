@@ -9,8 +9,8 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldMetaCondition(WorldCondition condition) implements ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldMetaCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldMetaCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldMetaCondition::new);
+	public static final MapCodec<TestWorldMetaCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldMetaCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldMetaCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

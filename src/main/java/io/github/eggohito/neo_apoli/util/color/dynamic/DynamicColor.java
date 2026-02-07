@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.util.color.dynamic;
 
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.FloatFunction;
 import io.github.eggohito.neo_apoli.util.FloatSupplier;
 import io.github.eggohito.neo_apoli.util.color.Color;
-import io.github.eggohito.neo_apoli.util.context.Context;
 
 public interface DynamicColor extends Color {
 

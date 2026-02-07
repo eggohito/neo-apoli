@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.datafixers.util.Either;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -25,32 +25,32 @@ public final class RegistryUtil {
 	}
 
 	public static <T> void validateKey(Context.Validator validator, ResourceKey<T> key) {
-		validate(validator, Either.left(key));
+		validateKeyOrTag(validator, Either.left(key));
 	}
 
 	public static <T> void validateTag(Context.Validator validator, TagKey<T> tag) {
-		validate(validator, Either.right(tag));
+		validateKeyOrTag(validator, Either.right(tag));
 	}
 
-	public static <T> void validate(Context.Validator validator, Either<ResourceKey<T>, TagKey<T>> keyOrTag) {
+	public static <T> void validateKeyOrTag(Context.Validator validator, Either<ResourceKey<T>, TagKey<T>> keyOrTag) {
 
-		ResourceKey<? extends Registry<T>> registryRef = keyOrTag.map(ResourceKey::registryKey, TagKey::registry);
-		if (!validator.hasLookupProvider()) {
-			validator.report("Couldn't access registry " + registryRef + "!");
+		ResourceKey<? extends Registry<T>> registryKey = keyOrTag.map(ResourceKey::registryKey, TagKey::registry);
+		if (!validator.allowsReferences()) {
+			validator.reportProblem("Couldn't access registry " + registryKey + "!");
 		}
 
 		else {
 
-			HolderLookup.RegistryLookup<T> lookup = validator.getLookupProviderUnsafe()
-				.lookup(registryRef)
+			HolderLookup.RegistryLookup<T> lookup = validator.resolver()
+				.lookup(registryKey)
 				.orElse(null);
 
 			if (lookup == null) {
-				validator.report("Couldn't find registry " + registryRef + "!");
+				validator.reportProblem("Registry " + registryKey + " doesn't exist!");
 			}
 
 			else if (keyOrTag.map(lookup::get, lookup::get).isEmpty()) {
-				validator.report(keyOrTag.map(ResourceKey::toString, TagKey::toString) + " doesn't exist!");
+				validator.reportProblem(keyOrTag.map(ResourceKey::toString, TagKey::toString) + " doesn't exist!");
 			}
 
 		}

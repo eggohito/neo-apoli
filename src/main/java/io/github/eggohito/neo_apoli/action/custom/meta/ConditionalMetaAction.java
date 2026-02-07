@@ -14,8 +14,8 @@ import java.util.Optional;
 
 public record ConditionalMetaAction(Condition condition, Action ifAction, Optional<Action> elseAction) implements IConditionalMetaAction<Condition, Action> {
 
-	public static final MapCodec<ConditionalMetaAction> CODEC = MapCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.createCodec(Condition.CODEC, Action.CODEC, ConditionalMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.createStreamCodec(Condition.STREAM_CODEC, Action.STREAM_CODEC, ConditionalMetaAction::new));
+	public static final MapCodec<ConditionalMetaAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.mapCodec(Condition.CODEC, Action.CODEC, ConditionalMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalMetaAction.class.getSimpleName(), () -> IConditionalMetaAction.streamCodec(Condition.STREAM_CODEC, Action.STREAM_CODEC, ConditionalMetaAction::new));
 
 	@Override
 	public MetaActionType<?> getType() {

@@ -5,14 +5,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
+import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import io.netty.buffer.ByteBuf;
@@ -142,7 +142,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Set<TagKey<EntityType<?>>>> ENTITY_TYPE_TAG_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ENTITY_TYPE_TAG);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, List<AttributedAttributeModifier>> ATTRIBUTE_MODIFIERS = ByteBufCodecs.collection(ObjectArrayList::new, AttributedAttributeModifier.STREAM_CODEC);
+	public static final StreamCodec<RegistryFriendlyByteBuf, List<AttributedModifier>> ATTRIBUTE_MODIFIERS = ByteBufCodecs.collection(ObjectArrayList::new, AttributedModifier.STREAM_CODEC);
 
 	public static final StreamCodec<ByteBuf, Dynamic<?>> PASSTHROUGH = ByteBufCodecs.fromCodec(Codec.PASSTHROUGH);
 
@@ -158,9 +158,9 @@ public class NeoApoliStreamCodecs {
 		Function.identity()
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Number>> NUMBER_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("number", Number.class);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Number>> NUMBER_CONTEXT_KEY = ContextParameter.streamCodec("number", Number.class);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = StreamCodecUtil.createContextKeyCodec("entity", Entity.class);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Entity>> ENTITY_CONTEXT_KEY = ContextParameter.streamCodec("entity", Entity.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Block> BLOCK_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Block.class);
 

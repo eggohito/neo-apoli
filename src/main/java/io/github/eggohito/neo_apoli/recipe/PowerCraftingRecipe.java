@@ -20,18 +20,17 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Objects;
 
-public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe delegate) implements CraftingRecipe {
+public record PowerCraftingRecipe(PowerReference power, CraftingRecipe delegate) implements CraftingRecipe {
 
 	@Override
 	public boolean matches(CraftingInput input, Level world) {
 
-		if (!(input instanceof PowerCraftingInventory powerCraftingInventory)) {
+		if (!(input instanceof PowerCraftingInventory pci)) {
 			return false;
 		}
 
-		CraftingRecipe powerDefinedRecipe = NeoApoliEntityComponents.POWERS.maybeGet(powerCraftingInventory.neo_apoli$getEntity())
-			.filter(powersComponent -> powersComponent.hasInstance(this.powerReference()))
-			.map(powersComponent -> powersComponent.getInstance(this.powerReference()))
+		CraftingRecipe powerDefinedRecipe = NeoApoliEntityComponents.POWERS.maybeGet(pci.neo_apoli$getEntity())
+			.flatMap(component -> component.getOptionalInstance(this.power()))
 			.filter(CraftingRecipePower.Instance.class::isInstance)
 			.map(CraftingRecipePower.Instance.class::cast)
 			.map(CraftingRecipePower.Instance::getRecipeEntry)
@@ -86,12 +85,12 @@ public record PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe 
 	public static class Serializer implements RecipeSerializer<PowerCraftingRecipe> {
 
 		public static final MapCodec<PowerCraftingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			PowerReference.CODEC.fieldOf("power").forGetter(PowerCraftingRecipe::powerReference),
+			PowerReference.CODEC.fieldOf("power").forGetter(PowerCraftingRecipe::power),
 			NeoApoliMapCodecs.CRAFTING_RECIPE.codec().fieldOf("recipe").forGetter(PowerCraftingRecipe::delegate)
 		).apply(instance, PowerCraftingRecipe::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> STREAM_CODEC = StreamCodec.composite(
-			PowerReference.STREAM_CODEC, PowerCraftingRecipe::powerReference,
+			PowerReference.STREAM_CODEC, PowerCraftingRecipe::power,
 			NeoApoliStreamCodecs.CRAFTING_RECIPE, PowerCraftingRecipe::delegate,
 			PowerCraftingRecipe::new
 		);

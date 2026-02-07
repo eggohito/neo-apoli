@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AnyOfItemCondition(List<ItemCondition> conditions) implements ItemCondition, IAnyOfMetaCondition<ItemCondition> {
 
-	public static final MapCodec<AnyOfItemCondition> CODEC = MapCodecUtil.lazy(AnyOfItemCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(ItemCondition.CODEC, AnyOfItemCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfItemCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfItemCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(ItemCondition.STREAM_CODEC, AnyOfItemCondition::new));
+	public static final MapCodec<AnyOfItemCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfItemCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(ItemCondition.CODEC, AnyOfItemCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfItemCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfItemCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(ItemCondition.STREAM_CODEC, AnyOfItemCondition::new));
 
 	@Override
 	public ItemConditionType<?> getType() {
 		return ItemConditionTypes.ANY_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return ItemCondition.super.asDisplayString();
 	}
 
 }

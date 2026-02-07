@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AllOfEffectCondition(List<EffectCondition> conditions) implements EffectCondition, IAllOfMetaCondition<EffectCondition> {
 
-	public static final MapCodec<AllOfEffectCondition> CODEC = MapCodecUtil.lazy(AllOfEffectCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(EffectCondition.CODEC, AllOfEffectCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfEffectCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(EffectCondition.STREAM_CODEC, AllOfEffectCondition::new));
+	public static final MapCodec<AllOfEffectCondition> MAP_CODEC = MapCodecUtil.lazy(AllOfEffectCondition.class.getSimpleName(), () -> IAllOfMetaCondition.mapCodec(EffectCondition.CODEC, AllOfEffectCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfEffectCondition.class.getSimpleName(), () -> IAllOfMetaCondition.streamCodec(EffectCondition.STREAM_CODEC, AllOfEffectCondition::new));
 
 	@Override
 	public EffectConditionType<?> getType() {
 		return EffectConditionTypes.ALL_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

@@ -8,16 +8,16 @@ import io.github.eggohito.neo_apoli.action.custom.item.NothingItemAction;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.BlockUsePhase;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -28,6 +28,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -44,7 +45,7 @@ import java.util.function.Supplier;
 @Getter
 public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBlockUsePower> {
 
-	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyBlockUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
 		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::getConditions))
 		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::getUsePhases))
@@ -97,21 +98,40 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 			super(holder, power);
 		}
 
-		public boolean doesApply(BlockUsePhase interactionPhase, PriorityPhase priorityPhase) {
-			return this.getPower().getUsePhases().contains(interactionPhase)
-				&& this.getPower().inPriorityPhase(priorityPhase);
+		public Context createContext(BlockHitResult blockResult, InteractionHand hand) {
+
+			Level level = holder.level();
+			BlockPos blockPos  = blockResult.getBlockPos();
+			SlotAccess slotAccess = holder instanceof LivingEntity livingEntity
+				? SlotAccess.of(() -> livingEntity.getItemInHand(hand), stack -> livingEntity.setItemInHand(hand, stack))
+				: SlotAccess.NULL;
+
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+				.withRequired(NeoApoliContextParams.DIRECTION, blockResult.getDirection())
+				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
+				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
+				.buildWithRequirements(level, PowerTypes.MODIFY_BLOCK_USE.keySet());
+
 		}
 
 		public InteractionResult apply(Context context) {
 			return power.getActions().execute(context);
 		}
 
+		public boolean doesApply(BlockUsePhase interactionPhase, PriorityPhase priorityPhase) {
+			return this.getPower().getUsePhases().contains(interactionPhase)
+				&& this.getPower().inPriorityPhase(priorityPhase);
+		}
+
 	}
 
-	public record Actions(Action action, InteractionResult result) implements ContextAware {
+	public record Actions(Action action, InteractionResult result) implements ContextUser {
 
 		public static final MapCodec<Actions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Action.CODEC.optionalFieldOf("action", new NothingItemAction()).forGetter(Actions::action),
+			Action.CODEC.optionalFieldOf("action", NothingItemAction.INSTANCE).forGetter(Actions::action),
 			NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(Actions::result)
 		).apply(instance, Actions::new));
 
@@ -123,7 +143,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		@Override
 		public void validate(Context.Validator validator) {
-			ContextAware.super.validate(validator);
+			ContextUser.super.validate(validator);
 			action().validate(validator.forChild(".action"));
 		}
 
@@ -134,7 +154,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	}
 
-	public record Conditions(EnumSet<Direction> directions, EnumSet<InteractionHand> hands) implements ContextAware {
+	public record Conditions(EnumSet<Direction> directions, EnumSet<InteractionHand> hands) implements ContextUser {
 
 		public static final MapCodec<Conditions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			NeoApoliCodecs.DIRECTION_SET.optionalFieldOf("directions", EnumSet.allOf(Direction.class)).forGetter(Conditions::directions),
@@ -147,9 +167,9 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 			Conditions::new
 		);
 
-		public boolean test(Context context) {
-			return context.optional(NeoApoliContextKeys.DIRECTION).map(directions()::contains).orElse(false)
-				&& context.optional(NeoApoliContextKeys.HAND).map(hands()::contains).orElse(false);
+		public boolean test(Context context, InteractionHand hand) {
+			return context.getOptional(NeoApoliContextParams.DIRECTION).map(directions()::contains).orElse(false)
+				&& hands().contains(hand);
 		}
 
 	}
@@ -178,7 +198,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 			for (var instance : instances) {
 
-				Context context = createContext(instance, player, hand, blockHitResult);
+				Context context = instance.createContext(blockHitResult, hand);
 
 				if (instance.isActive(context)) {
 					previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));
@@ -237,7 +257,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 				for (var instance : instances) {
 
-					Context context = createContext(instance, player, hand, blockHitResult);
+					Context context = instance.createContext(blockHitResult, hand);
 
 					if (instance.isActive(context)) {
 						previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));
@@ -259,24 +279,6 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		}
 
 		return MiscUtil.overrideResult(original, modified);
-
-	}
-
-	public static Context createContext(Instance instance, Player player, InteractionHand hand, BlockHitResult blockHitResult) {
-
-		Level world = player.level();
-		BlockPos blockPos = blockHitResult.getBlockPos();
-		SlotAccess stackReference = SlotAccess.of(() -> player.getItemInHand(hand), stack -> player.setItemInHand(hand, stack));
-
-		return instance.createHolderContextBuilder()
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, world.getBlockState(blockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, world.getBlockEntity(blockPos))
-			.add(NeoApoliContextKeys.DIRECTION, blockHitResult.getDirection())
-			.add(NeoApoliContextKeys.STACK_REFERENCE, stackReference)
-			.add(NeoApoliContextKeys.ITEM_STACK, stackReference.get())
-			.add(NeoApoliContextKeys.HAND, hand)
-			.build(world);
 
 	}
 

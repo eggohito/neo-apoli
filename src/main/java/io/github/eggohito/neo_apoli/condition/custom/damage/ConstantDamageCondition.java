@@ -12,18 +12,13 @@ public record ConstantDamageCondition(boolean value) implements DamageCondition,
 
 	public static final Codec<ConstantDamageCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantDamageCondition::new);
 
-	public static final MapCodec<ConstantDamageCondition> CODEC = IConstantMetaCondition.createCodec(ConstantDamageCondition::new);
+	public static final MapCodec<ConstantDamageCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantDamageCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantDamageCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantDamageCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantDamageCondition::new);
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

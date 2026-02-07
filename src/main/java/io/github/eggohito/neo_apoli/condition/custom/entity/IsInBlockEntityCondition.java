@@ -5,21 +5,26 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
 public record IsInBlockEntityCondition(BlockCondition condition) implements EntityCondition {
 
-	public static final MapCodec<IsInBlockEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<IsInBlockEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BlockCondition.CODEC.fieldOf("block_condition").forGetter(IsInBlockEntityCondition::condition))
 		.apply(instance, IsInBlockEntityCondition::new));
 
@@ -40,35 +45,32 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 			return false;
 		}
 
-		Level level = context.getLevel();
-		BlockPos blockPos = BlockPos.containing(context.required(NeoApoliContextKeys.THIS_POS));
+		Level level = context.level();
+		BlockPos blockPos = BlockPos.containing(context.getRequired(NeoApoliContextParams.THIS_POS));
 
 		if (!level.hasChunkAt(blockPos)) {
 			return false;
 		}
 
-		Context blockContext = new Context.Builder(context)
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(blockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+		Context conditionContext = new Context.Builder(context)
+			.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+			.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
+			.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 			.build(level);
 
-		return condition().test(blockContext.forChild(".block_condition"));
+		return condition().test(conditionContext.forChild(".block_condition"));
 
 	}
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_POS);
+		return Set.of(NeoApoliContextParams.THIS_POS);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		condition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.forChild(".block_condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
 	}
 
 }

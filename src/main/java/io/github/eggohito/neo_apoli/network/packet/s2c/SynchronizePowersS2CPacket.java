@@ -4,12 +4,13 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.util.List;
-import java.util.Set;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+
+import java.util.List;
+import java.util.Set;
 
 public record SynchronizePowersS2CPacket(Set<PowerEntry<?>> powers) implements CustomPacketPayload {
 

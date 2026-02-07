@@ -7,8 +7,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
-import io.github.eggohito.neo_apoli.util.SavedBlockPosition;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.InsideBlockEffectApplier;
@@ -18,16 +18,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-import java.lang.ref.WeakReference;
-import java.util.Optional;
+import java.util.Objects;
 
 public abstract class PhasingPowerMixin {
 
@@ -57,56 +54,27 @@ public abstract class PhasingPowerMixin {
 		@Shadow
 		protected abstract BlockState asState();
 
-		@Unique
-		private final ThreadLocal<WeakReference<Context>> neo_apoli$phasingContext = new ThreadLocal<>();
-
-		@Unique
-		private Context neo_apoli$getOrCreatePhasingContext(Entity entity, BlockPos blockPos) {
-
-			Context context = Optional.ofNullable(this.neo_apoli$phasingContext.get())
-				.flatMap(reference -> Optional.ofNullable(reference.get()))
-				.orElseGet(() -> PhasingPower.createContext(entity, new SavedBlockPosition(entity.level(), blockPos, this.asState(), entity.level().getBlockEntity(blockPos))));
-
-			this.neo_apoli$phasingContext.set(new WeakReference<>(context));
-			return context;
-
-		}
-
 		@ModifyExpressionValue(method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
-		private VoxelShape overrideShapeWhenFulfilled(VoxelShape original, BlockGetter blockView, BlockPos blockPos, CollisionContext shapeContext) {
+		private VoxelShape overrideShapeWhenFulfilled(VoxelShape original, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collision) {
 
-			if (shapeContext instanceof EntityCollisionContext entityShapeContext && entityShapeContext.getEntity() != null) {
+			if (MiscUtil.collisionHasEntity(collision)) {
 
-				Context context = this.neo_apoli$getOrCreatePhasingContext(entityShapeContext.getEntity(), blockPos);
-				boolean result = PhasingPower.shouldPhase(context, original);
+				Entity entity = Objects.requireNonNull(MiscUtil.getEntityFromCollision(collision));
+				CachedBlock cachedBlock = new CachedBlock(entity.level(), blockPos, this.asState(), blockGetter.getBlockEntity(blockPos));
 
-				this.neo_apoli$phasingContext.remove();
-
-				if (result) {
+				if (PhasingPower.doesApply(entity, cachedBlock, original)) {
 					return Shapes.empty();
 				}
 
-				else {
-					return original;
-				}
-
 			}
 
-			else {
-				return original;
-			}
+			return original;
 
 		}
 
 		@WrapWithCondition(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;entityInside(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/InsideBlockEffectApplier;)V"))
 		private boolean disableEntityCollisionEffects(Block block, BlockState blockState, Level level, BlockPos blockPos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier) {
-
-			Context context = this.neo_apoli$getOrCreatePhasingContext(entity, blockPos);
-			boolean result = !PhasingPower.shouldPhase(context, Power.Instance::isActive);
-
-			this.neo_apoli$phasingContext.remove();
-			return result;
-
+			return !PhasingPower.doesApply(entity, new CachedBlock(level, blockPos, blockState, level.getBlockEntity(blockPos)), Power.Instance::isActive);
 		}
 
 	}

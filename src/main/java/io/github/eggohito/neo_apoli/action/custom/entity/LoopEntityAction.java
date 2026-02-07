@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record LoopEntityAction(Optional<EntityAction> beforeAction, Optional<EntityAction> afterAction, NumberProvider iterations, EntityAction action) implements EntityAction, ILoopMetaAction<EntityAction> {
 
-	public static final MapCodec<LoopEntityAction> CODEC = MapCodecUtil.lazy(LoopEntityAction.class.getSimpleName(), () -> ILoopMetaAction.createCodec(EntityAction.CODEC, LoopEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, LoopEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopEntityAction.class.getSimpleName(), () -> ILoopMetaAction.createStreamCodec(EntityAction.STREAM_CODEC, LoopEntityAction::new));
+	public static final MapCodec<LoopEntityAction> MAP_CODEC = MapCodecUtil.lazy(LoopEntityAction.class.getSimpleName(), () -> ILoopMetaAction.mapCodec(EntityAction.CODEC, LoopEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopEntityAction.class.getSimpleName(), () -> ILoopMetaAction.streamCodec(EntityAction.STREAM_CODEC, LoopEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.LOOP;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

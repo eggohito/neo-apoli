@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -19,10 +19,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityNbtProvider(TypedContextKey<Entity> entity) implements NbtProvider {
+public record EntityNbtProvider(ContextParameter<Entity> entity) implements NbtProvider {
 
-	public static final MapCodec<EntityNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EntityNbtProvider::entity)
+	public static final MapCodec<EntityNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityNbtProvider::entity)
 	).apply(instance, EntityNbtProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityNbtProvider> STREAM_CODEC = StreamCodec.composite(
@@ -39,10 +39,10 @@ public record EntityNbtProvider(TypedContextKey<Entity> entity) implements NbtPr
 	public @NotNull Tag next(Context context) {
 
 		if (!context.hasParameter(entity())) {
-			context.getValidator().report("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");
+			context.reportProblem("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");
 		}
 
-		return context.optional(entity())
+		return context.getOptional(entity())
 			.map(NbtPredicate::getEntityTagToCompare)
 			.orElseGet(CompoundTag::new);
 

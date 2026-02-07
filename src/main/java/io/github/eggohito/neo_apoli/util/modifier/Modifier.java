@@ -3,10 +3,10 @@ package io.github.eggohito.neo_apoli.util.modifier;
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierType;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface Modifier extends ContextAware, Comparable<Modifier> {
+public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	Codec<Modifier> CODEC = ModifierType.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
 
@@ -79,7 +79,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 
 			try {
 
-				if (context.markActive(modifier)) {
+				if (context.visitor().push(modifier)) {
 
 					double value = modifier.apply(context, currentBase, currentTotal);
 
@@ -92,7 +92,7 @@ public interface Modifier extends ContextAware, Comparable<Modifier> {
 			}
 
 			finally {
-				context.markInActive(modifier);
+				context.visitor().pop(modifier);
 			}
 
 		}

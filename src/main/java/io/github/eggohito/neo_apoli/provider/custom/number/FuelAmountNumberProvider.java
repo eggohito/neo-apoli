@@ -1,11 +1,10 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -14,10 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record FuelAmountNumberProvider() implements NumberProvider {
+public enum FuelAmountNumberProvider implements NumberProvider {
 
-	public static final MapCodec<FuelAmountNumberProvider> CODEC = MapCodec.unit(FuelAmountNumberProvider::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, FuelAmountNumberProvider> STREAM_CODEC = StreamCodecUtil.unit(FuelAmountNumberProvider::new);
+	INSTANCE;
+
+	public static final MapCodec<FuelAmountNumberProvider> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, FuelAmountNumberProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public NumberProviderType<?> getType() {
@@ -26,15 +27,15 @@ public record FuelAmountNumberProvider() implements NumberProvider {
 
 	@Override
 	public @NotNull Number next(Context context) {
-		FuelValues fuelRegistry = context.getLevel().fuelValues();
-		return context.optional(NeoApoliContextKeys.ITEM_STACK)
+		FuelValues fuelRegistry = context.level().fuelValues();
+		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(fuelRegistry::burnDuration)
 			.orElse(0);
 	}
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.ITEM_STACK);
+		return Set.of(NeoApoliContextParams.ITEM_STACK);
 	}
 
 }

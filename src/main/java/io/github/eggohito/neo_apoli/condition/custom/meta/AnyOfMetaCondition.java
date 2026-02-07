@@ -13,9 +13,9 @@ import java.util.List;
 
 public record AnyOfMetaCondition(List<Condition> conditions) implements IAnyOfMetaCondition<Condition> {
 
-	public static final MapCodec<AnyOfMetaCondition> CODEC = MapCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(Condition.CODEC, AnyOfMetaCondition::new));
+	public static final MapCodec<AnyOfMetaCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(Condition.CODEC, AnyOfMetaCondition::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(Condition.STREAM_CODEC, AnyOfMetaCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(Condition.STREAM_CODEC, AnyOfMetaCondition::new));
 
 	@Override
 	public ConditionType<?> getType() {

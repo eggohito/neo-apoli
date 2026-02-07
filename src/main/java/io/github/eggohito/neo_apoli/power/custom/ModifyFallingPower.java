@@ -3,14 +3,15 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -30,7 +31,9 @@ import java.util.Optional;
 @Getter
 public class ModifyFallingPower extends Power {
 
-	public static final MapCodec<ModifyFallingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyFallingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyFallingPower::getModifiers))
 		.and(BooleanProvider.CODEC.optionalFieldOf("take_fall_damage", new ConstantBooleanProvider(true)).forGetter(ModifyFallingPower::getTakeFallDamage))
 		.apply(instance, ModifyFallingPower::new));
@@ -96,25 +99,22 @@ public class ModifyFallingPower extends Power {
 
 	}
 
-	public static boolean shouldNegateFallDamage(Context context, List<Instance> instances) {
+	public static boolean shouldNegateFallDamage(Entity entity) {
 
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (instanceContext.markActive(instance) && !instance.shouldNegateFallDamage(context)) {
+				if (VISITOR.push(instance) && instance.shouldNegateFallDamage(context)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
@@ -123,19 +123,17 @@ public class ModifyFallingPower extends Power {
 
 	}
 
-	public static double modify(Context context, List<Instance> instances, double baseValue) {
+	public static double modify(Entity entity, double effectiveGravity) {
 
 		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
-		for (var instance : instances) {
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
+
+			Context context = instance.createHolderContext();
 
 			try {
 
-				if (!instanceContext.markActive(instance) || !instance.isActive(context)) {
+				if (!VISITOR.push(instance) || !instance.isActive(context)) {
 					continue;
 				}
 
@@ -143,31 +141,24 @@ public class ModifyFallingPower extends Power {
 
 				while (listIterator.hasNext()) {
 
-					int index = listIterator.nextIndex();
+					Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
+					modifiers.add(Modifier.entry(modifier, modifierContext));
 
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_FALLING, modifiers, context, baseValue);
-		return Modifier.applyAll(modifiers, baseValue);
+		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_FALLING, modifiers, effectiveGravity);
+		return Modifier.applyAll(modifiers, effectiveGravity);
 
-	}
-
-	public static Context createContext(Entity entity) {
-		return PowerTypes.MODIFY_FALLING.contextBuilder()
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
-			.build(entity.level());
 	}
 
 }

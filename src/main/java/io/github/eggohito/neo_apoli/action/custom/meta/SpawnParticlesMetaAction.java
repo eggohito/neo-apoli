@@ -6,22 +6,21 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
-import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.ConstantVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +29,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface SpawnParticlesMetaAction extends MetaAction {
+
+	ContextKeySet DEFAULT_CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.ACTOR_ENTITY)
+		.build();
 
 	ParticleOptions particle();
 	BiEntityCondition biEntityCondition();
@@ -45,55 +48,23 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 	@Override
 	default void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel)) {
+		if (!context.hasAllParameters(this.getRequiredParameters()) || !(context.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
-		Context positionContext = context.forChild(".position");
-		Vec3 pos = position().next(positionContext);
+		Vec3 position = position().next(context.forChild(".position"));
+		Vec3 spread = spread().next(context.forChild(".spread"));
 
-		if (positionContext.hasErrors()) {
-			return;
-		}
-
-		Context spreadContext = context.forChild(".spread");
-		Vec3 spread = spread().next(spreadContext);
-
-		if (spreadContext.hasErrors()) {
-			return;
-		}
-
-		Context speedContext = context.forChild(".speed");
-		float speed = speed().nextFloat(speedContext);
-
-		if (speedContext.hasErrors()) {
-			return;
-		}
-
-		Context countContext = context.forChild(".count");
-		int count = count().nextInt(countContext);
-
-		if (countContext.hasErrors()) {
-			return;
-		}
-
-		Context forceContext = context.forChild(".force");
-		boolean force = force().next(forceContext);
-
-		if (forceContext.hasErrors()) {
-			return;
-		}
+		boolean force = force().next(context.forChild(".force"));
+		float speed = speed().nextFloat(context.forChild(".speed"));
+		int count = count().nextInt(context.forChild(".count"));
 
 		for (var viewer : serverLevel.getServer().getPlayerList().getPlayers()) {
 
-			Context biEntityContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.add(NeoApoliContextKeys.ACTOR_ENTITY, viewer)
-				.addOptionalIfAbsent(NeoApoliContextKeys.TARGET_ENTITY, () -> context.optional(NeoApoliContextKeys.THIS_ENTITY))
-				.build(serverLevel);
+			Context biEntityContext = this.biEntityContext(context, viewer).build(serverLevel);
 
-			if (biEntityCondition().test(biEntityContext.forChild(".bientity_condition"))) {
-				this.sendParticlesTo(biEntityContext, serverLevel, viewer, force, pos, count, spread, speed);
+			if (biEntityCondition().test(biEntityContext)) {
+				this.sendParticlesTo(biEntityContext, serverLevel, viewer, force, position, count, spread, speed);
 			}
 
 		}
@@ -105,7 +76,7 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 
 		MetaAction.super.validate(validator);
 
-		biEntityCondition().validate(validator.forChild(".bientity_condition"));
+		biEntityCondition().validate(this.biEntityValidator(validator).forChild(".bientity_condition"));
 		position().validate(validator.forChild(".position"));
 		spread().validate(validator.forChild(".spread"));
 		speed().validate(validator.forChild(".speed"));
@@ -114,8 +85,16 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 
 	}
 
+	default Context.Builder biEntityContext(Context context, ServerPlayer viewer) {
+		return new Context.Builder(context).withRequired(NeoApoliContextParams.ACTOR_ENTITY, viewer);
+	}
+
+	default Context.Validator biEntityValidator(Context.Validator validator) {
+		return validator.withAdditionalKeysFromSets(DEFAULT_CONDITION_CONTEXT);
+	}
+
 	default void sendParticlesTo(Context context, ServerLevel serverLevel, ServerPlayer viewer, boolean force, Vec3 pos, int count, Vec3 spread, float speed) {
-		serverLevel.sendParticles(viewer, particle(), force, false, pos.x(), pos.y(), pos.z(), count, spread.x(), spread.y(), spread.z(), speed);
+		serverLevel.sendParticles(viewer, particle(), force, particle().getType().getOverrideLimiter(), pos.x(), pos.y(), pos.z(), count, spread.x(), spread.y(), spread.z(), speed);
 	}
 
 	static <M extends SpawnParticlesMetaAction, P extends Vec3Provider> MapCodec<M> createDefaultedCodec(@Nullable Supplier<@NotNull P> defaultPosition, Function7<ParticleOptions, BiEntityCondition, Vec3Provider, Vec3Provider, NumberProvider, NumberProvider, BooleanProvider, M> constructor) {
@@ -136,11 +115,11 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 
 	}
 
-	static <M extends SpawnParticlesMetaAction> MapCodec<M> createCodec(Function7<ParticleOptions, BiEntityCondition, Vec3Provider, Vec3Provider, NumberProvider, NumberProvider, BooleanProvider, M> constructor) {
+	static <M extends SpawnParticlesMetaAction> MapCodec<M> mapCodec(Function7<ParticleOptions, BiEntityCondition, Vec3Provider, Vec3Provider, NumberProvider, NumberProvider, BooleanProvider, M> constructor) {
 		return createDefaultedCodec(null, constructor);
 	}
 
-	static <M extends SpawnParticlesMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function7<ParticleOptions, BiEntityCondition, Vec3Provider, Vec3Provider, NumberProvider, NumberProvider, BooleanProvider, M> constructor) {
+	static <M extends SpawnParticlesMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function7<ParticleOptions, BiEntityCondition, Vec3Provider, Vec3Provider, NumberProvider, NumberProvider, BooleanProvider, M> constructor) {
 		return StreamCodec.composite(
 			NeoApoliParticleTypes.OPTIONS_STREAM_CODEC, SpawnParticlesMetaAction::particle,
 			BiEntityCondition.STREAM_CODEC, SpawnParticlesMetaAction::biEntityCondition,

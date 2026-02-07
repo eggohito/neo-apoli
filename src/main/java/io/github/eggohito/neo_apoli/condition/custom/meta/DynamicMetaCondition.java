@@ -9,8 +9,8 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record DynamicMetaCondition(BooleanProvider value) implements IDynamicMetaCondition {
 
-	public static final MapCodec<DynamicMetaCondition> CODEC = IDynamicMetaCondition.createCodec(DynamicMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicMetaCondition> STREAM_CODEC = IDynamicMetaCondition.createStreamCodec(DynamicMetaCondition::new);
+	public static final MapCodec<DynamicMetaCondition> MAP_CODEC = IDynamicMetaCondition.mapCodec(DynamicMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicMetaCondition> STREAM_CODEC = IDynamicMetaCondition.streamCodec(DynamicMetaCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record LoopBlockAction(Optional<BlockAction> beforeAction, Optional<BlockAction> afterAction, NumberProvider iterations, BlockAction action) implements BlockAction, ILoopMetaAction<BlockAction> {
 
-	public static final MapCodec<LoopBlockAction> CODEC = MapCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> ILoopMetaAction.createCodec(BlockAction.CODEC, LoopBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> ILoopMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, LoopBlockAction::new));
+	public static final MapCodec<LoopBlockAction> MAP_CODEC = MapCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> ILoopMetaAction.mapCodec(BlockAction.CODEC, LoopBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBlockAction.class.getSimpleName(), () -> ILoopMetaAction.streamCodec(BlockAction.STREAM_CODEC, LoopBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.LOOP;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

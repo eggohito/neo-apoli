@@ -7,20 +7,25 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.Shape;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCondition biEntityCondition, Shape shape, NumberProvider radius) implements EntityAction {
 
-	public static final MapCodec<AreaOfEffectEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final ContextKeySet BIENTITY_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.ACTOR_ENTITY)
+		.required(NeoApoliContextParams.TARGET_ENTITY)
+		.build();
+
+	public static final MapCodec<AreaOfEffectEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityAction.CODEC.fieldOf("bientity_action").forGetter(AreaOfEffectEntityAction::biEntityAction),
 		BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(AreaOfEffectEntityAction::biEntityCondition),
 		Shape.CODEC.optionalFieldOf("shape", Shape.CUBE).forGetter(AreaOfEffectEntityAction::shape),
@@ -47,22 +52,21 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 			return;
 		}
 
-		Level level = context.getLevel();
-		Entity actor = context.required(NeoApoliContextKeys.THIS_ENTITY);
+		Entity actor = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
+		Vec3 pos = context.getRequired(NeoApoliContextParams.THIS_POS);
 
-		Context radiusContext = context.forChild(".radius");
-		double radius = radius().nextDouble(radiusContext);
+		Level level = context.level();
+		double radius = radius().nextDouble(context.forChild(".radius"));
 
-		if (radiusContext.hasErrors() || Math.signum(radius) <= 0) {
+		if (Math.signum(radius) <= 0) {
 			return;
 		}
 
-		for (var target : shape().getEntities(level, context.required(NeoApoliContextKeys.THIS_POS), radius)) {
+		for (var target : shape().getEntities(level, pos, radius)) {
 
 			Context biEntityContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BIENTITY))
-				.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-				.add(NeoApoliContextKeys.TARGET_ENTITY, target)
+				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, actor)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
 				.build(level);
 
 			if (biEntityCondition().test(biEntityContext.forChild(".bientity_condition"))) {
@@ -77,7 +81,7 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	public void validate(Context.Validator validator) {
 
 		EntityAction.super.validate(validator);
-		Context.Validator biEntityValidator = validator.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BIENTITY));
+		Context.Validator biEntityValidator = validator.withAdditionalKeysFromSets(BIENTITY_CONTEXT);
 
 		biEntityAction().validate(biEntityValidator.forChild(".bientity_action"));
 		biEntityCondition().validate(biEntityValidator.forChild(".bientity_condition"));

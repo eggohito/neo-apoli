@@ -12,18 +12,13 @@ public record ConstantFluidCondition(boolean value) implements FluidCondition, I
 
 	public static final Codec<ConstantFluidCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantFluidCondition::new);
 
-	public static final MapCodec<ConstantFluidCondition> CODEC = IConstantMetaCondition.createCodec(ConstantFluidCondition::new);
+	public static final MapCodec<ConstantFluidCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantFluidCondition::new);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantFluidCondition> STREAM_CODEC = IConstantMetaCondition.createStreamCodec(ConstantFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantFluidCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.CONSTANT;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

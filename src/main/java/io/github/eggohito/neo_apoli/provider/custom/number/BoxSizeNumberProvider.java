@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 
-	public static final MapCodec<BoxSizeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<BoxSizeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BoxProvider.CODEC.fieldOf("box").forGetter(BoxSizeNumberProvider::box))
 		.apply(instance, BoxSizeNumberProvider::new));
 

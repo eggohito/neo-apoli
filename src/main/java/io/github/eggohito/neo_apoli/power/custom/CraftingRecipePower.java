@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class CraftingRecipePower extends Power implements Prioritized<CraftingRecipePower> {
 
-	public static final MapCodec<CraftingRecipePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<CraftingRecipePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::getRecipeEntry),
 		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::getPriority)
 	).apply(instance, CraftingRecipePower::new));

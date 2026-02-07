@@ -5,13 +5,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -20,11 +19,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, TypedContextKey<Entity> entity) implements NumberProvider {
+public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, ContextParameter<Entity> entity) implements NumberProvider {
 
-	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
 	).apply(instance, PowerCooldownRemainingTicksNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownRemainingTicksNumberProvider> STREAM_CODEC = StreamCodec.composite(
@@ -41,15 +40,29 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Ty
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Entity entity = context.nullable(entity());
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.maybeGet(entity).orElse(null);
+		Entity entity = context.getNullable(entity());
+		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)
+			.flatMap(powersComponent -> powersComponent.getOptionalInstance(this.power()))
+			.filter(CooldownPower.Instance.class::isInstance)
+			.map(CooldownPower.Instance.class::cast)
+			.orElse(null);
 
-		if (powersComponent == null || !(powersComponent.getNullableInstance(power()) instanceof CooldownPower.Instance cooldownInstance)) {
-			return 0;
+		if (entity == null || cooldownInstance == null) {
+
+			if (entity == null) {
+				context.reportProblem("Entity from parameter \"" + entity().name() + "\" doesn't exist!");
+			}
+
+			if (cooldownInstance == null) {
+				context.reportProblem(power().asDisplayString() + " does not have a cooldown!");
+			}
+
+			return 0.0D;
+
 		}
 
 		else {
-			return cooldownInstance.getRemainingTicks(context);
+			return cooldownInstance.getRemainingTicks(context.forChild(".power"));
 		}
 
 	}
@@ -62,7 +75,7 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Ty
 	@Override
 	public void validate(Context.Validator validator) {
 		NumberProvider.super.validate(validator);
-		CooldownPower.getAsResult(power()).ifError(error -> validator.report(error.message()));
+		CooldownPower.getAsResult(power()).ifError(error -> validator.reportProblem(error.message()));
 	}
 
 }

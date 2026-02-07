@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.Block;
 
 public record IsOfBlockCondition(Holder<Block> block) implements BlockCondition {
 
-	public static final MapCodec<IsOfBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<IsOfBlockCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BuiltInRegistries.BLOCK.holderByNameCodec().fieldOf("block").forGetter(IsOfBlockCondition::block)
 	).apply(instance, IsOfBlockCondition::new));
 
@@ -32,7 +32,7 @@ public record IsOfBlockCondition(Holder<Block> block) implements BlockCondition 
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextKeys.BLOCK_STATE)
+		return context.getOptional(NeoApoliContextParams.BLOCK_STATE)
 			.map(state -> state.is(this.block()))
 			.orElse(false);
 	}

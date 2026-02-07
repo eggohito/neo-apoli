@@ -4,16 +4,15 @@ import com.google.common.collect.Streams;
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public record AddExperienceEntityAction(Optional<NumberProvider> points, Optional<NumberProvider> levels) implements EntityAction {
@@ -21,7 +20,7 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	private static final MapCodec<Optional<NumberProvider>> POINTS_CODEC = NumberProvider.CODEC.optionalFieldOf("points");
 	private static final MapCodec<Optional<NumberProvider>> LEVELS_CODEC = NumberProvider.CODEC.optionalFieldOf("levels");
 
-	public static final MapCodec<AddExperienceEntityAction> CODEC = new MapCodec<>() {
+	public static final MapCodec<AddExperienceEntityAction> MAP_CODEC = new MapCodec<>() {
 
 		@Override
 		public <T> Stream<T> keys(DynamicOps<T> ops) {
@@ -70,20 +69,15 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.nullable(NeoApoliContextKeys.THIS_ENTITY) instanceof ServerPlayer serverPlayer)) {
+		if (!(context.getNullable(NeoApoliContextParams.THIS_ENTITY) instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
 
-		Context pointsContext = context.forChild(".points");
 		this.points()
-			.map(provider -> provider.nextInt(pointsContext))
-			.filter(Predicate.not(points -> pointsContext.hasErrors()))
+			.map(provider -> provider.nextInt(context.forChild(".points")))
 			.ifPresent(serverPlayer::giveExperiencePoints);
-
-		Context levelsContext = context.forChild(".levels");
 		this.levels()
-			.map(provider -> provider.nextInt(levelsContext))
-			.filter(Predicate.not(levels -> levelsContext.hasErrors()))
+			.map(provider -> provider.nextInt(context.forChild(".levels")))
 			.ifPresent(serverPlayer::giveExperienceLevels);
 
 	}

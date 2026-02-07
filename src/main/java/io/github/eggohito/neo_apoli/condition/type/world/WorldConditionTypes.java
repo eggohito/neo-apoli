@@ -12,19 +12,19 @@ import net.minecraft.resources.ResourceLocation;
 
 public class WorldConditionTypes extends ConditionTypes {
 
-	public static final WorldConditionType<AllOfWorldCondition> ALL_OF = registerInternal("all_of", AllOfWorldCondition.CODEC, AllOfWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<AnyOfWorldCondition> ANY_OF = registerInternal("any_of", AnyOfWorldCondition.CODEC, AnyOfWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<CompareToRangeWorldCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeWorldCondition.CODEC, CompareToRangeWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<CompareWorldCondition> COMPARE = registerInternal("compare", CompareWorldCondition.CODEC, CompareWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<ConstantWorldCondition> CONSTANT = registerInternal("constant", ConstantWorldCondition.CODEC, ConstantWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<DynamicWorldCondition> DYNAMIC = registerInternal("dynamic", DynamicWorldCondition.CODEC, DynamicWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<InvertedWorldCondition> INVERTED = registerInternal("inverted", InvertedWorldCondition.CODEC, InvertedWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<ReferenceWorldCondition> REFERENCE = registerInternal("reference", ReferenceWorldCondition.CODEC, ReferenceWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<AllOfWorldCondition> ALL_OF = registerInternal("all_of", AllOfWorldCondition.MAP_CODEC, AllOfWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<AnyOfWorldCondition> ANY_OF = registerInternal("any_of", AnyOfWorldCondition.MAP_CODEC, AnyOfWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<CompareToRangeWorldCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeWorldCondition.MAP_CODEC, CompareToRangeWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<CompareWorldCondition> COMPARE = registerInternal("compare", CompareWorldCondition.MAP_CODEC, CompareWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<ConstantWorldCondition> CONSTANT = registerInternal("constant", ConstantWorldCondition.MAP_CODEC, ConstantWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<DynamicWorldCondition> DYNAMIC = registerInternal("dynamic", DynamicWorldCondition.MAP_CODEC, DynamicWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<InvertedWorldCondition> INVERTED = registerInternal("inverted", InvertedWorldCondition.MAP_CODEC, InvertedWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<ReferenceWorldCondition> REFERENCE = registerInternal("reference", ReferenceWorldCondition.MAP_CODEC, ReferenceWorldCondition.STREAM_CODEC);
 
-	public static final WorldConditionType<DifficultyWorldCondition> DIFFICULTY = registerInternal("difficulty", DifficultyWorldCondition.CODEC, DifficultyWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<IsInTagWorldCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagWorldCondition.CODEC, IsInTagWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<IsOfWorldCondition> IS_OF = registerInternal("is_of", IsOfWorldCondition.CODEC, IsOfWorldCondition.STREAM_CODEC);
-	public static final WorldConditionType<IsRainingAtWorldCondition> IS_RAINING_AT = registerInternal("is_raining_at", IsRainingAtWorldCondition.CODEC, IsRainingAtWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<DifficultyWorldCondition> DIFFICULTY = registerInternal("difficulty", DifficultyWorldCondition.MAP_CODEC, DifficultyWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<IsInTagWorldCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagWorldCondition.MAP_CODEC, IsInTagWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<IsOfWorldCondition> IS_OF = registerInternal("is_of", IsOfWorldCondition.MAP_CODEC, IsOfWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<IsRainingAtWorldCondition> IS_RAINING_AT = registerInternal("is_raining_at", IsRainingAtWorldCondition.MAP_CODEC, IsRainingAtWorldCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

@@ -4,11 +4,11 @@ import com.mojang.datafixers.Products;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.world.entity.Entity;
@@ -24,16 +24,16 @@ import java.util.function.BiConsumer;
 @Getter
 public abstract class AttributeModifying extends Power {
 
-	private final List<AttributedAttributeModifier> modifiers;
+	private final List<AttributedModifier> modifiers;
 	private final BooleanProvider sendUpdate;
 
-	public AttributeModifying(Optional<Condition> activeCondition, List<AttributedAttributeModifier> modifiers, BooleanProvider sendUpdate) {
+	public AttributeModifying(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate) {
 		super(activeCondition);
 		this.modifiers = modifiers;
 		this.sendUpdate = sendUpdate;
 	}
 
-	public AttributeModifying(List<AttributedAttributeModifier> modifiers, BooleanProvider sendUpdate) {
+	public AttributeModifying(List<AttributedModifier> modifiers, BooleanProvider sendUpdate) {
 		this.modifiers = modifiers;
 		this.sendUpdate = sendUpdate;
 	}
@@ -103,14 +103,14 @@ public abstract class AttributeModifying extends Power {
 
 	}
 
-	protected static <P extends AttributeModifying> Products.P2<RecordCodecBuilder.Mu<P>, List<AttributedAttributeModifier>, BooleanProvider> addAttributeModifyingFields(RecordCodecBuilder.Instance<P> instance) {
+	protected static <P extends AttributeModifying> Products.P2<RecordCodecBuilder.Mu<P>, List<AttributedModifier>, BooleanProvider> addAttributeModifyingFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
 			NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AttributeModifying::getModifiers),
 			BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AttributeModifying::getSendUpdate)
 		);
 	}
 
-	protected static <P extends AttributeModifying> Products.P3<RecordCodecBuilder.Mu<P>, Optional<Condition>, List<AttributedAttributeModifier>, BooleanProvider> addConditionalAttributeModifyingAndFields(RecordCodecBuilder.Instance<P> instance) {
+	protected static <P extends AttributeModifying> Products.P3<RecordCodecBuilder.Mu<P>, Optional<Condition>, List<AttributedModifier>, BooleanProvider> addConditionalAttributeModifyingAndFields(RecordCodecBuilder.Instance<P> instance) {
 		return addActiveConditionField(instance)
 			.and(NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AttributeModifying::getModifiers))
 			.and(BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AttributeModifying::getSendUpdate));

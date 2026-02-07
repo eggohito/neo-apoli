@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AnyOfBlockCondition(List<BlockCondition> conditions) implements BlockCondition, IAnyOfMetaCondition<BlockCondition> {
 
-	public static final MapCodec<AnyOfBlockCondition> CODEC = MapCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(BlockCondition.CODEC, AnyOfBlockCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(BlockCondition.STREAM_CODEC, AnyOfBlockCondition::new));
+	public static final MapCodec<AnyOfBlockCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(BlockCondition.CODEC, AnyOfBlockCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(BlockCondition.STREAM_CODEC, AnyOfBlockCondition::new));
 
 	@Override
 	public BlockConditionType<?> getType() {
 		return BlockConditionTypes.ANY_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockCondition.super.asDisplayString();
 	}
 
 }

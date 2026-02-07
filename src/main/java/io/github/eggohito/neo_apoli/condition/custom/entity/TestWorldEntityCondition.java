@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldEntityCondition(WorldCondition condition) implements EntityCondition, ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldEntityCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldEntityCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldEntityCondition::new);
+	public static final MapCodec<TestWorldEntityCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldEntityCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.TEST_WORLD;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

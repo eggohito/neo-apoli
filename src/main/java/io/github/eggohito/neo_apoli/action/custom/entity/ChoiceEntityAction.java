@@ -14,17 +14,12 @@ import java.util.List;
 
 public record ChoiceEntityAction(List<Case<EntityCondition, EntityAction>> cases, EntityAction defaultAction) implements EntityAction, IChoiceMetaAction<EntityCondition, EntityAction> {
 
-	public static final MapCodec<ChoiceEntityAction> CODEC = MapCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(EntityCondition.CODEC, EntityAction.CODEC, ChoiceEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ChoiceEntityAction::new));
+	public static final MapCodec<ChoiceEntityAction> MAP_CODEC = MapCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.mapCodec(EntityCondition.CODEC, EntityAction.CODEC, ChoiceEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceEntityAction.class.getSimpleName(), () -> IChoiceMetaAction.streamCodec(EntityCondition.STREAM_CODEC, EntityAction.STREAM_CODEC, ChoiceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.CHOICE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

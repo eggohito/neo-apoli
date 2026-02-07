@@ -2,9 +2,9 @@ package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import io.github.eggohito.neo_apoli.client.NeoApoliClient;
 import io.github.eggohito.neo_apoli.client.api.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;

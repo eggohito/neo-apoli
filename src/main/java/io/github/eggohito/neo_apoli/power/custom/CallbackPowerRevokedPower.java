@@ -3,11 +3,11 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,7 +21,7 @@ import java.util.Optional;
 @Getter
 public class CallbackPowerRevokedPower extends SimpleCallbackPower {
 
-	public static final MapCodec<CallbackPowerRevokedPower> CODEC = createSimpleCallbackCodec(CallbackPowerRevokedPower::new);
+	public static final MapCodec<CallbackPowerRevokedPower> MAP_CODEC = createSimpleCallbackCodec(CallbackPowerRevokedPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerRevokedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPowerRevokedPower::new);
 
 	public CallbackPowerRevokedPower(Optional<Condition> activeCondition, Action action) {

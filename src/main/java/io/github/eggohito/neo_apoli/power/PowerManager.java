@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.api.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
@@ -18,11 +19,7 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -279,12 +276,13 @@ public final class PowerManager implements JsonReloadListener {
 			PowerEntry<?> entry = iterator.next();
 			Power power = entry.power();
 
-			Context.Validator validator = entry.createValidator().withLookupProvider(MiscUtil.getLookupProvider(resources));
+			Context.Validator validator = entry.createValidator().withResolver(MiscUtil.getLookupProvider(resources));
+			Reporter reporter = validator.reporter();
+
 			power.validate(validator);
+			reporter.getErrorsFlattened().ifPresent(error -> {
 
-			validator.getErrorsFlattened().ifPresent(error -> {
-
-				LOGGER.error("Found error(s) while validating {} {}", entry.reference().asDisplayString(false), error);
+				LOGGER.error("Found errors while validating {} {}", entry.reference().asDisplayString(false), error);
 
 				BY_POWER.remove(power);
 				iterator.remove();

@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,7 +24,7 @@ import java.util.ListIterator;
 @Getter
 public class HudRenderPower extends Power {
 
-	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<HudRenderPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::getHudElements))
 		.apply(instance, HudRenderPower::new));
 
@@ -53,15 +53,13 @@ public class HudRenderPower extends Power {
 	public void validate(Context.Validator validator) {
 
 		super.validate(validator);
+		ListIterator<HudElement> listIterator = getHudElements().listIterator();
 
-		ListIterator<HudElement> iterator = this.getHudElements().listIterator();
+		while (listIterator.hasNext()) {
 
-		while (iterator.hasNext()) {
+			Context.Validator hudElementValidator = validator.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
 
-			int index = iterator.nextIndex();
-			HudElement hudElement = iterator.next();
-
-			hudElement.validate(validator.forChild(".hud_elements[" + index + "]"));
+			listIterator.next().validate(hudElementValidator);
 
 		}
 

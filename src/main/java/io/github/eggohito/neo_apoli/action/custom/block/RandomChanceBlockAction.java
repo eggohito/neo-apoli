@@ -14,17 +14,12 @@ import java.util.Optional;
 
 public record RandomChanceBlockAction(BlockAction successAction, Optional<BlockAction> failAction, NumberProvider chance) implements BlockAction, IRandomChanceMetaAction<BlockAction> {
 
-	public static final MapCodec<RandomChanceBlockAction> CODEC = MapCodecUtil.lazy(RandomChanceBlockAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createCodec(BlockAction.CODEC, RandomChanceBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceBlockAction.class.getSimpleName(), () -> IRandomChanceMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, RandomChanceBlockAction::new));
+	public static final MapCodec<RandomChanceBlockAction> MAP_CODEC = MapCodecUtil.lazy(RandomChanceBlockAction.class.getSimpleName(), () -> IRandomChanceMetaAction.mapCodec(BlockAction.CODEC, RandomChanceBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceBlockAction.class.getSimpleName(), () -> IRandomChanceMetaAction.streamCodec(BlockAction.STREAM_CODEC, RandomChanceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.RANDOM_CHANCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

@@ -5,9 +5,10 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.api.hud.renderer.OverlayHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.util.NeoApoliRenderTypes;
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.Reporter;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -28,16 +29,16 @@ public final class NauseaOverlayHudElementRenderer implements OverlayHudElementR
 			return;
 		}
 
-		Context.Validator validator = context.getValidator();
+		Reporter reporter = context.reporter();
 		SpriteMaterial spriteMaterial = new SpriteMaterial(nauseaOverlay.sprite());
 
 		TextureAtlasSprite sprite = spriteMaterial.spriteAsResult()
-			.resultOrPartial(validator::report)
+			.resultOrPartial(reporter::report)
 			.orElse(null);
 
-		if (sprite == null || validator.selfPathHasErrors()) {
+		if (sprite == null || reporter.hasErrors()) {
 
-			validator.getErrorsFlattened().ifPresent(error -> NeoApoli.logOnce(Level.ERROR, "Error trying to render overlay HUD element(s) due to error(s) " + error));
+			reporter.getErrorsFlattened().ifPresent(error -> NeoApoli.logOnce(Level.ERROR, "Error trying to render overlay HUD element(s) due to error(s) " + error));
 
 			return;
 
@@ -47,7 +48,7 @@ public final class NauseaOverlayHudElementRenderer implements OverlayHudElementR
 		float scaledHeight = graphics.guiHeight();
 
 		Context colorContext = context.forChild(".color");
-		int color = nauseaOverlay.color().getValue(colorContext);
+		int color = nauseaOverlay.color().intValue(colorContext);
 
 		float intensity = ARGB.alphaFloat(color);
 		float red = ARGB.redFloat(color) * intensity;
@@ -81,7 +82,7 @@ public final class NauseaOverlayHudElementRenderer implements OverlayHudElementR
 		vertexBuffer.addVertex(matrices, x2, y2, 0.0F).setUv(maxU, maxV).setColor(color);
 		vertexBuffer.addVertex(matrices, x2, y1, 0.0F).setUv(maxU, minV).setColor(color);
 
-		validator.getErrorsFlattened().ifPresent(warn -> NeoApoli.logOnce(Level.WARN, "Found warnings when rendering overlay HUD element(s) " + warn));
+		reporter.getErrorsFlattened().ifPresent(warn -> NeoApoli.logOnce(Level.WARN, "Found warnings when rendering overlay HUD element(s) " + warn));
 
 	}
 

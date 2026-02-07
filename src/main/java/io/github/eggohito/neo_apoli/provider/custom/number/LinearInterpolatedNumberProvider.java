@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
@@ -17,7 +17,7 @@ import java.util.function.BiFunction;
 
 public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvider start, NumberProvider end) implements NumberProvider {
 
-	public static final MapCodec<LinearInterpolatedNumberProvider> CODEC = MapCodecUtil.lazy(LinearInterpolatedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<LinearInterpolatedNumberProvider> MAP_CODEC = MapCodecUtil.lazy(LinearInterpolatedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("delta").forGetter(LinearInterpolatedNumberProvider::delta),
 		NumberProvider.CODEC.fieldOf("start").forGetter(LinearInterpolatedNumberProvider::start),
 		NumberProvider.CODEC.fieldOf("end").forGetter(LinearInterpolatedNumberProvider::end)
@@ -58,22 +58,24 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 
 	private <N extends Number> N lerp(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Float, N, N, N> interpolator) {
 
+		Context startContext = context.forChild(".start");
+		N start = getter.apply(start(), startContext);
+
 		Context deltaContext = context.forChild(".delta");
 		float delta = delta().nextFloat(deltaContext);
 
-		Context startContext = context.forChild(".start");
-		N start = getter.apply(start(), startContext);
+		if (deltaContext.hasErrors()) {
+			return start;
+		}
 
 		Context endContext = context.forChild(".end");
 		N end = getter.apply(end(), endContext);
 
-		if (deltaContext.hasErrors() || endContext.hasErrors()) {
+		if (endContext.hasErrors()) {
 			return start;
 		}
 
-		else {
-			return interpolator.apply(delta, start, end);
-		}
+		return interpolator.apply(delta, start, end);
 
 	}
 

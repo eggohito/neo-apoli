@@ -6,10 +6,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import io.github.eggohito.neo_apoli.util.modifier.Modifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -17,6 +19,7 @@ import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +30,8 @@ import java.util.Optional;
 @EqualsAndHashCode
 @Getter
 public abstract class DamageModifyingPower extends Power {
+
+	public static final ClearableVisitor<Instance<?>> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	private final List<Modifier> modifiers;
 	private final Action onModifyAction;
@@ -41,14 +46,13 @@ public abstract class DamageModifyingPower extends Power {
 	public void validate(Context.Validator validator) {
 
 		super.validate(validator);
-
 		ListIterator<Modifier> listIterator = this.getModifiers().listIterator();
 
 		while (listIterator.hasNext()) {
 
-			int index = listIterator.nextIndex();
+			Context.Validator modifierValidator = validator.forChild(".modifiers[" + listIterator.nextIndex() + "]");
 
-			listIterator.next().validate(validator.forChild(".modifiers[" + index + "]"));
+			listIterator.next().validate(modifierValidator);
 
 		}
 
@@ -59,7 +63,7 @@ public abstract class DamageModifyingPower extends Power {
 	protected static <P extends DamageModifyingPower> MapCodec<P> createDamageModifyingCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 			.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(DamageModifyingPower::getModifiers))
-			.and(Action.CODEC.optionalFieldOf("on_modify_action", new NothingMetaAction()).forGetter(DamageModifyingPower::getOnModifyAction))
+			.and(Action.CODEC.optionalFieldOf("on_modify_action", NothingMetaAction.INSTANCE).forGetter(DamageModifyingPower::getOnModifyAction))
 			.apply(instance, constructor));
 	}
 
@@ -78,6 +82,8 @@ public abstract class DamageModifyingPower extends Power {
 			super(holder, power);
 		}
 
+		public abstract Context createDamageContext(Entity actor, Entity target, DamageSource source, float amount);
+
 		public List<Modifier> getModifiers() {
 			return power.getModifiers();
 		}
@@ -88,45 +94,42 @@ public abstract class DamageModifyingPower extends Power {
 
 	}
 
-	public static <P extends DamageModifyingPower, I extends DamageModifyingPower.Instance<P>> float modify(PowerType<P> type, Context context, List<I> instances, float original) {
+	public static <P extends DamageModifyingPower, I extends DamageModifyingPower.Instance<P>> float modify(PowerType<P> type, Class<I> instanceClass, Entity holder, Entity actor, Entity target, DamageSource source, float amount) {
 
 		List<Modifier.Entry> entries = new ObjectArrayList<>();
 
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(holder, instanceClass)) {
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createDamageContext(actor, target, source, amount);
 
 			try {
 
-				if (!instanceContext.markActive(instance) || !instance.isActive(instanceContext)) {
+				if (!VISITOR.push(instance) || !instance.isActive(context)) {
 					continue;
 				}
 
 				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-				instance.execute(instanceContext);
+				instance.execute(context);
 
 				while (listIterator.hasNext()) {
 
-					int index = listIterator.nextIndex();
+					Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
 					Modifier modifier = listIterator.next();
 
-					entries.add(Modifier.entry(modifier, instanceContext.forChild(".modifiers[" + index + "]")));
+					entries.add(Modifier.entry(modifier, modifierContext));
 
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(type, entries, context, original);
-		return (float) Modifier.applyAll(entries, original);
+		ModifyValue.EVENT.invoker().beforeModified(type, entries, amount);
+		return (float) Modifier.applyAll(entries, amount);
 
 	}
 

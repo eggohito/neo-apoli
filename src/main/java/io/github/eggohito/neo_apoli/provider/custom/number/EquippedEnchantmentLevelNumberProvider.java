@@ -5,16 +5,20 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -27,13 +31,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Set;
 
-public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, TypedContextKey<Entity> entity) implements NumberProvider {
+public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, ContextParameter<Entity> entity) implements NumberProvider {
 
-	public static final MapCodec<EquippedEnchantmentLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<EquippedEnchantmentLevelNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Enchantment.CODEC.fieldOf("enchantment").forGetter(EquippedEnchantmentLevelNumberProvider::enchantment),
 		EquipmentSlotGroup.CODEC.optionalFieldOf("slot_group", EquipmentSlotGroup.ANY).forGetter(EquippedEnchantmentLevelNumberProvider::slotGroup),
 		Calculation.CODEC.optionalFieldOf("calculation", Calculation.MAX).forGetter(EquippedEnchantmentLevelNumberProvider::calculation),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
 	).apply(instance, EquippedEnchantmentLevelNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EquippedEnchantmentLevelNumberProvider> STREAM_CODEC = StreamCodec.composite(
@@ -52,14 +56,17 @@ public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchant
 	@Override
 	public @NotNull Number next(Context context) {
 
-		switch (context.nullable(entity())) {
+		Registry<Enchantment> enchantmentRegistry = context.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+		ResourceLocation enchantmentId = enchantment().unwrap().map(ResourceKey::location, enchantmentRegistry::getKey);
+
+		switch (context.getNullable(entity())) {
 			case LivingEntity livingEntity -> {
 				return calculation().getValue(livingEntity, enchantment(), slotGroup());
 			}
 			case null ->
-				context.forChild(".entity").report("Couldn't get enchantment levels of equipped items from non-existent entity!");
+				context.reportProblem("Couldn't get enchantment levels of enchantment \"" + enchantmentId + "\" from entity from parameter \"" + entity().name() + "\", which didn't exist!");
 			default ->
-				context.forChild(".entity").report("Couldn't get enchantment levels of equipped items from non-living entity!");
+				context.reportProblem("Couldn't get enchantment levels of enchantment \"" + enchantmentId + "\" from entity from parameter \"" + entity().name() + "\", which cannot equip items!");
 		}
 
 		return 0;

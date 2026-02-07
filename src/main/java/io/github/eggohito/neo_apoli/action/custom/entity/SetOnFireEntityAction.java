@@ -4,15 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 
 public record SetOnFireEntityAction(NumberProvider ticks) implements EntityAction {
 
-	public static final MapCodec<SetOnFireEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<SetOnFireEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NumberProvider.CODEC.fieldOf("ticks").forGetter(SetOnFireEntityAction::ticks))
 		.apply(instance, SetOnFireEntityAction::new));
 
@@ -33,11 +34,11 @@ public record SetOnFireEntityAction(NumberProvider ticks) implements EntityActio
 			return;
 		}
 
-		Context ticksContext = context.forChild(".ticks");
-		int ticks = ticks().nextInt(ticksContext);
+		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
+		int ticks = ticks().nextInt(context.forChild(".ticks"));
 
-		if (!ticksContext.hasErrors() && ticks > 0) {
-			context.required(NeoApoliContextKeys.THIS_ENTITY).igniteForTicks(ticks);
+		if (ticks > 0) {
+			entity.igniteForTicks(ticks);
 		}
 
 	}

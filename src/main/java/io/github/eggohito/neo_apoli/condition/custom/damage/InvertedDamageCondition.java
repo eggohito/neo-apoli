@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedDamageCondition(DamageCondition condition) implements DamageCondition, IInvertedMetaCondition<DamageCondition> {
 
-	public static final MapCodec<InvertedDamageCondition> CODEC = MapCodecUtil.lazy(InvertedDamageCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(DamageCondition.CODEC, InvertedDamageCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedDamageCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedDamageCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(DamageCondition.STREAM_CODEC, InvertedDamageCondition::new));
+	public static final MapCodec<InvertedDamageCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedDamageCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(DamageCondition.CODEC, InvertedDamageCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedDamageCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedDamageCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(DamageCondition.STREAM_CODEC, InvertedDamageCondition::new));
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

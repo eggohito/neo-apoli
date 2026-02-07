@@ -5,14 +5,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 
 import java.util.Set;
@@ -20,9 +19,14 @@ import java.util.function.BiFunction;
 
 public interface ITestEntityMetaCondition extends MetaCondition {
 
+	ContextKeySet DEFAULT_CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.THIS_ENTITY)
+		.required(NeoApoliContextParams.THIS_POS)
+		.build();
+
 	EntityCondition condition();
 
-	TypedContextKey<Entity> entity();
+	ContextParameter<Entity> entity();
 
 	@Override
 	default boolean test(Context context) {
@@ -31,11 +35,10 @@ public interface ITestEntityMetaCondition extends MetaCondition {
 			return false;
 		}
 
-		Entity entity = context.required(entity());
+		Entity entity = context.getRequired(entity());
 		Context conditionContext = new Context.Builder(context)
-			.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.ENTITY))
-			.add(NeoApoliContextKeys.THIS_ENTITY, entity)
-			.add(NeoApoliContextKeys.THIS_POS, entity.position())
+			.withRequired(NeoApoliContextParams.THIS_ENTITY, entity)
+			.withRequired(NeoApoliContextParams.THIS_POS, entity.position())
 			.build(entity.level());
 
 		return condition().test(conditionContext.forChild(".condition"));
@@ -50,19 +53,17 @@ public interface ITestEntityMetaCondition extends MetaCondition {
 	@Override
 	default void validate(Context.Validator validator) {
 		MetaCondition.super.validate(validator);
-		condition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.ENTITY))
-			.forChild(".condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(DEFAULT_CONDITION_CONTEXT).forChild(".condition"));
 	}
 
-	static <M extends ITestEntityMetaCondition> MapCodec<M> createCodec(BiFunction<EntityCondition, TypedContextKey<Entity>, M> constructor) {
+	static <M extends ITestEntityMetaCondition> MapCodec<M> mapCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			EntityCondition.CODEC.fieldOf("condition").forGetter(ITestEntityMetaCondition::condition),
-			NeoApoliCodecs.ENTITY_CONTEXT_KEY.fieldOf("entity").forGetter(ITestEntityMetaCondition::entity)
+			NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(ITestEntityMetaCondition::entity)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ITestEntityMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(BiFunction<EntityCondition, TypedContextKey<Entity>, M> constructor) {
+	static <M extends ITestEntityMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
 		return StreamCodec.composite(
 			EntityCondition.STREAM_CODEC, ITestEntityMetaCondition::condition,
 			NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, ITestEntityMetaCondition::entity,

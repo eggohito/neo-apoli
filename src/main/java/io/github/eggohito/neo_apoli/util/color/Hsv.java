@@ -3,9 +3,9 @@ package io.github.eggohito.neo_apoli.util.color;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.color.type.ColorType;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -42,7 +42,7 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 	}
 
 	@Override
-	public int getValue(Context context) {
+	public int intValue(Context context) {
 
 		int i = (int) (hue() * 6.0F) % 6;
 		float j = hue() * 6.0F - i;
@@ -84,7 +84,7 @@ public record Hsv(float hue, float saturation, float value, float alpha) impleme
 				blue = l;
 			}
 			default -> {
-				context.getValidator().report("Something went wrong when converting HSV to RGB. Input was " + hue() + ", " + saturation() + ", " + value());
+				context.reportProblem("Something went wrong when converting HSV to RGB. Input was " + hue() + ", " + saturation() + ", " + value());
 				return -1;
 			}
 		}

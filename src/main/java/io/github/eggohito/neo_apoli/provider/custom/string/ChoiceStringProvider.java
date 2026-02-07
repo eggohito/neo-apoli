@@ -13,8 +13,8 @@ import java.util.List;
 
 public record ChoiceStringProvider(List<Case<StringProvider>> cases, StringProvider defaultValue) implements StringProvider, ChoiceValueProvider<StringProvider, String> {
 
-	public static final MapCodec<ChoiceStringProvider> CODEC = MapCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(StringProvider.CODEC, ChoiceStringProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(StringProvider.STREAM_CODEC, ChoiceStringProvider::new));
+	public static final MapCodec<ChoiceStringProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(StringProvider.CODEC, ChoiceStringProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(StringProvider.STREAM_CODEC, ChoiceStringProvider::new));
 
 	@Override
 	public StringProviderType<?> getType() {

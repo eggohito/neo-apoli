@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.power.custom.ModifyBlockSelectablePower;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.EntityCollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,18 +30,22 @@ public abstract class ModifyBlockSelectablePowerMixin extends StateHolder<Block,
 	}
 
 	@ModifyReturnValue(method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("RETURN"))
-	private VoxelShape neo_apoli$modifySelectableShape(VoxelShape original, BlockGetter blockView, BlockPos blockPos, CollisionContext shapeContext) {
+	private VoxelShape neo_apoli$modifySelectableShape(VoxelShape original, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collision) {
 
-		if (shapeContext instanceof EntityCollisionContext entityShapeContext && entityShapeContext.getEntity() != null) {
+		try {
 
-			Context context = ModifyBlockSelectablePower.createContext(entityShapeContext.getEntity(), blockPos, this.asState(), blockView.getBlockEntity(blockPos));
+			if (ModifyBlockSelectablePower.shouldBeEmpty(MiscUtil.getEntityFromCollision(collision), blockPos, this.asState(), blockGetter.getBlockEntity(blockPos))) {
+				return Shapes.empty();
+			}
 
-			return ModifyBlockSelectablePower.modify(context, () -> original);
+			else {
+				return original;
+			}
 
 		}
 
-		else {
-			return original;
+		finally {
+			ModifyBlockSelectablePower.VISITOR.clear();
 		}
 
 	}

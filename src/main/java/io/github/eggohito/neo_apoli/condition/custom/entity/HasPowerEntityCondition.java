@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,7 +20,7 @@ import java.util.Optional;
 
 public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLocation> source) implements EntityCondition {
 
-	public static final MapCodec<HasPowerEntityCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<HasPowerEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(HasPowerEntityCondition::power),
 		ResourceLocation.CODEC.optionalFieldOf("source").forGetter(HasPowerEntityCondition::source)
 	).apply(instance, HasPowerEntityCondition::new));
@@ -42,7 +42,7 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 		PowerEntry<?> entry = PowerManager.getEntryAsResult(this.power())
 			.result()
 			.orElse(null);
-		PowersComponent powersComponent = context.optional(NeoApoliContextKeys.THIS_ENTITY)
+		PowersComponent powersComponent = context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
 			.orElse(null);
 
@@ -55,7 +55,7 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		PowerManager.getEntryAsResult(this.power()).ifError(error -> validator.forChild(".power").report(error.message()));
+		power().validate(validator.forChild(".power"));
 	}
 
 	private boolean testInternal(PowersComponent powersComponent, PowerEntry<?> entry) {

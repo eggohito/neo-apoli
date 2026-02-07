@@ -19,19 +19,19 @@ import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
-import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
+import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.util.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.util.container_type.NeoApoliContainerTypes;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.github.eggohito.neo_apoli.util.modifier.type.ModifierTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -105,8 +105,8 @@ public class NeoApoli implements ModInitializer {
 		PowerIntegrations.registerAll();
 		NeoApoliConfig.HANDLER.load();
 
-		NeoApoliContextKeys.init();
-		NeoApoliContextKeySets.init();
+		NeoApoliContextParams.registerAll();
+		NeoApoliContextParamSets.registerAll();
 
 		KeyStateManagerImpl.init();
 		NeoApoliLoggerImpl.init();

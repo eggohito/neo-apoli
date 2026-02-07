@@ -2,20 +2,20 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 public record ConditionalStringProvider(Condition condition, StringProvider ifValue, StringProvider elseValue) implements StringProvider, ConditionalValueProvider<StringProvider, String> {
 
-	public static final MapCodec<ConditionalStringProvider> CODEC = MapCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.createCodec(StringProvider.CODEC, ConditionalStringProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.createStreamCodec(StringProvider.STREAM_CODEC, ConditionalStringProvider::new));
+	public static final MapCodec<ConditionalStringProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(StringProvider.CODEC, ConditionalStringProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(StringProvider.STREAM_CODEC, ConditionalStringProvider::new));
 
 	@Override
 	public StringProviderType<?> getType() {

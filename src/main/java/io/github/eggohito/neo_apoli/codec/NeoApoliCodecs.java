@@ -9,15 +9,15 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
-import io.github.eggohito.neo_apoli.particle.type.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.util.AttributedAttributeModifier;
+import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
+import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -145,13 +145,13 @@ public class NeoApoliCodecs {
 
 	public static final Codec<BlockState> REGULAR_OR_STRINGIFIED_BLOCK_STATE = Codec.withAlternative(BlockState.CODEC, STRINGIFIED_BLOCK_STATE);
 
-	public static final Codec<List<AttributedAttributeModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributedAttributeModifier.CODEC.listOf());
+	public static final Codec<List<AttributedModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributedModifier.CODEC.listOf());
 
 	public static final Codec<Vec3> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
 
-	public static final Codec<TypedContextKey<Number>> NUMBER_CONTEXT_KEY = CodecUtil.createContextKeyCodec("number", Number.class);
+	public static final Codec<ContextParameter<Number>> NUMBER_CONTEXT_PARAM = ContextParameter.codec("number", Number.class);
 
-	public static final Codec<TypedContextKey<Entity>> ENTITY_CONTEXT_KEY = CodecUtil.createContextKeyCodec("entity", Entity.class);
+	public static final Codec<ContextParameter<Entity>> ENTITY_CONTEXT_PARAM = ContextParameter.codec("entity", Entity.class);
 
 	public static final Codec<ClipContext.Block> BLOCK_CLIP_CONTEXT = CodecUtil.enumType(ClipContext.Block.class);
 

@@ -3,16 +3,17 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record HasCollidedHorizontallyEntityCondition() implements EntityCondition {
+public enum HasCollidedHorizontallyEntityCondition implements EntityCondition {
 
-	public static final MapCodec<HasCollidedHorizontallyEntityCondition> CODEC = MapCodec.unit(HasCollidedHorizontallyEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, HasCollidedHorizontallyEntityCondition> STREAM_CODEC = StreamCodecUtil.unit(HasCollidedHorizontallyEntityCondition::new);
+	INSTANCE;
+
+	public static final MapCodec<HasCollidedHorizontallyEntityCondition> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, HasCollidedHorizontallyEntityCondition> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public EntityConditionType<?> getType() {
@@ -21,7 +22,7 @@ public record HasCollidedHorizontallyEntityCondition() implements EntityConditio
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextKeys.THIS_ENTITY)
+		return context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.map(entity -> entity.horizontalCollision)
 			.orElse(false);
 	}

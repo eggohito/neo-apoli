@@ -4,10 +4,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,7 +18,7 @@ import java.util.List;
 
 public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements StringProvider {
 
-	public static final MapCodec<NbtStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NbtStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NbtProvider.CODEC.fieldOf("source").forGetter(NbtStringProvider::source),
 		NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtStringProvider::path)
 	).apply(instance, NbtStringProvider::new));
@@ -65,7 +65,7 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 		}
 
 		catch (CommandSyntaxException e) {
-			context.getValidator().report("Error trying to get string in NBT path \"" + this.path() + "\" from NBT \"" + source + "\": " + e.getMessage());
+			context.reportProblem("Error trying to get string in NBT path \"" + this.path() + "\" from NBT \"" + source + "\": " + e.getMessage());
 		}
 
 		return "";

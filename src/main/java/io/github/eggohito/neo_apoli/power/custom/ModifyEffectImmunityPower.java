@@ -2,12 +2,13 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,14 +19,13 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
 public class ModifyEffectImmunityPower extends Power {
 
-	public static final MapCodec<ModifyEffectImmunityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyEffectImmunityPower::new));
+	public static final MapCodec<ModifyEffectImmunityPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyEffectImmunityPower::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectImmunityPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, ModifyEffectImmunityPower::new);
 
 	public ModifyEffectImmunityPower(Optional<Condition> activeCondition) {
@@ -48,43 +48,30 @@ public class ModifyEffectImmunityPower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(MobEffectInstance effectInstance, @Nullable Entity source) {
+			return this.createHolderContextBuilder()
+				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_EFFECT_DURATION.keySet());
+		}
+
 	}
 
-	public static boolean modify(Context context, List<Instance> instances) {
+	public static boolean modify(@NotNull Entity holder, MobEffectInstance effectInstance, @Nullable Entity source) {
 
-		for (var instance : instances) {
+		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
 
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(effectInstance, source);
 
-			try {
-
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
-					return true;
-				}
-
-			}
-
-			finally {
-				instanceContext.markInActive(instance);
+			if (instance.isActive(context)) {
+				return true;
 			}
 
 		}
 
 		return false;
 
-	}
-
-	public static Context createContext(Entity holder, @Nullable Entity source, MobEffectInstance effectInstance) {
-		return PowerTypes.MODIFY_EFFECT_IMMUNITY.contextBuilder()
-			.addNullable(NeoApoliContextKeys.ACTOR_ENTITY, source)
-			.add(NeoApoliContextKeys.TARGET_ENTITY, holder)
-			.add(NeoApoliContextKeys.THIS_ENTITY, holder)
-			.add(NeoApoliContextKeys.THIS_POS, holder.position())
-			.add(NeoApoliContextKeys.EFFECT_INSTANCE, effectInstance)
-			.build(holder.level());
 	}
 
 }

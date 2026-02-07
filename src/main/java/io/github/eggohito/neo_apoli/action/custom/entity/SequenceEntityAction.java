@@ -13,17 +13,12 @@ import java.util.List;
 
 public record SequenceEntityAction(List<EntityAction> actions) implements EntityAction, ISequenceMetaAction<EntityAction> {
 
-	public static final MapCodec<SequenceEntityAction> CODEC = MapCodecUtil.lazy(SequenceEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.createCodec(EntityAction.CODEC, SequenceEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.createStreamCodec(EntityAction.STREAM_CODEC, SequenceEntityAction::new));
+	public static final MapCodec<SequenceEntityAction> MAP_CODEC = MapCodecUtil.lazy(SequenceEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(EntityAction.CODEC, SequenceEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceEntityAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(EntityAction.STREAM_CODEC, SequenceEntityAction::new));
 
 	@Override
 	public EntityActionType<?> getType() {
 		return EntityActionTypes.SEQUENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityAction.super.asDisplayString();
 	}
 
 }

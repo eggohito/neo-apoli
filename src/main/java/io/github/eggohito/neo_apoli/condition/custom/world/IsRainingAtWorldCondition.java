@@ -4,14 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -19,8 +18,8 @@ import java.util.ListIterator;
 
 public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements WorldCondition {
 
-	public static final MapCodec<IsRainingAtWorldCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(ExtraCodecs.nonEmptyList(Vec3Provider.CODEC.listOf()).fieldOf("positions").forGetter(IsRainingAtWorldCondition::positions))
+	public static final MapCodec<IsRainingAtWorldCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(Vec3Provider.CODEC.listOf().fieldOf("positions").forGetter(IsRainingAtWorldCondition::positions))
 		.apply(instance, IsRainingAtWorldCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsRainingAtWorldCondition> STREAM_CODEC = StreamCodec.composite(
@@ -36,7 +35,7 @@ public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements
 	@Override
 	public boolean test(Context context) {
 
-		Level level = context.getLevel();
+		Level level = context.level();
 		ListIterator<Vec3Provider> listIterator = positions().listIterator();
 
 		while (listIterator.hasNext()) {
@@ -50,7 +49,7 @@ public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements
 
 		}
 
-		return false;
+		return level.isRaining();
 
 	}
 
@@ -62,9 +61,9 @@ public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements
 
 		while (listIterator.hasNext()) {
 
-			Context.Validator innerValidator = validator.forChild(".positions[" + listIterator.nextIndex() + "]");
+			Context.Validator positionValidator = validator.forChild(".positions[" + listIterator.nextIndex() + "]");
 
-			listIterator.next().validate(innerValidator);
+			listIterator.next().validate(positionValidator);
 
 		}
 

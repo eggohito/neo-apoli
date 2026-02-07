@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
 
 public record OffsetBlockAction(BlockAction action, Vec3Provider offset) implements BlockAction {
 
-	public static final MapCodec<OffsetBlockAction> CODEC = MapCodecUtil.lazy(OffsetBlockAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<OffsetBlockAction> MAP_CODEC = MapCodecUtil.lazy(OffsetBlockAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockAction.CODEC.fieldOf("action").forGetter(OffsetBlockAction::action),
 		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetBlockAction::offset)
 	).apply(instance, OffsetBlockAction::new)));
@@ -35,18 +35,14 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (!(context.level() instanceof ServerLevel serverLevel) || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Context offsetContext = context.forChild(".offset");
-		Vec3 offset = offset().next(offsetContext);
+		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
+		Vec3 offset = offset().next(context.forChild(".offset"));
 
-		if (offsetContext.hasErrors()) {
-			return;
-		}
-
-		BlockPos offsetBlockPos = BlockPos.containing(context.required(NeoApoliContextKeys.BLOCK_POS)
+		BlockPos offsetBlockPos = BlockPos.containing(blockPos
 			.getCenter()
 			.add(offset));
 
@@ -54,13 +50,13 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 			return;
 		}
 
-		Context actionContext = new Context.Builder(context)
-			.add(NeoApoliContextKeys.BLOCK_POS, offsetBlockPos)
-			.add(NeoApoliContextKeys.BLOCK_STATE, serverLevel.getBlockState(offsetBlockPos))
-			.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, serverLevel.getBlockEntity(offsetBlockPos))
+		Context blockContext = new Context.Builder(context)
+			.withRequired(NeoApoliContextParams.BLOCK_POS, offsetBlockPos)
+			.withRequired(NeoApoliContextParams.BLOCK_STATE, serverLevel.getBlockState(offsetBlockPos))
+			.withNullable(NeoApoliContextParams.BLOCK_ENTITY, serverLevel.getBlockEntity(offsetBlockPos))
 			.build(serverLevel);
 
-		action().execute(actionContext.forChild(".action"));
+		action().execute(blockContext.forChild(".action"));
 
 	}
 

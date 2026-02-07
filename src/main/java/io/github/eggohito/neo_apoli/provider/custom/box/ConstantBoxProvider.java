@@ -4,9 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,7 +18,7 @@ import java.util.List;
 
 public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 
-	public static final MapCodec<ConstantBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConstantBoxProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.VECTOR_3_DOUBLE.fieldOf("min").forGetter(ConstantBoxProvider::min),
 		NeoApoliCodecs.VECTOR_3_DOUBLE.fieldOf("max").forGetter(ConstantBoxProvider::max)
 	).apply(instance, ConstantBoxProvider::new));

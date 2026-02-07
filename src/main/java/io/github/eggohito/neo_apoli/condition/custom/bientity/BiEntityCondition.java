@@ -4,9 +4,7 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -24,12 +22,7 @@ public interface BiEntityCondition extends Condition {
 
 	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
-		return NeoApoliContextKeySets.BIENTITY.allowed();
-	}
-
-	@Override
-	default String asDisplayString() {
-		return "Bi-entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, this.getType()) + "\"";
+		return Set.of(NeoApoliContextParams.ACTOR_ENTITY, NeoApoliContextParams.TARGET_ENTITY);
 	}
 
 }

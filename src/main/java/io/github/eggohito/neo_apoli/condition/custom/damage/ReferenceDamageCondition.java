@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceDamageCondition(ResourceLocation value) implements DamageCondition, IReferenceMetaCondition<DamageCondition> {
 
-	public static final MapCodec<ReferenceDamageCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceDamageCondition::new);
+	public static final MapCodec<ReferenceDamageCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceDamageCondition::new);
 
 	@Override
 	public Pair<Class<DamageCondition>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceDamageCondition(ResourceLocation value) implements Damage
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

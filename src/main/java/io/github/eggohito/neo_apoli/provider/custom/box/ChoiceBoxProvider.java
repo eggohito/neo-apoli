@@ -14,8 +14,8 @@ import java.util.List;
 
 public record ChoiceBoxProvider(List<Case<BoxProvider>> cases, BoxProvider defaultValue) implements BoxProvider, ChoiceValueProvider<BoxProvider, AABB> {
 
-	public static final MapCodec<ChoiceBoxProvider> CODEC = MapCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(BoxProvider.CODEC, ChoiceBoxProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(BoxProvider.STREAM_CODEC, ChoiceBoxProvider::new));
+	public static final MapCodec<ChoiceBoxProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(BoxProvider.CODEC, ChoiceBoxProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBoxProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(BoxProvider.STREAM_CODEC, ChoiceBoxProvider::new));
 
 	@Override
 	public BoxProviderType<?> getType() {

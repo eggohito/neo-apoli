@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BoxComponentNumberProvider(BoxProvider box, Direction side) implements NumberProvider {
 
-	public static final MapCodec<BoxComponentNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BoxComponentNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BoxProvider.CODEC.fieldOf("box").forGetter(BoxComponentNumberProvider::box),
 		Direction.CODEC.fieldOf("side").forGetter(BoxComponentNumberProvider::side)
 	).apply(instance, BoxComponentNumberProvider::new));

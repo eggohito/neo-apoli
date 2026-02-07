@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.apache.commons.lang3.function.TriFunction;
@@ -18,7 +18,7 @@ import java.util.random.RandomGenerator;
 
 public record UniformNumberProvider(Random random, NumberProvider min, NumberProvider max) implements NumberProvider{
 
-	public static final MapCodec<UniformNumberProvider> CODEC = MapCodecUtil.lazy(UniformNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<UniformNumberProvider> MAP_CODEC = MapCodecUtil.lazy(UniformNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("min", new ConstantNumberProvider(0)).forGetter(UniformNumberProvider::min),
 		NumberProvider.CODEC.fieldOf("max").forGetter(UniformNumberProvider::max)
 	).apply(instance, UniformNumberProvider::new)));

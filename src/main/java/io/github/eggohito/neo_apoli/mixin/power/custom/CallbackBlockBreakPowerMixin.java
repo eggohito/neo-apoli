@@ -4,7 +4,14 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import io.github.eggohito.neo_apoli.power.custom.CallbackBlockBreakPower;
-import io.github.eggohito.neo_apoli.util.context.Context;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,14 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.lang.ref.WeakReference;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerPlayerGameMode;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 
 @Mixin(ServerPlayerGameMode.class)
 public abstract class CallbackBlockBreakPowerMixin {
@@ -61,9 +60,11 @@ public abstract class CallbackBlockBreakPowerMixin {
 	@Inject(method = "destroyBlock", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;playerWillDestroy(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/level/block/state/BlockState;")))
 	private void onBlockBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir, @Share("brokenBlockState") LocalRef<BlockState> brokenBlockStateRef, @Share("brokenBlockEntity") LocalRef<BlockEntity> brokenBlockEntityRef) {
 
-		Context context = CallbackBlockBreakPower.createContext(this.player, pos, brokenBlockStateRef.get(), brokenBlockEntityRef.get(), this.neo_apoli$blockBreakDirection.get());
+		BlockState brokenBlockState = brokenBlockStateRef.get();
 
-		CallbackBlockBreakPower.execute(context, this.neo_apoli$harvested);
+		if (brokenBlockState != null) {
+			CallbackBlockBreakPower.execute(this.player, pos, brokenBlockState, brokenBlockEntityRef.get(), this.neo_apoli$blockBreakDirection.get(), this.neo_apoli$harvested);
+		}
 
 	}
 

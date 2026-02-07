@@ -14,17 +14,12 @@ import java.util.List;
 
 public record ChoiceBlockAction(List<Case<BlockCondition, BlockAction>> cases, BlockAction defaultAction) implements BlockAction, IChoiceMetaAction<BlockCondition, BlockAction> {
 
-	public static final MapCodec<ChoiceBlockAction> CODEC = MapCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.createCodec(BlockCondition.CODEC, BlockAction.CODEC, ChoiceBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.createStreamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ChoiceBlockAction::new));
+	public static final MapCodec<ChoiceBlockAction> MAP_CODEC = MapCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.mapCodec(BlockCondition.CODEC, BlockAction.CODEC, ChoiceBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBlockAction.class.getSimpleName(), () -> IChoiceMetaAction.streamCodec(BlockCondition.STREAM_CODEC, BlockAction.STREAM_CODEC, ChoiceBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.CHOICE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

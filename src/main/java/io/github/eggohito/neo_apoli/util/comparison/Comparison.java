@@ -2,13 +2,13 @@ package io.github.eggohito.neo_apoli.util.comparison;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public interface Comparison extends ContextAware {
+public interface Comparison extends ContextUser {
 
 	String TYPE_KEY = "type";
 	MapCodec<Comparison> MAP_CODEC = ComparisonType.CODEC.dispatchMap(TYPE_KEY, Comparison::type, ComparisonType::mapCodec);

@@ -6,11 +6,11 @@ import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, NumberProvider buffer) implements KeyCondition {
 
-	public static final MapCodec<IsSimultaneouslyPressedKeyCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<IsSimultaneouslyPressedKeyCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.listOf(2, Integer.MAX_VALUE).fieldOf("ids").forGetter(IsSimultaneouslyPressedKeyCondition::ids),
 		NumberProvider.CODEC.optionalFieldOf("buffer", new ConstantNumberProvider(3)).forGetter(IsSimultaneouslyPressedKeyCondition::buffer)
 	).apply(instance, IsSimultaneouslyPressedKeyCondition::new));
@@ -53,7 +53,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			return false;
 		}
 
-		UUID uuid = context.required(NeoApoliContextKeys.THIS_ENTITY).getUUID();
+		UUID uuid = context.getRequired(NeoApoliContextParams.THIS_ENTITY).getUUID();
 		ListIterator<StringProvider> iterator = ids().listIterator();
 
 		long previousPressedTime = Long.MIN_VALUE;
@@ -100,14 +100,13 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 	public void validate(Context.Validator validator) {
 
 		KeyCondition.super.validate(validator);
-		ListIterator<StringProvider> iterator = ids().listIterator();
+		ListIterator<StringProvider> listIterator = ids().listIterator();
 
-		while (iterator.hasNext()) {
+		while (listIterator.hasNext()) {
 
-			int index = iterator.nextIndex();
-			StringProvider idProvider = iterator.next();
+			Context.Validator idValidator = validator.forChild(".ids[" + listIterator.nextIndex() + "]");
 
-			idProvider.validate(validator.forChild(".ids[" + index + "]"));
+			listIterator.next().validate(idValidator);
 
 		}
 

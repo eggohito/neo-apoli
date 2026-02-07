@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AnyOfFluidCondition(List<FluidCondition> conditions) implements FluidCondition, IAnyOfMetaCondition<FluidCondition> {
 
-	public static final MapCodec<AnyOfFluidCondition> CODEC = MapCodecUtil.lazy(AnyOfFluidCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createCodec(FluidCondition.CODEC, AnyOfFluidCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfFluidCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.createStreamCodec(FluidCondition.STREAM_CODEC, AnyOfFluidCondition::new));
+	public static final MapCodec<AnyOfFluidCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfFluidCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(FluidCondition.CODEC, AnyOfFluidCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfFluidCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(FluidCondition.STREAM_CODEC, AnyOfFluidCondition::new));
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.ANY_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

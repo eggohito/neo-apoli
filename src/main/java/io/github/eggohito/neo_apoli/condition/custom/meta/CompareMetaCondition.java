@@ -9,8 +9,8 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareMetaCondition(Comparison comparison) implements ICompareMetaCondition {
 
-	public static final MapCodec<CompareMetaCondition> CODEC = ICompareMetaCondition.createCodec(CompareMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareMetaCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareMetaCondition::new);
+	public static final MapCodec<CompareMetaCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareMetaCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareMetaCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

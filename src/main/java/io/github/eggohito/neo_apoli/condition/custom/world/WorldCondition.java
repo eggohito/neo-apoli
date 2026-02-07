@@ -4,8 +4,6 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -17,10 +15,5 @@ public interface WorldCondition extends Condition {
 
 	@Override
 	WorldConditionType<?> getType();
-
-	@Override
-	default String asDisplayString() {
-		return "World condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.WORLD_CONDITION_TYPE, this.getType()) + "\"";
-	}
 
 }

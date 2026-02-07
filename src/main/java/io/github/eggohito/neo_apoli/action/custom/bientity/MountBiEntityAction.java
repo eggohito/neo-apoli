@@ -4,12 +4,12 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.network.packet.s2c.MountEntityS2CPacket;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,7 +20,7 @@ import java.util.Collection;
 
 public record MountBiEntityAction(BooleanProvider force) implements BiEntityAction {
 
-	public static final MapCodec<MountBiEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<MountBiEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BooleanProvider.CODEC.optionalFieldOf("force", new ConstantBooleanProvider(false)).forGetter(MountBiEntityAction::force)
 	).apply(instance, MountBiEntityAction::new));
 
@@ -37,21 +37,17 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 	@Override
 	public void execute(Context context) {
 
-		if (context.getLevel().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
+		if (context.level().isClientSide() || !context.hasAllParameters(this.getRequiredParameters())) {
 			return;
 		}
 
-		Entity actor = context.nullable(NeoApoliContextKeys.ACTOR_ENTITY);
-		Entity target = context.nullable(NeoApoliContextKeys.TARGET_ENTITY);
+		Entity actor = context.getRequired(NeoApoliContextParams.ACTOR_ENTITY);
+		Entity target = context.getRequired(NeoApoliContextParams.TARGET_ENTITY);
 
-		if (actor == null || target == null) {
-			return;
-		}
+		boolean force = force().next(context.forChild(".force"));
+		boolean successfulRide = actor.startRiding(target, force);
 
-		Context forceContext = context.forChild(".force");
-		boolean force = force().next(forceContext);
-
-		if (!forceContext.hasErrors() && actor.startRiding(target, force)) {
+		if (successfulRide) {
 
 			MountEntityS2CPacket packet = new MountEntityS2CPacket(actor, target, force);
 			Collection<ServerPlayer> trackingPlayers = MiscUtil.getTrackingPlayers(target);

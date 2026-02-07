@@ -7,7 +7,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.commands.ExecuteCommand;
@@ -27,19 +27,13 @@ public abstract class ExecuteCommandMixin {
 	}
 
 	@ModifyReturnValue(method = "addConditionals", at = @At("RETURN"))
-	private static ArgumentBuilder<CommandSourceStack, ?> addCustomConditionals(ArgumentBuilder<CommandSourceStack, ?> original, CommandNode<CommandSourceStack> rootNode, LiteralArgumentBuilder<CommandSourceStack> builder, boolean positive, CommandBuildContext registryAccess) {
+	private static ArgumentBuilder<CommandSourceStack, ?> addCustomConditionals(ArgumentBuilder<CommandSourceStack, ?> original, CommandNode<CommandSourceStack> rootNode, LiteralArgumentBuilder<CommandSourceStack> builder, boolean positive, CommandBuildContext buildContext) {
 
-		CommandNode<CommandSourceStack> baseNode = literal(NeoApoli.id("condition").toString()).build();
-		CommandNode<CommandSourceStack> withNode = literal("with").build();
-		CommandNode<CommandSourceStack> onNode = literal("on")
-			.then(addConditional(
-				rootNode,
-				argument("condition", ConditionArgument.inlineCondition(registryAccess)),
-				positive,
-				ConditionCommand.TestSubCommand::test
-			)).build();
+		var baseNode = literal(NeoApoli.id("condition").toString()).build();
+		var withNode = literal("with").build();
+		var conditionNode = addConditional(rootNode, argument("condition", ConditionArgument.inlineCondition(buildContext)), positive, ConditionCommand.TestSubCommand::test).build();
 
-		NeoApoliContextKeys.addAsArguments(registryAccess, baseNode, withNode, onNode);
+		NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode, conditionNode);
 		return builder.then(baseNode);
 
 	}

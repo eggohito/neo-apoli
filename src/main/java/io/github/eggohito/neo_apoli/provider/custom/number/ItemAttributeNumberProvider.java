@@ -5,11 +5,11 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
-import io.github.eggohito.neo_apoli.util.context.parameter.TypedContextKey;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -26,11 +26,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<TypedContextKey<Entity>> entity) implements NumberProvider {
+public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<ContextParameter<Entity>> entity) implements NumberProvider {
 
-	public static final MapCodec<ItemAttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ItemAttributeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Attribute.CODEC.fieldOf("attribute").forGetter(ItemAttributeNumberProvider::attribute),
-		NeoApoliCodecs.ENTITY_CONTEXT_KEY.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
+		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
 	).apply(instance, ItemAttributeNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ItemAttributeNumberProvider> STREAM_CODEC = StreamCodec.composite(
@@ -46,7 +46,7 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 
 	@Override
 	public @NotNull Number next(Context context) {
-		return context.optional(NeoApoliContextKeys.ITEM_STACK)
+		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(stack -> stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY))
 			.map(modifiers -> this.compute(context, modifiers))
 			.orElse(0.0d);
@@ -57,7 +57,7 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 
 		ImmutableSet.Builder<ContextKey<?>> requirements = ImmutableSet.builder();
 
-		requirements.add(NeoApoliContextKeys.ITEM_STACK);
+		requirements.add(NeoApoliContextParams.ITEM_STACK);
 		entity().ifPresent(requirements::add);
 
 		return requirements.build();
@@ -99,7 +99,7 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 
 	private double getAttributeBaseValue(Context context) {
 		return entity()
-			.flatMap(context::optional)
+			.flatMap(context::getOptional)
 			.filter(LivingEntity.class::isInstance)
 			.map(LivingEntity.class::cast)
 			.filter(entity -> entity.getAttributes().hasAttribute(this.attribute()))

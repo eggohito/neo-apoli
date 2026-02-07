@@ -4,15 +4,16 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.color.Argb;
 import io.github.eggohito.neo_apoli.util.color.Color;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,14 +22,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
 public class ModifyGlowingOtherPower extends Power {
 
-	public static final MapCodec<ModifyGlowingOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+
+	public static final MapCodec<ModifyGlowingOtherPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingOtherPower::getUseTeamColor))
 		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingOtherPower::getColor))
 		.apply(instance, ModifyGlowingOtherPower::new));
@@ -51,7 +53,7 @@ public class ModifyGlowingOtherPower extends Power {
 
 	@Override
 	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_GLOWING_OTHER_POWER;
+		return PowerTypes.MODIFY_GLOWING_OTHER;
 	}
 
 	@Override
@@ -75,43 +77,44 @@ public class ModifyGlowingOtherPower extends Power {
 			super(holder, power);
 		}
 
+		public Context createContext(Entity rendered) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.TARGET_ENTITY, rendered)
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_GLOWING_OTHER.keySet());
+		}
+
 		public boolean doesApply(Context context, boolean hasTeamColor) {
 			return this.isActive(context)
 				&& (!hasTeamColor || !this.shouldUseTeamColor(context));
-		}
-
-		public int getColor(Context context) {
-			return this.getPower().getColor().getValue(context.forChild(".color"));
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
 			return this.getPower().getUseTeamColor().next(context.forChild(".use_team_color"));
 		}
 
+		public int getColor(Context context) {
+			return this.getPower().getColor().intValue(context.forChild(".color"));
+		}
+
 	}
 
-	public static boolean modifyOutlineVisibility(Context context) {
+	public static boolean modifyGlowing(Entity viewer, @NotNull Entity rendered) {
 
-		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(rendered);
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.isActive(instanceContext)) {
+				if (VISITOR.push(instance) && instance.isActive(context)) {
 					return true;
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
@@ -120,51 +123,28 @@ public class ModifyGlowingOtherPower extends Power {
 
 	}
 
-	public static int modifyColor(Context context, boolean hasTeamColor, int original) {
+	public static int modifyColor(Entity viewer, @NotNull Entity rendered, boolean hasTeamColor, int color) {
 
-		Entity holder = context.nullable(NeoApoliContextKeys.THIS_ENTITY);
-		List<Instance> instances = PowersComponent.getInstances(holder, Instance.class);
+		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-		return modifyColor(context, instances, hasTeamColor, original);
-
-	}
-
-	public static int modifyColor(Context context, List<Instance> instances, boolean hasTeamColor, int original) {
-
-		int color = original;
-
-		for (var instance : instances) {
-
-			Context.Validator validator = instance.createValidator();
-			Context instanceContext = new Context.Builder(context)
-				.withValidator(validator)
-				.build(context.getLevel());
+			Context context = instance.createContext(rendered);
 
 			try {
 
-				if (instanceContext.markActive(instance) && instance.doesApply(context, hasTeamColor)) {
-					color = Color.mix(color, instance.getColor(instanceContext));
+				if (VISITOR.push(instance) && instance.doesApply(context, hasTeamColor)) {
+					color = Color.mix(color, instance.getColor(context));
 				}
 
 			}
 
 			finally {
-				instanceContext.markInActive(instance);
+				VISITOR.pop(instance);
 			}
 
 		}
 
 		return color;
 
-	}
-
-	public static Context createContext(Entity actor, Entity target) {
-		return PowerTypes.MODIFY_GLOWING_SELF_POWER.contextBuilder()
-			.add(NeoApoliContextKeys.ACTOR_ENTITY, actor)
-			.add(NeoApoliContextKeys.TARGET_ENTITY, target)
-			.add(NeoApoliContextKeys.THIS_ENTITY, actor)
-			.add(NeoApoliContextKeys.THIS_POS, actor.position())
-			.build(target.level());
 	}
 
 }

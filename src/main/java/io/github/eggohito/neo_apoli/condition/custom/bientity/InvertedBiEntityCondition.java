@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedBiEntityCondition(BiEntityCondition condition) implements BiEntityCondition, IInvertedMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<InvertedBiEntityCondition> CODEC = MapCodecUtil.lazy(InvertedBiEntityCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(BiEntityCondition.CODEC, InvertedBiEntityCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedBiEntityCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(BiEntityCondition.STREAM_CODEC, InvertedBiEntityCondition::new));
+	public static final MapCodec<InvertedBiEntityCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedBiEntityCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(BiEntityCondition.CODEC, InvertedBiEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedBiEntityCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(BiEntityCondition.STREAM_CODEC, InvertedBiEntityCondition::new));
 
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

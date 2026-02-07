@@ -5,12 +5,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,10 +25,10 @@ import java.util.Optional;
 @Getter
 public class CallbackPowerTickPower extends Power {
 
-	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("tick_action", new NothingMetaAction()).forGetter(CallbackPowerTickPower::getTickAction))
-		.and(Action.CODEC.optionalFieldOf("rising_action", new NothingMetaAction()).forGetter(CallbackPowerTickPower::getRisingAction))
-		.and(Action.CODEC.optionalFieldOf("falling_action", new NothingMetaAction()).forGetter(CallbackPowerTickPower::getFallingAction))
+	public static final MapCodec<CallbackPowerTickPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Action.CODEC.optionalFieldOf("tick_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getTickAction))
+		.and(Action.CODEC.optionalFieldOf("rising_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getRisingAction))
+		.and(Action.CODEC.optionalFieldOf("falling_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getFallingAction))
 		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 

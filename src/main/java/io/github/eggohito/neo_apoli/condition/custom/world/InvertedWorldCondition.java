@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedWorldCondition(WorldCondition condition) implements WorldCondition, IInvertedMetaCondition<WorldCondition> {
 
-	public static final MapCodec<InvertedWorldCondition> CODEC = MapCodecUtil.lazy(InvertedWorldCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(WorldCondition.CODEC, InvertedWorldCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedWorldCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedWorldCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(WorldCondition.STREAM_CODEC, InvertedWorldCondition::new));
+	public static final MapCodec<InvertedWorldCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedWorldCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(WorldCondition.CODEC, InvertedWorldCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedWorldCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedWorldCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(WorldCondition.STREAM_CODEC, InvertedWorldCondition::new));
 
 	@Override
 	public WorldConditionType<?> getType() {
 		return WorldConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return WorldCondition.super.asDisplayString();
 	}
 
 }

@@ -3,17 +3,18 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.block.state.BlockState;
 
-public record HasBlockEntityBlockCondition() implements BlockCondition {
+public enum HasBlockEntityBlockCondition implements BlockCondition {
 
-	public static final MapCodec<HasBlockEntityBlockCondition> CODEC = MapCodec.unit(HasBlockEntityBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, HasBlockEntityBlockCondition> STREAM_CODEC = StreamCodecUtil.unit(HasBlockEntityBlockCondition::new);
+	INSTANCE;
+
+	public static final MapCodec<HasBlockEntityBlockCondition> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, HasBlockEntityBlockCondition> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public BlockConditionType<?> getType() {
@@ -22,8 +23,8 @@ public record HasBlockEntityBlockCondition() implements BlockCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.hasParameter(NeoApoliContextKeys.BLOCK_ENTITY)
-			|| context.optional(NeoApoliContextKeys.BLOCK_STATE).map(BlockState::hasBlockEntity).orElse(false);
+		return context.hasParameter(NeoApoliContextParams.BLOCK_ENTITY)
+			|| context.getOptional(NeoApoliContextParams.BLOCK_STATE).map(BlockState::hasBlockEntity).orElse(false);
 	}
 
 }

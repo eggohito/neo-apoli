@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldFluidCondition(WorldCondition condition) implements FluidCondition, ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldFluidCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldFluidCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldFluidCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldFluidCondition::new);
+	public static final MapCodec<TestWorldFluidCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldFluidCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.TEST_WORLD;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

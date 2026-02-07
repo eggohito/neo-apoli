@@ -11,17 +11,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedFluidCondition(FluidCondition condition) implements FluidCondition, IInvertedMetaCondition<FluidCondition> {
 
-	public static final MapCodec<InvertedFluidCondition> CODEC = MapCodecUtil.lazy(InvertedFluidCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createCodec(FluidCondition.CODEC, InvertedFluidCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedFluidCondition.class.getSimpleName(), () -> IInvertedMetaCondition.createStreamCodec(FluidCondition.STREAM_CODEC, InvertedFluidCondition::new));
+	public static final MapCodec<InvertedFluidCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedFluidCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(FluidCondition.CODEC, InvertedFluidCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedFluidCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(FluidCondition.STREAM_CODEC, InvertedFluidCondition::new));
 
 	@Override
 	public FluidConditionType<?> getType() {
 		return FluidConditionTypes.INVERTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

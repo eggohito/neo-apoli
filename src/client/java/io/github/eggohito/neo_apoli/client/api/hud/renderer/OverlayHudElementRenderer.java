@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.api.hud.renderer;
 
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.OverlayHudElement;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

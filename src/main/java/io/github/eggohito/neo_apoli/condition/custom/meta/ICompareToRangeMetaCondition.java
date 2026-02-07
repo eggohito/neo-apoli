@@ -3,8 +3,8 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 import com.google.common.collect.Streams;
 import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.*;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,32 +23,20 @@ public interface ICompareToRangeMetaCondition extends MetaCondition {
 	@Override
 	default boolean test(Context context) {
 
-		Context valueContext = context.forChild(".value");
-		double value = value().nextDouble(valueContext);
+		double value = value().nextDouble(context.forChild(".value"));
+		Optional<Double> min = min().map(provider -> provider.nextDouble(context.forChild(".min")));
+		Optional<Double> max = max().map(provider -> provider.nextDouble(context.forChild(".max")));
 
-		if (valueContext.hasErrors()) {
-			return false;
+		boolean minBiggerThanMax = min.isPresent() && max.isPresent()
+								&& min.get() > max.get();
+
+		if (minBiggerThanMax) {
+			context.reportProblem("Minimum value cannot be bigger than the maximum value! (min: " + min + ", max: " + max + ")");
 		}
 
-		Context minContext = context.forChild(".min");
-		Optional<Double> min = min().map(provider -> provider.nextDouble(minContext));
-
-		Context maxContext = context.forChild(".max");
-		Optional<Double> max = max().map(provider -> provider.nextDouble(maxContext));
-
-		if (minContext.hasErrors() || maxContext.hasErrors()) {
-			return false;
-		}
-
-		else if (min.isPresent() && max.isPresent() && min.get() > max.get()) {
-			context.getValidator().report("Minimum value cannot be bigger than maximum value");
-			return false;
-		}
-
-		else {
-			return (min.isEmpty() || !(min.get() > value))
-				&& (max.isEmpty() || !(max.get() < value));
-		}
+		return !minBiggerThanMax
+			&& (min.isEmpty() || !(min.get() > value))
+			&& (max.isEmpty() || !(max.get() < value));
 
 	}
 
@@ -62,7 +50,7 @@ public interface ICompareToRangeMetaCondition extends MetaCondition {
 
 	}
 
-	static <M extends ICompareToRangeMetaCondition> MapCodec<M> createCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
+	static <M extends ICompareToRangeMetaCondition> MapCodec<M> mapCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
 		return new MapCodec<>() {
 
 			private static final MapCodec<NumberProvider> VALUE_CODEC = NumberProvider.CODEC.fieldOf("value");
@@ -105,7 +93,7 @@ public interface ICompareToRangeMetaCondition extends MetaCondition {
 		};
 	}
 
-	static <M extends ICompareToRangeMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> createStreamCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
+	static <M extends ICompareToRangeMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function3<NumberProvider, Optional<NumberProvider>, Optional<NumberProvider>, M> constructor) {
 		return StreamCodec.composite(
 			NumberProvider.STREAM_CODEC, ICompareToRangeMetaCondition::value,
 			ByteBufCodecs.optional(NumberProvider.STREAM_CODEC), ICompareToRangeMetaCondition::min,

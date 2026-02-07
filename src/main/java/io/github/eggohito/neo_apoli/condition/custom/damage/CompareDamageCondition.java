@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareDamageCondition(Comparison comparison) implements DamageCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareDamageCondition> CODEC = ICompareMetaCondition.createCodec(CompareDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareDamageCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareDamageCondition::new);
+	public static final MapCodec<CompareDamageCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareDamageCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareDamageCondition::new);
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

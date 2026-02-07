@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeEntityCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements EntityCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeEntityCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeEntityCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeEntityCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeEntityCondition::new);
+	public static final MapCodec<CompareToRangeEntityCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeEntityCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeEntityCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeEntityCondition::new);
 
 	@Override
 	public EntityConditionType<?> getType() {
 		return EntityConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EntityCondition.super.asDisplayString();
 	}
 
 }

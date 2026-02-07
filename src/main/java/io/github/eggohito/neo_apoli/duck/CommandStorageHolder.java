@@ -7,9 +7,9 @@ import org.jetbrains.annotations.ApiStatus;
 
 public interface CommandStorageHolder {
 
-	CompoundTag neo_apoli$get(ResourceLocation id);
+	CompoundTag neo_apoli$getStorage(ResourceLocation id);
 
-	void neo_apoli$set(ResourceLocation id, CompoundTag nbt);
+	void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt);
 
 	@ApiStatus.Internal
 	default void neo_apoli$clear() {

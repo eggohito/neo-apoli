@@ -4,11 +4,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -20,7 +20,7 @@ import java.util.List;
 
 public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements NumberProvider {
 
-	public static final MapCodec<NbtNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NbtNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NbtProvider.CODEC.fieldOf("source").forGetter(NbtNumberProvider::source),
 		NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtNumberProvider::path)
 	).apply(instance, NbtNumberProvider::new));
@@ -77,7 +77,7 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 		}
 
 		catch (CommandSyntaxException e) {
-			context.getValidator().report("Error trying to get a numeric value in NBT path \"" + this.path() + " from NBT \"" + source + "\": " + e.getMessage());
+			context.reportProblem("Error trying to get a numeric value in NBT path \"" + this.path() + " from NBT \"" + source + "\": " + e.getMessage());
 		}
 
 		return 0;

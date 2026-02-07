@@ -4,21 +4,26 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
 public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offset) implements EntityCondition {
 
-	public static final MapCodec<OffsetEntityCondition> CODEC = MapCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.THIS_POS)
+		.build();
+
+	public static final MapCodec<OffsetEntityCondition> MAP_CODEC = MapCodecUtil.lazy(OffsetEntityCondition.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityCondition.CODEC.fieldOf("condition").forGetter(OffsetEntityCondition::condition),
 		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetEntityCondition::offset)
 	).apply(instance, OffsetEntityCondition::new)));
@@ -48,10 +53,10 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 			return false;
 		}
 
-		Vec3 offsetPos = context.required(NeoApoliContextKeys.THIS_POS).add(offset);
+		Vec3 offsetPos = context.getRequired(NeoApoliContextParams.THIS_POS).add(offset);
 		Context conditionContext = new Context.Builder(context)
-			.add(NeoApoliContextKeys.THIS_POS, offsetPos)
-			.build(context.getLevel());
+			.withRequired(NeoApoliContextParams.THIS_POS, offsetPos)
+			.build(context.level());
 
 		return condition().test(conditionContext.forChild(".condition"));
 
@@ -59,7 +64,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_POS);
+		return Set.of(NeoApoliContextParams.THIS_POS);
 	}
 
 	@Override
@@ -67,7 +72,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 
 		EntityCondition.super.validate(validator);
 
-		condition().validate(validator.forChild(".condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".condition"));
 		offset().validate(validator.forChild(".offset"));
 
 	}

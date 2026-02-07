@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceBlockAction(ResourceLocation value) implements BlockAction, IReferenceMetaAction<BlockAction> {
 
-	public static final MapCodec<ReferenceBlockAction> CODEC = IReferenceMetaAction.createCodec(ReferenceBlockAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = IReferenceMetaAction.createStreamCodec(ReferenceBlockAction::new);
+	public static final MapCodec<ReferenceBlockAction> MAP_CODEC = IReferenceMetaAction.mapCodec(ReferenceBlockAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = IReferenceMetaAction.streamCodec(ReferenceBlockAction::new);
 
 	@Override
 	public Pair<Class<BlockAction>, String> classAndName() {
@@ -22,11 +22,6 @@ public record ReferenceBlockAction(ResourceLocation value) implements BlockActio
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.REFERENCE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

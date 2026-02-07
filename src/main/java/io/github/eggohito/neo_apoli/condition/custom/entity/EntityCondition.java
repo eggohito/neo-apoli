@@ -4,9 +4,7 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -24,12 +22,7 @@ public interface EntityCondition extends Condition {
 
 	@Override
 	default Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextKeys.THIS_ENTITY);
-	}
-
-	@Override
-	default String asDisplayString() {
-		return "Entity condition with type \"" + RegistryUtil.getId(NeoApoliRegistries.ENTITY_CONDITION_TYPE, this.getType()) + "\"";
+		return Set.of(NeoApoliContextParams.THIS_ENTITY);
 	}
 
 }

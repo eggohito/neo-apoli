@@ -14,8 +14,8 @@ import java.util.Optional;
 
 public record LoopMetaAction(Optional<Action> beforeAction, Optional<Action> afterAction, NumberProvider iterations, Action action) implements ILoopMetaAction<Action> {
 
-	public static final MapCodec<LoopMetaAction> CODEC = MapCodecUtil.lazy(LoopMetaAction.class.getSimpleName(), () -> ILoopMetaAction.createCodec(Action.CODEC, LoopMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, LoopMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopMetaAction.class.getSimpleName(), () -> ILoopMetaAction.createStreamCodec(Action.STREAM_CODEC, LoopMetaAction::new));
+	public static final MapCodec<LoopMetaAction> MAP_CODEC = MapCodecUtil.lazy(LoopMetaAction.class.getSimpleName(), () -> ILoopMetaAction.mapCodec(Action.CODEC, LoopMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, LoopMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopMetaAction.class.getSimpleName(), () -> ILoopMetaAction.streamCodec(Action.STREAM_CODEC, LoopMetaAction::new));
 
 	@Override
 	public ActionType<?> getType() {

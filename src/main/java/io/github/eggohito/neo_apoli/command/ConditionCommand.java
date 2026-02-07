@@ -10,20 +10,19 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.duck.ContextBuilderHolder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.util.Reporter;
+import net.minecraft.Util;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-
-import java.util.Optional;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -91,16 +90,13 @@ public class ConditionCommand {
 
 	public static final class TestSubCommand {
 
-		 static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
+		 static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
 
-			CommandNode<CommandSourceStack> baseNode = literal("test").build();
-			CommandNode<CommandSourceStack> withNode = literal("with").build();
-			CommandNode<CommandSourceStack> onNode = literal("on")
-				.then(argument("condition", ConditionArgument.inlineCondition(registryAccess))
-					.executes(TestSubCommand::testAsInt)).build();
+			 var baseNode = literal("test").build();
+			 var withNode = literal("with").build();
+			 var conditionNode = argument("condition", ConditionArgument.inlineCondition(buildContext)).build();
 
-			 NeoApoliContextKeys.addAsArguments(registryAccess, baseNode, withNode, onNode);
-
+			 NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode, conditionNode);
 			 return baseNode;
 
 		}
@@ -121,50 +117,38 @@ public class ConditionCommand {
 		public static boolean test(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			CommandSourceStack source = commandContext.getSource();
-			Context.Builder contextBuilder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
+			Context.Builder builder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
 
-			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
-			String display = condition.asDisplayString(false);
+			Condition condition = ConditionArgument.getCondition(commandContext, "action");
+			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"");
 
-			try {
+			Reporter reporter = new Reporter(path);
+			Context.Validator validator = new Context.Validator(LootContextParamSets.EMPTY, reporter);
 
-				String rootPath = ConditionManager.getIdAsResult(condition).mapOrElse(
-					id -> "{\"" + id + "\"}",
-					error -> "{type: \"" + RegistryUtil.getId(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\", ...}"
-				);
+			condition.validate(validator);
+			var validationException = reporter.getErrorsFlattened()
+				.map(error -> Component.literal("Found errors while validating condition: ").append(error))
+				.map(MiscUtil::createCommandException);
 
-				Context.Validator validator = new Context.Validator()
-					.withKeySet(NeoApoliContextKeySets.ANY)
-					.forChild(rootPath);
-				Context context = contextBuilder
-					.withValidator(validator)
-					.build(source.getLevel());
-
-				condition.validate(validator);
-				Optional<CommandSyntaxException> validationException = validator.getErrorsFlattened()
-					.map(error -> Component.literal("Found errors when validating " + display + ": ").append(error))
-					.map(MiscUtil::createCommandException);
-
-				if (validationException.isPresent()) {
-					throw validationException.get();
-				}
-
-				boolean result = condition.test(context);
-				Optional<CommandSyntaxException> testingException = validator.getErrorsFlattened()
-					.map(error -> Component.literal("Warnings found when testing " + display + ": ").append(error))
-					.map(MiscUtil::createCommandException);
-
-				if (testingException.isPresent()) {
-					throw testingException.get();
-				}
-
-				return result;
-
+			if (validationException.isPresent()) {
+				throw validationException.get();
 			}
 
-			catch (Exception e) {
-				throw MiscUtil.createCommandException(() -> "Error testing " + display + ": " + e.getMessage());
+			Context context = builder
+				.withReporter(reporter)
+				.build(source.getLevel());
+
+			boolean result = condition.test(context);
+			var executionException = reporter.getErrorsFlattened()
+				.map(error -> Component.literal("Found errors while executing condition: ").append(error))
+				.map(MiscUtil::createCommandException);
+
+			if (executionException.isPresent()) {
+				throw executionException.get();
 			}
+
+			source.sendSuccess(() -> Component.nullToEmpty("Successfully executed action!"), true);
+			return result;
 
 		}
 

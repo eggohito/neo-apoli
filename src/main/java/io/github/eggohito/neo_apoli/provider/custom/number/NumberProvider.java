@@ -2,11 +2,9 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -20,11 +18,6 @@ public interface NumberProvider extends ValueProvider<Number> {
 
 	@Override
 	NumberProviderType<?> getType();
-
-	@Override
-	default String asDisplayString() {
-		return "Number provider with type \"" + RegistryUtil.getId(NeoApoliRegistries.NUMBER_PROVIDER_TYPE, this.getType()) + "\"";
-	}
 
 	default double nextDouble(Context context) {
 		return this.next(context).doubleValue();

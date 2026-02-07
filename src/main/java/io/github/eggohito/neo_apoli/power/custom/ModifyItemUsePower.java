@@ -7,16 +7,16 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import io.netty.buffer.ByteBuf;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,7 +44,7 @@ import java.util.function.Supplier;
 @Getter
 public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemUsePower> {
 
-	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyItemUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
 		.and(NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
 		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::getHands))
@@ -106,29 +106,37 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 			super(holder, power);
 		}
 
+		public Context createContext(SlotAccess slotAccess) {
+			return this.createHolderContextBuilder()
+				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
+				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
+				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_USE.keySet());
+		}
+
 		public InteractionResult execute(Context context) {
 			power.getOnUseAction().execute(context.forChild(".on_use_action"));
 			return power.getResult();
 		}
 
-		public boolean shouldExecute(PriorityPhase priorityPhase, TriggerType triggerType) {
+		public boolean doesApply(PriorityPhase priorityPhase, TriggerType triggerType, InteractionHand hand) {
 			return power.inPriorityPhase(priorityPhase)
+				&& power.getHands().contains(hand)
 				&& Objects.equals(power.getTriggerType(), triggerType);
 		}
 
 	}
 
-	public static InteractionResult execute(Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, TriggerType triggerType, PriorityPhase priorityPhase, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
-		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(user, Instance.class, instance -> instance.shouldExecute(priorityPhase, triggerType));
+	public static InteractionResult execute(Level world, LivingEntity user, InteractionHand hand, SlotAccess slotAccess, TriggerType triggerType, PriorityPhase priorityPhase, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
+		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(user, Instance.class, instance -> instance.doesApply(priorityPhase, triggerType, hand));
 		return switch (priorityPhase) {
 			case BEFORE ->
-				executeBeforeUse(instanceCollection, world, user, hand, stackReference, zeroPriorityResultSetter, defaultResultGetter);
+				executeBeforeUse(instanceCollection, world, user, hand, slotAccess, zeroPriorityResultSetter, defaultResultGetter);
 			case AFTER ->
-				executeAfterUse(instanceCollection, world, user, hand, stackReference, zeroPriorityResultGetter, defaultResultGetter);
+				executeAfterUse(instanceCollection, world, user, hand, slotAccess, zeroPriorityResultGetter, defaultResultGetter);
 		};
 	}
 
-	private static InteractionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
+	private static InteractionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess slotAccess, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
 
 		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
@@ -137,7 +145,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 			for (var instance: instances) {
 
-				Context context = createContext(instance, user, hand, stackReference);
+				Context context = instance.createContext(slotAccess);
 
 				if (instance.isActive(context)) {
 
@@ -176,7 +184,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	}
 
-	private static InteractionResult executeAfterUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess stackReference, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
+	private static InteractionResult executeAfterUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess slotAccess, Supplier<@Nullable InteractionResult> zeroPriorityResultGetter, Supplier<InteractionResult> defaultResultGetter) {
 
 		InteractionResult original = defaultResultGetter.get();
 		InteractionResult modified = InteractionResult.PASS;
@@ -196,7 +204,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 				for (var instance: instances) {
 
-					Context context = createContext(instance, user, hand, stackReference);
+					Context context = instance.createContext(slotAccess);
 
 					if (instance.isActive(context)) {
 
@@ -225,16 +233,6 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 		return MiscUtil.overrideResult(original, modified);
 
-	}
-
-	public static Context createContext(Instance instance, LivingEntity user, InteractionHand hand, SlotAccess stackReference) {
-		return instance.createHolderContextBuilder()
-			.add(NeoApoliContextKeys.HAND, hand)
-			.add(NeoApoliContextKeys.THIS_ENTITY, user)
-			.add(NeoApoliContextKeys.THIS_POS, user.position())
-			.add(NeoApoliContextKeys.STACK_REFERENCE, stackReference)
-			.add(NeoApoliContextKeys.ITEM_STACK, stackReference.get())
-			.build(user.level());
 	}
 
 	public enum TriggerType implements StringRepresentable {

@@ -12,18 +12,18 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DamageConditionTypes extends ConditionTypes {
 
-	public static final DamageConditionType<AllOfDamageCondition> ALL_OF = registerInternal("all_of", AllOfDamageCondition.CODEC, AllOfDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<AnyOfDamageCondition> ANY_OF = registerInternal("any_of", AnyOfDamageCondition.CODEC, AnyOfDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<CompareDamageCondition> COMPARE = registerInternal("compare", CompareDamageCondition.CODEC, CompareDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<CompareToRangeDamageCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeDamageCondition.CODEC, CompareToRangeDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<ConstantDamageCondition> CONSTANT = registerInternal("constant", ConstantDamageCondition.CODEC, ConstantDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<DynamicDamageCondition> DYNAMIC = registerInternal("dynamic", DynamicDamageCondition.CODEC, DynamicDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<InvertedDamageCondition> INVERTED = registerInternal("inverted", InvertedDamageCondition.CODEC, InvertedDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<ReferenceDamageCondition> REFERENCE = registerInternal("reference", ReferenceDamageCondition.CODEC, ReferenceDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<TestWorldDamageCondition> TEST_WORLD = registerInternal("test_world", TestWorldDamageCondition.CODEC, TestWorldDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<AllOfDamageCondition> ALL_OF = registerInternal("all_of", AllOfDamageCondition.MAP_CODEC, AllOfDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<AnyOfDamageCondition> ANY_OF = registerInternal("any_of", AnyOfDamageCondition.MAP_CODEC, AnyOfDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<CompareDamageCondition> COMPARE = registerInternal("compare", CompareDamageCondition.MAP_CODEC, CompareDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<CompareToRangeDamageCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeDamageCondition.MAP_CODEC, CompareToRangeDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<ConstantDamageCondition> CONSTANT = registerInternal("constant", ConstantDamageCondition.MAP_CODEC, ConstantDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<DynamicDamageCondition> DYNAMIC = registerInternal("dynamic", DynamicDamageCondition.MAP_CODEC, DynamicDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<InvertedDamageCondition> INVERTED = registerInternal("inverted", InvertedDamageCondition.MAP_CODEC, InvertedDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<ReferenceDamageCondition> REFERENCE = registerInternal("reference", ReferenceDamageCondition.MAP_CODEC, ReferenceDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<TestWorldDamageCondition> TEST_WORLD = registerInternal("test_world", TestWorldDamageCondition.MAP_CODEC, TestWorldDamageCondition.STREAM_CODEC);
 
-	public static final DamageConditionType<IsInTagDamageCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagDamageCondition.CODEC, IsInTagDamageCondition.STREAM_CODEC);
-	public static final DamageConditionType<IsOfDamageCondition> IS_OF = registerInternal("is_of", IsOfDamageCondition.CODEC, IsOfDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<IsInTagDamageCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagDamageCondition.MAP_CODEC, IsInTagDamageCondition.STREAM_CODEC);
+	public static final DamageConditionType<IsOfDamageCondition> IS_OF = registerInternal("is_of", IsOfDamageCondition.MAP_CODEC, IsOfDamageCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 

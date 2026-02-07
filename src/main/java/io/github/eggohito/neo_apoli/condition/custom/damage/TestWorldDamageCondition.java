@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record TestWorldDamageCondition(WorldCondition condition) implements DamageCondition, ITestWorldMetaCondition {
 
-	public static final MapCodec<TestWorldDamageCondition> CODEC = ITestWorldMetaCondition.createCodec(TestWorldDamageCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldDamageCondition> STREAM_CODEC = ITestWorldMetaCondition.createStreamCodec(TestWorldDamageCondition::new);
+	public static final MapCodec<TestWorldDamageCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldDamageCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldDamageCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldDamageCondition::new);
 
 	@Override
 	public DamageConditionType<?> getType() {
 		return DamageConditionTypes.TEST_WORLD;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return DamageCondition.super.asDisplayString();
 	}
 
 }

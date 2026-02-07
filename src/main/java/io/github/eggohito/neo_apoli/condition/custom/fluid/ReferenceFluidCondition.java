@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceFluidCondition(ResourceLocation value) implements FluidCondition, IReferenceMetaCondition<FluidCondition> {
 
-	public static final MapCodec<ReferenceFluidCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceFluidCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceFluidCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceFluidCondition::new);
+	public static final MapCodec<ReferenceFluidCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceFluidCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {
@@ -22,11 +22,6 @@ public record ReferenceFluidCondition(ResourceLocation value) implements FluidCo
 	@Override
 	public Pair<Class<FluidCondition>, String> classAndName() {
 		return Pair.of(FluidCondition.class, "Fluid condition");
-	}
-
-	@Override
-	public String asDisplayString() {
-		return FluidCondition.super.asDisplayString();
 	}
 
 }

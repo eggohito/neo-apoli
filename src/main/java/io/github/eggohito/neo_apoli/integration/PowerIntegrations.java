@@ -3,10 +3,9 @@ package io.github.eggohito.neo_apoli.integration;
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraFlightPower;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -36,25 +35,32 @@ public class PowerIntegrations {
 
 	private static boolean onPowerElytraFlight(LivingEntity entity, boolean tickElytra) {
 
-		Prioritized.InstanceCollection<ModifyElytraFlightPower.Instance> instances = new Prioritized.InstanceCollection<>(entity, ModifyElytraFlightPower.Instance.class);
-		Context context = ModifyElytraFlightPower.createContext(entity);
+		try {
 
-		boolean allow = ModifyElytraFlightPower.modify(context, instances, () -> true);
+			boolean allow = ModifyElytraFlightPower.modify(entity, () -> false);
+			if (allow && tickElytra) {
+				entity.gameEvent(GameEvent.ELYTRA_GLIDE);
+			}
 
-		if (tickElytra & allow) {
-			entity.gameEvent(GameEvent.ELYTRA_GLIDE);
+			return allow;
+
 		}
 
-		return allow;
+		finally {
+			ModifyElytraFlightPower.VISITOR.clear();
+		}
 
 	}
 
 	private static boolean allowPowerElytraFlight(LivingEntity entity) {
 
-		Prioritized.InstanceCollection<ModifyElytraFlightPower.Instance> instances = new Prioritized.InstanceCollection<>(entity, ModifyElytraFlightPower.Instance.class);
-		Context context = ModifyElytraFlightPower.createContext(entity);
+		try {
+			return ModifyElytraFlightPower.modify(entity, () -> true);
+		}
 
-		return ModifyElytraFlightPower.modify(context, instances, () -> true);
+		finally {
+			ModifyElytraFlightPower.VISITOR.clear();
+		}
 
 	}
 

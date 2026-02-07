@@ -13,17 +13,12 @@ import java.util.List;
 
 public record AllOfBiEntityCondition(List<BiEntityCondition> conditions) implements BiEntityCondition, IAllOfMetaCondition<BiEntityCondition> {
 
-	public static final MapCodec<AllOfBiEntityCondition> CODEC = MapCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createCodec(BiEntityCondition.CODEC, AllOfBiEntityCondition::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.createStreamCodec(BiEntityCondition.STREAM_CODEC, AllOfBiEntityCondition::new));
+	public static final MapCodec<AllOfBiEntityCondition> MAP_CODEC = MapCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.mapCodec(BiEntityCondition.CODEC, AllOfBiEntityCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfBiEntityCondition.class.getSimpleName(), () -> IAllOfMetaCondition.streamCodec(BiEntityCondition.STREAM_CODEC, AllOfBiEntityCondition::new));
 
 	@Override
 	public BiEntityConditionType<?> getType() {
 		return BiEntityConditionTypes.ALL_OF;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BiEntityCondition.super.asDisplayString();
 	}
 
 }

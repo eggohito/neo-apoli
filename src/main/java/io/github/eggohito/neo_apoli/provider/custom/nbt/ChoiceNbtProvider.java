@@ -14,8 +14,8 @@ import java.util.List;
 
 public record ChoiceNbtProvider(List<Case<NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, ChoiceValueProvider<NbtProvider, Tag> {
 
-	public static final MapCodec<ChoiceNbtProvider> CODEC = MapCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.createCodec(NbtProvider.CODEC, ChoiceNbtProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.createStreamCodec(NbtProvider.STREAM_CODEC, ChoiceNbtProvider::new));
+	public static final MapCodec<ChoiceNbtProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(NbtProvider.CODEC, ChoiceNbtProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(NbtProvider.STREAM_CODEC, ChoiceNbtProvider::new));
 
 	@Override
 	public NbtProviderType<?> getType() {

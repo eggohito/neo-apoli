@@ -6,16 +6,16 @@ import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionType;
 import io.github.eggohito.neo_apoli.condition.type.key.KeyConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
 public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 
-	public static final MapCodec<IsPressedKeyCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<IsPressedKeyCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("id").forGetter(IsPressedKeyCondition::id)
 	).apply(instance, IsPressedKeyCondition::new));
 
@@ -43,7 +43,7 @@ public record IsPressedKeyCondition(StringProvider id) implements KeyCondition {
 			return false;
 		}
 
-		return context.optional(NeoApoliContextKeys.THIS_ENTITY)
+		return context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.map(Entity::getUUID)
 			.flatMap(uuid -> KeyStateManager.getState(uuid, id))
 			.map(KeyState::pressed)

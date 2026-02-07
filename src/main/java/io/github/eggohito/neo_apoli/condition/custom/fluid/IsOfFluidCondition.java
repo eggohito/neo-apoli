@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 
 public record IsOfFluidCondition(Fluid fluid) implements FluidCondition {
 
-	public static final MapCodec<IsOfFluidCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<IsOfFluidCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(IsOfFluidCondition::fluid))
 		.apply(instance, IsOfFluidCondition::new));
 
@@ -31,7 +31,7 @@ public record IsOfFluidCondition(Fluid fluid) implements FluidCondition {
 
 	@Override
 	public boolean test(Context context) {
-		return context.optional(NeoApoliContextKeys.FLUID_STATE)
+		return context.getOptional(NeoApoliContextParams.FLUID_STATE)
 			.map(state -> state.is(fluid()))
 			.orElse(false);
 	}

@@ -12,17 +12,12 @@ import net.minecraft.world.entity.ai.behavior.ShufflingList;
 
 public record WeightedBlockAction(ShufflingList<BlockAction> entries) implements BlockAction, IWeightedMetaAction<BlockAction> {
 
-	public static final MapCodec<WeightedBlockAction> CODEC = MapCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.createCodec(BlockAction.CODEC, WeightedBlockAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.createStreamCodec(BlockAction.STREAM_CODEC, WeightedBlockAction::new));
+	public static final MapCodec<WeightedBlockAction> MAP_CODEC = MapCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.mapCodec(BlockAction.CODEC, WeightedBlockAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> IWeightedMetaAction.streamCodec(BlockAction.STREAM_CODEC, WeightedBlockAction::new));
 
 	@Override
 	public BlockActionType<?> getType() {
 		return BlockActionTypes.WEIGHTED;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return BlockAction.super.asDisplayString();
 	}
 
 }

@@ -2,19 +2,22 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
+import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.BiFunction;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
 
-	public static final MapCodec<ClampedNumberProvider> CODEC = MapCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ClampedNumberProvider> MAP_CODEC = MapCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("value").forGetter(ClampedNumberProvider::value),
 		NumberProvider.CODEC.fieldOf("min").forGetter(ClampedNumberProvider::min),
 		NumberProvider.CODEC.fieldOf("max").forGetter(ClampedNumberProvider::max)
@@ -34,24 +37,12 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 
 	@Override
 	public @NotNull Number next(Context context) {
+		return this.nextOrElse(context, NumberProvider::nextDouble, Mth::clamp);
+	}
 
-		Context minContext = context.forChild(".min");
-		double min = min().nextDouble(minContext);
-
-		Context maxContext = context.forChild(".max");
-		double max = max().nextDouble(maxContext);
-
-		Context valueContext = context.forChild(".value");
-		double value = value().nextDouble(valueContext);
-
-		if (minContext.hasErrors() || maxContext.hasErrors()) {
-			return value;
-		}
-
-		else {
-			return Mth.clamp(value, min, max);
-		}
-
+	@Override
+	public long nextLong(Context context) {
+		return this.nextOrElse(context, NumberProvider::nextLong, Mth::clamp);
 	}
 
 	@Override
@@ -62,6 +53,29 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		value().validate(validator.forChild(".value"));
 		min().validate(validator.forChild(".min"));
 		max().validate(validator.forChild(".max"));
+
+	}
+
+	private <N extends Number> N nextOrElse(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<N, N, N, N> clamp) {
+
+		Context valueContext = context.forChild(".value");
+		N value = getter.apply(value(), valueContext);
+
+		Context minContext = context.forChild(".min");
+		N min = getter.apply(min(), minContext);
+
+		if (minContext.hasErrors()) {
+			return value;
+		}
+
+		Context maxContext = context.forChild(".max");
+		N max = getter.apply(max(), maxContext);
+
+		if (maxContext.hasErrors()) {
+			return value;
+		}
+
+		return clamp.apply(value, min, max);
 
 	}
 

@@ -11,13 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 
 public class StringProviderTypes {
 
-	public static final StringProviderType<ChoiceStringProvider> CHOICE = registerInternal("choice", ChoiceStringProvider.CODEC, ChoiceStringProvider.STREAM_CODEC);
-	public static final StringProviderType<ConditionalStringProvider> CONDITIONAL = registerInternal("conditional", ConditionalStringProvider.CODEC, ConditionalStringProvider.STREAM_CODEC);
-	public static final StringProviderType<ConstantStringProvider> CONSTANT = registerInternal("constant", ConstantStringProvider.CODEC, ConstantStringProvider.STREAM_CODEC);
-	public static final StringProviderType<JoinStringProvider> JOIN = registerInternal("join", JoinStringProvider.CODEC, JoinStringProvider.STREAM_CODEC);
-	public static final StringProviderType<NbtStringProvider> NBT = registerInternal("nbt", NbtStringProvider.CODEC, NbtStringProvider.STREAM_CODEC);
-	public static final StringProviderType<NumberStringProvider> NUMBER = registerInternal("number", NumberStringProvider.CODEC, NumberStringProvider.STREAM_CODEC);
-	public static final StringProviderType<UuidStringProvider> UUID = registerInternal("uuid", UuidStringProvider.CODEC, UuidStringProvider.STREAM_CODEC);
+	public static final StringProviderType<ChoiceStringProvider> CHOICE = registerInternal("choice", ChoiceStringProvider.MAP_CODEC, ChoiceStringProvider.STREAM_CODEC);
+	public static final StringProviderType<ConditionalStringProvider> CONDITIONAL = registerInternal("conditional", ConditionalStringProvider.MAP_CODEC, ConditionalStringProvider.STREAM_CODEC);
+	public static final StringProviderType<ConstantStringProvider> CONSTANT = registerInternal("constant", ConstantStringProvider.MAP_CODEC, ConstantStringProvider.STREAM_CODEC);
+	public static final StringProviderType<JoinStringProvider> JOIN = registerInternal("join", JoinStringProvider.MAP_CODEC, JoinStringProvider.STREAM_CODEC);
+	public static final StringProviderType<NbtStringProvider> NBT = registerInternal("nbt", NbtStringProvider.MAP_CODEC, NbtStringProvider.STREAM_CODEC);
+	public static final StringProviderType<NumberStringProvider> NUMBER = registerInternal("number", NumberStringProvider.MAP_CODEC, NumberStringProvider.STREAM_CODEC);
+	public static final StringProviderType<UuidStringProvider> UUID = registerInternal("uuid", UuidStringProvider.MAP_CODEC, UuidStringProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

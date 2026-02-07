@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public record CompareToRangeMetaCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeMetaCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeMetaCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeMetaCondition::new);
+	public static final MapCodec<CompareToRangeMetaCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeMetaCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeMetaCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeMetaCondition::new);
 
 	@Override
 	public ConditionType<?> getType() {

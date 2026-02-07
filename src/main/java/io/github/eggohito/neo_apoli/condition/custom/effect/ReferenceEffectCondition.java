@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public record ReferenceEffectCondition(ResourceLocation value) implements EffectCondition, IReferenceMetaCondition<EffectCondition> {
 
-	public static final MapCodec<ReferenceEffectCondition> CODEC = IReferenceMetaCondition.createCodec(ReferenceEffectCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEffectCondition> STREAM_CODEC = IReferenceMetaCondition.createStreamCodec(ReferenceEffectCondition::new);
+	public static final MapCodec<ReferenceEffectCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceEffectCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEffectCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceEffectCondition::new);
 
 	@Override
 	public EffectConditionType<?> getType() {
@@ -22,11 +22,6 @@ public record ReferenceEffectCondition(ResourceLocation value) implements Effect
 	@Override
 	public Pair<Class<EffectCondition>, String> classAndName() {
 		return Pair.of(EffectCondition.class, "Effect condition");
-	}
-
-	@Override
-	public String asDisplayString() {
-		return EffectCondition.super.asDisplayString();
 	}
 
 }

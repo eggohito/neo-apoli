@@ -105,7 +105,7 @@ public class NeoApoliS2CNetworkHandler {
 	}
 
 	private static void onDataCommandStorageSynchronized(SynchronizeCommandStorageS2CPacket payload, ClientPlayNetworking.Context context) {
-		((CommandStorageHolder) context.client()).neo_apoli$set(payload.id(), payload.nbt());
+		((CommandStorageHolder) context.client()).neo_apoli$setStorage(payload.id(), payload.nbt());
 	}
 
 	private static void onPowerDataSynchronized(SynchronizePowerDataS2CPacket payload, ClientPlayNetworking.Context context) {

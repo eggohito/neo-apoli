@@ -3,26 +3,31 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextKeySetHelper;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeySets;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Provider position, Shape shape, NumberProvider radius) implements NumberProvider {
 
-	public static final MapCodec<BlocksInRadiusNumberProvider> CODEC = MapCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+		.required(NeoApoliContextParams.BLOCK_POS)
+		.required(NeoApoliContextParams.BLOCK_STATE)
+		.optional(NeoApoliContextParams.BLOCK_ENTITY)
+		.build();
+
+	public static final MapCodec<BlocksInRadiusNumberProvider> MAP_CODEC = MapCodecUtil.lazy(BlocksInRadiusNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksInRadiusNumberProvider::blockCondition),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(BlocksInRadiusNumberProvider::position),
 		Shape.CODEC.fieldOf("shape").forGetter(BlocksInRadiusNumberProvider::shape),
@@ -45,7 +50,7 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Pr
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Level level = context.getLevel();
+		Level level = context.level();
 		int matches = 0;
 
 		Context positionContext = context.forChild(".position");
@@ -69,10 +74,9 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Pr
 			}
 
 			Context blockContext = new Context.Builder(context)
-				.withKeySet(ContextKeySetHelper.merge(context.getKeySet(), NeoApoliContextKeySets.BLOCK))
-				.add(NeoApoliContextKeys.BLOCK_POS, blockPos)
-				.add(NeoApoliContextKeys.BLOCK_STATE, level.getBlockState(blockPos))
-				.addNullable(NeoApoliContextKeys.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 				.build(level);
 
 			if (blockCondition().test(blockContext.forChild(".block_condition"))) {
@@ -88,9 +92,7 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Pr
 	public void validate(Context.Validator validator) {
 
 		NumberProvider.super.validate(validator);
-		blockCondition().validate(validator
-			.withKeySet(ContextKeySetHelper.merge(validator.getKeySet(), NeoApoliContextKeySets.BLOCK))
-			.forChild(".block_condition"));
+		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
 
 		position().validate(validator.forChild(".position"));
 		radius().validate(validator.forChild(".radius"));

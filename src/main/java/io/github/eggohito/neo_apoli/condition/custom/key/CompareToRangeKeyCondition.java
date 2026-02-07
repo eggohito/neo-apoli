@@ -12,17 +12,12 @@ import java.util.Optional;
 
 public record CompareToRangeKeyCondition(NumberProvider value, Optional<NumberProvider> min, Optional<NumberProvider> max) implements KeyCondition, ICompareToRangeMetaCondition {
 
-	public static final MapCodec<CompareToRangeKeyCondition> CODEC = ICompareToRangeMetaCondition.createCodec(CompareToRangeKeyCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeKeyCondition> STREAM_CODEC = ICompareToRangeMetaCondition.createStreamCodec(CompareToRangeKeyCondition::new);
+	public static final MapCodec<CompareToRangeKeyCondition> MAP_CODEC = ICompareToRangeMetaCondition.mapCodec(CompareToRangeKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeKeyCondition> STREAM_CODEC = ICompareToRangeMetaCondition.streamCodec(CompareToRangeKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {
 		return KeyConditionTypes.COMPARE_TO_RANGE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

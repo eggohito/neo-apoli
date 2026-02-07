@@ -3,10 +3,10 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.util.context.Context;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 //	TODO: Add providers for command sources
 public record CommandResultNumberProvider(StringProvider command) implements NumberProvider {
 
-	public static final MapCodec<CommandResultNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<CommandResultNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("command").forGetter(CommandResultNumberProvider::command)
 	).apply(instance, CommandResultNumberProvider::new));
 
@@ -37,7 +37,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		if (!(context.getLevel() instanceof ServerLevel serverWorld)) {
+		if (!(context.level() instanceof ServerLevel serverWorld)) {
 			return 0;
 		}
 

@@ -10,17 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record CompareKeyCondition(Comparison comparison) implements KeyCondition, ICompareMetaCondition {
 
-	public static final MapCodec<CompareKeyCondition> CODEC = ICompareMetaCondition.createCodec(CompareKeyCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareKeyCondition> STREAM_CODEC = ICompareMetaCondition.createStreamCodec(CompareKeyCondition::new);
+	public static final MapCodec<CompareKeyCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareKeyCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareKeyCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareKeyCondition::new);
 
 	@Override
 	public KeyConditionType<?> getType() {
 		return KeyConditionTypes.COMPARE;
-	}
-
-	@Override
-	public String asDisplayString() {
-		return KeyCondition.super.asDisplayString();
 	}
 
 }

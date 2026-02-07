@@ -6,13 +6,14 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PowerReference;
-import io.github.eggohito.neo_apoli.util.context.Context;
-import io.github.eggohito.neo_apoli.util.context.ContextAware;
-import io.github.eggohito.neo_apoli.util.context.NeoApoliContextKeys;
+import io.github.eggohito.neo_apoli.util.Reporter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -35,7 +36,7 @@ import java.util.Set;
  */
 @EqualsAndHashCode
 @Getter
-public abstract class Power implements ContextAware {
+public abstract class Power implements ContextUser {
 
 	public static final String TYPE_KEY = "type";
 
@@ -43,7 +44,7 @@ public abstract class Power implements ContextAware {
 
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = PowerType.STREAM_CODEC.dispatch(Power::getType, PowerType::packetCodec);
+	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = PowerType.STREAM_CODEC.dispatch(Power::getType, PowerType::streamCodec);
 
 	private final Optional<Condition> activeCondition;
 
@@ -85,7 +86,7 @@ public abstract class Power implements ContextAware {
 	 * 	<p>The uniqueness of each instance is especially relevant for storing data.</p>
 	 */
 	@Getter
-	public abstract static class Instance<P extends Power> implements ContextAware {
+	public abstract static class Instance<P extends Power> implements ContextUser {
 
 		protected final P power;
 		protected final Entity holder;
@@ -107,15 +108,15 @@ public abstract class Power implements ContextAware {
 			power.validate(validator);
 		}
 
-		public Context.Validator createValidator() {
-			return this.entry.createValidator().withLookupProvider(holder.level().registryAccess());
+		public Reporter createReporter() {
+			return entry.createReporter();
 		}
 
 		public Context.Builder createHolderContextBuilder() {
-			return power.getType().contextBuilder()
-				.withValidator(this.createValidator())
-				.add(NeoApoliContextKeys.THIS_ENTITY, holder)
-				.add(NeoApoliContextKeys.THIS_POS, holder.position());
+			return new Context.Builder()
+				.withReporter(this.createReporter())
+				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder)
+				.withRequired(NeoApoliContextParams.THIS_POS, holder.position());
 		}
 
 		public Context createHolderContext() {
