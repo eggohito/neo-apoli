@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.context.parameter;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
@@ -41,7 +40,7 @@ public class BlockStateContextParameter extends ContextParameter<BlockState> {
 		CommandSourceStack source = context.getSource();
 		BlockPos blockPos = BlockPosArgument.getLoadedBlockPos(context, "pos");
 
-		((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, source.getLevel().getBlockState(blockPos));
+		source.neo_apoli$getContextBuilder().withRequired(this, source.getLevel().getBlockState(blockPos));
 		return source;
 
 	}

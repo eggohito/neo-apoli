@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.context.parameter;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -61,7 +60,7 @@ public class SlotAccessContextParameter extends ContextParameter<SlotAccess> {
 		if (level.getBlockEntity(blockPos) instanceof Container container) {
 
 			if (slot >= 0 && slot < container.getContainerSize()) {
-				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, SlotAccess.forContainer(container, slot));
+				source.neo_apoli$getContextBuilder().withRequired(this, SlotAccess.forContainer(container, slot));
 			}
 
 			else {
@@ -90,7 +89,7 @@ public class SlotAccessContextParameter extends ContextParameter<SlotAccess> {
 			throw MiscUtil.createCommandException(Component.translatable("commands.item.target.no_such_slot", slot));
 		}
 
-		((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, slotAccess);
+		source.neo_apoli$getContextBuilder().withRequired(this, slotAccess);
 		return source;
 
 	}

@@ -4,7 +4,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -70,7 +69,7 @@ public class ItemStackContextParameter extends ContextParameter<ItemStack> {
 		ItemInput item = ItemArgument.getItem(context, "item");
 
 		int count = IntegerArgumentType.getInteger(context, "count");
-		((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, item.createItemStack(count, false));
+		source.neo_apoli$getContextBuilder().withRequired(this, item.createItemStack(count, false));
 
 		return source;
 
@@ -87,7 +86,7 @@ public class ItemStackContextParameter extends ContextParameter<ItemStack> {
 		if (level.getBlockEntity(blockPos) instanceof Container container) {
 
 			if (slot >= 0 && slot < container.getContainerSize()) {
-				((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, container.getItem(slot));
+				source.neo_apoli$getContextBuilder().withRequired(this, container.getItem(slot));
 			}
 
 			else {
@@ -116,7 +115,7 @@ public class ItemStackContextParameter extends ContextParameter<ItemStack> {
 			throw MiscUtil.createCommandException(Component.translatable("commands.item.target.no_such_slot", slot));
 		}
 
-		((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, slotAccess.get());
+		source.neo_apoli$getContextBuilder().withRequired(this, slotAccess.get());
 		return source;
 
 	}

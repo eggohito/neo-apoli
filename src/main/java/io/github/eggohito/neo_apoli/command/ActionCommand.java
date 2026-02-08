@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.command.argument.ActionArgument;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
@@ -104,7 +103,7 @@ public class ActionCommand {
 		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			CommandSourceStack source = commandContext.getSource();
-			Context.Builder builder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
+			Context.Builder builder = source.neo_apoli$getContextBuilder();
 
 			Action action = ActionArgument.getAction(commandContext, "action");
 			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"");

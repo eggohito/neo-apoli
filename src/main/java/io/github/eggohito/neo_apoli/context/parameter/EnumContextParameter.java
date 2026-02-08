@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JavaOps;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -48,7 +47,7 @@ public class EnumContextParameter<E extends Enum<E>> extends ContextParameter<E>
 		String name = StringArgumentType.getString(context, "name");
 
 		E value = codec.parse(JavaOps.INSTANCE, name).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
-		((ContextBuilderHolder) source).neo_apoli$getContextBuilder().withRequired(this, value);
+		source.neo_apoli$getContextBuilder().withRequired(this, value);
 
 		return source;
 

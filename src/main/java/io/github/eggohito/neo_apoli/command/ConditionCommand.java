@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
@@ -94,7 +93,7 @@ public class ConditionCommand {
 
 			 var baseNode = literal("test").build();
 			 var withNode = literal("with").build();
-			 var conditionNode = argument("condition", ConditionArgument.inlineCondition(buildContext)).build();
+			 var conditionNode = argument("condition", ConditionArgument.inlineCondition(buildContext)).executes(TestSubCommand::testAsInt).build();
 
 			 NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode, conditionNode);
 			 return baseNode;
@@ -117,7 +116,7 @@ public class ConditionCommand {
 		public static boolean test(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
 			CommandSourceStack source = commandContext.getSource();
-			Context.Builder builder = ((ContextBuilderHolder) source).neo_apoli$getContextBuilder();
+			Context.Builder builder = source.neo_apoli$getContextBuilder();
 
 			Condition condition = ConditionArgument.getCondition(commandContext, "action");
 			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"");
