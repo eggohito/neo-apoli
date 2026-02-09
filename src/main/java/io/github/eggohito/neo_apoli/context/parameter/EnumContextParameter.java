@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.context.parameter;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -7,6 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JavaOps;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import static net.minecraft.commands.Commands.argument;
@@ -30,6 +33,14 @@ public class EnumContextParameter<E extends Enum<E>> extends ContextParameter<E>
 		this.valuesSupplier = valuesSupplier;
 		this.typeClass = typeClass;
 		this.codec = codec;
+	}
+
+	public EnumContextParameter(ResourceLocation name, Class<E> typeClass, ImmutableMap<String, E> aliases) {
+		this(name, typeClass, CodecUtil.enumType(typeClass, aliases), typeClass::getEnumConstants);
+	}
+
+	public EnumContextParameter(ResourceLocation name, Class<E> typeClass) {
+		this(name, typeClass, CodecUtil.enumType(typeClass), typeClass::getEnumConstants);
 	}
 
 	@Override
@@ -52,7 +63,7 @@ public class EnumContextParameter<E extends Enum<E>> extends ContextParameter<E>
 	private CommandSourceStack addEnumToSource(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 
 		CommandSourceStack source = context.getSource();
-		String name = StringArgumentType.getString(context, "name");
+		String name = StringArgumentType.getString(context, "name").toLowerCase(Locale.ROOT);
 
 		E value = codec.parse(JavaOps.INSTANCE, name).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
 		source.neo_apoli$getContextBuilder().withRequired(this, value);
