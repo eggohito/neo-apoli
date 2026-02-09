@@ -96,9 +96,7 @@ public class MultiplePower extends Power {
 
 						if (typeResult.isSuccess()) {
 
-							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC
-								.decode(ops, childMapInput)
-								.mapError(error -> "Error parsing sub-power \"" + subReference.name() + "\" (skipping): " + error);
+							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC.decode(ops, childMapInput);
 
 							if (subPowerResult.isSuccess()) {
 
