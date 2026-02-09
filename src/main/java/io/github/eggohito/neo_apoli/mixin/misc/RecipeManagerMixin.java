@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Recipe;
@@ -20,11 +21,21 @@ public abstract class RecipeManagerMixin {
 	@Final
 	private static Logger LOGGER;
 
-	@WrapWithCondition(method = "method_64689", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
-	private static <E> boolean filterInternalRecipeTypes(List<E> list, E element, List<E> mList, ResourceLocation mId, Recipe<?> mRecipe) {
-		return RecipeUtil.validateRecipe(mRecipe)
+	@WrapOperation(method = "method_64689", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
+	private static <E> boolean filterInternalRecipeTypes(List<E> list, E element, Operation<Boolean> original, List<E> mList, ResourceLocation mId, Recipe<?> mRecipe) {
+
+		boolean result = RecipeUtil.validateRecipe(mRecipe)
 			.ifError(error -> LOGGER.error("Couldn't register recipe \"{}\": {}", mId, error.message()))
 			.isSuccess();
+
+		if (result) {
+			return original.call(list, element);
+		}
+
+		else {
+			return false;
+		}
+
 	}
 
 }
