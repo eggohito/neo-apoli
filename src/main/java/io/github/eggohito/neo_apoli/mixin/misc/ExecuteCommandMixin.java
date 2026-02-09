@@ -31,9 +31,15 @@ public abstract class ExecuteCommandMixin {
 
 		var baseNode = literal(NeoApoli.id("condition").toString()).build();
 		var withNode = literal("with").build();
+		var forNode = literal("for").build();
 		var conditionNode = addConditional(rootNode, argument("condition", ConditionArgument.inlineCondition(buildContext)), positive, ConditionCommand.TestSubCommand::test).build();
 
-		NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode, conditionNode);
+		NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode);
+
+		forNode.addChild(conditionNode);
+		baseNode.addChild(withNode);
+		baseNode.addChild(forNode);
+
 		return builder.then(baseNode);
 
 	}

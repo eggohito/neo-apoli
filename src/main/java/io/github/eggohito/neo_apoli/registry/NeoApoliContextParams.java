@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.context.parameter.*;
 import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
@@ -27,6 +26,8 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.function.Function;
+
+import static net.minecraft.commands.Commands.literal;
 
 public class NeoApoliContextParams {
 
@@ -82,26 +83,20 @@ public class NeoApoliContextParams {
 		return Registry.register(NeoApoliRegistries.CONTEXT_PARAMETER, parameter.name(), parameter);
 	}
 
-	public static void addAllAsArguments(CommandBuildContext buildContext, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> parentNode, CommandNode<CommandSourceStack> paramUserNode) {
+	public static void addAllAsArguments(CommandBuildContext buildContext, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> addendNode) {
 
-		for (var key : NeoApoliRegistries.CONTEXT_PARAMETER) {
+		for (var parameter : NeoApoliRegistries.CONTEXT_PARAMETER) {
 
-			String id = key.name().toString();
-			CommandNode<CommandSourceStack> parameterNode = Commands.literal(id).build();
+			String id = parameter.name().toString();
+			var parameterNode = literal(id).build();
 
-			key.addAsArgument(buildContext, baseNode, parameterNode);
+			parameter.addAsArgument(buildContext, baseNode, parameterNode);
 
 			if (!parameterNode.getChildren().isEmpty()) {
-				parentNode.addChild(parameterNode);
+				addendNode.addChild(parameterNode);
 			}
 
 		}
-
-		if (!parentNode.getChildren().isEmpty()) {
-			paramUserNode.addChild(parentNode);
-		}
-
-		baseNode.addChild(paramUserNode);
 
 	}
 

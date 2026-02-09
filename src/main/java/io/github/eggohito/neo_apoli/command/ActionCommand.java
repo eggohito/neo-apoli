@@ -21,7 +21,6 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -93,9 +92,15 @@ public class ActionCommand {
 
 			var executeNode = literal("execute").build();
 			var withNode = literal("with").build();
+			var forNode = literal("for").build();
 			var actionNode = argument("action", ActionArgument.inlineAction(buildContext)).executes(ExecuteSubCommand::execute).build();
 
-			NeoApoliContextParams.addAllAsArguments(buildContext, executeNode, withNode, actionNode);
+			NeoApoliContextParams.addAllAsArguments(buildContext, executeNode, withNode);
+
+			forNode.addChild(actionNode);
+			executeNode.addChild(withNode);
+			executeNode.addChild(forNode);
+
 			return executeNode;
 
 		}
@@ -106,14 +111,14 @@ public class ActionCommand {
 			Context.Builder builder = source.neo_apoli$getContextBuilder();
 
 			Action action = ActionArgument.getAction(commandContext, "action");
-			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"");
+			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(LootContextParamSets.EMPTY, reporter);
+			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter);
 
 			action.validate(validator);
 			var validationException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validating action: ").append(error))
+				.map(error -> Component.literal("Found errors while validating action ").append(error))
 				.map(MiscUtil::createCommandException);
 
 			if (validationException.isPresent()) {
@@ -126,7 +131,7 @@ public class ActionCommand {
 
 			action.execute(context);
 			var executionException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while executing action: ").append(error))
+				.map(error -> Component.literal("Found errors while executing action ").append(error))
 				.map(MiscUtil::createCommandException);
 
 			if (executionException.isPresent()) {

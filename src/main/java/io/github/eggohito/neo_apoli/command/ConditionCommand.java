@@ -21,7 +21,6 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -91,12 +90,18 @@ public class ConditionCommand {
 
 		 static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
 
-			 var baseNode = literal("test").build();
+			 var testNode = literal("test").build();
 			 var withNode = literal("with").build();
+			 var forNode = literal("for").build();
 			 var conditionNode = argument("condition", ConditionArgument.inlineCondition(buildContext)).executes(TestSubCommand::testAsInt).build();
 
-			 NeoApoliContextParams.addAllAsArguments(buildContext, baseNode, withNode, conditionNode);
-			 return baseNode;
+			 NeoApoliContextParams.addAllAsArguments(buildContext, testNode, withNode);
+
+			 forNode.addChild(conditionNode);
+			 testNode.addChild(withNode);
+			 testNode.addChild(forNode);
+
+			 return testNode;
 
 		}
 
@@ -104,12 +109,13 @@ public class ConditionCommand {
 
 			if (test(commandContext)) {
 				commandContext.getSource().sendSuccess(() -> Component.translatable("commands.execute.conditional.pass"), false);
-				return 1;
 			}
 
 			else {
 				throw MiscUtil.createCommandException(Component.translatable("commands.execute.conditional.fail"));
 			}
+
+			return 1;
 
 		}
 
@@ -118,15 +124,15 @@ public class ConditionCommand {
 			CommandSourceStack source = commandContext.getSource();
 			Context.Builder builder = source.neo_apoli$getContextBuilder();
 
-			Condition condition = ConditionArgument.getCondition(commandContext, "action");
-			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"");
+			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
+			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(LootContextParamSets.EMPTY, reporter);
+			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter);
 
 			condition.validate(validator);
 			var validationException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validating condition: ").append(error))
+				.map(error -> Component.literal("Found errors while validating condition ").append(error))
 				.map(MiscUtil::createCommandException);
 
 			if (validationException.isPresent()) {
@@ -139,14 +145,13 @@ public class ConditionCommand {
 
 			boolean result = condition.test(context);
 			var executionException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while executing condition: ").append(error))
+				.map(error -> Component.literal("Found errors while executing condition ").append(error))
 				.map(MiscUtil::createCommandException);
 
 			if (executionException.isPresent()) {
 				throw executionException.get();
 			}
 
-			source.sendSuccess(() -> Component.nullToEmpty("Successfully executed action!"), true);
 			return result;
 
 		}

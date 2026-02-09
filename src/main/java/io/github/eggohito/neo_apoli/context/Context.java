@@ -5,8 +5,6 @@ import com.mojang.brigadier.tree.CommandNode;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -17,7 +15,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
-import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,18 +33,19 @@ public class Context implements ContextParamsHolder {
 	@Getter
 	protected final Reporter reporter;
 
-	protected final ContextMap params;
+	protected final ContextParams params;
 	protected final Set<ContextUser> visited;
 
-	protected Context(Level level, Reporter reporter, ContextMap params, Set<ContextUser> visited) {
+	protected Context(Level level, Reporter reporter, ContextParams params, Set<ContextUser> visited) {
 		this.level = level;
 		this.reporter = reporter;
 		this.params = params;
 		this.visited = visited;
 	}
 
-	public Context forChild(String path) {
-		return new Context(this.level(), this.reporter().forChild(path), this.params, this.visited);
+	@Override
+	public @Nullable <T> T getNullable(ContextKey<T> parameter) {
+		return params.getNullable(parameter);
 	}
 
 	public Visitor<ContextUser> visitor() {
@@ -71,6 +69,14 @@ public class Context implements ContextParamsHolder {
 		};
 	}
 
+	public ContextKeySet toKeySet() {
+		return params.toKeySet();
+	}
+
+	public Context forChild(String path) {
+		return new Context(this.level(), this.reporter().forChild(path), this.params, this.visited);
+	}
+
 	public void reportProblem(String message) {
 		this.reporter.report(message);
 	}
@@ -83,52 +89,49 @@ public class Context implements ContextParamsHolder {
 		return reporter().hasAnyErrors();
 	}
 
-	@Override
-	public @Nullable <T> T getNullable(ContextKey<T> parameter) {
-		return params.getOptional(parameter);
-	}
-
 	public static class Builder implements ContextParamsHolder {
 
-		private final ContextMap.Builder params;
+		private final ContextParams.Builder params;
 		private final Set<ContextUser> visited;
 		private Reporter reporter;
 
-		Builder(ContextMap.Builder params, Reporter reporter, Set<ContextUser> visited) {
+		Builder(ContextParams.Builder params, Reporter reporter, Set<ContextUser> visited) {
 			this.params = params;
 			this.reporter = reporter;
 			this.visited = visited;
 		}
 
 		public Builder(Context context) {
-			this(MiscUtil.contextMapToBuilder(context.params), context.reporter, context.visited);
+			this(context.params.toBuilder(), context.reporter, context.visited);
 		}
 
 		public Builder() {
-			this(new ContextMap.Builder(), new Reporter(), new ObjectOpenHashSet<>());
+			this(new ContextParams.Builder(), new Reporter(), new ObjectOpenHashSet<>());
 		}
 
 		@Override
 		public @Nullable <T> T getNullable(ContextKey<T> parameter) {
-			return params.getOptionalParameter(parameter);
+			return params.getNullable(parameter);
 		}
 
 		public <T> Builder withNullable(ContextParameter<T> key, @Nullable T value) {
-			this.params.withOptionalParameter(key,value);
+			this.params.withNullable(key,value);
 			return this;
 		}
 
 		public <T> Builder withNullableIfAbsent(ContextParameter<T> key, Supplier<@Nullable T> value) {
-			return hasParameter(key) ? this : withNullable(key, value.get());
+			this.params.withNullableIfAbsent(key, value);
+			return this;
 		}
 
 		public <T> Builder withRequired(ContextParameter<T> key, @NotNull T value) {
-			this.params.withParameter(key, value);
+			this.params.withRequired(key, value);
 			return this;
 		}
 
 		public <T> Builder withRequiredIfAbsent(ContextParameter<T> key, Supplier<@NotNull T> value) {
-			return hasParameter(key) ? this : withRequired(key, value.get());
+			this.params.withRequiredIfAbsent(key, value);
+			return this;
 		}
 
 		public <T> Builder withOptional(ContextParameter<T> key, Optional<T> value) {
@@ -136,7 +139,8 @@ public class Context implements ContextParamsHolder {
 		}
 
 		public <T> Builder withOptionalIfAbsent(ContextParameter<T> key, Supplier<Optional<T>> value) {
-			return  hasParameter(key) ? this : withOptional(key, value.get());
+			this.params.withOptionalIfAbsent(key, value);
+			return this;
 		}
 
 		public Builder withReporter(Reporter reporter) {
@@ -144,12 +148,16 @@ public class Context implements ContextParamsHolder {
 			return this;
 		}
 
+		public ContextKeySet toKeySet() {
+			return params.toKeySet();
+		}
+
 		public Context buildWithRequirements(Level level, ContextKeySet keySet) {
-			return new Context(level, reporter, params.create(keySet), visited);
+			return new Context(level, reporter, params.buildWithRequirements(keySet), visited);
 		}
 
 		public Context build(Level level) {
-			return buildWithRequirements(level, NeoApoliContextParamSets.ANY);
+			return new Context(level, reporter, params.build(), visited);
 		}
 
 	}
