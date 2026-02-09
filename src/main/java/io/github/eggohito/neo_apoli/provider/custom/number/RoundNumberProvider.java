@@ -23,7 +23,7 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 
 	public static final MapCodec<RoundNumberProvider> MAP_CODEC = MapCodecUtil.lazy(RoundNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(RoundNumberProvider::number),
-		NumberProvider.CODEC.fieldOf("decimals").forGetter(RoundNumberProvider::places),
+		NumberProvider.CODEC.fieldOf("places").forGetter(RoundNumberProvider::places),
 		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode").forGetter(RoundNumberProvider::mode)
 	).apply(instance, RoundNumberProvider::new)));
 
