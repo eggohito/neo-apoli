@@ -18,7 +18,7 @@ public class NeoApoliConfig {
 	public final Command command = new Command();
 
 	@SerialEntry
-	public final Identifier identifier = new Identifier();
+	public final PlaceholderIdentifier placeholderIdentifier = new PlaceholderIdentifier();
 
 	@SerialEntry
 	public final ModifyPlayerSpawn modifyPlayerSpawn = new ModifyPlayerSpawn();
@@ -33,10 +33,7 @@ public class NeoApoliConfig {
 
 	}
 
-	public static class Identifier {
-
-		@SerialEntry
-		public char placeholder = '*';
+	public static class PlaceholderIdentifier {
 
 		@SerialEntry
 		public boolean enabled = true;

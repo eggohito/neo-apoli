@@ -12,7 +12,6 @@ import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.NeoApoliClient;
 import io.github.eggohito.neo_apoli.client.config.NeoApoliClientConfig;
-import io.github.eggohito.neo_apoli.client.integration.yacl.controller.CharacterControllerBuilder;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -41,16 +40,11 @@ public class ModMenuIntegration implements ModMenuApi {
 						.range(0, 4)
 						.step(1)).build()).build())
 			.category(ConfigCategory.createBuilder()
-				.name(Component.translatable("config.neo-apoli.category.identifier.name"))
-				.option(Option.<Character>createBuilder()
-					.name(Component.translatable("config.neo-apoli.category.identifier.option.placeholder.name"))
-					.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.identifier.option.placeholder.description")))
-					.binding(NeoApoliConfig.HANDLER.defaults().identifier.placeholder, () -> NeoApoli.getConfig().identifier.placeholder, newValue -> NeoApoli.getConfig().identifier.placeholder = newValue)
-					.controller(CharacterControllerBuilder::new).build())
+				.name(Component.translatable("config.neo-apoli.category.placeholder_identifier.name"))
 				.option(Option.<Boolean>createBuilder()
-					.name(Component.translatable("config.neo-apoli.category.identifier.option.enabled.name"))
-					.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.identifier.option.enabled.description")))
-					.binding(NeoApoliConfig.HANDLER.defaults().identifier.enabled, () -> NeoApoli.getConfig().identifier.enabled, newValue -> NeoApoli.getConfig().identifier.enabled = newValue)
+					.name(Component.translatable("config.neo-apoli.category.placeholder_identifier.option.enabled.name"))
+					.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.placeholder_identifier.option.enabled.description")))
+					.binding(NeoApoliConfig.HANDLER.defaults().placeholderIdentifier.enabled, () -> NeoApoli.getConfig().placeholderIdentifier.enabled, newValue -> NeoApoli.getConfig().placeholderIdentifier.enabled = newValue)
 					.controller(option -> BooleanControllerBuilder.create(option)
 						.onOffFormatter()
 						.coloured(true)).build()).build())

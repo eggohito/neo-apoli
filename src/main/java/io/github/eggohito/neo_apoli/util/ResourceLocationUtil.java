@@ -14,6 +14,8 @@ import java.util.function.Function;
 
 public class ResourceLocationUtil {
 
+	private static final char PLACEHOLDER = '*';
+
 	@Nullable
 	@Getter
 	@Setter
@@ -33,8 +35,8 @@ public class ResourceLocationUtil {
 
 	public static String replaceWithCurrent(String input, Function<ResourceLocation, String> replacement) {
 
-		if (getCurrent() != null) {
-			return input.replace(String.valueOf(NeoApoli.getConfig().identifier.placeholder), replacement.apply(getCurrent()));
+		if (getCurrent() != null && NeoApoli.getConfig().placeholderIdentifier.enabled) {
+			return input.replace(String.valueOf(PLACEHOLDER), replacement.apply(getCurrent()));
 		}
 
 		else {
@@ -90,7 +92,8 @@ public class ResourceLocationUtil {
 
 	public static boolean isEnabledAndPlaceholder(char ch) {
 		return getCurrent() != null
-			&& ch == NeoApoli.getConfig().identifier.placeholder;
+			&& NeoApoli.getConfig().placeholderIdentifier.enabled
+			&& ch == PLACEHOLDER;
 	}
 
 }
