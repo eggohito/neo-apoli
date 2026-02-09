@@ -43,14 +43,20 @@ public record NumberComparison(Comparator comparator, NumberProvider decimals, N
 		}
 
 		Context firstContext = context.forChild(".first");
-		Context secondContext = context.forChild(".second");
-
 		double firstValue = this.getValue(first(), firstContext, decimals);
+
+		if (firstContext.hasErrors()) {
+			return false;
+		}
+
+		Context secondContext = context.forChild(".second");
 		double secondValue = this.getValue(second(), secondContext, decimals);
 
-		return !firstContext.hasErrors()
-			&& !secondContext.hasErrors()
-			&& comparator().compare(firstValue, secondValue);
+		if (secondContext.hasErrors()) {
+			return false;
+		}
+
+		return comparator().compare(firstValue, secondValue);
 
 	}
 

@@ -1,32 +1,32 @@
 package io.github.eggohito.neo_apoli.util.comparison;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Locale;
 
-public record StringComparison(Comparator comparator, StringProvider first, StringProvider second, boolean caseSensitive) implements Comparison {
+public record StringComparison(Comparator comparator, StringProvider first, StringProvider second, BooleanProvider caseSensitive) implements Comparison {
 
 	public static final MapCodec<StringComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Comparator.CODEC.fieldOf("comparator").forGetter(StringComparison::comparator),
 		StringProvider.CODEC.fieldOf("first").forGetter(StringComparison::first),
 		StringProvider.CODEC.fieldOf("second").forGetter(StringComparison::second),
-		Codec.BOOL.optionalFieldOf("case_sensitive", true).forGetter(StringComparison::caseSensitive)
+		BooleanProvider.CODEC.optionalFieldOf("case_sensitive", new ConstantBooleanProvider(true)).forGetter(StringComparison::caseSensitive)
 	).apply(instance, StringComparison::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, StringComparison> STREAM_CODEC = StreamCodec.composite(
 		Comparator.STREAM_CODEC, StringComparison::comparator,
 		StringProvider.STREAM_CODEC, StringComparison::first,
 		StringProvider.STREAM_CODEC, StringComparison::second,
-		ByteBufCodecs.BOOL, StringComparison::caseSensitive,
+		BooleanProvider.STREAM_CODEC, StringComparison::caseSensitive,
 		StringComparison::new
 	);
 
@@ -39,25 +39,28 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	public boolean compare(Context context) {
 
 		Context firstContext = context.forChild(".first");
-		Context secondContext = context.forChild(".second");
-
 		String firstValue = first().next(firstContext);
-		String secondValue = second().next(secondContext);
 
-		if (!firstContext.hasErrors() && !secondContext.hasErrors()) {
-
-			if (!this.caseSensitive()) {
-				firstValue = firstValue.toLowerCase(Locale.ROOT);
-				secondValue = secondValue.toLowerCase(Locale.ROOT);
-			}
-
-			return comparator().compare(firstValue, secondValue);
-
-		}
-
-		else {
+		if (firstContext.hasErrors()) {
 			return false;
 		}
+
+		Context secondContext = context.forChild(".second");
+		String secondValue = second().next(secondContext);
+
+		if (secondContext.hasErrors()) {
+			return false;
+		}
+
+		Context caseSensitiveContext = context.forChild(".case_sensitive");
+		boolean caseSensitive = caseSensitive().next(caseSensitiveContext);
+
+		if (!caseSensitiveContext.hasErrors() && !caseSensitive) {
+			firstValue = firstValue.toLowerCase(Locale.ROOT);
+			secondValue = secondValue.toLowerCase(Locale.ROOT);
+		}
+
+		return comparator().compare(firstValue, secondValue);
 
 	}
 
@@ -68,6 +71,7 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 
 		first().validate(validator.forChild(".first"));
 		second().validate(validator.forChild(".second"));
+		caseSensitive().validate(validator.forChild(".case_sensitive"));
 
 	}
 

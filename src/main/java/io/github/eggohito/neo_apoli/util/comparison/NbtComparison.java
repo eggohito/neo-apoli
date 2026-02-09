@@ -35,12 +35,18 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 		Context firstContext = context.forChild(".first");
 		Tag first = first().next(firstContext);
 
+		if (firstContext.hasErrors()) {
+			return false;
+		}
+
 		Context secondContext = context.forChild(".second");
 		Tag second = second().next(secondContext);
 
-		return !firstContext.hasErrors()
-			&& !secondContext.hasErrors()
-			&& NbtUtils.compareNbt(first, second, true);
+		if (secondContext.hasErrors()) {
+			return false;
+		}
+
+		return NbtUtils.compareNbt(first, second, true);
 
 	}
 
