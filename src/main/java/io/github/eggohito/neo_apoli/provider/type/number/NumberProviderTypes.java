@@ -37,7 +37,6 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BoxSizeNumberProvider> BOX_SIZE = registerInternal("box/size", BoxSizeNumberProvider.MAP_CODEC, BoxSizeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.MAP_CODEC, CommandResultNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ContextNumberProvider> CONTEXT = registerInternal("context", ContextNumberProvider.MAP_CODEC, ContextNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<RoundNumberProvider> ROUND = registerInternal("decimal", RoundNumberProvider.MAP_CODEC, RoundNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DistanceBetweenPositionsNumberProvider> DISTANCE_BETWEEN_POSITIONS = registerInternal("distance_between_positions", DistanceBetweenPositionsNumberProvider.MAP_CODEC, DistanceBetweenPositionsNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusFromEntityNumberProvider> ENTITIES_IN_RADIUS_FROM_ENTITY = registerInternal("entities_in_radius/from_entity", EntitiesInRadiusFromEntityNumberProvider.MAP_CODEC, EntitiesInRadiusFromEntityNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusFromPositionNumberProvider> ENTITIES_IN_RADIUS_FROM_POSITION = registerInternal("entities_in_radius/from_position", EntitiesInRadiusFromPositionNumberProvider.MAP_CODEC, EntitiesInRadiusFromPositionNumberProvider.STREAM_CODEC);
@@ -52,6 +51,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.MAP_CODEC, LightLevelNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<PowerCooldownProgressNumberProvider> POWER_COOLDOWN_PROGRESS = registerInternal("power/cooldown/progress", PowerCooldownProgressNumberProvider.MAP_CODEC, PowerCooldownProgressNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<PowerCooldownRemainingTicksNumberProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksNumberProvider.MAP_CODEC, PowerCooldownRemainingTicksNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<RoundNumberProvider> ROUND = registerInternal("decimal", RoundNumberProvider.MAP_CODEC, RoundNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.MAP_CODEC, TimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorComponentNumberProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentNumberProvider.MAP_CODEC, VectorComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorLengthNumberProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthNumberProvider.MAP_CODEC, VectorLengthNumberProvider.STREAM_CODEC);
