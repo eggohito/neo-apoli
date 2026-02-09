@@ -3,6 +3,7 @@
 	"package": "io.github.eggohito.neo_apoli.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"access.BlockInputAccessor",
 		"access.CommandStorageAccessor",
 		"access.CommandStorageAccessor$ContainerAccessor",
 		"access.ContextMapAccessor",

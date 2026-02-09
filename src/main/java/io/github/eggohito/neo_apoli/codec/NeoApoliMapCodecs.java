@@ -4,14 +4,20 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
+import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Optional;
+import java.util.Set;
 
 public class NeoApoliMapCodecs {
 
@@ -36,5 +42,10 @@ public class NeoApoliMapCodecs {
 	).apply(instance, RecipeHolder::new));
 
 	public static final MapCodec<CompoundTag> COMPOUND_TAG = MapCodec.assumeMapUnsafe(CompoundTag.CODEC);
+
+	public static final MapCodec<BlockInput> BLOCK_INPUT = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		MapCodec.assumeMapUnsafe(BlockState.CODEC).forGetter(BlockInput::getState),
+		CompoundTag.CODEC.optionalFieldOf("Data").forGetter(input -> Optional.ofNullable(((BlockInputAccessor) input).getTag()))
+	).apply(instance, (blockState, compoundTag) -> new BlockInput(blockState, Set.copyOf(blockState.getProperties()), compoundTag.orElse(null))));
 
 }

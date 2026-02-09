@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.NbtPathArgument;
+import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -42,7 +43,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -136,7 +136,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<FriendlyByteBuf, InteractionResult> ACTION_RESULT = StreamCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, BlockState> BLOCK_STATE = ByteBufCodecs.fromCodecWithRegistriesTrusted(BlockState.CODEC);
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlockInput> BLOCK_INPUT = ByteBufCodecs.fromCodecWithRegistriesTrusted(NeoApoliCodecs.STRINGIFIED_BLOCK_INPUT);
 
 	public static final StreamCodec<ByteBuf, TagKey<EntityType<?>>> ENTITY_TYPE_TAG = TagKey.streamCodec(Registries.ENTITY_TYPE);
 

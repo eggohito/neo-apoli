@@ -10,6 +10,7 @@ import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -23,6 +24,7 @@ import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
@@ -42,11 +44,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -128,22 +130,38 @@ public class NeoApoliCodecs {
 
 	public static final Codec<CompoundTag> REGULAR_OR_STRINGIFIED_COMPOUND_TAG = new MultiAlternativeCodec<>(COMPOUND_TAG, STRINGIFIED_COMPOUND_TAG);
 
-	public static final Codec<BlockState> STRINGIFIED_BLOCK_STATE = Codec.STRING.comapFlatMap(
-		str -> {
+	public static final Codec<BlockInput> BLOCK_INPUT = NeoApoliMapCodecs.BLOCK_INPUT.codec();
+
+	public static final Codec<BlockInput> STRINGIFIED_BLOCK_INPUT = Codec.STRING.comapFlatMap(
+		input -> {
 
 			try {
-				return DataResult.success(BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, str, true).blockState());
+
+				BlockStateParser.BlockResult blockResult = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, input, true);
+				BlockInput blockInput = new BlockInput(blockResult.blockState(), blockResult.properties().keySet(), blockResult.nbt());
+
+				return DataResult.success(blockInput);
+
 			}
 
 			catch (CommandSyntaxException e) {
-				return DataResult.error(() -> "Couldn't parse string as block state: " + e.getMessage());
+				return DataResult.error(() -> "Couldn't parse string as block input: " + e.getMessage());
 			}
 
 		},
-		BlockStateParser::serialize
+		blockInput -> {
+
+			String blockStateString = BlockStateParser.serialize(blockInput.getState());
+			String tagString = Optional.ofNullable(((BlockInputAccessor) blockInput).getTag())
+				.map(CompoundTag::toString)
+				.orElse("");
+
+			return blockStateString + tagString;
+
+		}
 	);
 
-	public static final Codec<BlockState> REGULAR_OR_STRINGIFIED_BLOCK_STATE = Codec.withAlternative(BlockState.CODEC, STRINGIFIED_BLOCK_STATE);
+	public static final Codec<BlockInput> REGULAR_OR_STRINGIFIED_BLOCK_INPUT = new MultiAlternativeCodec<>(BLOCK_INPUT, STRINGIFIED_BLOCK_INPUT);
 
 	public static final Codec<List<AttributedModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributedModifier.CODEC.listOf());
 

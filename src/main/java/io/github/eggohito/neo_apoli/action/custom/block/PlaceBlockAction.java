@@ -12,23 +12,23 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 
-public record PlaceBlockAction(BlockState block, Mode mode) implements BlockAction {
+public record PlaceBlockAction(BlockInput block, Mode mode) implements BlockAction {
 
 	public static final MapCodec<PlaceBlockAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_BLOCK_STATE.fieldOf("block").forGetter(PlaceBlockAction::block),
+		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_BLOCK_INPUT.fieldOf("block").forGetter(PlaceBlockAction::block),
 		Mode.CODEC.optionalFieldOf("mode", Mode.DEFAULT).forGetter(PlaceBlockAction::mode)
 	).apply(instance, PlaceBlockAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PlaceBlockAction> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.BLOCK_STATE, PlaceBlockAction::block,
+		NeoApoliStreamCodecs.BLOCK_INPUT, PlaceBlockAction::block,
 		Mode.STREAM_CODEC, PlaceBlockAction::mode,
 		PlaceBlockAction::new
 	);
@@ -54,7 +54,7 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 		switch (mode()) {
 			case DESTROY -> {
 				serverLevel.destroyBlock(blockPos, true);
-				placeBlock = !block().isAir() || !serverLevel.isEmptyBlock(blockPos);
+				placeBlock = !block().getState().isAir() || !serverLevel.isEmptyBlock(blockPos);
 			}
 			case KEEP ->
 				placeBlock = serverLevel.isEmptyBlock(blockPos);
@@ -75,8 +75,8 @@ public record PlaceBlockAction(BlockState block, Mode mode) implements BlockActi
 				updateNeighbors = false;
 		}
 
-		if (placeBlock && serverLevel.setBlock(blockPos, block(), flags) && updateNeighbors) {
-			serverLevel.updateNeighborsAt(blockPos, block().getBlock());
+		if (placeBlock && block().place(serverLevel, blockPos, flags) && updateNeighbors) {
+			serverLevel.updateNeighborsAt(blockPos, block().getState().getBlock());
 		}
 
 	}
