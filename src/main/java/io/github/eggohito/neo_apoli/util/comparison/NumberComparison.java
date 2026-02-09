@@ -4,24 +4,21 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonType;
 import io.github.eggohito.neo_apoli.util.comparison.type.ComparisonTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record NumberComparison(Comparator comparator, NumberProvider decimals, NumberProvider first, NumberProvider second) implements Comparison {
+public record NumberComparison(Comparator comparator, NumberProvider first, NumberProvider second) implements Comparison {
 
 	public static final MapCodec<NumberComparison> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Comparator.CODEC.fieldOf("comparator").forGetter(NumberComparison::comparator),
-		NumberProvider.CODEC.fieldOf("decimals").forGetter(NumberComparison::decimals),
 		NumberProvider.CODEC.fieldOf("first").forGetter(NumberComparison::first),
 		NumberProvider.CODEC.fieldOf("second").forGetter(NumberComparison::second)
 	).apply(instance, NumberComparison::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, NumberComparison> STREAM_CODEC = StreamCodec.composite(
 		Comparator.STREAM_CODEC, NumberComparison::comparator,
-		NumberProvider.STREAM_CODEC, NumberComparison::decimals,
 		NumberProvider.STREAM_CODEC, NumberComparison::first,
 		NumberProvider.STREAM_CODEC, NumberComparison::second,
 		NumberComparison::new
@@ -35,22 +32,15 @@ public record NumberComparison(Comparator comparator, NumberProvider decimals, N
 	@Override
 	public boolean compare(Context context) {
 
-		Context decimalsContext = context.forChild(".decimals");
-		int decimals = decimals().nextInt(decimalsContext);
-
-		if (decimalsContext.hasErrors()) {
-			return false;
-		}
-
 		Context firstContext = context.forChild(".first");
-		double firstValue = this.getValue(first(), firstContext, decimals);
+		double firstValue = first().nextDouble(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return false;
 		}
 
 		Context secondContext = context.forChild(".second");
-		double secondValue = this.getValue(second(), secondContext, decimals);
+		double secondValue = second().nextDouble(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return false;
@@ -65,21 +55,8 @@ public record NumberComparison(Comparator comparator, NumberProvider decimals, N
 
 		Comparison.super.validate(validator);
 
-		decimals().validate(validator.forChild(".decimals"));
 		first().validate(validator.forChild(".first"));
 		second().validate(validator.forChild(".second"));
-
-	}
-
-	private double getValue(NumberProvider provider, Context context, int decimals) {
-
-		if (decimals == 0) {
-			return provider.nextLong(context);
-		}
-
-		else {
-			return Double.parseDouble(MiscUtil.decimalPlacesFormat(decimals).format(provider.nextDouble(context)));
-		}
 
 	}
 

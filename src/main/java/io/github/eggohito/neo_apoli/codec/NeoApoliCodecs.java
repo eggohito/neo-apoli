@@ -46,6 +46,7 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
 
+import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -199,5 +200,7 @@ public class NeoApoliCodecs {
 	);
 
 	public static final Codec<ParticleOptions> PARTICLE_OPTIONS = Codec.withAlternative(NeoApoliParticleTypes.OPTIONS_CODEC, SIMPLE_PARTICLE);
+
+	public static final Codec<RoundingMode> ROUNDING_MODE = CodecUtil.enumType(RoundingMode.class);
 
 }

@@ -37,6 +37,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BoxSizeNumberProvider> BOX_SIZE = registerInternal("box/size", BoxSizeNumberProvider.MAP_CODEC, BoxSizeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.MAP_CODEC, CommandResultNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ContextNumberProvider> CONTEXT = registerInternal("context", ContextNumberProvider.MAP_CODEC, ContextNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<RoundNumberProvider> ROUND = registerInternal("decimal", RoundNumberProvider.MAP_CODEC, RoundNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DistanceBetweenPositionsNumberProvider> DISTANCE_BETWEEN_POSITIONS = registerInternal("distance_between_positions", DistanceBetweenPositionsNumberProvider.MAP_CODEC, DistanceBetweenPositionsNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusFromEntityNumberProvider> ENTITIES_IN_RADIUS_FROM_ENTITY = registerInternal("entities_in_radius/from_entity", EntitiesInRadiusFromEntityNumberProvider.MAP_CODEC, EntitiesInRadiusFromEntityNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<EntitiesInRadiusFromPositionNumberProvider> ENTITIES_IN_RADIUS_FROM_POSITION = registerInternal("entities_in_radius/from_position", EntitiesInRadiusFromPositionNumberProvider.MAP_CODEC, EntitiesInRadiusFromPositionNumberProvider.STREAM_CODEC);

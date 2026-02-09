@@ -44,6 +44,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 
+import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -196,5 +197,7 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<ByteBuf, LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyStreamCodec(PowerManager.TAG_LOOKUP);
 
 	public static final StreamCodec<ByteBuf, LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyStreamCodec(ActionManager.TAG_LOOKUP);
+
+	public static final StreamCodec<ByteBuf, RoundingMode> ROUNDING_MODE = StreamCodecUtil.enumType(RoundingMode.class);
 
 }
