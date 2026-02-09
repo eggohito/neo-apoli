@@ -42,7 +42,7 @@ public class NeoApoliContextParams {
 	public static final ContextParameter<BlockPos> BLOCK_POS = registerInternal("block_pos", BlockPosContextParameter::new);
 	public static final ContextParameter<BlockState> BLOCK_STATE = registerInternal("block_state", BlockStateContextParameter::new);
 	public static final ContextParameter<BlockEntity> BLOCK_ENTITY = registerInternal("block_entity", BlockEntityContextParameter::new);
-	public static final ContextParameter<Direction> DIRECTION = registerInternal("direction", id -> new EnumContextParameter<>(id, Direction.class, Direction.CODEC));
+	public static final ContextParameter<Direction> DIRECTION = registerInternal("direction", id -> new EnumContextParameter<>(id, Direction.class, Direction.CODEC, Direction::values));
 
 	public static final ContextParameter<DamageSource> DAMAGE_SOURCE = registerInternal("damage_source", id -> Context.parameter(id, DamageSource.class));
 	public static final ContextParameter<Float> DAMAGE_AMOUNT = registerInternal("damage_amount", id -> Context.parameter(id, Float.class));
