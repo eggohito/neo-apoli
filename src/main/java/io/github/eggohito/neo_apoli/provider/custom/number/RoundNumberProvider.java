@@ -42,22 +42,21 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 	@Override
 	public @NotNull Number next(Context context) {
 
-		Context numberContext = context.forChild(".number");
-		int places = places().nextInt(context.forChild(".places"));
+		double number = number().nextDouble(context.forChild(".number"));
+		int places = Math.abs(places().nextInt(context.forChild(".places")));
 
-		if (places == 0) {
-			return number().nextLong(numberContext);
+		DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", Math.max(places, 1)));
+		mode().ifPresent(decimalFormat::setRoundingMode);
+
+		try {
+			return Double.parseDouble(decimalFormat.format(number));
 		}
 
-		else {
-
-			DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", Math.abs(places)));
-			mode().ifPresent(decimalFormat::setRoundingMode);
-
-			String formattedDecimal = decimalFormat.format(number().nextDouble(numberContext));
-			return Double.parseDouble(formattedDecimal);
-
+		catch (ArithmeticException e) {
+			context.reportProblem("Couldn't round number " + number + " to " + places + " decimal places: " + e.getMessage());
 		}
+
+		return number;
 
 	}
 
