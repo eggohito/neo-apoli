@@ -17,14 +17,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record ContextNumberProvider(ContextParameter<Number> key) implements NumberProvider {
+public record ContextNumberProvider(ContextParameter<Number> parameter) implements NumberProvider {
 
 	public static final MapCodec<ContextNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(NeoApoliCodecs.NUMBER_CONTEXT_PARAM.fieldOf("key").forGetter(ContextNumberProvider::key))
+		.group(NeoApoliCodecs.NUMBER_CONTEXT_PARAM.fieldOf("parameter").forGetter(ContextNumberProvider::parameter))
 		.apply(instance, ContextNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ContextNumberProvider::key,
+		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ContextNumberProvider::parameter,
 		ContextNumberProvider::new
 	);
 
@@ -36,8 +36,8 @@ public record ContextNumberProvider(ContextParameter<Number> key) implements Num
 	@Override
 	public @NotNull Number next(Context context) {
 
-		ResourceLocation id = key().name();
-		Optional<Number> number = context.getOptional(key());
+		ResourceLocation id = parameter().name();
+		Optional<Number> number = context.getOptional(parameter());
 
 		if (number.isEmpty()) {
 			context.reportProblem("Couldn't get and provide number from parameter \"" + id + "\", as it's not included in the context!");
@@ -49,7 +49,7 @@ public record ContextNumberProvider(ContextParameter<Number> key) implements Num
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(key());
+		return Set.of(parameter());
 	}
 
 }
