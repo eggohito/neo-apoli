@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public class MetaActionTypes {
 
-	public static final MetaActionType<ChoiceMetaAction> CHOICE = registerInternal("choice", ChoiceMetaAction.MAP_CODEC, ChoiceMetaAction.STREAM_CODEC);
 	public static final MetaActionType<ConditionalMetaAction> CONDITIONAL = registerInternal("conditional", ConditionalMetaAction.MAP_CODEC, ConditionalMetaAction.STREAM_CODEC);
 	public static final MetaActionType<ExecuteOnEntityMetaAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityMetaAction.MAP_CODEC, ExecuteOnEntityMetaAction.STREAM_CODEC);
 	public static final MetaActionType<LoopMetaAction> LOOP = registerInternal("loop", LoopMetaAction.MAP_CODEC, LoopMetaAction.STREAM_CODEC);
@@ -18,6 +17,7 @@ public class MetaActionTypes {
 	public static final MetaActionType<RandomChanceMetaAction> RANDOM = registerInternal("random", RandomChanceMetaAction.MAP_CODEC, RandomChanceMetaAction.STREAM_CODEC);
 	public static final MetaActionType<ReferenceMetaAction> REFERENCE = registerInternal("reference", ReferenceMetaAction.MAP_CODEC, ReferenceMetaAction.STREAM_CODEC);
 	public static final MetaActionType<SequenceMetaAction> SEQUENCE = registerInternal("sequence", SequenceMetaAction.MAP_CODEC, SequenceMetaAction.STREAM_CODEC);
+	public static final MetaActionType<SwitchMetaAction> SWITCH = registerInternal("switch", SwitchMetaAction.MAP_CODEC, SwitchMetaAction.STREAM_CODEC);
 	public static final MetaActionType<WeightedMetaAction> WEIGHTED = registerInternal("weighted", WeightedMetaAction.MAP_CODEC, WeightedMetaAction.STREAM_CODEC);
 
 	public static void registerAll() {

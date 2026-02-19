@@ -1,0 +1,26 @@
+package io.github.eggohito.neo_apoli.action.custom.item;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.action.custom.meta.ISwitchMetaAction;
+import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
+import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
+import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
+import io.github.eggohito.neo_apoli.util.Case;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+
+import java.util.List;
+
+public record SwitchItemAction(List<Case<ItemCondition, ItemAction>> cases, ItemAction defaultAction) implements ItemAction, ISwitchMetaAction<ItemCondition, ItemAction> {
+
+	public static final MapCodec<SwitchItemAction> MAP_CODEC = MapCodecUtil.lazy(SwitchItemAction.class.getSimpleName(), () -> ISwitchMetaAction.mapCodec(ItemCondition.CODEC, ItemAction.CODEC, SwitchItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SwitchItemAction.class.getSimpleName(), () -> ISwitchMetaAction.streamCodec(ItemCondition.STREAM_CODEC, ItemAction.STREAM_CODEC, SwitchItemAction::new));
+
+	@Override
+	public ItemActionType<?> getType() {
+		return ItemActionTypes.SWITCH;
+	}
+
+}

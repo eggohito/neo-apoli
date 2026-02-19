@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ChoiceStringProvider(List<Case<Condition, StringProvider>> cases, StringProvider defaultValue) implements StringProvider, ChoiceValueProvider<StringProvider> {
+public record SwitchStringProvider(List<Case<Condition, StringProvider>> cases, StringProvider defaultValue) implements StringProvider, SwitchValueProvider<StringProvider> {
 
-	public static final MapCodec<ChoiceStringProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(StringProvider.CODEC, ChoiceStringProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(StringProvider.STREAM_CODEC, ChoiceStringProvider::new));
+	public static final MapCodec<SwitchStringProvider> MAP_CODEC = MapCodecUtil.lazy(SwitchStringProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(StringProvider.CODEC, SwitchStringProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchStringProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(StringProvider.STREAM_CODEC, SwitchStringProvider::new));
 
 	@Override
 	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.CHOICE;
+		return StringProviderTypes.SWITCH;
 	}
 
 	@Override

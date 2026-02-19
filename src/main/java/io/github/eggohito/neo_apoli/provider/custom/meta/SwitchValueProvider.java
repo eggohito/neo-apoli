@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.BiFunction;
 
-public interface ChoiceValueProvider<P extends ValueProvider> extends ValueProvider {
+public interface SwitchValueProvider<P extends ValueProvider> extends ValueProvider {
 
 	List<Case<Condition, P>> cases();
 
@@ -68,17 +68,17 @@ public interface ChoiceValueProvider<P extends ValueProvider> extends ValueProvi
 
 	}
 
-	static <P extends ValueProvider, M extends ChoiceValueProvider<P>> MapCodec<M> mapCodec(Codec<P> providerCodec, BiFunction<List<Case<Condition, P>>, P, M> constructor) {
+	static <P extends ValueProvider, M extends SwitchValueProvider<P>> MapCodec<M> mapCodec(Codec<P> providerCodec, BiFunction<List<Case<Condition, P>>, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			ExtraCodecs.nonEmptyList(Case.codec(Condition.CODEC, providerCodec).listOf()).fieldOf("cases").forGetter(ChoiceValueProvider::cases),
-			providerCodec.fieldOf("default").forGetter(ChoiceValueProvider::defaultValue)
+			ExtraCodecs.nonEmptyList(Case.codec(Condition.CODEC, providerCodec).listOf()).fieldOf("cases").forGetter(SwitchValueProvider::cases),
+			providerCodec.fieldOf("default").forGetter(SwitchValueProvider::defaultValue)
 		).apply(instance, constructor));
 	}
 
-	static <P extends ValueProvider, M extends ChoiceValueProvider<P>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, BiFunction<List<Case<Condition, P>>, P, M> constructor) {
+	static <P extends ValueProvider, M extends SwitchValueProvider<P>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, BiFunction<List<Case<Condition, P>>, P, M> constructor) {
 		return StreamCodec.composite(
-			Case.streamCodec(Condition.STREAM_CODEC, providerCodec).apply(ByteBufCodecs.list()), ChoiceValueProvider::cases,
-			providerCodec, ChoiceValueProvider::defaultValue,
+			Case.streamCodec(Condition.STREAM_CODEC, providerCodec).apply(ByteBufCodecs.list()), SwitchValueProvider::cases,
+			providerCodec, SwitchValueProvider::defaultValue,
 			constructor
 		);
 	}

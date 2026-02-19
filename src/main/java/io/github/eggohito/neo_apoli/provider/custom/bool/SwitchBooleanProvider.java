@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.bool;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ChoiceBooleanProvider(List<Case<Condition, BooleanProvider>> cases, BooleanProvider defaultValue) implements BooleanProvider, ChoiceValueProvider<BooleanProvider> {
+public record SwitchBooleanProvider(List<Case<Condition, BooleanProvider>> cases, BooleanProvider defaultValue) implements BooleanProvider, SwitchValueProvider<BooleanProvider> {
 
-	public static final MapCodec<ChoiceBooleanProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(BooleanProvider.CODEC, ChoiceBooleanProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceBooleanProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(BooleanProvider.STREAM_CODEC, ChoiceBooleanProvider::new));
+	public static final MapCodec<SwitchBooleanProvider> MAP_CODEC = MapCodecUtil.lazy(SwitchBooleanProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(BooleanProvider.CODEC, SwitchBooleanProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchBooleanProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(BooleanProvider.STREAM_CODEC, SwitchBooleanProvider::new));
 
 	@Override
 	public @NotNull BooleanProviderType<?> getType() {
-		return BooleanProviderTypes.CHOICE;
+		return BooleanProviderTypes.SWITCH;
 	}
 
 	@Override

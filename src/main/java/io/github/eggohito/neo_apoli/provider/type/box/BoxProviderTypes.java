@@ -11,10 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BoxProviderTypes {
 
-	public static final BoxProviderType<ChoiceBoxProvider> CHOICE = registerInternal("choice", ChoiceBoxProvider.MAP_CODEC, ChoiceBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<ConditionalBoxProvider> CONDITIONAL = registerInternal("conditional", ConditionalBoxProvider.MAP_CODEC, ConditionalBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<ConstantBoxProvider> CONSTANT = registerInternal("constant", ConstantBoxProvider.MAP_CODEC, ConstantBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<OffsetBoxProvider> OFFSET = registerInternal("offset", OffsetBoxProvider.MAP_CODEC, OffsetBoxProvider.STREAM_CODEC);
+	public static final BoxProviderType<SwitchBoxProvider> SWITCH = registerInternal("switch", SwitchBoxProvider.MAP_CODEC, SwitchBoxProvider.STREAM_CODEC);
 	public static final BoxProviderType<TranslateBoxProvider> TRANSLATE = registerInternal("translate", TranslateBoxProvider.MAP_CODEC, TranslateBoxProvider.STREAM_CODEC);
 
 	public static final BoxProviderType<BlockBoundsBoxProvider> BLOCK_BOUNDS = registerInternal("block/bounds", BlockBoundsBoxProvider.MAP_CODEC, BlockBoundsBoxProvider.STREAM_CODEC);

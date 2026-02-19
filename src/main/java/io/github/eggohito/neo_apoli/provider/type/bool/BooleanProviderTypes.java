@@ -11,10 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BooleanProviderTypes {
 
-	public static final BooleanProviderType<ChoiceBooleanProvider> CHOICE = registerInternal("choice", ChoiceBooleanProvider.MAP_CODEC, ChoiceBooleanProvider.STREAM_CODEC);
-	public static final BooleanProviderType<ConditionalBooleanProvider> CONDITIONAL = registerInternal("conditional", ConditionalBooleanProvider.MAP_CODEC, ConditionalBooleanProvider.STREAM_CODEC);
 	public static final BooleanProviderType<ConditionResultBooleanProvider> CONDITION_RESULT = registerInternal("condition_result", ConditionResultBooleanProvider.MAP_CODEC, ConditionResultBooleanProvider.STREAM_CODEC);
+	public static final BooleanProviderType<ConditionalBooleanProvider> CONDITIONAL = registerInternal("conditional", ConditionalBooleanProvider.MAP_CODEC, ConditionalBooleanProvider.STREAM_CODEC);
 	public static final BooleanProviderType<ConstantBooleanProvider> CONSTANT = registerInternal("constant", ConstantBooleanProvider.MAP_CODEC, ConstantBooleanProvider.STREAM_CODEC);
+	public static final BooleanProviderType<SwitchBooleanProvider> SWITCH = registerInternal("switch", SwitchBooleanProvider.MAP_CODEC, SwitchBooleanProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

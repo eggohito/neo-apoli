@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.BiFunction;
 
-public interface IChoiceMetaAction<C extends Condition, A extends Action> extends MetaAction {
+public interface ISwitchMetaAction<C extends Condition, A extends Action> extends MetaAction {
 
 	List<Case<C, A>> cases();
 
@@ -66,17 +66,17 @@ public interface IChoiceMetaAction<C extends Condition, A extends Action> extend
 
 	}
 
-	static <C extends Condition, A extends Action, M extends IChoiceMetaAction<C, A>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
+	static <C extends Condition, A extends Action, M extends ISwitchMetaAction<C, A>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Case.codec(conditionCodec.fieldOf("condition"), actionCodec.fieldOf("action")).listOf().fieldOf("cases").forGetter(IChoiceMetaAction::cases),
-			actionCodec.fieldOf("default").forGetter(IChoiceMetaAction::defaultAction)
+			Case.codec(conditionCodec.fieldOf("condition"), actionCodec.fieldOf("action")).listOf().fieldOf("cases").forGetter(ISwitchMetaAction::cases),
+			actionCodec.fieldOf("default").forGetter(ISwitchMetaAction::defaultAction)
 		).apply(instance, constructor));
 	}
 
-	static <C extends Condition, A extends Action, M extends IChoiceMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
+	static <C extends Condition, A extends Action, M extends ISwitchMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
 		return StreamCodec.composite(
-			Case.streamCodec(conditionCodec, actionCodec).apply(ByteBufCodecs.list()), IChoiceMetaAction::cases,
-			actionCodec, IChoiceMetaAction::defaultAction,
+			Case.streamCodec(conditionCodec, actionCodec).apply(ByteBufCodecs.list()), ISwitchMetaAction::cases,
+			actionCodec, ISwitchMetaAction::defaultAction,
 			constructor
 		);
 	}

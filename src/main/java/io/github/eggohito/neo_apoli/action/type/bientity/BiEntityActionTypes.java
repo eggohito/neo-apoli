@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BiEntityActionTypes {
 
-	public static final BiEntityActionType<ChoiceBiEntityAction> CHOICE = registerInternal("choice", ChoiceBiEntityAction.MAP_CODEC, ChoiceBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<ConditionalBiEntityAction> CONDITIONAL = registerInternal("conditional", ConditionalBiEntityAction.MAP_CODEC, ConditionalBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<ExecuteOnEntityBiEntityAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityBiEntityAction.MAP_CODEC, ExecuteOnEntityBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<LoopBiEntityAction> LOOP = registerInternal("loop", LoopBiEntityAction.MAP_CODEC, LoopBiEntityAction.STREAM_CODEC);
@@ -20,6 +19,7 @@ public class BiEntityActionTypes {
 	public static final BiEntityActionType<RandomChanceBiEntityAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceBiEntityAction.MAP_CODEC, RandomChanceBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<ReferenceBiEntityAction> REFERENCE = registerInternal("reference", ReferenceBiEntityAction.MAP_CODEC, ReferenceBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<SequenceBiEntityAction> SEQUENCE = registerInternal("sequence", SequenceBiEntityAction.MAP_CODEC, SequenceBiEntityAction.STREAM_CODEC);
+	public static final BiEntityActionType<SwitchBiEntityAction> SWITCH = registerInternal("switch", SwitchBiEntityAction.MAP_CODEC, SwitchBiEntityAction.STREAM_CODEC);
 	public static final BiEntityActionType<WeightedBiEntityAction> WEIGHTED = registerInternal("weighted", WeightedBiEntityAction.MAP_CODEC, WeightedBiEntityAction.STREAM_CODEC);
 
 	public static final BiEntityActionType<DamageBiEntityAction> DAMAGE = registerInternal("damage", DamageBiEntityAction.MAP_CODEC, DamageBiEntityAction.STREAM_CODEC);

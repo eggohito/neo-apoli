@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ChoiceNumberProvider(List<Case<Condition, NumberProvider>> cases, NumberProvider defaultValue) implements NumberProvider, ChoiceValueProvider<NumberProvider> {
+public record SwitchNumberProvider(List<Case<Condition, NumberProvider>> cases, NumberProvider defaultValue) implements NumberProvider, SwitchValueProvider<NumberProvider> {
 
-	public static final MapCodec<ChoiceNumberProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceNumberProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(NumberProvider.CODEC, ChoiceNumberProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceNumberProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(NumberProvider.STREAM_CODEC, ChoiceNumberProvider::new));
+	public static final MapCodec<SwitchNumberProvider> MAP_CODEC = MapCodecUtil.lazy(SwitchNumberProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(NumberProvider.CODEC, SwitchNumberProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchNumberProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(NumberProvider.STREAM_CODEC, SwitchNumberProvider::new));
 
 	@Override
 	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.CHOICE;
+		return NumberProviderTypes.SWITCH;
 	}
 
 	@Override

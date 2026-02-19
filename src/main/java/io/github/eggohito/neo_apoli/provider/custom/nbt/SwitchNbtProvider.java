@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
@@ -16,14 +16,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ChoiceNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, ChoiceValueProvider<NbtProvider> {
+public record SwitchNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, SwitchValueProvider<NbtProvider> {
 
-	public static final MapCodec<ChoiceNbtProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(NbtProvider.CODEC, ChoiceNbtProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceNbtProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(NbtProvider.STREAM_CODEC, ChoiceNbtProvider::new));
+	public static final MapCodec<SwitchNbtProvider> MAP_CODEC = MapCodecUtil.lazy(SwitchNbtProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(NbtProvider.CODEC, SwitchNbtProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchNbtProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(NbtProvider.STREAM_CODEC, SwitchNbtProvider::new));
 
 	@Override
 	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.CHOICE;
+		return NbtProviderTypes.SWITCH;
 	}
 
 	@Override

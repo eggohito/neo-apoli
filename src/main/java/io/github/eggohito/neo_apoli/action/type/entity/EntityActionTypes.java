@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public class EntityActionTypes {
 
-	public static final EntityActionType<ChoiceEntityAction> CHOICE = registerInternal("choice", ChoiceEntityAction.MAP_CODEC, ChoiceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ConditionalEntityAction> CONDITIONAL = registerInternal("conditional", ConditionalEntityAction.MAP_CODEC, ConditionalEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ExecuteOnEntityEntityAction> EXECUTE_ON_ENTITY = registerInternal("execute_on_entity", ExecuteOnEntityEntityAction.MAP_CODEC, ExecuteOnEntityEntityAction.STREAM_CODEC);
 	public static final EntityActionType<LoopEntityAction> LOOP = registerInternal("loop", LoopEntityAction.MAP_CODEC, LoopEntityAction.STREAM_CODEC);
@@ -22,6 +21,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<ReferenceEntityAction> REFERENCE = registerInternal("reference", ReferenceEntityAction.MAP_CODEC, ReferenceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SequenceEntityAction> SEQUENCE = registerInternal("sequence", SequenceEntityAction.MAP_CODEC, SequenceEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SpawnParticlesEntityAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesEntityAction.MAP_CODEC, SpawnParticlesEntityAction.STREAM_CODEC);
+	public static final EntityActionType<SwitchEntityAction> SWITCH = registerInternal("switch", SwitchEntityAction.MAP_CODEC, SwitchEntityAction.STREAM_CODEC);
 	public static final EntityActionType<WeightedEntityAction> WEIGHTED = registerInternal("weighted", WeightedEntityAction.MAP_CODEC, WeightedEntityAction.STREAM_CODEC);
 
 	public static final EntityActionType<AddExperienceEntityAction> ADD_EXPERIENCE = registerInternal("add_experience", AddExperienceEntityAction.MAP_CODEC, AddExperienceEntityAction.STREAM_CODEC);

@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public class BlockActionTypes {
 
-	public static final BlockActionType<ChoiceBlockAction> CHOICE = registerInternal("choice", ChoiceBlockAction.MAP_CODEC, ChoiceBlockAction.STREAM_CODEC);
 	public static final BlockActionType<ConditionalBlockAction> CONDITIONAL = registerInternal("conditional", ConditionalBlockAction.MAP_CODEC, ConditionalBlockAction.STREAM_CODEC);
 	public static final BlockActionType<LoopBlockAction> LOOP = registerInternal("loop", LoopBlockAction.MAP_CODEC, LoopBlockAction.STREAM_CODEC);
 	public static final BlockActionType<NothingBlockAction> NOTHING = registerInternal("nothing", NothingBlockAction.MAP_CODEC, NothingBlockAction.STREAM_CODEC);
@@ -21,6 +20,7 @@ public class BlockActionTypes {
 	public static final BlockActionType<ReferenceBlockAction> REFERENCE = registerInternal("reference", ReferenceBlockAction.MAP_CODEC, ReferenceBlockAction.STREAM_CODEC);
 	public static final BlockActionType<SequenceBlockAction> SEQUENCE = registerInternal("sequence", SequenceBlockAction.MAP_CODEC, SequenceBlockAction.STREAM_CODEC);
 	public static final BlockActionType<SpawnParticlesBlockAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesBlockAction.MAP_CODEC, SpawnParticlesBlockAction.STREAM_CODEC);
+	public static final BlockActionType<SwitchBlockAction> SWITCH = registerInternal("switch", SwitchBlockAction.MAP_CODEC, SwitchBlockAction.STREAM_CODEC);
 	public static final BlockActionType<WeightedBlockAction> WEIGHTED = registerInternal("weighted", WeightedBlockAction.MAP_CODEC, WeightedBlockAction.STREAM_CODEC);
 
 	public static final BlockActionType<AreaOfEffectBlockAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectBlockAction.MAP_CODEC, AreaOfEffectBlockAction.STREAM_CODEC);

@@ -14,7 +14,6 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<AbsoluteNumberProvider> ABSOLUTE = registerInternal("absolute", AbsoluteNumberProvider.MAP_CODEC, AbsoluteNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<AddNumberProvider> ADD = registerInternal("add", AddNumberProvider.MAP_CODEC, AddNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BinomialNumberProvider> BINOMIAL = registerInternal("binomial", BinomialNumberProvider.MAP_CODEC, BinomialNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<ChoiceNumberProvider> CHOICE = registerInternal("choice", ChoiceNumberProvider.MAP_CODEC, ChoiceNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ClampedNumberProvider> CLAMPED = registerInternal("clamped", ClampedNumberProvider.MAP_CODEC, ClampedNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ConditionalNumberProvider> CONDITIONAL = registerInternal("conditional", ConditionalNumberProvider.MAP_CODEC, ConditionalNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ConstantNumberProvider> CONSTANT = registerInternal("constant", ConstantNumberProvider.MAP_CODEC, ConstantNumberProvider.STREAM_CODEC);
@@ -26,6 +25,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<MultiplyNumberProvider> MULTIPLY = registerInternal("multiply", MultiplyNumberProvider.MAP_CODEC, MultiplyNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<NbtNumberProvider> NBT = registerInternal("nbt", NbtNumberProvider.MAP_CODEC, NbtNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<SubtractNumberProvider> SUBTRACT = registerInternal("subtract", SubtractNumberProvider.MAP_CODEC, SubtractNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<SwitchNumberProvider> SWITCH = registerInternal("switch", SwitchNumberProvider.MAP_CODEC, SwitchNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<UniformNumberProvider> UNIFORM = registerInternal("uniform", UniformNumberProvider.MAP_CODEC, UniformNumberProvider.STREAM_CODEC);
 
 	public static final NumberProviderType<AdjacentBlocksNumberProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksNumberProvider.MAP_CODEC, AdjacentBlocksNumberProvider.STREAM_CODEC);

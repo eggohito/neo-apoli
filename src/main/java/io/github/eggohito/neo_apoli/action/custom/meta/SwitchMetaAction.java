@@ -13,14 +13,14 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record ChoiceMetaAction(List<Case<Condition, Action>> cases, Action defaultAction) implements IChoiceMetaAction<Condition, Action> {
+public record SwitchMetaAction(List<Case<Condition, Action>> cases, Action defaultAction) implements ISwitchMetaAction<Condition, Action> {
 
-	public static final MapCodec<ChoiceMetaAction> MAP_CODEC = MapCodecUtil.lazy(ChoiceMetaAction.class.getSimpleName(), () -> IChoiceMetaAction.mapCodec(Condition.CODEC, Action.CODEC, ChoiceMetaAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceMetaAction.class.getSimpleName(), () -> IChoiceMetaAction.streamCodec(Condition.STREAM_CODEC, Action.STREAM_CODEC, ChoiceMetaAction::new));
+	public static final MapCodec<SwitchMetaAction> MAP_CODEC = MapCodecUtil.lazy(SwitchMetaAction.class.getSimpleName(), () -> ISwitchMetaAction.mapCodec(Condition.CODEC, Action.CODEC, SwitchMetaAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchMetaAction> STREAM_CODEC = StreamCodecUtil.lazy(SwitchMetaAction.class.getSimpleName(), () -> ISwitchMetaAction.streamCodec(Condition.STREAM_CODEC, Action.STREAM_CODEC, SwitchMetaAction::new));
 
 	@Override
 	public MetaActionType<?> getType() {
-		return MetaActionTypes.CHOICE;
+		return MetaActionTypes.SWITCH;
 	}
 
 }
