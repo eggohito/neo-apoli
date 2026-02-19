@@ -5,57 +5,48 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.util.BiIntegerConsumer;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.ai.behavior.ShufflingList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
 
-import java.util.ListIterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface IWeightedMetaAction<A extends Action> extends MetaAction {
 
-	ShufflingList<A> entries();
+	WeightedList<A> entries();
 
 	@Override
 	default void execute(Context context) {
-
-		entries().shuffle();
-		ListIterator<A> listIterator = entries().stream().toList().listIterator();
-
-		if (listIterator.hasNext()) {
-
-			Context entryContext = context.forChild(".entries[" + listIterator.nextIndex() + "]");
-
-			listIterator.next().execute(entryContext);
-
-		}
-
+		entries().neo_apoli$getRandomAndIndex(context.level().getRandom()).ifPresent(acceptSingle(context));
 	}
 
 	@Override
 	default void validate(Context.Validator validator) {
-
-		ListIterator<A> listIterator = this.entries().stream().toList().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			int index = listIterator.nextIndex();
-			A entry = listIterator.next();
-
-			entry.validate(validator.forChild(".entries[" + index + "]"));
-
-		}
-
+		MetaAction.super.validate(validator);
+		MiscUtil.iterateList(entries().unwrap(), validateSingle(validator));
 	}
 
-	static <A extends Action, M extends IWeightedMetaAction<A>> MapCodec<M> mapCodec(Codec<A> entryCodec, Function<ShufflingList<A>, M> constructor) {
+	private Consumer<ObjectIntPair<A>> acceptSingle(Context context) {
+		return indexAndAction -> indexAndAction.first().execute(context.forChild(".entries[" + indexAndAction.secondInt() + "]"));
+	}
+
+	private BiIntegerConsumer<Weighted<A>> validateSingle(Context.Validator validator) {
+		return (index, weighted) -> weighted.value().validate(validator.forChild(".entries[" + index + "]"));
+	}
+
+	static <A extends Action, M extends IWeightedMetaAction<A>> MapCodec<M> mapCodec(Codec<A> entryCodec, Function<WeightedList<A>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			ShufflingList.codec(entryCodec).fieldOf("entries").forGetter(IWeightedMetaAction::entries)
+			WeightedList.codec(entryCodec).fieldOf("entries").forGetter(IWeightedMetaAction::entries)
 		).apply(instance, constructor));
 	}
 
-	static <A extends Action, M extends IWeightedMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, A> entryCodec, Function<ShufflingList<A>, M> constructor) {
+	static <A extends Action, M extends IWeightedMetaAction<A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, A> entryCodec, Function<WeightedList<A>, M> constructor) {
 		return StreamCodec.composite(
 			StreamCodecUtil.weightedList(entryCodec), IWeightedMetaAction::entries,
 			constructor

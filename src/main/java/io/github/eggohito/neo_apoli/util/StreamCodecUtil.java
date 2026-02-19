@@ -3,13 +3,14 @@ package io.github.eggohito.neo_apoli.util;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import io.github.eggohito.neo_apoli.mixin.access.ShufflingListAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ByIdMap;
-import net.minecraft.world.entity.ai.behavior.ShufflingList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +40,7 @@ public final class StreamCodecUtil {
 		return new StreamCodec<>() {
 
 			@Override
-			public E decode(B buf) {
+			public @NotNull E decode(B buf) {
 
 				BiMap<String, E> mappedValues = supplier.get();
 				E value = mappedValues.get(buf.readUtf());
@@ -103,7 +104,7 @@ public final class StreamCodecUtil {
 		return new StreamCodec<>() {
 
 			@Override
-			public A decode(B buf) {
+			public @NotNull A decode(B buf) {
 				return delegate.get().decode(buf);
 			}
 
@@ -124,37 +125,37 @@ public final class StreamCodecUtil {
 		return StreamCodec.of((buf, value) -> supplier.get(), buf -> supplier.get());
 	}
 
-	public static <B extends ByteBuf, T> StreamCodec<B, ShufflingList<T>> weightedList(StreamCodec<B, T> entryCodec) {
+	public static <B extends ByteBuf, E> StreamCodec<B, WeightedList<E>> weightedList(StreamCodec<B, E> elementCodec) {
 		return new StreamCodec<>() {
 
 			@Override
-			public ShufflingList<T> decode(B buf) {
+			public @NotNull WeightedList<E> decode(B buf) {
 
-				ShufflingList<T> entries = new ShufflingList<>();
+				WeightedList.Builder<E> builder = WeightedList.builder();
 				int size = buf.readInt();
 
 				for (int i = 0; i < size; i++) {
 
-					T entry = entryCodec.decode(buf);
+					E element = elementCodec.decode(buf);
 					int weight = buf.readInt();
 
-					entries.add(entry, weight);
+					builder.add(element, weight);
 
 				}
 
-				return entries;
+				return builder.build();
 
 			}
 
 			@Override
-			public void encode(B buf, ShufflingList<T> value) {
+			public void encode(B buf, WeightedList<E> weightedList) {
 
-				List<ShufflingList.WeightedEntry<T>> entries = ((ShufflingListAccessor) value).getEntries();
-				buf.writeInt(entries.size());
+				List<Weighted<E>> unwrapped = weightedList.unwrap();
+				buf.writeInt(unwrapped.size());
 
-				for (var entry : entries) {
-					entryCodec.encode(buf, entry.getData());
-					buf.writeInt(entry.getWeight());
+				for (Weighted<E> weighted : unwrapped) {
+					elementCodec.encode(buf, weighted.value());
+					buf.writeInt(weighted.weight());
 				}
 
 			}

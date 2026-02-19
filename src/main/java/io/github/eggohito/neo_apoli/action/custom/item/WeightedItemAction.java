@@ -8,9 +8,9 @@ import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.ai.behavior.ShufflingList;
+import net.minecraft.util.random.WeightedList;
 
-public record WeightedItemAction(ShufflingList<ItemAction> entries) implements ItemAction, IWeightedMetaAction<ItemAction> {
+public record WeightedItemAction(WeightedList<ItemAction> entries) implements ItemAction, IWeightedMetaAction<ItemAction> {
 
 	public static final MapCodec<WeightedItemAction> MAP_CODEC = MapCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> IWeightedMetaAction.mapCodec(ItemAction.CODEC, WeightedItemAction::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedItemAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedItemAction.class.getSimpleName(), () -> IWeightedMetaAction.streamCodec(ItemAction.STREAM_CODEC, WeightedItemAction::new));
