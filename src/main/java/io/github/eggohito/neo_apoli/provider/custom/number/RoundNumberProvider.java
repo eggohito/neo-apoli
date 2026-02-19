@@ -11,26 +11,26 @@ import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Optional;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
-public record RoundNumberProvider(NumberProvider number, NumberProvider places, Optional<RoundingMode> mode) implements NumberProvider {
+public record RoundNumberProvider(NumberProvider number, NumberProvider places, RoundingMode mode) implements NumberProvider {
 
 	public static final MapCodec<RoundNumberProvider> MAP_CODEC = MapCodecUtil.lazy(RoundNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(RoundNumberProvider::number),
 		NumberProvider.CODEC.fieldOf("places").forGetter(RoundNumberProvider::places),
-		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode").forGetter(RoundNumberProvider::mode)
+		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode", RoundingMode.HALF_UP).forGetter(RoundNumberProvider::mode)
 	).apply(instance, RoundNumberProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, RoundNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(RoundNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		NumberProvider.STREAM_CODEC, RoundNumberProvider::number,
 		NumberProvider.STREAM_CODEC, RoundNumberProvider::places,
-		ByteBufCodecs.optional(NeoApoliStreamCodecs.ROUNDING_MODE), RoundNumberProvider::mode,
+		NeoApoliStreamCodecs.ROUNDING_MODE, RoundNumberProvider::mode,
 		RoundNumberProvider::new
 	));
 
@@ -45,15 +45,15 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 		double number = number().nextDouble(context.forChild(".number"));
 		int places = Math.abs(places().nextInt(context.forChild(".places")));
 
-		DecimalFormat decimalFormat = new DecimalFormat("#." + Strings.repeat("#", Math.max(places, 1)));
-		mode().ifPresent(decimalFormat::setRoundingMode);
+		DecimalFormat decimalFormat = new DecimalFormat("#" + (places > 0 ? "." + Strings.repeat("#", places) : ""), DecimalFormatSymbols.getInstance(Locale.ROOT));
+		decimalFormat.setRoundingMode(mode());
 
 		try {
 			return Double.parseDouble(decimalFormat.format(number));
 		}
 
 		catch (ArithmeticException e) {
-			context.reportProblem("Couldn't round number " + number + " to " + places + " decimal places: " + e.getMessage());
+			context.reportProblem(e.getMessage());
 		}
 
 		return number;
