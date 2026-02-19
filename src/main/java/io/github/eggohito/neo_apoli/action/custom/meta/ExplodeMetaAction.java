@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.meta;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
@@ -41,7 +42,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.Set;
 
-public interface IExplodeMetaAction extends MetaAction {
+public interface ExplodeMetaAction extends Action {
 
 	ContextKeySet DAMAGEABLE_PARAMS = new ContextKeySet.Builder()
 		.optional(NeoApoliContextParams.ACTOR_ENTITY)
@@ -123,7 +124,7 @@ public interface IExplodeMetaAction extends MetaAction {
 	@Override
 	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(validator);
+		Action.super.validate(validator);
 
 		damageableBiEntityCondition().validate(validator
 			.withAdditionalKeysFromSets(DAMAGEABLE_PARAMS)
@@ -139,7 +140,7 @@ public interface IExplodeMetaAction extends MetaAction {
 	@AllArgsConstructor
 	class DamageCalculator extends ExplosionDamageCalculator {
 
-		private final IExplodeMetaAction action;
+		private final ExplodeMetaAction action;
 		private final Context context;
 
 		@Override

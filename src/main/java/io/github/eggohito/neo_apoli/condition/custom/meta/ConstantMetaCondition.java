@@ -2,22 +2,43 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import net.fabricmc.fabric.api.util.BooleanFunction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ConstantMetaCondition(boolean value) implements IConstantMetaCondition {
+public interface ConstantMetaCondition extends Condition {
 
-	public static final Codec<ConstantMetaCondition> INLINE_CODEC = IConstantMetaCondition.createInlineCodec(ConstantMetaCondition::new);
-
-	public static final MapCodec<ConstantMetaCondition> MAP_CODEC = IConstantMetaCondition.mapCodec(ConstantMetaCondition::new);
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantMetaCondition> STREAM_CODEC = IConstantMetaCondition.streamCodec(ConstantMetaCondition::new);
+	boolean value();
 
 	@Override
-	public ConditionType<?> getType() {
-		return MetaConditionTypes.CONSTANT;
+	default boolean test(Context context) {
+		return value();
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+
+	}
+
+	static <M extends ConstantMetaCondition> Codec<M> createInlineCodec(BooleanFunction<M> constructor) {
+		return Codec.BOOL.xmap(constructor::apply, ConstantMetaCondition::value);
+	}
+
+	static <M extends ConstantMetaCondition> MapCodec<M> mapCodec(BooleanFunction<M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			Codec.BOOL.fieldOf("value").forGetter(ConstantMetaCondition::value)
+		).apply(instance, constructor::apply));
+	}
+
+	static <M extends ConstantMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BooleanFunction<M> constructor) {
+		return StreamCodec.composite(
+			ByteBufCodecs.BOOL, ConstantMetaCondition::value,
+			constructor::apply
+		);
 	}
 
 }

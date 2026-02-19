@@ -17,7 +17,7 @@ import net.minecraft.world.level.Level;
 
 public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements EntityCondition {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.BLOCK_POS)
 		.required(NeoApoliContextParams.BLOCK_STATE)
 		.optional(NeoApoliContextParams.BLOCK_ENTITY)
@@ -81,7 +81,7 @@ public record IsOnBlockEntityCondition(BlockCondition blockCondition) implements
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
+		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMS).forChild(".block_condition"));
 	}
 
 }

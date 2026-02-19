@@ -1,13 +1,13 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.INothingMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public enum NothingEntityAction implements EntityAction, INothingMetaAction {
+public enum NothingEntityAction implements EntityAction, NothingMetaAction {
 
 	INSTANCE;
 

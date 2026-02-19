@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
-import io.github.eggohito.neo_apoli.action.custom.meta.IExecuteOnEntityMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.ExecuteOnEntityMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
@@ -13,10 +13,10 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.Set;
 
-public record ExecuteOnEntityBiEntityAction(EntityAction action, ContextParameter<Entity> entity) implements BiEntityAction, IExecuteOnEntityMetaAction {
+public record ExecuteOnEntityBiEntityAction(EntityAction action, ContextParameter<Entity> entity) implements BiEntityAction, ExecuteOnEntityMetaAction {
 
-	public static final MapCodec<ExecuteOnEntityBiEntityAction> MAP_CODEC = IExecuteOnEntityMetaAction.mapCodec(ExecuteOnEntityBiEntityAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteOnEntityBiEntityAction> STREAM_CODEC = IExecuteOnEntityMetaAction.streamCodec(ExecuteOnEntityBiEntityAction::new);
+	public static final MapCodec<ExecuteOnEntityBiEntityAction> MAP_CODEC = ExecuteOnEntityMetaAction.mapCodec(ExecuteOnEntityBiEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteOnEntityBiEntityAction> STREAM_CODEC = ExecuteOnEntityMetaAction.streamCodec(ExecuteOnEntityBiEntityAction::new);
 
 	@Override
 	public BiEntityActionType<?> getType() {
@@ -25,7 +25,7 @@ public record ExecuteOnEntityBiEntityAction(EntityAction action, ContextParamete
 
 	@Override
 	public Set<ContextKey<?>> getRequiredParameters() {
-		return IExecuteOnEntityMetaAction.super.getRequiredParameters();
+		return ExecuteOnEntityMetaAction.super.getRequiredParameters();
 	}
 
 }

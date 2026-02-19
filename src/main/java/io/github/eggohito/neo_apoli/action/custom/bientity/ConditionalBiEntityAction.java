@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.IConditionalMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.ConditionalMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
@@ -12,10 +12,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
-public record ConditionalBiEntityAction(BiEntityCondition condition, BiEntityAction ifAction, Optional<BiEntityAction> elseAction) implements BiEntityAction, IConditionalMetaAction<BiEntityCondition, BiEntityAction> {
+public record ConditionalBiEntityAction(BiEntityCondition condition, BiEntityAction ifAction, Optional<BiEntityAction> elseAction) implements BiEntityAction, ConditionalMetaAction<BiEntityCondition, BiEntityAction> {
 
-	public static final MapCodec<ConditionalBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.mapCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ConditionalBiEntityAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> IConditionalMetaAction.streamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ConditionalBiEntityAction::new));
+	public static final MapCodec<ConditionalBiEntityAction> MAP_CODEC = MapCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.mapCodec(BiEntityCondition.CODEC, BiEntityAction.CODEC, ConditionalBiEntityAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.streamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ConditionalBiEntityAction::new));
 
 	@Override
 	public BiEntityActionType<?> getType() {

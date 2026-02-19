@@ -1,22 +1,18 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
-import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.action.type.meta.MetaActionTypes;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.context.Context;
 
-public enum NothingMetaAction implements INothingMetaAction {
-
-	INSTANCE;
-
-	public static final MapCodec<NothingMetaAction> MAP_CODEC = MapCodec.unit(INSTANCE);
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, NothingMetaAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+public interface NothingMetaAction extends Action {
 
 	@Override
-	public ActionType<?> getType() {
-		return MetaActionTypes.NOTHING;
+	default void execute(Context context) {
+
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+
 	}
 
 }

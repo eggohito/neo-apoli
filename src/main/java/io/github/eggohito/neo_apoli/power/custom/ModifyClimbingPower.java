@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
-import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -34,7 +34,7 @@ public class ModifyClimbingPower extends Power {
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final MapCodec<ModifyClimbingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityMetaCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 

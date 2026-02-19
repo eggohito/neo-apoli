@@ -1,23 +1,40 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record InvertedMetaCondition(Condition condition) implements IInvertedMetaCondition<Condition> {
+import java.util.function.Function;
 
-	public static final MapCodec<InvertedMetaCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.mapCodec(Condition.CODEC, InvertedMetaCondition::new));
+public interface InvertedMetaCondition<C extends Condition> extends Condition {
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedMetaCondition.class.getSimpleName(), () -> IInvertedMetaCondition.streamCodec(Condition.STREAM_CODEC, InvertedMetaCondition::new));
+	C condition();
 
 	@Override
-	public ConditionType<?> getType() {
-		return MetaConditionTypes.INVERTED;
+	default boolean test(Context context) {
+		return !condition().test(context.forChild(".condition"));
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+		condition().validate(validator.forChild(".condition"));
+	}
+
+	static <C extends Condition, M extends InvertedMetaCondition<C>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Function<C, M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			conditionCodec.fieldOf("condition").forGetter(InvertedMetaCondition::condition)
+		).apply(instance, constructor));
+	}
+
+	static <C extends Condition, M extends InvertedMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<C, M> constructor) {
+		return StreamCodec.composite(
+			conditionCodec, InvertedMetaCondition::condition,
+			constructor
+		);
 	}
 
 }

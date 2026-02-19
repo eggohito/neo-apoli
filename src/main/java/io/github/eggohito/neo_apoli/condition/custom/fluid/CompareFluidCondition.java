@@ -1,17 +1,17 @@
 package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.ICompareMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record CompareFluidCondition(Comparison comparison) implements FluidCondition, ICompareMetaCondition {
+public record CompareFluidCondition(Comparison comparison) implements FluidCondition, CompareMetaCondition {
 
-	public static final MapCodec<CompareFluidCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareFluidCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareFluidCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareFluidCondition::new);
+	public static final MapCodec<CompareFluidCondition> MAP_CODEC = CompareMetaCondition.mapCodec(CompareFluidCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompareFluidCondition> STREAM_CODEC = CompareMetaCondition.streamCodec(CompareFluidCondition::new);
 
 	@Override
 	public FluidConditionType<?> getType() {

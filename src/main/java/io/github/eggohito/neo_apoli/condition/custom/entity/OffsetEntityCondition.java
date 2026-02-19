@@ -19,7 +19,7 @@ import java.util.Set;
 
 public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offset) implements EntityCondition {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.THIS_POS)
 		.build();
 
@@ -72,7 +72,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 
 		EntityCondition.super.validate(validator);
 
-		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMS).forChild(".condition"));
 		offset().validate(validator.forChild(".offset"));
 
 	}

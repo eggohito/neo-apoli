@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.action.custom.meta;
 import com.mojang.datafixers.util.Function7;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
@@ -28,9 +29,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface SpawnParticlesMetaAction extends MetaAction {
+public interface SpawnParticlesMetaAction extends Action {
 
-	ContextKeySet DEFAULT_CONDITION_CONTEXT = new ContextKeySet.Builder()
+	ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ACTOR_ENTITY)
 		.build();
 
@@ -74,7 +75,7 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 	@Override
 	default void validate(Context.Validator validator) {
 
-		MetaAction.super.validate(validator);
+		Action.super.validate(validator);
 
 		biEntityCondition().validate(this.biEntityValidator(validator).forChild(".bientity_condition"));
 		position().validate(validator.forChild(".position"));
@@ -90,7 +91,7 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 	}
 
 	default Context.Validator biEntityValidator(Context.Validator validator) {
-		return validator.withAdditionalKeysFromSets(DEFAULT_CONDITION_CONTEXT);
+		return validator.withAdditionalKeysFromSets(CONDITION_PARAMS);
 	}
 
 	default void sendParticlesTo(Context context, ServerLevel serverLevel, ServerPlayer viewer, boolean force, Vec3 pos, int count, Vec3 spread, float speed) {

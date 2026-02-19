@@ -1,25 +1,61 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
+import java.util.ListIterator;
+import java.util.function.Function;
 
-public record AnyOfMetaCondition(List<Condition> conditions) implements IAnyOfMetaCondition<Condition> {
+public interface AnyOfMetaCondition<C extends Condition> extends Condition {
 
-	public static final MapCodec<AnyOfMetaCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.mapCodec(Condition.CODEC, AnyOfMetaCondition::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfMetaCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfMetaCondition.class.getSimpleName(), () -> IAnyOfMetaCondition.streamCodec(Condition.STREAM_CODEC, AnyOfMetaCondition::new));
+	List<C> conditions();
 
 	@Override
-	public ConditionType<?> getType() {
-		return MetaConditionTypes.ANY_OF;
+	default boolean test(Context context) {
+
+		ListIterator<C> listIterator = conditions().listIterator();
+
+		while (listIterator.hasNext()) {
+
+			Context conditionContext = context.forChild(".conditions[" + listIterator.nextIndex() + "]");
+			C condition = listIterator.next();
+
+			if (condition.test(conditionContext) && !conditionContext.hasErrors()) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+		Condition.super.validate(validator);
+		ContextHelper.validateAll(conditions(), validator, index -> ".conditions[" + index + "]");
+	}
+
+	static <C extends Condition, M extends AnyOfMetaCondition<C>> MapCodec<M> mapCodec(Codec<C> conditionCodec, java.util.function.Function<List<C>, M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			conditionCodec.listOf().fieldOf("conditions").forGetter(AnyOfMetaCondition::conditions)
+		).apply(instance, constructor));
+	}
+
+	static <C extends Condition, M extends AnyOfMetaCondition<C>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, Function<List<C>, M> constructor) {
+		return StreamCodec.composite(
+			ByteBufCodecs.collection(ObjectArrayList::new, conditionCodec), AnyOfMetaCondition::conditions,
+			constructor
+		);
 	}
 
 }

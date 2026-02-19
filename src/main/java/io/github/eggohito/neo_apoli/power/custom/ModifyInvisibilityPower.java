@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.ConstantCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -33,7 +33,7 @@ public class ModifyInvisibilityPower extends Power {
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final MapCodec<ModifyInvisibilityPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantMetaCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
+		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
 		.apply(instance, ModifyInvisibilityPower::new));

@@ -25,7 +25,7 @@ import java.util.List;
 
 public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> stacks) implements EntityAction {
 
-	private static final ContextKeySet ACTION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet ACTION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.SLOT_ACCESS)
 		.required(NeoApoliContextParams.ITEM_STACK)
 		.build();
@@ -109,7 +109,7 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
 		itemAction().validate(validator
-			.withAdditionalKeysFromSets(ACTION_CONTEXT)
+			.withAdditionalKeysFromSets(ACTION_PARAMS)
 			.forChild(".item_action"));
 	}
 

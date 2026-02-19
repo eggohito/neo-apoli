@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 public record SpawnParticlesEntityAction(ParticleOptions particle, BiEntityCondition biEntityCondition, Vec3Provider position, Vec3Provider spread, NumberProvider speed, NumberProvider count, BooleanProvider force) implements EntityAction, SpawnParticlesMetaAction {
 
 	private static final Supplier<Vec3Provider> DEFAULT_POSITION = Suppliers.memoize(() -> new EntityPositionVec3Provider(NeoApoliContextParams.THIS_ENTITY, EntityAnchorArgument.Anchor.FEET));
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ACTOR_ENTITY)
 		.required(NeoApoliContextParams.TARGET_ENTITY)
 		.build();
@@ -48,7 +48,7 @@ public record SpawnParticlesEntityAction(ParticleOptions particle, BiEntityCondi
 
 	@Override
 	public Context.Validator biEntityValidator(Context.Validator validator) {
-		return validator.withAdditionalKeysFromSets(CONDITION_CONTEXT);
+		return validator.withAdditionalKeysFromSets(CONDITION_PARAMS);
 	}
 
 	@Override

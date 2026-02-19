@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 
 public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCondition biEntityCondition, Shape shape, NumberProvider radius) implements EntityAction {
 
-	public static final ContextKeySet BIENTITY_CONTEXT = new ContextKeySet.Builder()
+	public static final ContextKeySet BIENTITY_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ACTOR_ENTITY)
 		.required(NeoApoliContextParams.TARGET_ENTITY)
 		.build();
@@ -81,7 +81,7 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	public void validate(Context.Validator validator) {
 
 		EntityAction.super.validate(validator);
-		Context.Validator biEntityValidator = validator.withAdditionalKeysFromSets(BIENTITY_CONTEXT);
+		Context.Validator biEntityValidator = validator.withAdditionalKeysFromSets(BIENTITY_PARAMS);
 
 		biEntityAction().validate(biEntityValidator.forChild(".bientity_action"));
 		biEntityCondition().validate(biEntityValidator.forChild(".bientity_condition"));

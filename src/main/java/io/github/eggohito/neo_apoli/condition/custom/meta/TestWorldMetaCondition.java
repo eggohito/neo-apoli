@@ -1,20 +1,41 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record TestWorldMetaCondition(WorldCondition condition) implements ITestWorldMetaCondition {
+import java.util.function.Function;
 
-	public static final MapCodec<TestWorldMetaCondition> MAP_CODEC = ITestWorldMetaCondition.mapCodec(TestWorldMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldMetaCondition> STREAM_CODEC = ITestWorldMetaCondition.streamCodec(TestWorldMetaCondition::new);
+public interface TestWorldMetaCondition extends Condition {
+
+	WorldCondition condition();
 
 	@Override
-	public ConditionType<?> getType() {
-		return MetaConditionTypes.TEST_WORLD;
+	default boolean test(Context context) {
+		return condition().test(context.forChild(".condition"));
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+		Condition.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
+	}
+
+	static <M extends TestWorldMetaCondition> MapCodec<M> mapCodec(Function<WorldCondition, M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance
+			.group(WorldCondition.CODEC.fieldOf("condition").forGetter(TestWorldMetaCondition::condition))
+			.apply(instance, constructor));
+	}
+
+	static <M extends TestWorldMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<WorldCondition, M> constructor) {
+		return StreamCodec.composite(
+			WorldCondition.STREAM_CODEC, TestWorldMetaCondition::condition,
+			constructor
+		);
 	}
 
 }

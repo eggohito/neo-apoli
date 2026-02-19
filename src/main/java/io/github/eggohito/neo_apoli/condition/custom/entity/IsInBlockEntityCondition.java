@@ -18,7 +18,7 @@ import java.util.Set;
 
 public record IsInBlockEntityCondition(BlockCondition condition) implements EntityCondition {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.BLOCK_POS)
 		.required(NeoApoliContextParams.BLOCK_STATE)
 		.optional(NeoApoliContextParams.BLOCK_ENTITY)
@@ -70,7 +70,7 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMS).forChild(".block_condition"));
 	}
 
 }

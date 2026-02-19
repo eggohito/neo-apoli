@@ -32,7 +32,7 @@ import net.minecraft.world.phys.Vec3;
 
 public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntityAction, NbtProvider tag, NumberProvider divergence, NumberProvider speed, NumberProvider count) implements EntityAction {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet ACTION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ACTOR_ENTITY)
 		.required(NeoApoliContextParams.TARGET_ENTITY)
 		.required(NeoApoliContextParams.PROJECTILE_ENTITY)
@@ -158,7 +158,7 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 	public void validate(Context.Validator validator) {
 
 		EntityAction.super.validate(validator);
-		biEntityAction().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".bientity_action"));
+		biEntityAction().validate(validator.withAdditionalKeysFromSets(ACTION_PARAMS).forChild(".bientity_action"));
 
 		tag().validate(validator.forChild(".tag"));
 		divergence().validate(validator.forChild(".divergence"));

@@ -18,7 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public record HasEquippedItemEntityCondition(ItemCondition itemCondition, EquipmentSlotGroup slot) implements EntityCondition {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ITEM_STACK)
 		.build();
 
@@ -68,7 +68,7 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityCondition.super.validate(validator);
-		itemCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".item_condition"));
+		itemCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMS).forChild(".item_condition"));
 	}
 
 }

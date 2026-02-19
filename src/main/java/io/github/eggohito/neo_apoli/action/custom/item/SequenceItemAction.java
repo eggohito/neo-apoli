@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.action.custom.item;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.ISequenceMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.SequenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
@@ -11,10 +11,10 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record SequenceItemAction(List<ItemAction> actions) implements ItemAction, ISequenceMetaAction<ItemAction> {
+public record SequenceItemAction(List<ItemAction> actions) implements ItemAction, SequenceMetaAction<ItemAction> {
 
-	public static final MapCodec<SequenceItemAction> MAP_CODEC = MapCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.mapCodec(ItemAction.CODEC, SequenceItemAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> ISequenceMetaAction.streamCodec(ItemAction.STREAM_CODEC, SequenceItemAction::new));
+	public static final MapCodec<SequenceItemAction> MAP_CODEC = MapCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> SequenceMetaAction.mapCodec(ItemAction.CODEC, SequenceItemAction::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceItemAction.class.getSimpleName(), () -> SequenceMetaAction.streamCodec(ItemAction.STREAM_CODEC, SequenceItemAction::new));
 
 	@Override
 	public ItemActionType<?> getType() {

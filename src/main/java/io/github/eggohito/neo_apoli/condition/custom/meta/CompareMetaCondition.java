@@ -1,20 +1,40 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.meta.MetaConditionTypes;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.comparison.Comparison;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record CompareMetaCondition(Comparison comparison) implements ICompareMetaCondition {
+import java.util.function.Function;
 
-	public static final MapCodec<CompareMetaCondition> MAP_CODEC = ICompareMetaCondition.mapCodec(CompareMetaCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompareMetaCondition> STREAM_CODEC = ICompareMetaCondition.streamCodec(CompareMetaCondition::new);
+public interface CompareMetaCondition extends Condition {
+
+	Comparison comparison();
 
 	@Override
-	public ConditionType<?> getType() {
-		return MetaConditionTypes.COMPARE;
+	default boolean test(Context context) {
+		return comparison().compare(context.forChild(".comparison"));
+	}
+
+	@Override
+	default void validate(Context.Validator validator) {
+		comparison().validate(validator.forChild(".comparison"));
+	}
+
+	static <M extends CompareMetaCondition> MapCodec<M> mapCodec(Function<Comparison, M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			Comparison.CODEC.fieldOf("comparison").forGetter(CompareMetaCondition::comparison)
+		).apply(instance, constructor));
+	}
+
+	static <M extends CompareMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<Comparison, M> constructor) {
+		return StreamCodec.composite(
+			Comparison.STREAM_CODEC, CompareMetaCondition::comparison,
+			constructor
+		);
 	}
 
 }

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -26,9 +26,9 @@ import java.util.Optional;
 public class CallbackPowerTickPower extends Power {
 
 	public static final MapCodec<CallbackPowerTickPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("tick_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getTickAction))
-		.and(Action.CODEC.optionalFieldOf("rising_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getRisingAction))
-		.and(Action.CODEC.optionalFieldOf("falling_action", NothingMetaAction.INSTANCE).forGetter(CallbackPowerTickPower::getFallingAction))
+		.and(Action.CODEC.optionalFieldOf("tick_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getTickAction))
+		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getRisingAction))
+		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getFallingAction))
 		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
 		.apply(instance, CallbackPowerTickPower::new));
 

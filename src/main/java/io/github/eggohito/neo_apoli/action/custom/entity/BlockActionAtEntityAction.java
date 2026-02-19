@@ -18,7 +18,7 @@ import java.util.Set;
 
 public record BlockActionAtEntityAction(BlockAction blockAction) implements EntityAction {
 
-	public static final ContextKeySet ACTION_CONTEXT = new ContextKeySet.Builder()
+	public static final ContextKeySet ACTION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.BLOCK_POS)
 		.required(NeoApoliContextParams.BLOCK_STATE)
 		.optional(NeoApoliContextParams.BLOCK_ENTITY)
@@ -66,7 +66,7 @@ public record BlockActionAtEntityAction(BlockAction blockAction) implements Enti
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		blockAction().validate(validator.withAdditionalKeysFromSets(ACTION_CONTEXT).forChild(".block_action"));
+		blockAction().validate(validator.withAdditionalKeysFromSets(ACTION_PARAMS).forChild(".block_action"));
 	}
 
 }

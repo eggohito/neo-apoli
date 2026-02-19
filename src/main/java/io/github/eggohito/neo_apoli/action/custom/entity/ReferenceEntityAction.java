@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.custom.meta.IReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceEntityAction(ResourceLocation value) implements EntityAction, IReferenceMetaAction<EntityAction> {
+public record ReferenceEntityAction(ResourceLocation value) implements EntityAction, ReferenceMetaAction<EntityAction> {
 
-	public static final MapCodec<ReferenceEntityAction> MAP_CODEC = IReferenceMetaAction.mapCodec(ReferenceEntityAction::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = IReferenceMetaAction.streamCodec(ReferenceEntityAction::new);
+	public static final MapCodec<ReferenceEntityAction> MAP_CODEC = ReferenceMetaAction.mapCodec(ReferenceEntityAction::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceEntityAction::new);
 
 	@Override
 	public Pair<Class<EntityAction>, String> classAndName() {

@@ -2,17 +2,17 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.custom.meta.IReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceBlockCondition(ResourceLocation value) implements BlockCondition, IReferenceMetaCondition<BlockCondition> {
+public record ReferenceBlockCondition(ResourceLocation value) implements BlockCondition, ReferenceMetaCondition<BlockCondition> {
 
-	public static final MapCodec<ReferenceBlockCondition> MAP_CODEC = IReferenceMetaCondition.mapCodec(ReferenceBlockCondition::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = IReferenceMetaCondition.streamCodec(ReferenceBlockCondition::new);
+	public static final MapCodec<ReferenceBlockCondition> MAP_CODEC = ReferenceMetaCondition.mapCodec(ReferenceBlockCondition::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceBlockCondition::new);
 
 	@Override
 	public Pair<Class<BlockCondition>, String> classAndName() {

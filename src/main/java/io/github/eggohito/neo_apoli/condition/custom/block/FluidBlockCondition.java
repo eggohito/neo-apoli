@@ -15,7 +15,7 @@ import net.minecraft.world.level.material.FluidState;
 
 public record FluidBlockCondition(FluidCondition fluidCondition) implements BlockCondition {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
+	private static final ContextKeySet CONDITION_PARAMS = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.FLUID_STATE)
 		.build();
 
@@ -54,7 +54,7 @@ public record FluidBlockCondition(FluidCondition fluidCondition) implements Bloc
 	@Override
 	public void validate(Context.Validator validator) {
 		BlockCondition.super.validate(validator);
-		fluidCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".fluid_condition"));
+		fluidCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMS).forChild(".fluid_condition"));
 	}
 
 }
