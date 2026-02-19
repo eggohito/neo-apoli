@@ -37,12 +37,12 @@ public interface OverlayHudElement extends HudElement {
 	@Override
 	default boolean shouldRender(Context context, HudRenderPhase renderPhase) {
 		return this.renderPhase() == renderPhase
-			&& this.shouldRender().next(context.forChild(".should_render"));
+			&& this.shouldRender().nextBoolean(context.forChild(".should_render"));
 	}
 
 	@Override
 	default boolean hideWithHud(Context context) {
-		return hideWithHud().next(context.forChild(".hide_with_hud"));
+		return hideWithHud().nextBoolean(context.forChild(".hide_with_hud"));
 	}
 
 	@Override

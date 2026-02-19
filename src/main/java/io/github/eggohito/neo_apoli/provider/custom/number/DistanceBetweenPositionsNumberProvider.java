@@ -25,22 +25,22 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.DISTANCE_BETWEEN_POSITIONS;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context firstContext = context.forChild(".first");
-		Vec3 first = first().next(firstContext);
+		Vec3 first = first().nextVec3(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return 0.0d;
 		}
 
 		Context secondContext = context.forChild(".second");
-		Vec3 second = second().next(secondContext);
+		Vec3 second = second().nextVec3(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return 0.0d;

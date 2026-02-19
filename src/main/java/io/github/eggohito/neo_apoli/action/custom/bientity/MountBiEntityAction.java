@@ -44,7 +44,7 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 		Entity actor = context.getRequired(NeoApoliContextParams.ACTOR_ENTITY);
 		Entity target = context.getRequired(NeoApoliContextParams.TARGET_ENTITY);
 
-		boolean force = force().next(context.forChild(".force"));
+		boolean force = force().nextBoolean(context.forChild(".force"));
 		boolean successfulRide = actor.startRiding(target, force);
 
 		if (successfulRide) {

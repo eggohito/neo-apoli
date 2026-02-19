@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.action.custom.meta.IChoiceMetaAction;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
+import io.github.eggohito.neo_apoli.util.Case;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;

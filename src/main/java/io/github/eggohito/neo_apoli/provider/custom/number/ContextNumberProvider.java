@@ -2,12 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -20,21 +19,21 @@ import java.util.Set;
 public record ContextNumberProvider(ContextParameter<Number> parameter) implements NumberProvider {
 
 	public static final MapCodec<ContextNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(NeoApoliCodecs.NUMBER_CONTEXT_PARAM.fieldOf("parameter").forGetter(ContextNumberProvider::parameter))
+		.group(NeoApoliContextParams.Codecs.NUMBER.fieldOf("parameter").forGetter(ContextNumberProvider::parameter))
 		.apply(instance, ContextNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.NUMBER_CONTEXT_KEY, ContextNumberProvider::parameter,
+		NeoApoliContextParams.StreamCodecs.NUMBER, ContextNumberProvider::parameter,
 		ContextNumberProvider::new
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.CONTEXT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		ResourceLocation id = parameter().name();
 		Optional<Number> number = context.getOptional(parameter());

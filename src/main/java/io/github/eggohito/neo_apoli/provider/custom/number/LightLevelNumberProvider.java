@@ -33,15 +33,15 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.LIGHT_LEVEL;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().next(positionContext);
+		Vec3 position = position().nextVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return 0;

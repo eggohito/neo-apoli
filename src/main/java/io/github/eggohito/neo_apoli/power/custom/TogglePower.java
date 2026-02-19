@@ -91,7 +91,7 @@ public class TogglePower extends Power {
 
 		@Override
 		public void onGranted() {
-			this.toggled = power.getActiveByDefault().next(this.createHolderContext().forChild(".active_by_default"));
+			this.toggled = power.getActiveByDefault().nextBoolean(this.createHolderContext().forChild(".active_by_default"));
 		}
 
 		@Override
@@ -108,7 +108,7 @@ public class TogglePower extends Power {
 		@Override
 		public boolean shouldTick() {
 			return power.getActiveCondition().isPresent()
-				&& !power.getRetainState().next(this.createHolderContext().forChild(".retain_state"));
+				&& !power.getRetainState().nextBoolean(this.createHolderContext().forChild(".retain_state"));
 		}
 
 		@Override

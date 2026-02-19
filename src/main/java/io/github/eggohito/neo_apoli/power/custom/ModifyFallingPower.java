@@ -94,7 +94,7 @@ public class ModifyFallingPower extends Power {
 
 		public boolean shouldNegateFallDamage(Context context) {
 			return this.isActive(context)
-				&& power.getTakeFallDamage().next(context.forChild(".take_fall_damage"));
+				&& power.getTakeFallDamage().nextBoolean(context.forChild(".take_fall_damage"));
 		}
 
 	}

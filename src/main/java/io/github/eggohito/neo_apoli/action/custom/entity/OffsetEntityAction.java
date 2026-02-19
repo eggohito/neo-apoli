@@ -43,7 +43,7 @@ public record OffsetEntityAction(EntityAction action, Vec3Provider offset) imple
 		}
 
 		Vec3 pos = context.getRequired(NeoApoliContextParams.THIS_POS);
-		Vec3 offset = offset().next(context.forChild(".offset"));
+		Vec3 offset = offset().nextVec3(context.forChild(".offset"));
 
 		Context actionContext = new Context.Builder(context)
 			.withRequired(NeoApoliContextParams.THIS_POS, pos.add(offset))

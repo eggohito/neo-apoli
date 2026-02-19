@@ -34,12 +34,12 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType) implements Box
 	);
 
 	@Override
-	public BoxProviderType<?> getType() {
+	public @NotNull BoxProviderType<?> getType() {
 		return BoxProviderTypes.BLOCK_BOUNDS;
 	}
 
 	@Override
-	public @NotNull AABB next(Context context) {
+	public @NotNull AABB nextBox(Context context) {
 
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 

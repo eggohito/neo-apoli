@@ -31,12 +31,12 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.CLAMPED;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.nextOrElse(context, NumberProvider::nextDouble, Mth::clamp);
 	}
 

@@ -22,12 +22,12 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 	);
 
 	@Override
-	public BooleanProviderType<?> getType() {
+	public @NotNull BooleanProviderType<?> getType() {
 		return BooleanProviderTypes.CONDITION_RESULT;
 	}
 
 	@Override
-	public @NotNull Boolean next(Context context) {
+	public boolean nextBoolean(Context context) {
 		return condition().test(context.forChild(".condition"));
 	}
 

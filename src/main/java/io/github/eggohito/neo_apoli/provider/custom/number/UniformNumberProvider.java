@@ -34,12 +34,12 @@ public record UniformNumberProvider(Random random, NumberProvider min, NumberPro
 	}
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.UNIFORM;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.randomize(context, NumberProvider::nextDouble, RandomGenerator::nextDouble);
 	}
 

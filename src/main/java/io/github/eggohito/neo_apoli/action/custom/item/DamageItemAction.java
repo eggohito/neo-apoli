@@ -4,8 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -24,13 +22,13 @@ import net.minecraft.world.item.ItemStack;
 public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider amount, BooleanProvider ignoreUnbreaking) implements ItemAction {
 
 	public static final MapCodec<DamageItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(DamageItemAction::entity),
+		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(DamageItemAction::entity),
 		NumberProvider.CODEC.optionalFieldOf("amount", new ConstantNumberProvider(1)).forGetter(DamageItemAction::amount),
 		BooleanProvider.CODEC.optionalFieldOf("ignore_unbreaking", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreUnbreaking)
 	).apply(instance, DamageItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DamageItemAction> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, DamageItemAction::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, DamageItemAction::entity,
 		NumberProvider.STREAM_CODEC, DamageItemAction::amount,
 		BooleanProvider.STREAM_CODEC, DamageItemAction::ignoreUnbreaking,
 		DamageItemAction::new
@@ -51,7 +49,7 @@ public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider a
 		SlotAccess stackAccess = context.getRequired(NeoApoliContextParams.SLOT_ACCESS);
 		ItemStack stack = stackAccess.get();
 
-		boolean ignoreUnbreaking = ignoreUnbreaking().next(context.forChild(".ignore_unbreaking"));
+		boolean ignoreUnbreaking = ignoreUnbreaking().nextBoolean(context.forChild(".ignore_unbreaking"));
 		int amount = Math.abs(amount().nextInt(context.forChild(".amount")));
 
 		if (ignoreUnbreaking) {

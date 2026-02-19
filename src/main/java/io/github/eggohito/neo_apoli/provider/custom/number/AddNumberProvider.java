@@ -16,12 +16,12 @@ public record AddNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	public static final StreamCodec<RegistryFriendlyByteBuf, AddNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(AddNumberProvider::new);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ADD;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, Double::sum, 0.0d);
 	}
 

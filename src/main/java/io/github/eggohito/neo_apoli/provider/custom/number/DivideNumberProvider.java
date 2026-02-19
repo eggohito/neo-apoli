@@ -25,12 +25,12 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.DIVIDE;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context dividendContext = context.forChild(".dividend");
 		double dividend = dividend().nextDouble(dividendContext);

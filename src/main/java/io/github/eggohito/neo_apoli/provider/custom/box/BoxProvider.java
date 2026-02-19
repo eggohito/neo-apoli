@@ -9,15 +9,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import org.jetbrains.annotations.NotNull;
 
-public interface BoxProvider extends ValueProvider<AABB> {
+public interface BoxProvider extends ValueProvider {
 
 	Codec<BoxProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BoxProviderType.CODEC.dispatch(BoxProvider::getType, BoxProviderType::mapCodec), ConstantBoxProvider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, BoxProvider> STREAM_CODEC = BoxProviderType.STREAM_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
 
-	@Override
+	@NotNull
 	BoxProviderType<?> getType();
+
+	@NotNull
+	AABB nextBox(Context context);
 
 	default CollisionContext getCollisionContext(Context context) {
 		return CollisionContext.empty();

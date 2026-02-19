@@ -21,12 +21,12 @@ public enum ItemCountMaxNumberProvider implements NumberProvider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ItemCountMaxNumberProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ITEM_COUNT_MAX;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(ItemStack::getMaxStackSize)
 			.orElse(0);

@@ -24,19 +24,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class Context implements ContextParamsHolder {
+public final class Context implements ContextParamsHolder {
 
 	public static final ClearableVisitor<ContextUser> GLOBAL_VISITOR = ClearableVisitor.createThreadLocalized();
 
 	@Getter
-	protected final Level level;
+	private final Level level;
 	@Getter
-	protected final Reporter reporter;
+	private final Reporter reporter;
 
-	protected final ContextParams params;
-	protected final Set<ContextUser> visited;
+	private final ContextParams params;
+	private final Set<ContextUser> visited;
 
-	protected Context(Level level, Reporter reporter, ContextParams params, Set<ContextUser> visited) {
+	private Context(Level level, Reporter reporter, ContextParams params, Set<ContextUser> visited) {
 		this.level = level;
 		this.reporter = reporter;
 		this.params = params;

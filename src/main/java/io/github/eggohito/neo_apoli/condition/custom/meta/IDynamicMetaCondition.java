@@ -18,7 +18,7 @@ public interface IDynamicMetaCondition extends MetaCondition {
 	default boolean test(Context context) {
 
 		Context valueContext = context.forChild(".value");
-		boolean value = value().next(valueContext);
+		boolean value = value().nextBoolean(valueContext);
 
 		return !valueContext.hasErrors()
 			&& value;

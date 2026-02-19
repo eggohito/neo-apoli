@@ -26,12 +26,12 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.BINOMIAL;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		RandomSource random = context.level().getRandom();
 		long result = 0;

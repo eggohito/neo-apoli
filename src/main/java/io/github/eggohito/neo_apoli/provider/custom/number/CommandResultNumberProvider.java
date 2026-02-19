@@ -30,12 +30,12 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.COMMAND_RESULT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		if (!(context.level() instanceof ServerLevel serverWorld)) {
 			return 0;
@@ -45,7 +45,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 		AtomicInteger result = new AtomicInteger();
 
 		Context commandContext = context.forChild(".command");
-		String command = command().next(commandContext);
+		String command = command().nextString(commandContext);
 
 		if (commandContext.hasErrors()) {
 			return result.get();

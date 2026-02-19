@@ -28,12 +28,12 @@ public record ConstantBooleanProvider(boolean value) implements BooleanProvider 
 	);
 
 	@Override
-	public BooleanProviderType<?> getType() {
+	public @NotNull BooleanProviderType<?> getType() {
 		return BooleanProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public @NotNull Boolean next(Context context) {
+	public boolean nextBoolean(Context context) {
 		return value();
 	}
 

@@ -35,12 +35,12 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ROUND;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		double number = number().nextDouble(context.forChild(".number"));
 		int places = Math.abs(places().nextInt(context.forChild(".places")));

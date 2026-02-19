@@ -23,12 +23,12 @@ public record AbsoluteNumberProvider(NumberProvider number) implements NumberPro
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ABSOLUTE;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return Math.abs(this.number().nextDouble(context.forChild(".number")));
 	}
 

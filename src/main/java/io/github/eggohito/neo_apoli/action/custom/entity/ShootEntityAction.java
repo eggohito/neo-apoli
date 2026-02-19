@@ -80,7 +80,7 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 
 		for (int i = 0; i < count; i++) {
 
-			if (!(tag().next(context.forChild(".tag")) instanceof CompoundTag entityTag)) {
+			if (!(tag().nextTag(context.forChild(".tag")) instanceof CompoundTag entityTag)) {
 				continue;
 			}
 

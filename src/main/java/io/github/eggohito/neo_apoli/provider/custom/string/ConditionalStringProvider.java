@@ -12,19 +12,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalStringProvider(Condition condition, StringProvider ifValue, StringProvider elseValue) implements StringProvider, ConditionalValueProvider<StringProvider, String> {
+public record ConditionalStringProvider(Condition condition, StringProvider ifValue, StringProvider elseValue) implements StringProvider, ConditionalValueProvider<StringProvider> {
 
 	public static final MapCodec<ConditionalStringProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(StringProvider.CODEC, ConditionalStringProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(StringProvider.STREAM_CODEC, ConditionalStringProvider::new));
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public @NotNull String next(Context context) {
-		return internalNextOrElse(context, () -> "");
+	public @NotNull String nextString(Context context) {
+		return nextOrElse(context, StringProvider::nextString, () -> "");
 	}
 
 }

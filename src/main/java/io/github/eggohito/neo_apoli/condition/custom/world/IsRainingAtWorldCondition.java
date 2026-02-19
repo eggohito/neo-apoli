@@ -41,7 +41,7 @@ public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements
 		while (listIterator.hasNext()) {
 
 			Context positionContext = context.forChild(".positions[" + listIterator.nextIndex() + "]");
-			BlockPos blockPos = BlockPos.containing(listIterator.next().next(positionContext));
+			BlockPos blockPos = BlockPos.containing(listIterator.next().nextVec3(positionContext));
 
 			if (!positionContext.hasErrors() && level.hasChunkAt(blockPos) && level.isRainingAt(blockPos)) {
 				return true;

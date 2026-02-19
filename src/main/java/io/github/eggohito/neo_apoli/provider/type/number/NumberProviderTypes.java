@@ -28,7 +28,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<SubtractNumberProvider> SUBTRACT = registerInternal("subtract", SubtractNumberProvider.MAP_CODEC, SubtractNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<UniformNumberProvider> UNIFORM = registerInternal("uniform", UniformNumberProvider.MAP_CODEC, UniformNumberProvider.STREAM_CODEC);
 
-	public static final NumberProviderType<AdjacentBlocksNumberProvider> ADJACENT_BLOCKS_NUMBER_PROVIDER = registerInternal("adjacent_blocks", AdjacentBlocksNumberProvider.MAP_CODEC, AdjacentBlocksNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<AdjacentBlocksNumberProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksNumberProvider.MAP_CODEC, AdjacentBlocksNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<AttributeNumberProvider> ATTRIBUTE = registerInternal("attribute", AttributeNumberProvider.MAP_CODEC, AttributeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BlocksCollidingBoxNumberProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxNumberProvider.MAP_CODEC, BlocksCollidingBoxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BlocksInRadiusNumberProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusNumberProvider.MAP_CODEC, BlocksInRadiusNumberProvider.STREAM_CODEC);

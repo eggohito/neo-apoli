@@ -23,15 +23,15 @@ public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.BOX_SIZE;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context boxContext = context.forChild(".box");
-		AABB box = box().next(boxContext);
+		AABB box = box().nextBox(boxContext);
 
 		if (boxContext.hasErrors()) {
 			return 0.0D;

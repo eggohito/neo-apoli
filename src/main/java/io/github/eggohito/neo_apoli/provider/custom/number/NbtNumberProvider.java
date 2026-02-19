@@ -32,15 +32,15 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.NBT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context sourceContext = context.forChild(".source");
-		Tag source = source().next(sourceContext);
+		Tag source = source().nextTag(sourceContext);
 
 		if (sourceContext.hasErrors()) {
 			return 0;

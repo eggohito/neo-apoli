@@ -52,10 +52,10 @@ public interface SpawnParticlesMetaAction extends MetaAction {
 			return;
 		}
 
-		Vec3 position = position().next(context.forChild(".position"));
-		Vec3 spread = spread().next(context.forChild(".spread"));
+		Vec3 position = position().nextVec3(context.forChild(".position"));
+		Vec3 spread = spread().nextVec3(context.forChild(".spread"));
 
-		boolean force = force().next(context.forChild(".force"));
+		boolean force = force().nextBoolean(context.forChild(".force"));
 		float speed = speed().nextFloat(context.forChild(".speed"));
 		int count = count().nextInt(context.forChild(".count"));
 

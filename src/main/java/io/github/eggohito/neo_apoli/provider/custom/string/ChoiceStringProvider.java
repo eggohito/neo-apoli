@@ -1,24 +1,33 @@
 package io.github.eggohito.neo_apoli.provider.custom.string;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.ChoiceValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.util.Case;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record ChoiceStringProvider(List<Case<StringProvider>> cases, StringProvider defaultValue) implements StringProvider, ChoiceValueProvider<StringProvider, String> {
+public record ChoiceStringProvider(List<Case<Condition, StringProvider>> cases, StringProvider defaultValue) implements StringProvider, ChoiceValueProvider<StringProvider> {
 
 	public static final MapCodec<ChoiceStringProvider> MAP_CODEC = MapCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.mapCodec(StringProvider.CODEC, ChoiceStringProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ChoiceStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(ChoiceStringProvider.class.getSimpleName(), () -> ChoiceValueProvider.streamCodec(StringProvider.STREAM_CODEC, ChoiceStringProvider::new));
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.CHOICE;
+	}
+
+	@Override
+	public @NotNull String nextString(Context context) {
+		return nextOrDefault(context, StringProvider::nextString);
 	}
 
 }

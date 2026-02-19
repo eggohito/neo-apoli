@@ -29,19 +29,19 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.KEY_PRESSED_TIME;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 			return 0L;
 		}
 
 		Context idContext = context.forChild(".id");
-		String id = id().next(idContext);
+		String id = id().nextString(idContext);
 
 		if (idContext.hasErrors() || id.isEmpty()) {
 			return 0L;

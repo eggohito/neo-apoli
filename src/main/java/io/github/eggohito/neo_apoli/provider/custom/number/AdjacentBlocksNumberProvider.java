@@ -36,18 +36,18 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
-		return NumberProviderTypes.ADJACENT_BLOCKS_NUMBER_PROVIDER;
+	public @NotNull NumberProviderType<?> getType() {
+		return NumberProviderTypes.ADJACENT_BLOCKS;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Level level = context.level();
 		long matches = 0;
 
 		Context positionContext = context.forChild(".position");
-		BlockPos blockPos = BlockPos.containing(position().next(positionContext));
+		BlockPos blockPos = BlockPos.containing(position().nextVec3(positionContext));
 
 		if (positionContext.hasErrors()) {
 			return matches;

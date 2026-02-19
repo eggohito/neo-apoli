@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -21,23 +22,23 @@ import java.util.Set;
 public record EntityPositionVec3Provider(ContextParameter<Entity> entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
 
 	public static final MapCodec<EntityPositionVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityPositionVec3Provider::entity),
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityPositionVec3Provider::entity),
 		NeoApoliCodecs.ENTITY_ANCHOR.optionalFieldOf("anchor", EntityAnchorArgument.Anchor.FEET).forGetter(EntityPositionVec3Provider::anchor)
 	).apply(instance, EntityPositionVec3Provider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityPositionVec3Provider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntityPositionVec3Provider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, EntityPositionVec3Provider::entity,
 		NeoApoliStreamCodecs.ENTITY_ANCHOR, EntityPositionVec3Provider::anchor,
 		EntityPositionVec3Provider::new
 	);
 
 	@Override
-	public Vec3ProviderType<?> getType() {
+	public @NotNull Vec3ProviderType<?> getType() {
 		return Vec3ProviderTypes.ENTITY_POSITION;
 	}
 
 	@Override
-	public @NotNull Vec3 next(Context context) {
+	public @NotNull Vec3 nextVec3(Context context) {
 		return context.getOptional(entity())
 			.map(anchor()::apply)
 			.orElse(Vec3.ZERO);

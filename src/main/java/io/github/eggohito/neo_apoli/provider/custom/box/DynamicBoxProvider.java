@@ -26,15 +26,15 @@ public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements 
 	);
 
 	@Override
-	public BoxProviderType<?> getType() {
+	public @NotNull BoxProviderType<?> getType() {
 		return BoxProviderTypes.DYNAMIC;
 	}
 
 	@Override
-	public @NotNull AABB next(Context context) {
+	public @NotNull AABB nextBox(Context context) {
 
-		Vec3 min = min().next(context.forChild(".min"));
-		Vec3 max = max().next(context.forChild(".max"));
+		Vec3 min = min().nextVec3(context.forChild(".min"));
+		Vec3 max = max().nextVec3(context.forChild(".max"));
 
 		return new AABB(min, max);
 

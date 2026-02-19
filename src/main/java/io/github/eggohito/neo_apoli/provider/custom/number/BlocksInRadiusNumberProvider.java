@@ -43,18 +43,18 @@ public record BlocksInRadiusNumberProvider(BlockCondition blockCondition, Vec3Pr
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.BLOCKS_IN_RADIUS;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Level level = context.level();
 		int matches = 0;
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().next(positionContext);
+		Vec3 position = position().nextVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return matches;

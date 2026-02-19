@@ -9,7 +9,6 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
@@ -39,7 +38,6 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
@@ -167,10 +165,6 @@ public class NeoApoliCodecs {
 	public static final Codec<List<AttributedModifier>> NONEMPTY_ATTRIBUTE_MODIFIERS = ExtraCodecs.nonEmptyList(AttributedModifier.CODEC.listOf());
 
 	public static final Codec<Vec3> VECTOR_3_DOUBLE = new MultiAlternativeCodec<>(Vec3.CODEC, NeoApoliMapCodecs.VECTOR_3_DOUBLE.codec());
-
-	public static final Codec<ContextParameter<Number>> NUMBER_CONTEXT_PARAM = ContextParameter.codec("number", Number.class);
-
-	public static final Codec<ContextParameter<Entity>> ENTITY_CONTEXT_PARAM = ContextParameter.codec("entity", Entity.class);
 
 	public static final Codec<ClipContext.Block> BLOCK_CLIP_CONTEXT = CodecUtil.enumType(ClipContext.Block.class);
 

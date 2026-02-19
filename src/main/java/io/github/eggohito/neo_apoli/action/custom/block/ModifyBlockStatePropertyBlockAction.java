@@ -86,7 +86,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
 		BlockState blockState = serverLevel.getBlockState(blockPos);
 
-		String propertyName = property().next(context.forChild(".property"));
+		String propertyName = property().nextString(context.forChild(".property"));
 		Property<?> property = blockState.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
@@ -96,7 +96,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 		else {
 
 			boolean cycle = cycle()
-				.map(provider -> provider.next(context.forChild(".cycle")))
+				.map(provider -> provider.nextBoolean(context.forChild(".cycle")))
 				.orElse(false);
 
 			if (cycle) {
@@ -122,7 +122,7 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 	private <T extends Comparable<T>> void setValue(Context context, BlockState state, Property<T> property) {
 
 		Optional<T> value = value()
-			.map(provider -> provider.next(context.forChild(".value")))
+			.map(provider -> provider.nextString(context.forChild(".value")))
 			.flatMap(property::getValue);
 
 		if (value.isPresent()) {

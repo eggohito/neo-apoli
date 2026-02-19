@@ -47,7 +47,7 @@ public record OffsetEntityCondition(EntityCondition condition, Vec3Provider offs
 		}
 
 		Context offsetContext = context.forChild(".offset");
-		Vec3 offset = offset().next(offsetContext);
+		Vec3 offset = offset().nextVec3(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;

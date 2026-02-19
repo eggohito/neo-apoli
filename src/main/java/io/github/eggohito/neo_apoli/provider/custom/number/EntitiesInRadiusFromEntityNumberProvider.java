@@ -2,8 +2,6 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -34,26 +32,26 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 
 	public static final MapCodec<EntitiesInRadiusFromEntityNumberProvider> MAP_CODEC = MapCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BiEntityCondition.CODEC.optionalFieldOf("bientity_condition", new ConstantBiEntityCondition(true)).forGetter(EntitiesInRadiusFromEntityNumberProvider::biEntityCondition),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("actor").forGetter(EntitiesInRadiusFromEntityNumberProvider::actor),
 		Shape.CODEC.fieldOf("shape").forGetter(EntitiesInRadiusFromEntityNumberProvider::shape),
 		NumberProvider.CODEC.fieldOf("radius").forGetter(EntitiesInRadiusFromEntityNumberProvider::radius)
 	).apply(instance, EntitiesInRadiusFromEntityNumberProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntitiesInRadiusFromEntityNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntitiesInRadiusFromEntityNumberProvider.class.getSimpleName(), () -> StreamCodec.composite(
 		BiEntityCondition.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::biEntityCondition,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntitiesInRadiusFromEntityNumberProvider::actor,
+		NeoApoliContextParams.StreamCodecs.ENTITY, EntitiesInRadiusFromEntityNumberProvider::actor,
 		Shape.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::shape,
 		NumberProvider.STREAM_CODEC, EntitiesInRadiusFromEntityNumberProvider::radius,
 		EntitiesInRadiusFromEntityNumberProvider::new
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ENTITIES_IN_RADIUS_FROM_ENTITY;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		if (!context.hasParameter(actor())) {
 			return 0;

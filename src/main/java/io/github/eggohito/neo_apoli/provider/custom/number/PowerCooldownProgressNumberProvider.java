@@ -2,14 +2,13 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,22 +22,22 @@ public record PowerCooldownProgressNumberProvider(PowerReference power, ContextP
 
 	public static final MapCodec<PowerCooldownProgressNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownProgressNumberProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(PowerCooldownProgressNumberProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(PowerCooldownProgressNumberProvider::entity)
 	).apply(instance, PowerCooldownProgressNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownProgressNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		PowerReference.STREAM_CODEC, PowerCooldownProgressNumberProvider::power,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, PowerCooldownProgressNumberProvider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, PowerCooldownProgressNumberProvider::entity,
 		PowerCooldownProgressNumberProvider::new
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.POWER_COOLDOWN_PROGRESS;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Entity entity = context.getNullable(entity());
 		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)

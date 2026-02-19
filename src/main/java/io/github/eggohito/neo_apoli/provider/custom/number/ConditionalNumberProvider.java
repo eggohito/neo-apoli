@@ -12,19 +12,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalNumberProvider(Condition condition, NumberProvider ifValue, NumberProvider elseValue) implements NumberProvider, ConditionalValueProvider<NumberProvider, Number> {
+public record ConditionalNumberProvider(Condition condition, NumberProvider ifValue, NumberProvider elseValue) implements NumberProvider, ConditionalValueProvider<NumberProvider> {
 
 	public static final MapCodec<ConditionalNumberProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(NumberProvider.CODEC, ConditionalNumberProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(NumberProvider.STREAM_CODEC, ConditionalNumberProvider::new));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
-		return this.internalNextOrElse(context, () -> 0.0D);
+	public @NotNull Number nextNumber(Context context) {
+		return this.nextOrElse(context, NumberProvider::nextNumber, () -> 0.0D);
 	}
 
 }

@@ -45,7 +45,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 		}
 
 		Context propertyContext = context.forChild(".property");
-		String propertyName = property().next(propertyContext);
+		String propertyName = property().nextString(propertyContext);
 
 		if (propertyContext.hasErrors() || propertyName.isEmpty()) {
 			return false;
@@ -81,7 +81,7 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	private <T extends Comparable<T>> boolean testProperty(Context context, StateHolder<?, ?> state, Property<T> property) {
 
 		Context valueContext = context.forChild(".value");
-		String unparsedValue = this.value().next(valueContext);
+		String unparsedValue = this.value().nextString(valueContext);
 
 		if (valueContext.hasErrors()) {
 			return false;

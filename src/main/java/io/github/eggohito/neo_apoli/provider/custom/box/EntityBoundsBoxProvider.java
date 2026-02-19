@@ -2,12 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -24,21 +23,21 @@ import java.util.Set;
 public record EntityBoundsBoxProvider(ContextParameter<Entity> entity) implements BoxProvider {
 
 	public static final MapCodec<EntityBoundsBoxProvider> MAP_CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
 	).apply(instance, EntityBoundsBoxProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityBoundsBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntityBoundsBoxProvider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, EntityBoundsBoxProvider::entity,
 		EntityBoundsBoxProvider::new
 	));
 
 	@Override
-	public BoxProviderType<?> getType() {
+	public @NotNull BoxProviderType<?> getType() {
 		return BoxProviderTypes.ENTITY_BOUNDS;
 	}
 
 	@Override
-	public @NotNull AABB next(Context context) {
+	public @NotNull AABB nextBox(Context context) {
 
 		if (!context.hasParameter(entity())) {
 			context.forChild(".entity").reportProblem("Couldn't get the bounding box of a non-existing entity!");

@@ -22,12 +22,12 @@ public enum BlockPositionVec3Provider implements Vec3Provider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockPositionVec3Provider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public Vec3ProviderType<?> getType() {
+	public @NotNull Vec3ProviderType<?> getType() {
 		return Vec3ProviderTypes.BLOCK_POSITION;
 	}
 
 	@Override
-	public @NotNull Vec3 next(Context context) {
+	public @NotNull Vec3 nextVec3(Context context) {
 		return context.getOptional(NeoApoliContextParams.BLOCK_POS)
 			.map(BlockPos::getCenter)
 			.orElse(Vec3.ZERO);

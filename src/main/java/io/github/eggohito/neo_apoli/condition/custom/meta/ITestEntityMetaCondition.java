@@ -2,8 +2,6 @@ package io.github.eggohito.neo_apoli.condition.custom.meta;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
@@ -59,14 +57,14 @@ public interface ITestEntityMetaCondition extends MetaCondition {
 	static <M extends ITestEntityMetaCondition> MapCodec<M> mapCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			EntityCondition.CODEC.fieldOf("condition").forGetter(ITestEntityMetaCondition::condition),
-			NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(ITestEntityMetaCondition::entity)
+			NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(ITestEntityMetaCondition::entity)
 		).apply(instance, constructor));
 	}
 
 	static <M extends ITestEntityMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
 		return StreamCodec.composite(
 			EntityCondition.STREAM_CODEC, ITestEntityMetaCondition::condition,
-			NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, ITestEntityMetaCondition::entity,
+			NeoApoliContextParams.StreamCodecs.ENTITY, ITestEntityMetaCondition::entity,
 			constructor
 		);
 	}

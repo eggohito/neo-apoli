@@ -37,12 +37,12 @@ public record ConstantVec3Provider(double x, double y, double z) implements Vec3
 	}
 
 	@Override
-	public Vec3ProviderType<?> getType() {
+	public @NotNull Vec3ProviderType<?> getType() {
 		return Vec3ProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public @NotNull Vec3 next(Context context) {
+	public @NotNull Vec3 nextVec3(Context context) {
 		return get();
 	}
 

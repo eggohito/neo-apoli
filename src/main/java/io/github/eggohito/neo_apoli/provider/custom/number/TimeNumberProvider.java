@@ -27,12 +27,12 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.TIME;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Level world = context.level();
 		long time = world.getGameTime();

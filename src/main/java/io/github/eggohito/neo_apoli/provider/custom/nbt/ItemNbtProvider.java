@@ -26,12 +26,12 @@ public enum ItemNbtProvider implements NbtProvider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ItemNbtProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public NbtProviderType<?> getType() {
+	public @NotNull NbtProviderType<?> getType() {
 		return NbtProviderTypes.ITEM;
 	}
 
 	@Override
-	public @NotNull Tag next(Context context) {
+	public @NotNull Tag nextTag(Context context) {
 
 		RegistryOps<Tag> ops = context.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		Optional<ItemStack> optStack = context.getOptional(NeoApoliContextParams.ITEM_STACK);

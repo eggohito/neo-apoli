@@ -2,14 +2,13 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,22 +22,22 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Co
 
 	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
 	).apply(instance, PowerCooldownRemainingTicksNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownRemainingTicksNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		PowerReference.STREAM_CODEC, PowerCooldownRemainingTicksNumberProvider::power,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, PowerCooldownRemainingTicksNumberProvider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, PowerCooldownRemainingTicksNumberProvider::entity,
 		PowerCooldownRemainingTicksNumberProvider::new
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.POWER_COOLDOWN_REMAINING_TICKS;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Entity entity = context.getNullable(entity());
 		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)

@@ -28,12 +28,12 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	);
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public @NotNull String next(Context context) {
+	public @NotNull String nextString(Context context) {
 		return value();
 	}
 

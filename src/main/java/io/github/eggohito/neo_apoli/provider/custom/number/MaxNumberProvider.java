@@ -16,12 +16,12 @@ public record MaxNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	public static final StreamCodec<RegistryFriendlyByteBuf, MaxNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(MaxNumberProvider::new);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.MAX;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::max, 0.0d);
 	}
 

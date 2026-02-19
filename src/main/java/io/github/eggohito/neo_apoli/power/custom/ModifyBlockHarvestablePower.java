@@ -86,7 +86,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().next(context.forChild(".allow"));
+			return power.getAllow().nextBoolean(context.forChild(".allow"));
 		}
 
 	}

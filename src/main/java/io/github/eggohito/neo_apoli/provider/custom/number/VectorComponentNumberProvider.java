@@ -27,15 +27,15 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.VECTOR_COMPONENT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context vectorContext = context.forChild(".vector");
-		Vec3 vector = vector().next(vectorContext);
+		Vec3 vector = vector().nextVec3(vectorContext);
 
 		if (vectorContext.hasErrors()) {
 			return 0.0d;

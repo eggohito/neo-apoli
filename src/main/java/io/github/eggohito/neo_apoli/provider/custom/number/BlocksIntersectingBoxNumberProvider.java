@@ -36,18 +36,18 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.BLOCKS_INTERSECTING_BOX;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Level level = context.level();
 		int matches = 0;
 
 		Context boxContext = context.forChild(".box");
-		AABB box = box().next(boxContext);
+		AABB box = box().nextBox(boxContext);
 
 		if (boxContext.hasErrors()) {
 			return matches;

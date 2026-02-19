@@ -3,12 +3,11 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
@@ -37,24 +36,24 @@ public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchant
 		Enchantment.CODEC.fieldOf("enchantment").forGetter(EquippedEnchantmentLevelNumberProvider::enchantment),
 		EquipmentSlotGroup.CODEC.optionalFieldOf("slot_group", EquipmentSlotGroup.ANY).forGetter(EquippedEnchantmentLevelNumberProvider::slotGroup),
 		Calculation.CODEC.optionalFieldOf("calculation", Calculation.MAX).forGetter(EquippedEnchantmentLevelNumberProvider::calculation),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
 	).apply(instance, EquippedEnchantmentLevelNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EquippedEnchantmentLevelNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		Enchantment.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::enchantment,
 		EquipmentSlotGroup.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::slotGroup,
 		Calculation.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::calculation,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EquippedEnchantmentLevelNumberProvider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, EquippedEnchantmentLevelNumberProvider::entity,
 		EquippedEnchantmentLevelNumberProvider::new
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.EQUIPPED_ENCHANTMENT_LEVEL;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Registry<Enchantment> enchantmentRegistry = context.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 		ResourceLocation enchantmentId = enchantment().unwrap().map(ResourceKey::location, enchantmentRegistry::getKey);

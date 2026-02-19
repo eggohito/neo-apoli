@@ -31,12 +31,12 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.LINEAR_INTERPOLATED;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.lerp(context, NumberProvider::nextDouble, Mth::lerp);
 	}
 

@@ -6,8 +6,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextUser;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import io.github.eggohito.neo_apoli.util.Case;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -36,7 +36,7 @@ public interface IChoiceMetaAction<C extends Condition, A extends Action> extend
 				continue;
 			}
 
-			aCase.action().execute(caseContext.forChild(".action"));
+			aCase.value().execute(caseContext.forChild(".action"));
 			return;
 
 		}
@@ -49,16 +49,18 @@ public interface IChoiceMetaAction<C extends Condition, A extends Action> extend
 	default void validate(Context.Validator validator) {
 
 		MetaAction.super.validate(validator);
-		ListIterator<Case<C, A>> listIterator = cases().listIterator();
 
-		while (listIterator.hasNext()) {
+		MiscUtil.iterateList(
+			cases(),
+			(index, aCase) -> {
 
-			int index = listIterator.nextIndex();
-			Case<C, A> aCase = listIterator.next();
+				Context.Validator caseValidator = validator.forChild(".cases[" + index + "]");
 
-			aCase.validate(validator.forChild(".cases[" + index + "]"));
+				aCase.condition().validate(caseValidator.forChild(".condition"));
+				aCase.value().validate(caseValidator.forChild(".action"));
 
-		}
+			}
+		);
 
 		defaultAction().validate(validator.forChild(".default"));
 
@@ -66,46 +68,17 @@ public interface IChoiceMetaAction<C extends Condition, A extends Action> extend
 
 	static <C extends Condition, A extends Action, M extends IChoiceMetaAction<C, A>> MapCodec<M> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Case.mapCodec(conditionCodec, actionCodec).listOf().fieldOf("cases").forGetter(IChoiceMetaAction::cases),
+			Case.codec(conditionCodec.fieldOf("condition"), actionCodec.fieldOf("action")).listOf().fieldOf("cases").forGetter(IChoiceMetaAction::cases),
 			actionCodec.fieldOf("default").forGetter(IChoiceMetaAction::defaultAction)
 		).apply(instance, constructor));
 	}
 
 	static <C extends Condition, A extends Action, M extends IChoiceMetaAction<C, A>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec, BiFunction<List<Case<C, A>>, A, M> constructor) {
 		return StreamCodec.composite(
-			ByteBufCodecs.collection(ObjectArrayList::new, Case.streamCodec(conditionCodec, actionCodec)), IChoiceMetaAction::cases,
+			Case.streamCodec(conditionCodec, actionCodec).apply(ByteBufCodecs.list()), IChoiceMetaAction::cases,
 			actionCodec, IChoiceMetaAction::defaultAction,
 			constructor
 		);
-	}
-
-	record Case<C extends Condition, A extends Action>(C condition, A action) implements ContextUser {
-
-		@Override
-		public void validate(Context.Validator validator) {
-
-			ContextUser.super.validate(validator);
-
-			condition().validate(validator.forChild(".condition"));
-			action().validate(validator.forChild(".action"));
-
-		}
-
-		public static <C extends Condition, A extends Action> Codec<Case<C, A>> mapCodec(Codec<C> conditionCodec, Codec<A> actionCodec) {
-			return RecordCodecBuilder.create(instance -> instance.group(
-				conditionCodec.fieldOf("condition").forGetter(Case::condition),
-				actionCodec.fieldOf("action").forGetter( Case::action)
-			).apply(instance, Case::new));
-		}
-
-		public static <C extends Condition, A extends Action> StreamCodec<RegistryFriendlyByteBuf, Case<C, A>> streamCodec(StreamCodec<RegistryFriendlyByteBuf, C> conditionCodec, StreamCodec<RegistryFriendlyByteBuf, A> actionCodec) {
-			return StreamCodec.composite(
-				conditionCodec, Case::condition,
-				actionCodec, Case::action,
-				Case::new
-			);
-		}
-
 	}
 
 }

@@ -3,7 +3,9 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,8 +15,6 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import java.util.List;
-import java.util.ListIterator;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -25,7 +25,7 @@ public interface MultiNumberProvider extends NumberProvider {
 	@Override
 	default void validate(Context.Validator validator) {
 		NumberProvider.super.validate(validator);
-		this.iterate((index, number) -> number.validate(validator.forChild(".numbers[" + index + "]")));
+		ContextHelper.validateAll(numbers(), validator, index -> ".numbers[" + index + "]");
 	}
 
 	default <N extends Number> N iterateAndProcess(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> processor, N initialValue) {
@@ -33,37 +33,43 @@ public interface MultiNumberProvider extends NumberProvider {
 		MutableObject<N> result = new MutableObject<>(initialValue);
 		MutableBoolean init = new MutableBoolean(false);
 
-		this.iterate((index, number) -> {
+		MiscUtil.iterateList(
+			numbers(),
+			(index, number) -> {
 
-			Context numberContext = context.forChild(".numbers[" + index + "]");
-			N value = getter.apply(number, numberContext);
+				Context numberContext = context.forChild(".numbers[" + index + "]");
+				N value = getter.apply(number, numberContext);
 
-			if (!numberContext.hasErrors()) {
+				try {
 
-				if (init.isTrue()) {
-					result.setValue(processor.apply(result.getValue(), value));
+					if (numberContext.visitor().push(number) && !numberContext.hasErrors()) {
+
+						if (init.isTrue()) {
+							result.setValue(processor.apply(result.getValue(), value));
+						}
+
+						else {
+							result.setValue(value);
+						}
+
+					}
+
+					else {
+						numberContext.reportProblem("Number provider was invoked recursively!");
+					}
+
 				}
 
-				else {
-					result.setValue(value);
-					init.setTrue();
+				finally {
+					numberContext.visitor().pop(number);
 				}
+
+				init.setTrue();
 
 			}
-
-		});
+		);
 
 		return result.getValue();
-
-	}
-
-	default void iterate(BiConsumer<Integer, NumberProvider> processor) {
-
-		ListIterator<NumberProvider> listIterator = numbers().listIterator();
-
-		while (listIterator.hasNext()) {
-			processor.accept(listIterator.nextIndex(), listIterator.next());
-		}
 
 	}
 

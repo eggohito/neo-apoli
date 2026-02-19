@@ -12,19 +12,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalBooleanProvider(Condition condition, BooleanProvider ifValue, BooleanProvider elseValue) implements BooleanProvider, ConditionalValueProvider<BooleanProvider, Boolean> {
+public record ConditionalBooleanProvider(Condition condition, BooleanProvider ifValue, BooleanProvider elseValue) implements BooleanProvider, ConditionalValueProvider<BooleanProvider> {
 
 	public static final MapCodec<ConditionalBooleanProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalBooleanProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(BooleanProvider.CODEC, ConditionalBooleanProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBooleanProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BooleanProvider.STREAM_CODEC, ConditionalBooleanProvider::new));
 
 	@Override
-	public BooleanProviderType<?> getType() {
+	public @NotNull BooleanProviderType<?> getType() {
 		return BooleanProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public @NotNull Boolean next(Context context) {
-		return internalNextOrElse(context, () -> false);
+	public boolean nextBoolean(Context context) {
+		return nextOrElse(context, BooleanProvider::nextBoolean, () -> false);
 	}
 
 }

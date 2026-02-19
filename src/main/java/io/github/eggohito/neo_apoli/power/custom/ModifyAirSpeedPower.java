@@ -61,7 +61,7 @@ public class ModifyAirSpeedPower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 		super.validate(validator);
-		MiscUtil.iterate(getModifiers(), (index, modifier) -> modifier.validate(validator.forChild(".modifiers[" + index + "]")));
+		MiscUtil.iterateList(getModifiers(), (index, modifier) -> modifier.validate(validator.forChild(".modifiers[" + index + "]")));
 	}
 
 	public static class Instance extends Power.Instance<ModifyAirSpeedPower> {
@@ -87,7 +87,7 @@ public class ModifyAirSpeedPower extends Power {
 			try {
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
-					MiscUtil.iterate(instance.getModifiers(), (index, modifier) -> entries.add(Modifier.entry(modifier, context.forChild(".modifiers[" + index + "]"))));
+					MiscUtil.iterateList(instance.getModifiers(), (index, modifier) -> entries.add(Modifier.entry(modifier, context.forChild(".modifiers[" + index + "]"))));
 				}
 
 			}

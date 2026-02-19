@@ -5,7 +5,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -35,7 +34,6 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
@@ -158,10 +156,6 @@ public class NeoApoliStreamCodecs {
 		recipeEntry -> new RecipeHolder<>(recipeEntry.id(), RecipeUtil.validateCraftingRecipe(recipeEntry.value()).getOrThrow()),
 		Function.identity()
 	);
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Number>> NUMBER_CONTEXT_KEY = ContextParameter.streamCodec("number", Number.class);
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Entity>> ENTITY_CONTEXT_KEY = ContextParameter.streamCodec("entity", Entity.class);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClipContext.Block> BLOCK_CLIP_CONTEXT = StreamCodecUtil.enumType(ClipContext.Block.class);
 

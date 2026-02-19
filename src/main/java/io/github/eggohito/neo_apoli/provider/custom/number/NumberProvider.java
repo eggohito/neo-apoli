@@ -7,24 +7,28 @@ import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public interface NumberProvider extends ValueProvider<Number> {
+public interface NumberProvider extends ValueProvider {
 
 	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(NumberProviderType.CODEC.dispatch(NumberProvider::getType, NumberProviderType::mapCodec), ConstantNumberProvider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = NumberProviderType.STREAM_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
 
-	@Override
+	@NotNull
 	NumberProviderType<?> getType();
 
+	@NotNull
+	Number nextNumber(Context context);
+
 	default double nextDouble(Context context) {
-		return this.next(context).doubleValue();
+		return this.nextNumber(context).doubleValue();
 	}
 
 	default float nextFloat(Context context) {
-		return this.next(context).floatValue();
+		return this.nextNumber(context).floatValue();
 	}
 
 	default long nextLong(Context context) {

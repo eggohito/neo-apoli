@@ -42,18 +42,18 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ENTITIES_IN_RADIUS_FROM_POSITION;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Level level = context.level();
 		int matches = 0;
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().next(positionContext);
+		Vec3 position = position().nextVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return matches;

@@ -64,7 +64,7 @@ public record IsSimultaneouslyPressedKeyCondition(List<StringProvider> ids, Numb
 			Context idContext = context.forChild(".ids[" + iterator.nextIndex() + "]");
 			StringProvider idProvider = iterator.next();
 
-			String id = idProvider.next(idContext);
+			String id = idProvider.nextString(idContext);
 			Optional<KeyState> keyState = KeyStateManager.getState(uuid, id);
 
 			if (!idContext.hasErrors() && keyState.isPresent()) {

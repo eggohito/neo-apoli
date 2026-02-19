@@ -25,12 +25,12 @@ public record ExponentialNumberProvider(NumberProvider base, NumberProvider expo
 	));
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.EXPONENTIAL;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 
 		Context baseContext = context.forChild(".base");
 		double base = base().nextDouble(baseContext);

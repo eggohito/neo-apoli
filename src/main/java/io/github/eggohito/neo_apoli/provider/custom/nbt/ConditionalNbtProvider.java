@@ -14,19 +14,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, NbtProvider elseValue) implements NbtProvider, ConditionalValueProvider<NbtProvider, Tag> {
+public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, NbtProvider elseValue) implements NbtProvider, ConditionalValueProvider<NbtProvider> {
 
 	public static final MapCodec<ConditionalNbtProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(NbtProvider.CODEC, ConditionalNbtProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(NbtProvider.STREAM_CODEC, ConditionalNbtProvider::new));
 
 	@Override
-	public NbtProviderType<?> getType() {
+	public @NotNull NbtProviderType<?> getType() {
 		return NbtProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public @NotNull Tag next(Context context) {
-		return internalNextOrElse(context, CompoundTag::new);
+	public @NotNull Tag nextTag(Context context) {
+		return nextOrElse(context, NbtProvider::nextTag, CompoundTag::new);
 	}
 
 }

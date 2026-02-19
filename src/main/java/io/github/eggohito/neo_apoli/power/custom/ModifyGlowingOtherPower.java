@@ -90,7 +90,7 @@ public class ModifyGlowingOtherPower extends Power {
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
-			return this.getPower().getUseTeamColor().next(context.forChild(".use_team_color"));
+			return this.getPower().getUseTeamColor().nextBoolean(context.forChild(".use_team_color"));
 		}
 
 		public int getColor(Context context) {

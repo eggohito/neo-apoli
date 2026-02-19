@@ -30,15 +30,15 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	);
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.NBT;
 	}
 
 	@Override
-	public @NotNull String next(Context context) {
+	public @NotNull String nextString(Context context) {
 
 		Context sourceContext = context.forChild(".source");
-		Tag source = source().next(sourceContext);
+		Tag source = source().nextTag(sourceContext);
 
 		if (sourceContext.hasErrors()) {
 			return "";

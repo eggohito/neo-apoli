@@ -24,12 +24,12 @@ public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 	);
 
 	@Override
-	public NbtProviderType<?> getType() {
+	public @NotNull NbtProviderType<?> getType() {
 		return NbtProviderTypes.STORAGE;
 	}
 
 	@Override
-	public @NotNull Tag next(Context context) {
+	public @NotNull Tag nextTag(Context context) {
 		return ((CommandStorageHolder) context.level()).neo_apoli$getStorage(this.id());
 	}
 

@@ -68,7 +68,7 @@ public record BoneMealBlockAction(BooleanProvider showEffects) implements BlockA
 
 	private void showEffects(Context context, BlockPos blockPos) {
 
-		if (showEffects().next(context.forChild(".show_effects"))) {
+		if (showEffects().nextBoolean(context.forChild(".show_effects"))) {
 			context.level().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
 		}
 

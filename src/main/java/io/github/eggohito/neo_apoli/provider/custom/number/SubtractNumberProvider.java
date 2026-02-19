@@ -16,12 +16,12 @@ public record SubtractNumberProvider(List<NumberProvider> numbers) implements Mu
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubtractNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(SubtractNumberProvider::new);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.SUBTRACT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, (a, b) -> a - b, 0.0d);
 	}
 

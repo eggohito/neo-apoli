@@ -27,12 +27,12 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	);
 
 	@Override
-	public Vec3ProviderType<?> getType() {
+	public @NotNull Vec3ProviderType<?> getType() {
 		return Vec3ProviderTypes.DYNAMIC;
 	}
 
 	@Override
-	public @NotNull Vec3 next(Context context) {
+	public @NotNull Vec3 nextVec3(Context context) {
 		return new Vec3(
 			x().nextDouble(context.forChild(".x")),
 			y().nextDouble(context.forChild(".y")),

@@ -74,7 +74,7 @@ public interface IExplodeMetaAction extends MetaAction {
 		}
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().next(positionContext);
+		Vec3 position = position().nextVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return;
@@ -88,7 +88,7 @@ public interface IExplodeMetaAction extends MetaAction {
 		}
 
 		Context createFireContext = context.forChild(".create_fire");
-		boolean createFire = property().createFire().next(createFireContext);
+		boolean createFire = property().createFire().nextBoolean(createFireContext);
 
 		if (createFireContext.hasErrors()) {
 			return;

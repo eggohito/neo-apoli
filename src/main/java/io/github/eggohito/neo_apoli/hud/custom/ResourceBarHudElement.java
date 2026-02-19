@@ -56,7 +56,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	@Override
 	public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
 		return NumberBoundHudElement.super.shouldRender(context, renderPhase)
-			&& shouldRender().next(context.forChild(".should_render"));
+			&& shouldRender().nextBoolean(context.forChild(".should_render"));
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		}
 
 		Context invertedContext = context.forChild(".inverted");
-		boolean inverted = properties().inverted().next(invertedContext);
+		boolean inverted = properties().inverted().nextBoolean(invertedContext);
 
 		double fill = Mth.clamp((value - min) / (max - min), 0.0D, 1.0D);
 		return inverted ? 1.0 - fill : fill;

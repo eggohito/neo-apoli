@@ -40,7 +40,7 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 		}
 
 		BlockPos blockPos = context.getRequired(NeoApoliContextParams.BLOCK_POS);
-		Vec3 offset = offset().next(context.forChild(".offset"));
+		Vec3 offset = offset().nextVec3(context.forChild(".offset"));
 
 		BlockPos offsetBlockPos = BlockPos.containing(blockPos
 			.getCenter()

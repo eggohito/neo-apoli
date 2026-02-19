@@ -100,4 +100,18 @@ public class NeoApoliContextParams {
 
 	}
 
+	public static final class Codecs {
+
+		public static final Codec<ContextParameter<Number>> NUMBER = ContextParameter.codec("number", Number.class);
+		public static final Codec<ContextParameter<Entity>> ENTITY = ContextParameter.codec("entity", Entity.class);
+
+	}
+
+	public static final class StreamCodecs {
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Number>> NUMBER = ContextParameter.streamCodec("number", Number.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<Entity>> ENTITY = ContextParameter.streamCodec("entity", Entity.class);
+
+	}
+
 }

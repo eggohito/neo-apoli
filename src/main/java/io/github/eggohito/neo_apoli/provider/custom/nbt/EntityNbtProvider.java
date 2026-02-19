@@ -2,12 +2,11 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -22,21 +21,21 @@ import java.util.Set;
 public record EntityNbtProvider(ContextParameter<Entity> entity) implements NbtProvider {
 
 	public static final MapCodec<EntityNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(EntityNbtProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityNbtProvider::entity)
 	).apply(instance, EntityNbtProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityNbtProvider> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, EntityNbtProvider::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, EntityNbtProvider::entity,
 		EntityNbtProvider::new
 	);
 
 	@Override
-	public NbtProviderType<?> getType() {
+	public @NotNull NbtProviderType<?> getType() {
 		return NbtProviderTypes.ENTITY;
 	}
 
 	@Override
-	public @NotNull Tag next(Context context) {
+	public @NotNull Tag nextTag(Context context) {
 
 		if (!context.hasParameter(entity())) {
 			context.reportProblem("Couldn't get and provide NBT from non-existent entity from parameter \"" + entity().name() + "\"!");

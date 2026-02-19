@@ -16,12 +16,12 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Mu
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(MultiplyNumberProvider::new);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.MULTIPLY;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, (a, b) -> a * b, 0.0d);
 	}
 

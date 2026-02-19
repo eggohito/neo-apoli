@@ -29,12 +29,12 @@ public record ConstantNumberProvider(Number value) implements NumberProvider {
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return value();
 	}
 

@@ -16,12 +16,12 @@ public record MinNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	public static final StreamCodec<RegistryFriendlyByteBuf, MinNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(MinNumberProvider::new);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.MIN;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::min, 0.0d);
 	}
 

@@ -3,8 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -30,22 +28,22 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 
 	public static final MapCodec<ItemAttributeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Attribute.CODEC.fieldOf("attribute").forGetter(ItemAttributeNumberProvider::attribute),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
+		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
 	).apply(instance, ItemAttributeNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ItemAttributeNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		Attribute.STREAM_CODEC, ItemAttributeNumberProvider::attribute,
-		ByteBufCodecs.optional(NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY), ItemAttributeNumberProvider::entity,
+		ByteBufCodecs.optional(NeoApoliContextParams.StreamCodecs.ENTITY), ItemAttributeNumberProvider::entity,
 		ItemAttributeNumberProvider::new
 	);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.ITEM_ATTRIBUTE;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(stack -> stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY))
 			.map(modifiers -> this.compute(context, modifiers))

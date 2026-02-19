@@ -22,13 +22,13 @@ public record NumberStringProvider(NumberProvider number) implements StringProvi
 	);
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.NUMBER;
 	}
 
 	@Override
-	public @NotNull String next(Context context) {
-		return number().next(context.forChild(".number")).toString();
+	public @NotNull String nextString(Context context) {
+		return number().nextNumber(context.forChild(".number")).toString();
 	}
 
 	@Override

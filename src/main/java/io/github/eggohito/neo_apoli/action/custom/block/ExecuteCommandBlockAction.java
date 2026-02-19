@@ -46,7 +46,7 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 		BlockState blockState = context.getRequired(NeoApoliContextParams.BLOCK_STATE);
 
 		MinecraftServer server = serverLevel.getServer();
-		String command = command().next(context.forChild(".command"));
+		String command = command().nextString(context.forChild(".command"));
 
 		if (command.isEmpty()) {
 			return;

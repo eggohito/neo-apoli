@@ -26,15 +26,15 @@ public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) imple
 	));
 
 	@Override
-	public Vec3ProviderType<?> getType() {
+	public @NotNull Vec3ProviderType<?> getType() {
 		return Vec3ProviderTypes.OFFSET;
 	}
 
 	@Override
-	public @NotNull Vec3 next(Context context) {
+	public @NotNull Vec3 nextVec3(Context context) {
 
-		Vec3 vector = vector().next(context.forChild(".vector"));
-		Vec3 offset = offset().next(context.forChild(".offset"));
+		Vec3 vector = vector().nextVec3(context.forChild(".vector"));
+		Vec3 offset = offset().nextVec3(context.forChild(".offset"));
 
 		return vector.add(offset);
 

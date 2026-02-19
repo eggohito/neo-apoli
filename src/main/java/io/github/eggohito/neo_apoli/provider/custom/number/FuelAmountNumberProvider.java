@@ -21,12 +21,12 @@ public enum FuelAmountNumberProvider implements NumberProvider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, FuelAmountNumberProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public NumberProviderType<?> getType() {
+	public @NotNull NumberProviderType<?> getType() {
 		return NumberProviderTypes.FUEL_AMOUNT;
 	}
 
 	@Override
-	public @NotNull Number next(Context context) {
+	public @NotNull Number nextNumber(Context context) {
 		FuelValues fuelRegistry = context.level().fuelValues();
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(fuelRegistry::burnDuration)

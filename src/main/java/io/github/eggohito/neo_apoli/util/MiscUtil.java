@@ -44,12 +44,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.*;
 import java.util.function.Function;
 
 public class MiscUtil {
@@ -102,18 +97,6 @@ public class MiscUtil {
 
 		else {
 			return newResult;
-		}
-
-	}
-
-	public static void tryCatch(Runnable action, Consumer<Exception> catcher) {
-
-		try {
-			action.run();
-		}
-
-		catch (Exception e) {
-			catcher.accept(e);
 		}
 
 	}
@@ -263,12 +246,23 @@ public class MiscUtil {
 
 	}
 
-	public static <E> void iterate(List<E> list, BiConsumer<Integer, E> iterator) {
+	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer) {
 
 		ListIterator<E> listIterator = list.listIterator();
 
 		while (listIterator.hasNext()) {
-			iterator.accept(listIterator.nextIndex(), listIterator.next());
+			consumer.accept(listIterator.nextIndex(), listIterator.next());
+		}
+
+	}
+
+	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer) {
+
+		Iterator<E> iterator = iterable.iterator();
+		int index = 0;
+
+		while (iterator.hasNext()) {
+			consumer.accept(index++, iterator.next());
 		}
 
 	}

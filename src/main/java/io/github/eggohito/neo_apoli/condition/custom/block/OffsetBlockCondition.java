@@ -51,7 +51,7 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 		}
 
 		Context offsetContext = context.forChild(".offset");
-		Vec3 offset = offset().next(offsetContext);
+		Vec3 offset = offset().nextVec3(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;

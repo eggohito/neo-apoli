@@ -39,7 +39,7 @@ public record AddVelocityEntityAction(Vec3Provider velocity, Space space) implem
 		}
 
 		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
-		Vector3f velocity = velocity().next(context.forChild(".velocity")).toVector3f();
+		Vector3f velocity = velocity().nextVec3(context.forChild(".velocity")).toVector3f();
 
 		if (velocity.equals(new Vector3f())) {
 			return;

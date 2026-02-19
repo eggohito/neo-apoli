@@ -95,7 +95,7 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 		public boolean doesApply(Context context, boolean harvested) {
 			return this.isActive(context)
-				&& (!power.getOnlyWhenHarvested().next(context.forChild(".only_when_harvested")) || harvested);
+				&& (!power.getOnlyWhenHarvested().nextBoolean(context.forChild(".only_when_harvested")) || harvested);
 		}
 
 		public void execute(Context context) {

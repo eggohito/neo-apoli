@@ -2,13 +2,12 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.duck.MovingEntity;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -21,21 +20,21 @@ import java.util.Set;
 public record VelocityVec3Provider(ContextParameter<Entity> entity) implements Vec3Provider {
 
     public static final MapCodec<VelocityVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-        .group(NeoApoliCodecs.ENTITY_CONTEXT_PARAM.fieldOf("entity").forGetter(VelocityVec3Provider::entity))
+        .group(NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(VelocityVec3Provider::entity))
         .apply(instance, VelocityVec3Provider::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, VelocityVec3Provider> STREAM_CODEC = StreamCodec.composite(
-        NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, VelocityVec3Provider::entity,
+        NeoApoliContextParams.StreamCodecs.ENTITY, VelocityVec3Provider::entity,
         VelocityVec3Provider::new
     );
 
     @Override
-    public Vec3ProviderType<?> getType() {
+    public @NotNull Vec3ProviderType<?> getType() {
         return Vec3ProviderTypes.VELOCITY;
     }
 
     @Override
-    public @NotNull Vec3 next(Context context) {
+    public @NotNull Vec3 nextVec3(Context context) {
 
         switch (context.getNullable(entity())) {
             case MovingEntity movingEntity -> {

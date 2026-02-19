@@ -25,12 +25,12 @@ public enum BlockEntityNbtProvider implements NbtProvider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockEntityNbtProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public NbtProviderType<?> getType() {
+	public @NotNull NbtProviderType<?> getType() {
 		return NbtProviderTypes.BLOCK_ENTITY;
 	}
 
 	@Override
-	public @NotNull Tag next(Context context) {
+	public @NotNull Tag nextTag(Context context) {
 
 		HolderLookup.Provider wrapperLookup = context.level().registryAccess();
 		Optional<BlockEntity> optBlockEntity = context.getOptional(NeoApoliContextParams.BLOCK_ENTITY);

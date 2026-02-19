@@ -30,12 +30,12 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public StringProviderType<?> getType() {
+	public @NotNull StringProviderType<?> getType() {
 		return StringProviderTypes.JOIN;
 	}
 
 	@Override
-	public @NotNull String next(Context context) {
+	public @NotNull String nextString(Context context) {
 
 		ListIterator<StringProvider> listIterator = strings().listIterator();
 		StringBuilder result = new StringBuilder();
@@ -47,14 +47,14 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 			StringProvider provider = listIterator.next();
 
 			Context stringContext = context.forChild(".strings[" + index + "]");
-			String string = provider.next(stringContext);
+			String string = provider.nextString(stringContext);
 
 			if (!stringContext.hasErrors()) {
 
 				if (init) {
 
 					Context separatorContext = context.forChild(".separator");
-					String separator = separator().next(separatorContext);
+					String separator = separator().nextString(separatorContext);
 
 					if (!separatorContext.hasErrors()) {
 						result.append(separator).append(string);

@@ -49,7 +49,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 		Vec3 pos = context.getRequired(NeoApoliContextParams.THIS_POS);
 
 		MinecraftServer server = serverLevel.getServer();
-		String command = command().next(context.forChild(".command"));
+		String command = command().nextString(context.forChild(".command"));
 
 		CommandSourceStack source = new CommandSourceStack(
 			NeoApoli.validateCommandOutput(this.getOutput(entity, server)),

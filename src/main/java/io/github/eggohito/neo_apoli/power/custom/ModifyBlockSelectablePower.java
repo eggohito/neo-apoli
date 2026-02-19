@@ -84,7 +84,7 @@ public class ModifyBlockSelectablePower extends Power implements Prioritized<Mod
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().next(context.forChild(".allow"));
+			return power.getAllow().nextBoolean(context.forChild(".allow"));
 		}
 
 	}

@@ -95,12 +95,12 @@ public class ModifyInvisibilityPower extends Power {
 
 		public boolean isActiveAndShouldRenderArmor(Context context) {
 			return this.isActive(context)
-				&& power.getRenderArmor().next(context.forChild(".render_armor"));
+				&& power.getRenderArmor().nextBoolean(context.forChild(".render_armor"));
 		}
 
 		public boolean isActiveAndShouldRenderOutline(Context context) {
 			return this.isActive(context)
-				&& power.getRenderOutline().next(context.forChild(".render_outline"));
+				&& power.getRenderOutline().nextBoolean(context.forChild(".render_outline"));
 		}
 
 	}

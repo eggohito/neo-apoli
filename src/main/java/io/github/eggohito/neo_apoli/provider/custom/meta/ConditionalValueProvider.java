@@ -6,14 +6,15 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import org.jetbrains.annotations.ApiStatus;
 
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends ValueProvider<V> {
+public interface ConditionalValueProvider<P extends ContextUser> extends ValueProvider {
 
 	Condition condition();
 
@@ -21,22 +22,21 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 
 	P elseValue();
 
-	@ApiStatus.Internal
-	default V internalNextOrElse(Context context, Supplier<V> errorValue) {
+	default <V> V nextOrElse(Context context, BiFunction<P, Context, V> getter, Supplier<V> errorValue) {
 
 		Context conditionContext = context.forChild(".condition");
-		boolean shouldProvide = condition().test(conditionContext);
+		boolean provides = condition().test(conditionContext);
 
 		if (conditionContext.hasErrors()) {
 			return errorValue.get();
 		}
 
-		else if (shouldProvide) {
-			return ifValue().next(context.forChild(".if_value"));
+		else if (provides) {
+			return getter.apply(ifValue(), context.forChild(".if_value"));
 		}
 
 		else {
-			return elseValue().next(context.forChild(".else_value"));
+			return getter.apply(elseValue(), context.forChild(".else_value"));
 		}
 
 	}
@@ -52,7 +52,7 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> MapCodec<M> mapCodec(Codec<P> providerCodec, Function3<Condition, P, P, M> constructor) {
+	static <P extends ValueProvider, M extends ConditionalValueProvider<P>> MapCodec<M> mapCodec(Codec<P> providerCodec, Function3<Condition, P, P, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Condition.CODEC.fieldOf("condition").forGetter(ConditionalValueProvider::condition),
 			providerCodec.fieldOf("if_value").forGetter(ConditionalValueProvider::ifValue),
@@ -60,7 +60,7 @@ public interface ConditionalValueProvider<P extends ValueProvider<V>, V> extends
 		).apply(instance, constructor));
 	}
 
-	static <P extends ValueProvider<V>, V, M extends ConditionalValueProvider<P, V>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, Function3<Condition, P, P, M> constructor) {
+	static <P extends ValueProvider, M extends ConditionalValueProvider<P>> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(StreamCodec<RegistryFriendlyByteBuf, P> providerCodec, Function3<Condition, P, P, M> constructor) {
 		return StreamCodec.composite(
 			Condition.STREAM_CODEC, ConditionalValueProvider::condition,
 			providerCodec, ConditionalValueProvider::ifValue,

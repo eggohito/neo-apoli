@@ -4,8 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
-import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.ConstantVec3Provider;
@@ -32,13 +30,13 @@ public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, ContextPa
 
 	public static final MapCodec<ModifyItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ResourceKey.codec(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier),
-		NeoApoliCodecs.ENTITY_CONTEXT_PARAM.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(ModifyItemAction::entity),
+		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(ModifyItemAction::entity),
 		Vec3Provider.CODEC.optionalFieldOf("pos", new ConstantVec3Provider(0, 0, 0)).forGetter(ModifyItemAction::pos)
 	).apply(instance, ModifyItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemAction> STREAM_CODEC = StreamCodec.composite(
 		ResourceKey.streamCodec(Registries.ITEM_MODIFIER), ModifyItemAction::modifier,
-		NeoApoliStreamCodecs.ENTITY_CONTEXT_KEY, ModifyItemAction::entity,
+		NeoApoliContextParams.StreamCodecs.ENTITY, ModifyItemAction::entity,
 		Vec3Provider.STREAM_CODEC, ModifyItemAction::pos,
 		ModifyItemAction::new
 	);
@@ -63,7 +61,7 @@ public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, ContextPa
 			.value();
 		LootParams lootParams = new LootParams.Builder(serverLevel)
 			.withOptionalParameter(LootContextParams.THIS_ENTITY, context.getNullable(entity()))
-			.withParameter(LootContextParams.ORIGIN, pos().next(context.forChild(".pos")))
+			.withParameter(LootContextParams.ORIGIN, pos().nextVec3(context.forChild(".pos")))
 			.create(LootContextParamSets.COMMAND);
 
 		LootContext lootContext = new LootContext.Builder(lootParams).create(Optional.empty());
