@@ -32,6 +32,10 @@ public abstract class ModifyBlockSelectablePowerMixin extends StateHolder<Block,
 	@ModifyReturnValue(method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("RETURN"))
 	private VoxelShape neo_apoli$modifySelectableShape(VoxelShape original, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collision) {
 
+		if (!MiscUtil.collisionHasEntity(collision)) {
+			return original;
+		}
+
 		try {
 
 			if (ModifyBlockSelectablePower.shouldBeEmpty(MiscUtil.getEntityFromCollision(collision), blockPos, this.asState(), blockGetter.getBlockEntity(blockPos))) {
