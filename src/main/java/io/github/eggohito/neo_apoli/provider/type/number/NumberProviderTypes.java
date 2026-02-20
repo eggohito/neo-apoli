@@ -51,7 +51,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<LightLevelNumberProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelNumberProvider.MAP_CODEC, LightLevelNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<PowerCooldownProgressNumberProvider> POWER_COOLDOWN_PROGRESS = registerInternal("power/cooldown/progress", PowerCooldownProgressNumberProvider.MAP_CODEC, PowerCooldownProgressNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<PowerCooldownRemainingTicksNumberProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksNumberProvider.MAP_CODEC, PowerCooldownRemainingTicksNumberProvider.STREAM_CODEC);
-	public static final NumberProviderType<RoundNumberProvider> ROUND = registerInternal("decimal", RoundNumberProvider.MAP_CODEC, RoundNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<RoundNumberProvider> ROUND = registerInternal("round", RoundNumberProvider.MAP_CODEC, RoundNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<TimeNumberProvider> TIME = registerInternal("time", TimeNumberProvider.MAP_CODEC, TimeNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorComponentNumberProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentNumberProvider.MAP_CODEC, VectorComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<VectorLengthNumberProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthNumberProvider.MAP_CODEC, VectorLengthNumberProvider.STREAM_CODEC);
