@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class MiscUtil {
 
@@ -265,6 +266,20 @@ public class MiscUtil {
 			consumer.accept(index++, iterator.next());
 		}
 
+	}
+
+	public static <T, U extends T> Function<T, DataResult<U>> validateType(Class<U> typeClass, Supplier<String> errorSupplier) {
+		return type -> {
+
+			if (typeClass.isInstance(type)) {
+				return DataResult.success(typeClass.cast(type));
+			}
+
+			else {
+				return DataResult.error(errorSupplier);
+			}
+
+		};
 	}
 
 }

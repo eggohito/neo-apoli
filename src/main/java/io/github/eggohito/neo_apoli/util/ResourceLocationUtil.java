@@ -21,16 +21,20 @@ public class ResourceLocationUtil {
 	@Setter
 	public static ResourceLocation current;
 
-	public static ResourceLocation nonEmpty(ResourceLocation id) {
+	public static DataResult<ResourceLocation> validateNonEmpty(ResourceLocation id) {
 
 		if (id.getNamespace().isEmpty() || id.getPath().isEmpty()) {
-			throw new ResourceLocationException("Empty " + (id.getNamespace().isEmpty() ? "namespace" : "path") + " in identifier \"" + id + "\" is not allowed!");
+			return DataResult.error(() -> "Empty " + (id.getNamespace().isEmpty() ? "namespace" : "path") + " in identifier \"" + id + "\" is not allowed!");
 		}
 
 		else {
-			return id;
+			return DataResult.success(id);
 		}
 
+	}
+
+	public static ResourceLocation nonEmpty(ResourceLocation id) {
+		return validateNonEmpty(id).getOrThrow();
 	}
 
 	public static String replaceWithCurrent(String input, Function<ResourceLocation, String> replacement) {

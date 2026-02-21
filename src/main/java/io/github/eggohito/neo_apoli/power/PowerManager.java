@@ -15,11 +15,15 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
-import io.github.eggohito.neo_apoli.util.*;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -66,7 +70,7 @@ public final class PowerManager implements JsonReloadListener {
 		@Nullable
 		@Override
 		public PowerEntry<?> element(ResourceLocation id, boolean required) {
-			return getEntryAsResult(PowerReference.ofPower(id)).result().orElse(null);
+			return getEntryAsResult(PowerReference.of(id)).result().orElse(null);
 		}
 
 		@Nullable
@@ -91,7 +95,7 @@ public final class PowerManager implements JsonReloadListener {
 		.create();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
-	private static final TagLoader<PowerEntry<?>> TAG_LOADER = new TagLoader<>((id, required) -> getEntryAsResult(PowerReference.ofPower(id)).result(), TAG_DIRECTORY);
+	private static final TagLoader<PowerEntry<?>> TAG_LOADER = new TagLoader<>((id, required) -> getEntryAsResult(PowerReference.of(id)).result(), TAG_DIRECTORY);
 
 	private static final Object2ObjectOpenHashMap<PowerReference, PowerEntry<?>> BY_REFERENCE = new Object2ObjectOpenHashMap<>();
 	private static final Map<Power, PowerReference> BY_POWER = new IdentityHashMap<>();
@@ -108,7 +112,7 @@ public final class PowerManager implements JsonReloadListener {
 	@Override
 	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 
-		CompletableFuture<Map<PowerReference.Power, JsonObjectWithSource>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<ResourceLocation, JsonObjectWithSource>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
 		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
 			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
@@ -148,9 +152,9 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private Map<PowerReference.Power, JsonObjectWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<ResourceLocation, JsonObjectWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<PowerReference.Power, JsonObjectWithSource> prepared = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, JsonObjectWithSource> prepared = new Object2ObjectOpenHashMap<>();
 		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -161,30 +165,31 @@ public final class PowerManager implements JsonReloadListener {
 				JsonFormat jsonFormat = this.getFormat(fileId);
 				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
 
-				PowerReference.Power reference = PowerReference.ofPower(resourceId);
-				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
-
-				switch (jsonElement) {
+				switch (GSON.fromJson(gsonReader, JsonElement.class)) {
 					case JsonObject jsonObject when MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops) -> {
 
+						jsonObject.addProperty(PowerEntry.REFERENCE_KEY, resourceId.toString());
 						var newElement = new JsonObjectWithSource(packId, jsonObject, jsonFormat);
-						var oldElement = prepared.get(reference);
 
-						if (oldElement != null) {
-							throw new IllegalStateException("Duplicate of a power JSON with the same name but a different file extension! (file extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
+						if (prepared.putIfAbsent(resourceId, newElement) != null) {
+							throw new IllegalStateException("Duplicate of a power JSON with the same name, but different file extension! (prev. file extension: " + prepared.get(resourceId).format().name().toLowerCase(Locale.ROOT) + ")");
 						}
 
-						PowerPreparation.EVENT.invoker().prepare(resourceId, newElement, DIRECTORY, ops);
-						prepared.put(reference, newElement);
+						else {
+							PowerPreparation.EVENT.invoker().prepare(resourceId, newElement, DIRECTORY, ops);
+						}
 
 					}
 					case JsonObject ignored -> {
 						//	No-op since the resource conditions weren't fulfilled
 					}
+					case JsonElement jsonElement ->
+						throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
 					case null ->
 						throw new JsonSyntaxException("JSON file cannot be empty!");
-					default ->
-						throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
+					default -> {
+						//  No-op since everything should already be handled by the 'jsonElement' case
+					}
 				}
 
 			}
@@ -199,30 +204,27 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private void applyElements(Map<PowerReference.Power, JsonObjectWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	private void applyElements(Map<ResourceLocation, JsonObjectWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 
 		LOGGER.info("Parsing powers from data packs...");
 		startLoading();
 
-		prepared.forEach((powerReference, elementWithSource) -> {
+		prepared.forEach((id, elementWithSource) -> {
 
-			JsonObject element = elementWithSource.element();
-			element.addProperty(PowerEntry.REFERENCE_KEY, powerReference.toString());
-
-			ResourceLocationUtil.setCurrent(powerReference.id());
-			PowerEntry.CODEC.parse(ops, element)
+			ResourceLocationUtil.setCurrent(id);
+			PowerEntry.CODEC.parse(ops, elementWithSource.element())
 				.ifSuccess(PowerManager::register)
 				.ifError(error -> error
 					.resultOrPartial()
 					.filter(PowerEntry::canBePartiallyParsed)
 					.ifPresentOrElse(
 						entry -> {
-							LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message());
+							LOGGER.warn("Found warnings while parsing power {} from data pack [{}]: {}", id, elementWithSource.source(), error.message());
 							register(entry);
 						},
-						() -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerReference.asDisplayString(false), elementWithSource.source(), error.message())
+						() -> LOGGER.error("Error trying to parse power {} from data pack [{}] (skipping): {}", id, elementWithSource.source(), error.message())
 					));
 
 			ResourceLocationUtil.setCurrent(null);
@@ -259,8 +261,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	@ApiStatus.Internal
-	public static void validate(ReloadableServerResources resources) {
+	private static void validate(ReloadableServerResources resources) {
 
 		if (BY_REFERENCE.isEmpty()) {
 			return;
@@ -394,7 +395,7 @@ public final class PowerManager implements JsonReloadListener {
 	public static DataResult<PowerReference> getReferenceAsResult(Power power) {
 		return containsReference(power)
 			? DataResult.success(BY_POWER.get(power))
-			: DataResult.error(() -> power + " doesn't correspond to any references!");
+			: DataResult.error(() -> power + " doesn't correspond to any IDs!");
 	}
 
 	public static PowerReference getReference(Power power) {
@@ -407,10 +408,6 @@ public final class PowerManager implements JsonReloadListener {
 
 	public static Collection<PowerEntry<?>> entries() {
 		return Util.make(new ObjectOpenHashSet<>(), set -> set.addAll(BY_REFERENCE.values()));
-	}
-
-	public static Collection<Power> powers() {
-		return Util.make(new ObjectOpenHashSet<>(), set -> BY_REFERENCE.values().forEach(entry -> set.add(entry.power())));
 	}
 
 	public static boolean contains(PowerReference reference) {
@@ -431,11 +428,12 @@ public final class PowerManager implements JsonReloadListener {
 
 		if (power instanceof MultiplePower multiplePower) {
 
-			switch (reference) {
-				case PowerReference.Power ignored ->
-					multiplePower.getSubPowers().forEach(PowerManager::register);
-				case PowerReference.SubPower subPowerReference ->
-					throw new IllegalStateException("Tried to register " + subPowerReference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, power.getType()) + "\" power type, which isn't allowed!");
+			if (reference.isSubPower()) {
+				throw new IllegalStateException("Tried to register \"" + reference.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which is not allowed!");
+			}
+
+			else {
+				multiplePower.getSubPowers().forEach(PowerManager::register);
 			}
 
 		}

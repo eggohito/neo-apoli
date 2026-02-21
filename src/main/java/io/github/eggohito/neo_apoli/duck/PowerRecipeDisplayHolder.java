@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.duck;
 
-import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;

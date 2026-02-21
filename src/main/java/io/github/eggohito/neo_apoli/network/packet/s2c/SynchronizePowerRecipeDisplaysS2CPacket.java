@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.network.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.util.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

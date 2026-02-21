@@ -7,9 +7,9 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 

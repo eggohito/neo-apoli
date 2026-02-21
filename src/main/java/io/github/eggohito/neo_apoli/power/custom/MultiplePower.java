@@ -8,12 +8,12 @@ import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.EqualsAndHashCode;
@@ -28,7 +28,6 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -66,57 +65,41 @@ public class MultiplePower extends Power {
 			Set<PowerEntry<?>> succeeded = new ObjectOpenHashSet<>();
 			DataResult<Unit> result = mapInput.entries().reduce(
 				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
-				(r, pair) -> {
+				(identity, keyAndValue) -> {
 
-					DataResult<String> keyResult = Codec.STRING.parse(ops, pair.getFirst());
+					DataResult<String> keyResult = ops.getStringValue(keyAndValue.getFirst());
+					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond());
+
 					if (keyResult.mapOrElse(MultiplePower::isKeyIgnored, error -> false)) {
-						return r;
+						return identity.apply2stable((unit, o) -> unit, valueResult);
 					}
 
-					DataResult<MapLike<I>> childMapResult = ops.getMap(pair.getSecond());
-					if (childMapResult.isError()) {
-						return r.apply2stable((unit, obj) -> unit, childMapResult);
+					DataResult<PowerReference> referenceResult = PowerReference.parseAsResult(keyResult.getOrThrow())
+						.flatMap(powerId -> powerId.isSubPower()
+							? DataResult.success(powerId)
+							: DataResult.error(() -> "A sub-power must have a sub-power ID!"));
+
+					if (referenceResult.isError()) {
+						return identity.apply2stable((unit, o) -> unit, referenceResult);
 					}
 
-					MapLike<I> childMapInput = childMapResult.getOrThrow();
-					DataResult<PowerReference.SubPower> subReferenceResult = keyResult
-						.flatMap(PowerReference::ofValidated)
-						.flatMap(reference -> reference instanceof PowerReference.SubPower subReference
-							? DataResult.success(subReference)
-							: DataResult.error(() -> "A sub-power must have a sub-power reference!"));
+					DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
+						.flatMap(type -> type == PowerTypes.MULTIPLE
+							? DataResult.error(() -> "Sub-power \"" + keyResult.getOrThrow() + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
+							: DataResult.success(type));
 
-					if (subReferenceResult.isSuccess()) {
-
-						PowerReference.SubPower subReference = subReferenceResult.getOrThrow();
-						DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY)
-							.decode(ops, childMapInput)
-							.flatMap(type -> Objects.equals(type, PowerTypes.MULTIPLE)
-								? DataResult.error(() ->  "Sub-power \"" + subReference.name() + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\" power type, which is not allowed!")
-								: DataResult.success(type));
-
-						if (typeResult.isSuccess()) {
-
-							DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC.decode(ops, childMapInput);
-
-							if (subPowerResult.isSuccess()) {
-
-								PowerEntry<?> subPower = subPowerResult.getOrThrow();
-
-								if (!succeeded.add(subPower)) {
-									return r.apply2stable((u, o) -> u, DataResult.error(() -> "Duplicate entry for key: \"" + subReference.name() + "\""));
-								}
-
-							}
-
-							return r.apply2stable((u, o) -> u, subPowerResult);
-
-						}
-
-						return r.apply2stable((u, o) -> u, typeResult);
-
+					if (typeResult.isError()) {
+						return identity.apply2stable((unit, o) -> unit, typeResult);
 					}
 
-					return r.apply2stable((u, o) -> u, subReferenceResult);
+					DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC.decode(ops, valueResult.getOrThrow());
+
+					if (subPowerResult.isSuccess() && !succeeded.add(subPowerResult.getOrThrow())) {
+						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate entry for key: \"" + keyResult.getOrThrow() + "\""));
+					}
+
+					return identity.apply2stable((unit, o) -> unit, subPowerResult);
+
 
 				},
 				(r1, r2) ->
@@ -132,7 +115,7 @@ public class MultiplePower extends Power {
 		public <O> RecordBuilder<O> encode(ImmutableSet<PowerEntry<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
 
 			for (var entry : entries) {
-				prefix.add(entry.reference().toString(), PowerEntry.MAP_CODEC.encode(entry, ops, ops.mapBuilder()).build(ops.empty()));
+				prefix.add(entry.reference().toString(), PowerEntry.CODEC.encodeStart(ops, entry));
 			}
 
 			return prefix;
@@ -215,9 +198,9 @@ public class MultiplePower extends Power {
 	 * 	<p>Pre-process the sub-powers of a multiple power to prepare the sub-powers for proper parsing. This takes care
 	 * 	of two things:</p>
 	 * 	<ul>
-	 * 	    <li>Creates a sub-power reference (by prepending the super-power's ID to the keys of the JSON object) to
+	 * 	    <li>Creates a sub-power ID (by prepending the super-power's ID to the keys of the JSON object) to
 	 * 	    ensure the sub-power will be recognized.</li>
-	 * 	    <li>Adds the sub-power reference to the JSON objects of certain keys so the sub-powers will be parsed
+	 * 	    <li>Adds the sub-power ID to the JSON objects of certain keys so the sub-powers will be parsed
 	 * 	    as sub-power entries.</li>
 	 * 	</ul>
 	 */
@@ -232,7 +215,7 @@ public class MultiplePower extends Power {
 		}
 
 		Map<String, JsonElement> powerJsonMap = powerJson.asMap();
-		String separator = Character.toString(PowerReference.SubPower.SEPARATOR);
+		String separator = Character.toString(PowerReference.SEPARATOR);
 
 		powerJsonMap.entrySet().removeIf(entry -> !isKeyIgnored(entry.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, entry.getValue(), directoryPath, ops));
 
@@ -245,7 +228,7 @@ public class MultiplePower extends Power {
 
 				key = id + separator + key;
 
-				//	Append the sub-power's reference into its value object for proper parsing later
+				//	Append the sub-power's ID into its value object for proper parsing later
 				if (value instanceof JsonObject jsonObject) {
 					jsonObject.addProperty(PowerEntry.REFERENCE_KEY, key);
 				}
@@ -269,8 +252,7 @@ public class MultiplePower extends Power {
 		}
 
 		else {
-			DataResult<String> result = DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: " + name);
-			return result.setPartial(name);
+			return DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: " + name);
 		}
 
 	}

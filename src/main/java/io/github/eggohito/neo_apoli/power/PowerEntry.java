@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.PowerParsingEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.ComponentUtil;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;

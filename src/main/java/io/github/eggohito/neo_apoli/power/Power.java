@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPa
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

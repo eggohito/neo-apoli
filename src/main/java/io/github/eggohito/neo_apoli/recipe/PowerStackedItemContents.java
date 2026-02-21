@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.recipe;
 
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import lombok.Getter;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Player;

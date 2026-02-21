@@ -5,11 +5,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -74,7 +74,7 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Co
 	@Override
 	public void validate(Context.Validator validator) {
 		NumberProvider.super.validate(validator);
-		CooldownPower.getAsResult(power()).ifError(error -> validator.reportProblem(error.message()));
+		power().validate(validator.forChild(".power"), CooldownPower.class, () -> power() + " doesn't have a cooldown!");
 	}
 
 }

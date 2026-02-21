@@ -15,11 +15,11 @@ import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
-import io.github.eggohito.neo_apoli.util.PowerReference;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -641,7 +641,7 @@ public class PowerCommand {
 					if (power instanceof MultiplePower && success.value() instanceof JsonObject jsonObject) {
 
 						JsonObject newJsonObject = new JsonObject();
-						jsonObject.asMap().forEach((key, value) -> newJsonObject.add(key.substring(key.indexOf(PowerReference.SubPower.SEPARATOR) + 1), value));
+						jsonObject.asMap().forEach((key, value) -> newJsonObject.add(key.substring(key.indexOf(PowerReference.SEPARATOR) + 1), value));
 
 						copy = newJsonObject;
 
