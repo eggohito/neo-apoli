@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class BlockConditionTypes extends ConditionTypes {
+public class BlockConditionTypes {
 
 	public static final BlockConditionType<AllOfBlockCondition> ALL_OF = registerInternal("all_of", AllOfBlockCondition.MAP_CODEC, AllOfBlockCondition.STREAM_CODEC);
 	public static final BlockConditionType<AnyOfBlockCondition> ANY_OF = registerInternal("any_of", AnyOfBlockCondition.MAP_CODEC, AnyOfBlockCondition.STREAM_CODEC);

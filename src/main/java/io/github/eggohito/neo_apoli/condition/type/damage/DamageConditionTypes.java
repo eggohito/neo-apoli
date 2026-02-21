@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class DamageConditionTypes extends ConditionTypes {
+public class DamageConditionTypes {
 
 	public static final DamageConditionType<AllOfDamageCondition> ALL_OF = registerInternal("all_of", AllOfDamageCondition.MAP_CODEC, AllOfDamageCondition.STREAM_CODEC);
 	public static final DamageConditionType<AnyOfDamageCondition> ANY_OF = registerInternal("any_of", AnyOfDamageCondition.MAP_CODEC, AnyOfDamageCondition.STREAM_CODEC);

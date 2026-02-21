@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public final class FluidConditionTypes extends ConditionTypes {
+public final class FluidConditionTypes {
 
 	public static final FluidConditionType<AllOfFluidCondition> ALL_OF = registerInternal("all_of", AllOfFluidCondition.MAP_CODEC, AllOfFluidCondition.STREAM_CODEC);
 	public static final FluidConditionType<AnyOfFluidCondition> ANY_OF = registerInternal("any_of", AnyOfFluidCondition.MAP_CODEC, AnyOfFluidCondition.STREAM_CODEC);

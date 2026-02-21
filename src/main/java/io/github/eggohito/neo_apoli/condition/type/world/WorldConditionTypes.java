@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class WorldConditionTypes extends ConditionTypes {
+public class WorldConditionTypes {
 
 	public static final WorldConditionType<AllOfWorldCondition> ALL_OF = registerInternal("all_of", AllOfWorldCondition.MAP_CODEC, AllOfWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<AnyOfWorldCondition> ANY_OF = registerInternal("any_of", AnyOfWorldCondition.MAP_CODEC, AnyOfWorldCondition.STREAM_CODEC);

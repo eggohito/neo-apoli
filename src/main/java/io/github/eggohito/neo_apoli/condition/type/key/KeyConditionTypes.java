@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class KeyConditionTypes extends ConditionTypes {
+public class KeyConditionTypes {
 
 	public static final KeyConditionType<AllOfKeyCondition> ALL_OF = registerInternal("all_of", AllOfKeyCondition.MAP_CODEC, AllOfKeyCondition.STREAM_CODEC);
 	public static final KeyConditionType<AnyOfKeyCondition> ANY_OF = registerInternal("any_of", AnyOfKeyCondition.MAP_CODEC, AnyOfKeyCondition.STREAM_CODEC);
