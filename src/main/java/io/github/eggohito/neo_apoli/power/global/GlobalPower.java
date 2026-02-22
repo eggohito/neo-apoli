@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.power;
+package io.github.eggohito.neo_apoli.power.global;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -15,16 +16,16 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerEntry<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPowerSet> {
+public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerEntry<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPower> {
 
-	public static final ResourceLocation SOURCE = NeoApoli.id("global");
+	public static final ResourceLocation POWER_SOURCE = NeoApoli.id("global");
 
-	public static final MapCodec<GlobalPowerSet> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.LAZY_ENTITY_TYPE_TAG_LIKE.optionalFieldOf("entity_types", new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE).build()).forGetter(GlobalPowerSet::entityTypes),
-		NeoApoliCodecs.LAZY_POWER_TAG_LIKE.fieldOf("powers").forGetter(GlobalPowerSet::powers),
-		Codec.BOOL.optionalFieldOf("replace", false).forGetter(GlobalPowerSet::replace),
-		Codec.INT.optionalFieldOf("order", 0).forGetter(GlobalPowerSet::order)
-	).apply(instance, GlobalPowerSet::new));
+	public static final MapCodec<GlobalPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliCodecs.LAZY_ENTITY_TYPE_TAG_LIKE.optionalFieldOf("entity_types", new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE).build()).forGetter(GlobalPower::entityTypes),
+		NeoApoliCodecs.LAZY_POWER_TAG_LIKE.fieldOf("powers").forGetter(GlobalPower::powers),
+		Codec.BOOL.optionalFieldOf("replace", false).forGetter(GlobalPower::replace),
+		Codec.INT.optionalFieldOf("order", 0).forGetter(GlobalPower::order)
+	).apply(instance, GlobalPower::new));
 
 	@Override
 	public void validate(Context.Validator validator) {
@@ -33,7 +34,7 @@ public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike
 	}
 
 	@Override
-	public int compareTo(@NotNull GlobalPowerSet that) {
+	public int compareTo(@NotNull GlobalPower that) {
 		return Integer.compare(this.order(), that.order());
 	}
 
@@ -43,7 +44,7 @@ public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike
 			|| entityTypeElements.contains(entity.getType());
 	}
 
-	public record WithSource(GlobalPowerSet set, ResourceLocation id, String source) {
+	public record WithSource(GlobalPower set, ResourceLocation id, String source) {
 
 	}
 

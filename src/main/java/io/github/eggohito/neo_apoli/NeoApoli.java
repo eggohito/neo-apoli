@@ -19,8 +19,8 @@ import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
-import io.github.eggohito.neo_apoli.power.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.global.GlobalPowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
@@ -76,12 +76,6 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliArguments.registerAll();
 		ValueProviderTypes.registerAll();
 
-		ConditionManager.init();
-		ConditionTypes.registerAll();
-
-		ActionManager.init();
-		ActionTypes.registerAll();
-
 		NeoApoliContainerTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();
 		NeoApoliDataProviders.registerAll();
@@ -95,9 +89,13 @@ public class NeoApoli implements ModInitializer {
 		HudElementTypes.registerAll();
 
 		PowerTypes.registerAll();
-		PowerManager.init();
+		ConditionTypes.registerAll();
+		ActionTypes.registerAll();
 
-		GlobalPowerSetManager.init();
+		PowerManager.init();
+		GlobalPowerManager.init();
+		ConditionManager.init();
+		ActionManager.init();
 
 		NeoApoliPackets.registerAll();
 		NeoApoliC2SNetworkHandler.init();
