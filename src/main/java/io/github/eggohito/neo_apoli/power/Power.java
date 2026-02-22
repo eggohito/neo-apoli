@@ -21,7 +21,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -89,12 +88,10 @@ public abstract class Power implements ContextUser {
 
 		protected final P power;
 		protected final Entity holder;
-		protected final PowerEntry<P> entry;
 
 		protected Instance(@NotNull Entity holder, @NotNull P power) {
 			this.power = power;
 			this.holder = holder;
-			this.entry = getMatchingEntry(power);
 		}
 
 		@Override
@@ -108,7 +105,7 @@ public abstract class Power implements ContextUser {
 		}
 
 		public Reporter createReporter() {
-			return entry.createReporter();
+			return new Reporter("{\"" + PowerManager.getReference(power) + "\"}");
 		}
 
 		public Context.Builder createHolderContextBuilder() {
@@ -124,26 +121,17 @@ public abstract class Power implements ContextUser {
 
 		public final void syncData() {
 
-			PowerReference reference = this.getEntry().reference();
+			PowerReference reference = PowerManager.getReferenceAsResult(power).getOrThrow(err -> new IllegalStateException("Couldn't sync data of unregistered power! (" + power + ")"));
 			RegistryOps<Tag> nbtOps = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 			if (!holder.level().isClientSide()) {
-
-				switch (this.encodeData(nbtOps)) {
-					case DataResult.Success<Tag> success -> {
-
-						Dynamic<Tag> data = new Dynamic<>(nbtOps, success.value());
-						SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(holder.getId(), reference, data);
-
-						for (ServerPlayer trackingPlayer : MiscUtil.getTrackingPlayers(holder)) {
-							ServerPlayNetworking.send(trackingPlayer, packet);
-						}
-
-					}
-					case DataResult.Error<Tag> error ->
-						NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error.message());
-				}
-
+				this.encodeData(nbtOps)
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error))
+					.map(tag -> new Dynamic<>(nbtOps, tag))
+					.map(dynamic -> new SynchronizePowerDataS2CPacket(holder.getId(), reference, dynamic))
+					.ifPresent(packet -> MiscUtil
+						.getTrackingPlayers(holder)
+						.forEach(tracker -> ServerPlayNetworking.send(tracker, packet)));
 			}
 
 			else {
@@ -205,25 +193,6 @@ public abstract class Power implements ContextUser {
 				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
 				.orElse(true);
 		}
-
-	}
-
-	private static <P extends Power> PowerEntry<P> getMatchingEntry(P power) {
-
-		DataResult<PowerEntry<P>> entry = PowerManager.getReferenceAsResult(power).flatMap(PowerManager::getEntryAsResult).flatMap(e -> {
-
-			if (power.getClass().isInstance(e.power())) {
-				//noinspection unchecked
-				return DataResult.success((PowerEntry<P>) e);
-			}
-
-			else {
-				return DataResult.error(() -> "Power entry \"" + e.reference() + "\" from power manager doesn't match! (Power from instance: " + power + ", power from entry: " + e.power() + ")");
-			}
-
-		});
-
-		return entry.getOrThrow();
 
 	}
 

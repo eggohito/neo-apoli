@@ -3,9 +3,7 @@ package io.github.eggohito.neo_apoli.power;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.PowerParsingEvents;
-import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.util.ComponentUtil;
-import io.github.eggohito.neo_apoli.util.Reporter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -60,14 +58,6 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 		description = ComponentUtil.forceTranslatable(translationKey + ".description", description);
 		hidden = hidden || reference.isSubPower();
 
-	}
-
-	public Reporter createReporter() {
-		return new Reporter("{\"" + reference() + "\"}");
-	}
-
-	public Context.Validator createValidator() {
-		return new Context.Validator(power.getType().keySet(), this.createReporter()).forChild("{\"" + reference() + "\"}");
 	}
 
 	public boolean canBePartiallyParsed() {

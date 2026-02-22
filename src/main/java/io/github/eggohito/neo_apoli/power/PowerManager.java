@@ -261,7 +261,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	private static void validate(ReloadableServerResources resources) {
+	private static void validate(ReloadableServerResources ignored) {
 
 		if (BY_REFERENCE.isEmpty()) {
 			return;
@@ -277,8 +277,8 @@ public final class PowerManager implements JsonReloadListener {
 			PowerEntry<?> entry = iterator.next();
 			Power power = entry.power();
 
-			Context.Validator validator = entry.createValidator().withResolver(MiscUtil.getLookupProvider(resources));
-			Reporter reporter = validator.reporter();
+			Reporter reporter = new Reporter("{\"" + entry.reference() + "\"}");
+			Context.Validator validator = new Context.Validator(power.getType().keySet(), reporter);
 
 			power.validate(validator);
 			reporter.getErrorsFlattened().ifPresent(error -> {
