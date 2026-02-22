@@ -490,67 +490,90 @@ public final class PowersComponentImpl implements PowersComponent {
 		);
 	}
 
-	private static void update(Entity entity) {
+	private static void update(Entity entity, boolean joined) {
+
+		if (joined) {
+			return;
+		}
 
 		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
-		List<PowerEntry<?>> oldEntries = powersComponent.getAll();
-
-		Map<PowerReference, Dynamic<?>> pendingDataSync = new Object2ObjectOpenHashMap<>();
 		RegistryOps<Tag> nbtOps = entity.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-		for (var oldEntry : oldEntries) {
+		Map<PowerReference, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
+		Object2BooleanMap<PowerReference> differentPowerTypes = new Object2BooleanOpenHashMap<>();
+
+		//  Replace old instances of the granted powers with new ones, and store its data to be synced and
+		//  transferred later
+		for (var oldEntry : powersComponent.getAll()) {
 
 			PowerReference reference = oldEntry.reference();
-			Set<ResourceLocation> sources = powersComponent.getSources(oldEntry);
+			Power.Instance<?> oldInstance = powersComponent.getInstance(oldEntry);
 
 			if (!PowerManager.contains(reference)) {
 
-				NeoApoli.LOGGER.error("Removed unregistered {} from entity {}!", reference.asDisplayString(false), entity.getName().getString());
-
-				for (var source : sources) {
+				for (var source : powersComponent.getSources(oldEntry)) {
 					powersComponent.revokePower(oldEntry, source);
 				}
+
+				NeoApoli.LOGGER.warn("Removed unregistered {} from entity {}!", reference.asDisplayString(false), entity.getName().getString());
 
 			}
 
 			else {
 
 				PowerEntry<?> newEntry = PowerManager.getEntry(reference);
-				Power.Instance<?> oldInstance = powersComponent.getInstance(oldEntry);
+				oldInstance.encodeData(nbtOps)
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the transfer process: {}", reference.asDisplayString(false), entity.getName().getString(), error))
+					.ifPresent(tag -> pendingDataSync.put(reference, tag));
 
-				for (var source : sources) {
+				for (var source : powersComponent.getSources(oldEntry)) {
 					powersComponent.revokePowerNoCallback(oldEntry, source);
 					powersComponent.grantPowerNoCallback(newEntry, source);
 				}
 
-				Power.Instance<?> newInstance = powersComponent.getInstance(newEntry);
-				DataResult<Tag> result = DataResult.error(() -> "Couldn't transfer old data of " + reference.asDisplayString(false) + ", as it's now using a different power type!");
-
-				if (oldInstance.getClass().isInstance(newInstance)) {
-					result = oldInstance.encodeData(nbtOps)
-						.mapError(encodingError -> "Couldn't encode old data of " + reference.asDisplayString(false) + " during the update process: " + encodingError)
-						.flatMap(tag -> newInstance.decodeData(nbtOps, tag)
-							.mapError(decodingError -> "Couldn't decode old data of " + reference.asDisplayString(false) + " during the update process: " + decodingError)
-							.map(unit -> tag));
+				if (!MiscUtil.isEncodedEqual(nbtOps, PowerEntry.CODEC, oldEntry, newEntry)) {
+					NeoApoli.LOGGER.warn("{} from entity {} had mismatched data fields!", reference.asDisplayString(), entity.getName().getString());
 				}
 
-				result
-					.ifSuccess(data -> pendingDataSync.put(reference, new Dynamic<>(nbtOps, data)))
-					.ifError(error -> NeoApoli.LOGGER.warn(error.message()));
+				differentPowerTypes.put(reference, !oldInstance.getClass().isInstance(powersComponent.getInstance(newEntry)));
 
 			}
 
 		}
 
-		powersComponent.updateRevokedPowers();
-		powersComponent.updateGrantedPowers();
+		//  Transfer the stored old data of the granted powers
+		for (var newEntry : powersComponent.getAll()) {
+
+			PowerReference reference = newEntry.reference();
+			Power.Instance<?> newInstance = powersComponent.getInstance(newEntry);
+
+			if (pendingDataSync.containsKey(reference)) {
+
+				Tag oldData = pendingDataSync.get(reference);
+				boolean differentPowerType = differentPowerTypes.getOrDefault(reference, false);
+
+				if (differentPowerType) {
+					NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), entity.getName().getString());
+				}
+
+				else {
+					newInstance
+						.decodeData(nbtOps, oldData)
+						.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {}: {}", reference.asDisplayString(), error));
+				}
+
+			}
+
+		}
+
+		powersComponent.checkForUpdates();
 
 		if (!pendingDataSync.isEmpty()) {
 
-			SynchronizePowerDataS2CPacket packet = new SynchronizePowerDataS2CPacket(entity.getId(), pendingDataSync);
+			SynchronizePowerDataS2CPacket packet = SynchronizePowerDataS2CPacket.bulk(entity.getId(), nbtOps, pendingDataSync);
 
-			for (var player : MiscUtil.getTrackingPlayers(entity)) {
-				ServerPlayNetworking.send(player, packet);
+			for (var tracker : MiscUtil.getTrackingPlayers(entity)) {
+				ServerPlayNetworking.send(tracker, packet);
 			}
 
 		}
@@ -578,16 +601,10 @@ public final class PowersComponentImpl implements PowersComponent {
 
 	static {
 
-		ServerEntityEvents.ENTITY_LOAD.register(ID, (entity, world) -> {
-
-			if (!(entity instanceof Player)) {
-				update(entity);
-			}
-
-		});
+		ServerEntityEvents.ENTITY_LOAD.register(ID, (entity, Level) -> update(entity, entity instanceof Player));
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> update(player));
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, PowersComponentImpl::update);
 
 	}
 

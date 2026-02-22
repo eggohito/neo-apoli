@@ -291,8 +291,7 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 			powersComponent.grantPower(expectedEntry, GlobalPowerSet.SOURCE);
 		}
 
-		powersComponent.updateRevokedPowers();
-		powersComponent.updateGrantedPowers();
+		powersComponent.checkForUpdates();
 
 	}
 

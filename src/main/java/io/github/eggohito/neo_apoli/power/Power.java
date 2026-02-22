@@ -127,8 +127,7 @@ public abstract class Power implements ContextUser {
 			if (!holder.level().isClientSide()) {
 				this.encodeData(nbtOps)
 					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error))
-					.map(tag -> new Dynamic<>(nbtOps, tag))
-					.map(dynamic -> new SynchronizePowerDataS2CPacket(holder.getId(), reference, dynamic))
+					.map(tag -> SynchronizePowerDataS2CPacket.single(holder.getId(), nbtOps, reference, tag))
 					.ifPresent(packet -> MiscUtil
 						.getTrackingPlayers(holder)
 						.forEach(tracker -> ServerPlayNetworking.send(tracker, packet)));

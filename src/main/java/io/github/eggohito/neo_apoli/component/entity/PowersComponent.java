@@ -178,6 +178,11 @@ public interface PowersComponent extends Component, AutoSyncedComponent, CommonT
 
 	void updateRevokedPowers();
 
+	default void checkForUpdates() {
+		updateRevokedPowers();
+		updateGrantedPowers();
+	}
+
 
 	static <I extends Power.Instance<?>> List<I> getInstances(Entity holder, Class<I> instanceClass, Predicate<I> instanceFilter) {
 		return NeoApoliEntityComponents.POWERS.maybeGet(holder)

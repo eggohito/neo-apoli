@@ -5,9 +5,7 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.MapLike;
+import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
@@ -280,6 +278,19 @@ public class MiscUtil {
 			}
 
 		};
+	}
+
+	public static <T, O> boolean isEncodedEqual(DynamicOps<O> ops, Codec<T> codec, T first, T second) {
+
+		O firstEncoded = codec.encodeStart(ops, first)
+			.result()
+			.orElse(null);
+		O secondEncoded = codec.encodeStart(ops, second)
+			.result()
+			.orElse(null);
+
+		return Objects.equals(firstEncoded, secondEncoded);
+
 	}
 
 }

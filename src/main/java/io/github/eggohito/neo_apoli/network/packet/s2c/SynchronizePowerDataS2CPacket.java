@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.network.packet.s2c;
 
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -21,19 +22,24 @@ public record SynchronizePowerDataS2CPacket(int entityId, Map<PowerReference, Dy
 	);
 
 	public static final Type<SynchronizePowerDataS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_power_data"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizePowerDataS2CPacket> CODEC = StreamCodec.composite(
-		ByteBufCodecs.VAR_INT, SynchronizePowerDataS2CPacket::entityId,
-		POWERS_AND_DATA_CODEC, SynchronizePowerDataS2CPacket::powersAndData,
-		SynchronizePowerDataS2CPacket::new
-	);
-
-	public SynchronizePowerDataS2CPacket(int entityId, PowerReference reference, Dynamic<?> data) {
-		this(entityId, Map.of(reference, data));
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizePowerDataS2CPacket> CODEC = StreamCodec.composite(ByteBufCodecs.VAR_INT, SynchronizePowerDataS2CPacket::entityId, POWERS_AND_DATA_CODEC, SynchronizePowerDataS2CPacket::powersAndData, SynchronizePowerDataS2CPacket::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
+	}
+
+	public static <T> SynchronizePowerDataS2CPacket single(int entityId, DynamicOps<T> ops, PowerReference reference, T data) {
+		return bulk(entityId, ops, Map.of(reference, data));
+	}
+
+	public static <T> SynchronizePowerDataS2CPacket bulk(int entityId, DynamicOps<T> ops, Map<PowerReference, T> powersAndData) {
+
+		Map<PowerReference, Dynamic<?>> dynamicMap = new Object2ObjectOpenHashMap<>();
+		powersAndData.forEach((reference, t) -> dynamicMap.put(reference, new Dynamic<>(ops, t)));
+
+		return new SynchronizePowerDataS2CPacket(entityId, dynamicMap);
+
 	}
 
 }
