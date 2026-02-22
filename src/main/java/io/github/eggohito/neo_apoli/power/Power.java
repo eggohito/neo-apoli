@@ -86,12 +86,22 @@ public abstract class Power implements ContextUser {
 	@Getter
 	public abstract static class Instance<P extends Power> implements ContextUser {
 
+		private static final RuntimeException GRANT_UNREGISTERED_POWER_ERROR = new IllegalStateException("Granting an unregistered power is not allowed!");
+
 		protected final P power;
 		protected final Entity holder;
 
+		protected final PowerReference reference;
+		protected final boolean hidden;
+
 		protected Instance(@NotNull Entity holder, @NotNull P power) {
+
+			this.reference = PowerManager.getReferenceAsResult(power).getOrThrow(error -> GRANT_UNREGISTERED_POWER_ERROR);
+			this.hidden = PowerManager.getEntryAsResult(this.reference).getOrThrow(error -> GRANT_UNREGISTERED_POWER_ERROR).hidden();
+
 			this.power = power;
 			this.holder = holder;
+
 		}
 
 		@Override
@@ -104,13 +114,9 @@ public abstract class Power implements ContextUser {
 			power.validate(validator);
 		}
 
-		public Reporter createReporter() {
-			return new Reporter("{\"" + PowerManager.getReference(power) + "\"}");
-		}
-
 		public Context.Builder createHolderContextBuilder() {
 			return new Context.Builder()
-				.withReporter(this.createReporter())
+				.withReporter(new Reporter("{\"" + this.getReference() + "\"}"))
 				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.THIS_POS, holder.position());
 		}
