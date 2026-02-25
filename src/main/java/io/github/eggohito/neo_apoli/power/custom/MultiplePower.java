@@ -26,6 +26,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -68,9 +69,12 @@ public class MultiplePower extends Power {
 				(identity, keyAndValue) -> {
 
 					DataResult<String> keyResult = ops.getStringValue(keyAndValue.getFirst());
-					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond());
-
 					if (keyResult.mapOrElse(MultiplePower::isKeyIgnored, error -> false)) {
+						return identity;
+					}
+
+					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond());
+					if (valueResult.isError()) {
 						return identity.apply2stable((unit, o) -> unit, valueResult);
 					}
 
@@ -127,7 +131,7 @@ public class MultiplePower extends Power {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerEntry<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
 
 		@Override
-		public ImmutableSet<PowerEntry<?>> decode(RegistryFriendlyByteBuf buf) {
+		public @NotNull ImmutableSet<PowerEntry<?>> decode(RegistryFriendlyByteBuf buf) {
 
 			ImmutableSet.Builder<PowerEntry<?>> entries = ImmutableSet.builder();
 			int size = buf.readVarInt();
