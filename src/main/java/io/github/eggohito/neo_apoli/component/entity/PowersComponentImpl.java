@@ -525,7 +525,7 @@ public final class PowersComponentImpl implements PowersComponent {
 			else {
 				powersComponent.getInstance(reference)
 					.decodeData(nbtOps, oldData)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {}: {}", reference.asDisplayString(), error));
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {} from entity {}: {}", reference.asDisplayString(false), entity.getName().getString(), error));
 			}
 
 		}
