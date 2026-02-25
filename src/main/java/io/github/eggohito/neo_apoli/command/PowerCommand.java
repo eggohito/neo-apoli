@@ -641,7 +641,17 @@ public class PowerCommand {
 					if (power instanceof MultiplePower && success.value() instanceof JsonObject jsonObject) {
 
 						JsonObject newJsonObject = new JsonObject();
-						jsonObject.asMap().forEach((key, value) -> newJsonObject.add(key.substring(key.indexOf(PowerReference.SEPARATOR) + 1), value));
+						jsonObject.asMap().forEach((key, value) -> {
+
+							String newKey = key.substring(key.indexOf(PowerReference.SEPARATOR) + 1);
+
+							if (value instanceof JsonObject valueObject) {
+								valueObject.remove(PowerEntry.REFERENCE_KEY);
+							}
+
+							newJsonObject.add(newKey, value);
+
+						});
 
 						copy = newJsonObject;
 
