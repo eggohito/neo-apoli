@@ -279,14 +279,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		for (var entryFromSource : powersComponent.getAllFromSource(GlobalPower.POWER_SOURCE)) {
 
 			if (!expectedEntries.contains(entryFromSource)) {
-				powersComponent.revokePower(entryFromSource, GlobalPower.POWER_SOURCE);
+				powersComponent.revokePower(entryFromSource.reference(), GlobalPower.POWER_SOURCE);
 			}
 
 		}
 
 		//	Re-add all the expected powers collected from all global power sets
 		for (var expectedEntry : expectedEntries) {
-			powersComponent.grantPower(expectedEntry, GlobalPower.POWER_SOURCE);
+			powersComponent.grantPower(expectedEntry.reference(), GlobalPower.POWER_SOURCE);
 		}
 
 		powersComponent.checkForUpdates();

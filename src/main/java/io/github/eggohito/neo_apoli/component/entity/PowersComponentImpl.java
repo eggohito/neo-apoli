@@ -25,8 +25,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +34,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,14 +42,17 @@ import java.util.function.Predicate;
 
 public final class PowersComponentImpl implements PowersComponent {
 
+	private static final StreamCodec<RegistryFriendlyByteBuf, Object2BooleanMap<PowerReference>> REF_AND_CALLBACK_CODEC = ByteBufCodecs.map(Object2BooleanOpenHashMap::new, PowerReference.STREAM_CODEC, ByteBufCodecs.BOOL);
+	private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, Object2BooleanMap<PowerReference>>> UPDATE_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, REF_AND_CALLBACK_CODEC);
+
 	private static final byte GRANT_POWERS_UPDATE_ID = 0;
 	private static final byte REVOKE_POWERS_UPDATE_ID = 1;
 
-	private final Map<PowerEntry<?>, Power.Instance<?>> instances;
-	private final Map<PowerEntry<?>, Set<ResourceLocation>> sources;
+	private final Map<PowerReference, Power.Instance<?>> instances;
+	private final Map<PowerReference, Set<ResourceLocation>> sources;
 
-	private final Map<ResourceLocation, Object2BooleanMap<PowerEntry<?>>> grantedPowers;
-	private final Map<ResourceLocation, Object2BooleanMap<PowerEntry<?>>> revokedPowers;
+	private final Map<ResourceLocation, Object2BooleanMap<PowerReference>> grantedPowers;
+	private final Map<ResourceLocation, Object2BooleanMap<PowerReference>> revokedPowers;
 
 	private final Entity holder;
 
@@ -97,18 +99,18 @@ public final class PowersComponentImpl implements PowersComponent {
 					.getOrThrow();
 
 				PowerReference reference = data.reference();
-				DataResult<PowerEntry<?>> entryResult = PowerManager.getEntryAsResult(reference);
+				DataResult<Power> powerResult = PowerManager.getAsResult(reference);
 
-				switch (entryResult) {
-					case DataResult.Success<PowerEntry<?>> success -> {
+				switch (powerResult) {
+					case DataResult.Success<Power> success -> {
 
 						Dynamic<Tag> encodedData = data.encoded().convert(ops);
 						Set<ResourceLocation> sources = data.sources();
 
-						PowerEntry<?> entry = success.value();
-						Power.Instance<?> instance = entry.power().createInstance(holder);
+						Power power = success.value();
+						Power.Instance<?> instance = power.createInstance(holder);
 
-						if (Objects.equals(data.type(), entry.power().getType())) {
+						if (Objects.equals(data.type(), power.getType())) {
 							instance.decodeData(ops, encodedData.getValue())
 								.mapError(error -> "Error decoding data of " + reference.asDisplayString(false) + " from NBT (skipping): " + error)
 								.error()
@@ -120,11 +122,11 @@ public final class PowersComponentImpl implements PowersComponent {
 							NeoApoli.LOGGER.warn("Power instance of {} has changed. Its data won't be recovered!", reference.asDisplayString(false));
 						}
 
-						this.instances.put(entry, instance);
-						this.sources.put(entry, sources);
+						this.instances.put(reference, instance);
+						this.sources.put(reference, sources);
 
 					}
-					case DataResult.Error<PowerEntry<?>> error ->
+					case DataResult.Error<Power> error ->
 						NeoApoli.LOGGER.warn("Error decoding {} from cardinal_components.\"{}\".powers[{}] of entity {} (skipping): {}", reference.asDisplayString(false), NeoApoliEntityComponents.POWERS.getId(), index, holder.getName(), error.message());
 				}
 
@@ -144,17 +146,17 @@ public final class PowersComponentImpl implements PowersComponent {
 		RegistryOps<Tag> ops = provider.createSerializationContext(NbtOps.INSTANCE);
 		ListTag powersNbt = new ListTag();
 
-		this.instances.forEach((entry, instance) -> {
+		this.instances.forEach((reference, instance) -> {
 
-			Set<ResourceLocation> sources = this.sources.getOrDefault(entry, Set.of());
+			Set<ResourceLocation> sources = this.sources.getOrDefault(reference, Set.of());
 			Tag encodedData = instance.encodeData(ops)
-				.mapError(error -> "Error trying to encode data of " + entry.reference().asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + error)
+				.mapError(error -> "Error trying to encode data of " + reference.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (defaulting to empty NBT): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.orElseGet(ops::emptyMap);
 
-			Data<Tag> data = new Data<>(entry.reference(), entry.power().getType(), sources, new Dynamic<>(ops, encodedData));
+			Data<Tag> data = new Data<>(reference, instance.getPower().getType(), sources, new Dynamic<>(ops, encodedData));
 			Data.CODEC.encodeStart(ops, data)
-				.mapError(error -> "Error trying to encode " + entry.reference().asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
+				.mapError(error -> "Error trying to encode " + reference.asDisplayString(false) + " to NBT of entity " + holder.getName().getString() + " (skipping): " + error)
 				.resultOrPartial(NeoApoli.LOGGER::warn)
 				.ifPresent(powersNbt::add);
 
@@ -171,9 +173,9 @@ public final class PowersComponentImpl implements PowersComponent {
 
 		switch (updateId) {
 			case GRANT_POWERS_UPDATE_ID ->
-				decodeChanges(holder, buf).forEach((source, entries) -> entries.forEach((entry, invokeCallbacks) -> grantPowerInternal(entry, source, invokeCallbacks)));
+				UPDATE_CODEC.decode(buf).forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> grantPowerInternal(reference, source, invokeCallbacks)));
 			case REVOKE_POWERS_UPDATE_ID ->
-				decodeChanges(holder, buf).forEach((source, entries) -> entries.forEach((entry, invokeCallbacks) -> revokePowerInternal(entry, source, invokeCallbacks)));
+				UPDATE_CODEC.decode(buf).forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> revokePowerInternal(reference, source, invokeCallbacks)));
 			case -1 ->
 				PowersComponent.super.applySyncPacket(buf);
 		}
@@ -192,13 +194,28 @@ public final class PowersComponentImpl implements PowersComponent {
 	}
 
 	@Override
+	public Set<PowerReference> getAllReferences() {
+		return new ObjectOpenHashSet<>(this.instances.keySet());
+	}
+
+	@Override
+	public Set<ResourceLocation> getAllSources() {
+
+		Set<ResourceLocation> collected = new ObjectOpenHashSet<>();
+		this.sources.values().forEach(collected::addAll);
+
+		return collected;
+
+	}
+
+	@Override
 	public List<PowerEntry<?>> getAll(boolean includingSubPowers) {
 
 		List<PowerEntry<?>> collected = new ObjectArrayList<>();
-		this.instances.keySet().forEach(entry -> {
+		this.instances.keySet().forEach(reference -> {
 
-			if (includingSubPowers || !entry.isSubPower()) {
-				collected.add(entry);
+			if (PowerManager.contains(reference) && (includingSubPowers || !reference.isSubPower())) {
+				collected.add(PowerManager.getEntry(reference));
 			}
 
 		});
@@ -212,10 +229,10 @@ public final class PowersComponentImpl implements PowersComponent {
 	public List<PowerEntry<?>> getAllFromSource(ResourceLocation source) {
 
 		List<PowerEntry<?>> collected = new ObjectArrayList<>();
-		this.sources.forEach((entry, sources) -> {
+		this.sources.forEach((reference, sources) -> {
 
-			if (sources.contains(source)) {
-				collected.add(entry);
+			if (PowerManager.contains(reference) && sources.contains(source)) {
+				collected.add(PowerManager.getEntry(reference));
 			}
 
 		});
@@ -225,32 +242,25 @@ public final class PowersComponentImpl implements PowersComponent {
 	}
 
 	@Override
-	public Set<ResourceLocation> getSources(PowerEntry<?> entry) {
-		return sources.containsKey(entry)
-			? new ObjectOpenHashSet<>(sources.get(entry))
+	public Set<ResourceLocation> getSources(PowerReference reference) {
+		return sources.containsKey(reference)
+			? new ObjectOpenHashSet<>(sources.get(reference))
 			: new ObjectOpenHashSet<>();
 	}
 
 
-	@NotNull
-	public Power.Instance<?> getInstance(PowerEntry<?> entry) {
-		return Objects.requireNonNull(this.getNullableInstance(entry), "Entity " + holder.getName().getString() + " didn't have " + entry.reference().asDisplayString(false) + " granted!");
-	}
-
-	@Nullable
-	public Power.Instance<?> getNullableInstance(PowerEntry<?> entry) {
-		return this.instances.get(entry);
-	}
-
-
-	@Override
-	public boolean hasInstance(PowerEntry<?> entry, ResourceLocation source) {
-		return this.sources.getOrDefault(entry, new ObjectOpenHashSet<>()).contains(source);
+	public Power.@NotNull Instance<?> getInstance(PowerReference reference) {
+		return Objects.requireNonNull(instances.get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
 	}
 
 	@Override
-	public boolean hasInstance(PowerEntry<?> entry) {
-		return this.instances.containsKey(entry);
+	public boolean hasInstance(PowerReference reference, ResourceLocation source) {
+		return this.sources.getOrDefault(reference, new ObjectOpenHashSet<>()).contains(source);
+	}
+
+	@Override
+	public boolean hasInstance(PowerReference reference) {
+		return this.instances.containsKey(reference);
 	}
 
 
@@ -299,17 +309,17 @@ public final class PowersComponentImpl implements PowersComponent {
 
 
 	@Override
-	public boolean grantPower(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean grantPower(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.grantPowerInternal(entry, source, invokeCallbacks);
+			&& this.grantPowerInternal(reference, source, invokeCallbacks);
 	}
 
-	private boolean grantPowerInternal(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean grantPowerInternal(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
 
 		List<Power.Instance<?>> addedPowers = new ObjectArrayList<>();
 		List<Power.Instance<?>> grantedPowers = new ObjectArrayList<>();
 
-		boolean granted = this.grantPowerRecursively(entry, source, addedPowers::add, grantedPowers::add, invokeCallbacks);
+		boolean granted = this.grantPowerRecursively(reference, source, addedPowers::add, grantedPowers::add, invokeCallbacks);
 
 		addedPowers.forEach(Power.Instance::onAdded);
 		grantedPowers.forEach(Power.Instance::onGranted);
@@ -318,22 +328,26 @@ public final class PowersComponentImpl implements PowersComponent {
 
 	}
 
-	private boolean grantPowerRecursively(PowerEntry<?> entry, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
+	private boolean grantPowerRecursively(PowerReference reference, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
 
-		Set<ResourceLocation> sources = this.sources.computeIfAbsent(entry, k -> new ObjectOpenHashSet<>());
-		boolean firstTimeGranting = !this.instances.containsKey(entry);
+		if (!PowerManager.contains(reference)) {
+			return false;
+		}
+
+		Set<ResourceLocation> sources = this.sources.computeIfAbsent(reference, k -> new ObjectOpenHashSet<>());
+		boolean firstTimeGranting = !this.instances.containsKey(reference);
 
 		if (!sources.add(source)) {
 			return false;
 		}
 
-		Power power = entry.power();
-		Power.Instance<?> instance = this.instances.computeIfAbsent(entry, k -> power.createInstance(holder));
+		Power power = PowerManager.get(reference);
+		Power.Instance<?> instance = this.instances.computeIfAbsent(reference, k -> power.createInstance(holder));
 
 		if (power instanceof MultiplePower multiplePower) {
 
 			for (PowerEntry<?> subPower : multiplePower.getSubPowers()) {
-				this.grantPowerRecursively(subPower, source, onAdded, onGranted, invokeCallbacks);
+				this.grantPowerRecursively(subPower.reference(), source, onAdded, onGranted, invokeCallbacks);
 			}
 
 		}
@@ -351,7 +365,7 @@ public final class PowersComponentImpl implements PowersComponent {
 		if (!holder.level().isClientSide()) {
 			this.grantedPowers
 				.computeIfAbsent(source, k -> new Object2BooleanOpenHashMap<>())
-				.put(entry, invokeCallbacks);
+				.put(reference, invokeCallbacks);
 		}
 
 		return true;
@@ -360,15 +374,15 @@ public final class PowersComponentImpl implements PowersComponent {
 
 
 	@Override
-	public boolean revokePower(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean revokePower(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.revokePowerInternal(entry, source, invokeCallbacks);
+			&& this.revokePowerInternal(reference, source, invokeCallbacks);
 	}
 
-	private boolean revokePowerInternal(PowerEntry<?> entry, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean revokePowerInternal(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
 
-		List<PowerEntry<?>> revokedPowers = new ObjectArrayList<>();
-		boolean result = this.revokePowerRecursively(entry, source, revokedPowers::add, invokeCallbacks);
+		List<PowerReference> revokedPowers = new ObjectArrayList<>();
+		boolean result = this.revokePowerRecursively(reference, source, revokedPowers::add, invokeCallbacks);
 
 		instances.keySet().removeIf(revokedPowers::contains);
 		sources.keySet().removeIf(revokedPowers::contains);
@@ -377,27 +391,27 @@ public final class PowersComponentImpl implements PowersComponent {
 
 	}
 
-	private boolean revokePowerRecursively(PowerEntry<?> entry, ResourceLocation source, Consumer<PowerEntry<?>> onRevoked, boolean invokeCallbacks) {
+	private boolean revokePowerRecursively(PowerReference reference, ResourceLocation source, Consumer<PowerReference> onRevoked, boolean invokeCallbacks) {
 
-		Set<ResourceLocation> sources = this.sources.getOrDefault(entry, new ObjectOpenHashSet<>());
-		if (!sources.remove(source) || !instances.containsKey(entry)) {
+		Set<ResourceLocation> sources = this.sources.getOrDefault(reference, new ObjectOpenHashSet<>());
+		if (!sources.remove(source) || !instances.containsKey(reference)) {
 			return false;
 		}
 
-		Power.Instance<?> instance = instances.get(entry);
-		boolean emptiedSources = sources.isEmpty();
+		Power.Instance<?> instance = instances.get(reference);
+		boolean revoked = sources.isEmpty();
 
 		if (instance.getPower() instanceof MultiplePower multiplePower) {
 
 			for (var subPower : multiplePower.getSubPowers()) {
-				this.revokePowerRecursively(subPower, source, onRevoked, invokeCallbacks);
+				this.revokePowerRecursively(subPower.reference(), source, onRevoked, invokeCallbacks);
 			}
 
 		}
 
-		if (emptiedSources) {
+		if (revoked) {
 
-			onRevoked.accept(entry);
+			onRevoked.accept(reference);
 
 			if (invokeCallbacks) {
 				instance.onRevoked();
@@ -412,82 +426,42 @@ public final class PowersComponentImpl implements PowersComponent {
 		if (!holder.level().isClientSide()) {
 			this.revokedPowers
 				.computeIfAbsent(source, k -> new Object2BooleanOpenHashMap<>())
-				.put(entry, invokeCallbacks);
+				.put(reference, invokeCallbacks);
 		}
 
 		return true;
 
 	}
 
-
 	@Override
-	public void updateGrantedPowers() {
+	public void checkForUpdates() {
 
-		if (holder.level().isClientSide() || grantedPowers.isEmpty()) {
+		if (holder.level().isClientSide()) {
 			return;
 		}
 
-		NeoApoliEntityComponents.POWERS.sync(holder, (buf, recipient) -> {
-			buf.writeByte(GRANT_POWERS_UPDATE_ID);
-			encodeChanges(holder, buf, this.grantedPowers);
-		});
+		if (!revokedPowers.isEmpty()) {
 
-		this.grantedPowers.clear();
+			NeoApoliEntityComponents.POWERS.sync(holder, (buf, recipient) -> {
+				buf.writeByte(REVOKE_POWERS_UPDATE_ID);
+				UPDATE_CODEC.encode(buf, revokedPowers);
+			});
 
-	}
+			this.revokedPowers.clear();
 
-	@Override
-	public void updateRevokedPowers() {
-
-		if (holder.level().isClientSide() || revokedPowers.isEmpty()) {
-			return;
 		}
 
-		NeoApoliEntityComponents.POWERS.sync(holder, (buf, recipient) -> {
-			buf.writeByte(REVOKE_POWERS_UPDATE_ID);
-			encodeChanges(holder, buf, this.revokedPowers);
-		});
+		if (!grantedPowers.isEmpty()) {
 
-		this.revokedPowers.clear();
+			NeoApoliEntityComponents.POWERS.sync(holder, (buf, recipient) -> {
+				buf.writeByte(GRANT_POWERS_UPDATE_ID);
+				UPDATE_CODEC.encode(buf, grantedPowers);
+			});
 
-	}
+			this.grantedPowers.clear();
 
+		}
 
-	private static void encodeChanges(Entity ignored, RegistryFriendlyByteBuf buf, Map<ResourceLocation, Object2BooleanMap<PowerEntry<?>>> powers) {
-		buf.writeMap(
-			powers,
-			FriendlyByteBuf::writeResourceLocation,
-			(valueBuf, entryMap) -> buf.writeMap(
-				entryMap,
-				(innerKeyBuf, entry) -> PowerReference.STREAM_CODEC.encode(innerKeyBuf, entry.reference()),
-				FriendlyByteBuf::writeBoolean
-			)
-		);
-	}
-
-	private static Map<ResourceLocation, Object2BooleanMap<PowerEntry<?>>> decodeChanges(Entity holder, RegistryFriendlyByteBuf buf) {
-		return buf.readMap(
-			FriendlyByteBuf::readResourceLocation,
-			valueBuf -> {
-
-				Object2BooleanMap<PowerEntry<?>> entryMap = new Object2BooleanOpenHashMap<>();
-				int size = valueBuf.readVarInt();
-
-				for (int i = 0; i < size; i++) {
-
-					PowerReference reference = PowerReference.STREAM_CODEC.decode(valueBuf);
-					boolean invokeCallback = valueBuf.readBoolean();
-
-					PowerManager.getEntryAsResult(reference)
-						.ifError(error -> NeoApoli.LOGGER.warn("Received unknown {} while partially updating power component of entity {}! Skipping...", reference.asDisplayString(false), holder.getName().getString()))
-						.ifSuccess(entry -> entryMap.put(entry, invokeCallback));
-
-				}
-
-				return entryMap;
-
-			}
-		);
 	}
 
 	private static void update(Entity entity, boolean joined) {
@@ -504,15 +478,12 @@ public final class PowersComponentImpl implements PowersComponent {
 
 		//  Replace old instances of the granted powers with new ones, and store its data to be synced and
 		//  transferred later
-		for (var oldEntry : powersComponent.getAll()) {
-
-			PowerReference reference = oldEntry.reference();
-			Power.Instance<?> oldInstance = powersComponent.getInstance(oldEntry);
+		for (var reference : powersComponent.getAllReferences()) {
 
 			if (!PowerManager.contains(reference)) {
 
-				for (var source : powersComponent.getSources(oldEntry)) {
-					powersComponent.revokePower(oldEntry, source);
+				for (var source : powersComponent.getSources(reference)) {
+					powersComponent.revokePower(reference, source);
 				}
 
 				NeoApoli.LOGGER.warn("Removed unregistered {} from entity {}!", reference.asDisplayString(false), entity.getName().getString());
@@ -521,47 +492,40 @@ public final class PowersComponentImpl implements PowersComponent {
 
 			else {
 
-				PowerEntry<?> newEntry = PowerManager.getEntry(reference);
+				Power.Instance<?> oldInstance = powersComponent.getInstance(reference);
 				oldInstance.encodeData(nbtOps)
 					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the transfer process: {}", reference.asDisplayString(false), entity.getName().getString(), error))
 					.ifPresent(tag -> pendingDataSync.put(reference, tag));
 
-				for (var source : powersComponent.getSources(oldEntry)) {
-					powersComponent.revokePowerNoCallback(oldEntry, source);
-					powersComponent.grantPowerNoCallback(newEntry, source);
+				for (var source : powersComponent.getSources(reference)) {
+					powersComponent.revokePowerNoCallback(reference, source);
+					powersComponent.grantPowerNoCallback(reference, source);
 				}
 
-				if (!MiscUtil.isEncodedEqual(nbtOps, PowerEntry.CODEC, oldEntry, newEntry)) {
-					NeoApoli.LOGGER.warn("{} from entity {} had mismatched data fields!", reference.asDisplayString(), entity.getName().getString());
-				}
-
-				differentPowerTypes.put(reference, !oldInstance.getClass().isInstance(powersComponent.getInstance(newEntry)));
+				differentPowerTypes.put(reference, !oldInstance.getClass().isInstance(powersComponent.getInstance(reference)));
 
 			}
 
 		}
 
 		//  Transfer the stored old data of the granted powers
-		for (var newEntry : powersComponent.getAll()) {
+		for (var reference : powersComponent.getAllReferences()) {
 
-			PowerReference reference = newEntry.reference();
-			Power.Instance<?> newInstance = powersComponent.getInstance(newEntry);
+			if (!pendingDataSync.containsKey(reference)) {
+				continue;
+			}
 
-			if (pendingDataSync.containsKey(reference)) {
+			Tag oldData = pendingDataSync.get(reference);
+			boolean differentPowerType = differentPowerTypes.getOrDefault(reference, false);
 
-				Tag oldData = pendingDataSync.get(reference);
-				boolean differentPowerType = differentPowerTypes.getOrDefault(reference, false);
+			if (differentPowerType) {
+				NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), entity.getName().getString());
+			}
 
-				if (differentPowerType) {
-					NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), entity.getName().getString());
-				}
-
-				else {
-					newInstance
-						.decodeData(nbtOps, oldData)
-						.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {}: {}", reference.asDisplayString(), error));
-				}
-
+			else {
+				powersComponent.getInstance(reference)
+					.decodeData(nbtOps, oldData)
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {}: {}", reference.asDisplayString(), error));
 			}
 
 		}

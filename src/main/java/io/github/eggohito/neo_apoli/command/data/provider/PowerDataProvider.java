@@ -32,7 +32,7 @@ public record PowerDataProvider(String target) implements DataCommands.DataProvi
         PowerEntry<?> entry = PowerArgument.getPower(context, target());
 
         RegistryOps<Tag> ops = context.getSource().registryAccess().createSerializationContext(NbtOps.INSTANCE);
-        Power.Instance<?> instance = NeoApoliEntityComponents.POWERS.get(holder).getNullableInstance(entry);
+        Power.Instance<?> instance = NeoApoliEntityComponents.POWERS.get(holder).getNullableInstance(entry.reference());
 
         if (instance != null) {
             return new PowerDataAccessor(holder, instance, entry.reference(), ops);

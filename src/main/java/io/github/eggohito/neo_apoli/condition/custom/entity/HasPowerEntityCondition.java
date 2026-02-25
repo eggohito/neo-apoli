@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -39,16 +37,12 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 	@Override
 	public boolean test(Context context) {
 
-		PowerEntry<?> entry = PowerManager.getEntryAsResult(this.power())
-			.result()
-			.orElse(null);
 		PowersComponent powersComponent = context.getOptional(NeoApoliContextParams.THIS_ENTITY)
 			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
 			.orElse(null);
 
-		return entry != null
-			&& powersComponent != null
-			&& this.testInternal(powersComponent, entry);
+		return powersComponent != null
+			&& this.testInternal(powersComponent);
 
 	}
 
@@ -58,10 +52,10 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 		power().validate(validator.forChild(".power"));
 	}
 
-	private boolean testInternal(PowersComponent powersComponent, PowerEntry<?> entry) {
+	private boolean testInternal(PowersComponent powersComponent) {
 		return this.source()
-			.map(innerSource -> powersComponent.hasInstance(entry, innerSource))
-			.orElseGet(() -> powersComponent.hasInstance(entry));
+			.map(innerSource -> powersComponent.hasInstance(power(), innerSource))
+			.orElseGet(() -> powersComponent.hasInstance(power()));
 	}
 
 }

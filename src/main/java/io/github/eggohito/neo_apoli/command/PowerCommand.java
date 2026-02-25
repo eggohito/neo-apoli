@@ -103,7 +103,7 @@ public class PowerCommand {
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
 				long grantedPowers = entries
 					.stream()
-					.filter(entry -> powersComponent.grantPower(entry, source))
+					.filter(entry -> powersComponent.grantPower(entry.reference(), source))
 					.count();
 
 				if (grantedPowers <= 0) {
@@ -111,7 +111,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, grantedPowers);
-				powersComponent.updateGrantedPowers();
+				powersComponent.checkForUpdates();
 
 			}
 
@@ -255,7 +255,7 @@ public class PowerCommand {
 
 				if (entry != null) {
 
-					if (powersComponent.revokePower(entry, source)) {
+					if (powersComponent.revokePower(entry.reference(), source)) {
 						revokedPowers = 1;
 					}
 
@@ -268,7 +268,7 @@ public class PowerCommand {
 				else {
 					revokedPowers = powersComponent.getAllFromSource(source)
 						.stream()
-						.filter(inner -> powersComponent.revokePower(inner, source))
+						.filter(inner -> powersComponent.revokePower(inner.reference(), source))
 						.count();
 				}
 
@@ -277,7 +277,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, revokedPowers);
-				powersComponent.updateRevokedPowers();
+				powersComponent.checkForUpdates();
 
 			}
 
@@ -396,11 +396,11 @@ public class PowerCommand {
 			for (Entity target : targets) {
 
 				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Set<ResourceLocation> sources = powersComponent.getSources(entry);
+				Set<ResourceLocation> sources = powersComponent.getSources(entry.reference());
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> powersComponent.revokePower(entry, source))
+					.filter(source -> powersComponent.revokePower(entry.reference(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -408,7 +408,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.add(target);
-				powersComponent.updateRevokedPowers();
+				powersComponent.checkForUpdates();
 
 			}
 
@@ -475,9 +475,9 @@ public class PowerCommand {
 
 				for (var entry : powersComponent.getAll()) {
 
-					for (var source : powersComponent.getSources(entry)) {
+					for (var source : powersComponent.getSources(entry.reference())) {
 
-						if (powersComponent.revokePower(entry, source)) {
+						if (powersComponent.revokePower(entry.reference(), source)) {
 							clearedPowers++;
 						}
 
@@ -490,7 +490,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, clearedPowers);
-				powersComponent.updateRevokedPowers();
+				powersComponent.checkForUpdates();
 
 			}
 
@@ -573,7 +573,7 @@ public class PowerCommand {
 				Power power = entry.power();
 				PowerType<?> type = power.getType();
 
-				List<Component> sourceTooltips = powersComponent.getSources(entry)
+				List<Component> sourceTooltips = powersComponent.getSources(entry.reference())
 					.stream()
 					.map(Objects::toString)
 					.map(source -> Component.literal(source).withStyle())
