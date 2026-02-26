@@ -128,7 +128,7 @@ public class ConditionCommand {
 			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter);
+			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter).withResolver(source.registryAccess());
 
 			condition.validate(validator);
 			var validationException = reporter.getErrorsFlattened()

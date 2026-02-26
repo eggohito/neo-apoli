@@ -114,7 +114,7 @@ public class ActionCommand {
 			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter);
+			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter).withResolver(source.registryAccess());
 
 			action.validate(validator);
 			var validationException = reporter.getErrorsFlattened()
