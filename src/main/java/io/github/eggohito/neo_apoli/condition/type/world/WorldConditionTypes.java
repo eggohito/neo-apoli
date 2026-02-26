@@ -22,6 +22,7 @@ public class WorldConditionTypes {
 	public static final WorldConditionType<ReferenceWorldCondition> REFERENCE = registerInternal("reference", ReferenceWorldCondition.MAP_CODEC, ReferenceWorldCondition.STREAM_CODEC);
 
 	public static final WorldConditionType<DifficultyWorldCondition> DIFFICULTY = registerInternal("difficulty", DifficultyWorldCondition.MAP_CODEC, DifficultyWorldCondition.STREAM_CODEC);
+	public static final WorldConditionType<IsExposedToSkyWorldCondition> IS_EXPOSED_TO_SKY = registerInternal("is_exposed_to_sky", IsExposedToSkyWorldCondition.MAP_CODEC, IsExposedToSkyWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsInTagWorldCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagWorldCondition.MAP_CODEC, IsInTagWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsOfWorldCondition> IS_OF = registerInternal("is_of", IsOfWorldCondition.MAP_CODEC, IsOfWorldCondition.STREAM_CODEC);
 	public static final WorldConditionType<IsRainingAtWorldCondition> IS_RAINING_AT = registerInternal("is_raining_at", IsRainingAtWorldCondition.MAP_CODEC, IsRainingAtWorldCondition.STREAM_CODEC);
