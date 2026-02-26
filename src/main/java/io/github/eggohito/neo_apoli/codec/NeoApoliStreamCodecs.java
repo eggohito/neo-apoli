@@ -3,17 +3,11 @@ package io.github.eggohito.neo_apoli.codec;
 import com.google.gson.internal.LazilyParsedNumber;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
-import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -21,7 +15,6 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -179,18 +172,6 @@ public class NeoApoliStreamCodecs {
 	);
 
 	public static final StreamCodec<ByteBuf, List<TagEntry>> TAG_ENTRIES = ByteBufCodecs.collection(ObjectArrayList::new, TAG_ENTRY);
-
-	public static final StreamCodec<ByteBuf, TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.createStreamCodec(BuiltInRegistries.ENTITY_TYPE);
-
-	public static final StreamCodec<ByteBuf, TagLike<PowerEntry<?>>> POWER_TAG_LIKE = TagLike.createStreamCodec(PowerManager.TAG_LOOKUP);
-
-	public static final StreamCodec<ByteBuf, TagLike<Action>> ACTION_TAG_LIKE = TagLike.createStreamCodec(ActionManager.TAG_LOOKUP);
-
-	public static final StreamCodec<ByteBuf, LazyTagLike<EntityType<?>>> LAZY_ENTITY_TYPE_TAG_LIKE = LazyTagLike.createLazyStreamCodec(BuiltInRegistries.ENTITY_TYPE);
-
-	public static final StreamCodec<ByteBuf, LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyStreamCodec(PowerManager.TAG_LOOKUP);
-
-	public static final StreamCodec<ByteBuf, LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyStreamCodec(ActionManager.TAG_LOOKUP);
 
 	public static final StreamCodec<ByteBuf, RoundingMode> ROUNDING_MODE = StreamCodecUtil.enumType(RoundingMode.class);
 

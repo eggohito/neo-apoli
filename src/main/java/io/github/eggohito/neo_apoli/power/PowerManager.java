@@ -24,7 +24,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -42,6 +41,7 @@ import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.util.profiling.Profiler;
@@ -65,7 +65,7 @@ public final class PowerManager implements JsonReloadListener {
 	public static final ResourceLocation ID = NeoApoli.id("manager/powers");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
 
-	public static final TagLike.Lookup<PowerEntry<?>> TAG_LOOKUP = new TagLike.Lookup<>() {
+	public static final TagEntry.Lookup<PowerEntry<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
 
 		@Nullable
 		@Override
@@ -80,8 +80,8 @@ public final class PowerManager implements JsonReloadListener {
 		}
 
 		@Override
-		public String name() {
-			return "Power tag-like";
+		public String toString() {
+			return "Power manager";
 		}
 
 	};

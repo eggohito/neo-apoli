@@ -20,7 +20,6 @@ import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -34,6 +33,7 @@ import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.util.profiling.Profiler;
@@ -57,7 +57,7 @@ public final class ActionManager implements JsonReloadListener {
 	public static final ResourceLocation ID = NeoApoli.id("manager/actions");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
 
-	public static final TagLike.Lookup<Action> TAG_LOOKUP =  new TagLike.Lookup<>() {
+	public static final TagEntry.Lookup<Action> TAG_LOOKUP =  new TagEntry.Lookup<>() {
 
 		@Nullable
 		@Override
@@ -72,8 +72,8 @@ public final class ActionManager implements JsonReloadListener {
 		}
 
 		@Override
-		public String name() {
-			return "Action tag-like";
+		public String toString() {
+			return "Action manager";
 		}
 
 	};

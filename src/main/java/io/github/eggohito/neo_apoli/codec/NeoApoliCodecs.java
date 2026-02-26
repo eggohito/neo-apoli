@@ -7,8 +7,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
@@ -19,7 +17,6 @@ import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
-import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -174,17 +171,9 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
 
-	public static final Codec<TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.createCodec(BuiltInRegistries.ENTITY_TYPE);
-
-	public static final Codec<TagLike<PowerEntry<?>>> POWER_TAG_LIKE = TagLike.createCodec(PowerManager.TAG_LOOKUP);
-
-	public static final Codec<TagLike<Action>> ACTION_TAG_LIKE = TagLike.createCodec(ActionManager.TAG_LOOKUP);
-
 	public static final Codec<LazyTagLike<EntityType<?>>> LAZY_ENTITY_TYPE_TAG_LIKE = LazyTagLike.createLazyCodec(BuiltInRegistries.ENTITY_TYPE);
 
 	public static final Codec<LazyTagLike<PowerEntry<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyCodec(PowerManager.TAG_LOOKUP);
-
-	public static final Codec<LazyTagLike<Action>> LAZY_ACTION_TAG_LIKE = LazyTagLike.createLazyCodec(ActionManager.TAG_LOOKUP);
 
 	public static final Codec<SimpleParticleType> SIMPLE_PARTICLE = NeoApoliParticleTypes.CODEC.comapFlatMap(
 		particleType -> particleType instanceof SimpleParticleType simpleParticleType

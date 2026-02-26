@@ -22,7 +22,7 @@ public class LazyTagLike<T> extends TagLike<T> {
 
 	private final Supplier<DataResult<ImmutableList<T>>> supplier;
 
-	private LazyTagLike(ImmutableList<TagEntry> entries, Lookup<T> lookup) {
+	private LazyTagLike(ImmutableList<TagEntry> entries, TagEntry.Lookup<T> lookup) {
 		super(entries, ImmutableList.of());
 		this.supplier = Suppliers.memoize(() -> toElementsWithPartial(entries, lookup));
 	}
@@ -37,18 +37,18 @@ public class LazyTagLike<T> extends TagLike<T> {
 	}
 
 	public static <B extends ByteBuf, T> StreamCodec<B, LazyTagLike<T>> createLazyStreamCodec(HolderLookup.RegistryLookup<T> registryLookup) {
-		return createLazyStreamCodec(Lookup.fromRegistry(registryLookup));
+		return createLazyStreamCodec(lookupFromRegistry(registryLookup));
 	}
 
-	public static <B extends ByteBuf, T> StreamCodec<B, LazyTagLike<T>> createLazyStreamCodec(Lookup<T> lookup) {
+	public static <B extends ByteBuf, T> StreamCodec<B, LazyTagLike<T>> createLazyStreamCodec(TagEntry.Lookup<T> lookup) {
 		return NeoApoliStreamCodecs.TAG_ENTRIES.map(tagEntries -> new LazyTagLike<>(ImmutableList.copyOf(tagEntries), lookup), LazyTagLike::entries).cast();
 	}
 
 	public static <T> Codec<LazyTagLike<T>> createLazyCodec(HolderLookup.RegistryLookup<T> registryLookup) {
-		return createLazyCodec(Lookup.fromRegistry(registryLookup));
+		return createLazyCodec(lookupFromRegistry(registryLookup));
 	}
 
-	public static <T> Codec<LazyTagLike<T>> createLazyCodec(Lookup<T> lookup) {
+	public static <T> Codec<LazyTagLike<T>> createLazyCodec(TagEntry.Lookup<T> lookup) {
 		return TagEntry.CODEC.listOf().xmap(tagEntries -> new LazyTagLike<>(ImmutableList.copyOf(tagEntries), lookup), LazyTagLike::entries);
 	}
 
@@ -56,19 +56,19 @@ public class LazyTagLike<T> extends TagLike<T> {
 	public static final class Builder<T> {
 
 		private final List<TagEntry> entries;
-		private final TagLike.Lookup<T> lookup;
+		private final TagEntry.Lookup<T> lookup;
 
-		Builder(List<TagEntry> entries, TagLike.Lookup<T> lookup) {
+		Builder(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
 			this.entries = entries;
 			this.lookup = lookup;
 		}
 
-		public Builder(TagLike.Lookup<T> lookup) {
+		public Builder(TagEntry.Lookup<T> lookup) {
 			this(new ObjectArrayList<>(), lookup);
 		}
 
 		public Builder(HolderLookup.RegistryLookup<T> registryLookup) {
-			this(TagLike.Lookup.fromRegistry(registryLookup));
+			this(lookupFromRegistry(registryLookup));
 		}
 
 		public Builder<T> add(TagEntry entry) {
