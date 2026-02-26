@@ -5,12 +5,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.ListIterator;
 public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements WorldCondition {
 
 	public static final MapCodec<IsRainingAtWorldCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(Vec3Provider.CODEC.listOf().fieldOf("positions").forGetter(IsRainingAtWorldCondition::positions))
+		.group(ExtraCodecs.nonEmptyList(Vec3Provider.CODEC.listOf()).fieldOf("positions").forGetter(IsRainingAtWorldCondition::positions))
 		.apply(instance, IsRainingAtWorldCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsRainingAtWorldCondition> STREAM_CODEC = StreamCodec.composite(
@@ -49,24 +51,14 @@ public record IsRainingAtWorldCondition(List<Vec3Provider> positions) implements
 
 		}
 
-		return level.isRaining();
+		return false;
 
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
-
 		WorldCondition.super.validate(validator);
-		ListIterator<Vec3Provider> listIterator = positions().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			Context.Validator positionValidator = validator.forChild(".positions[" + listIterator.nextIndex() + "]");
-
-			listIterator.next().validate(positionValidator);
-
-		}
-
+		ContextHelper.validateAll(positions(), validator, index -> ".positions[" + index + "]");
 	}
 
 }
