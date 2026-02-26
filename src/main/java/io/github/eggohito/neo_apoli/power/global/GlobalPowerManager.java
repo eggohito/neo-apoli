@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
@@ -37,7 +38,6 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
@@ -214,8 +214,8 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 			ResourceLocation id = entry.getKey();
 			GlobalPower set = entry.getValue();
 
-			Reporter reporter = new Reporter("{\"" + id + "\"");
-			Context.Validator validator = new Context.Validator(LootContextParamSets.EMPTY, reporter).withResolver(MiscUtil.getLookupProvider(resources));
+			Reporter reporter = new Reporter("{\"" + id + "\"}");
+			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.any(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
 
 			set.validate(validator);
 
