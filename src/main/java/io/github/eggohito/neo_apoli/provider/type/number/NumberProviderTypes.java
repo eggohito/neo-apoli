@@ -35,6 +35,7 @@ public class NumberProviderTypes {
 	public static final NumberProviderType<BlocksIntersectingBoxNumberProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxNumberProvider.MAP_CODEC, BlocksIntersectingBoxNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BoxComponentNumberProvider> BOX_COMPONENT = registerInternal("box/component", BoxComponentNumberProvider.MAP_CODEC, BoxComponentNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<BoxSizeNumberProvider> BOX_SIZE = registerInternal("box/size", BoxSizeNumberProvider.MAP_CODEC, BoxSizeNumberProvider.STREAM_CODEC);
+	public static final NumberProviderType<BrightnessNumberProvider> BRIGHTNESS = registerInternal("brightness", BrightnessNumberProvider.MAP_CODEC, BrightnessNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<CommandResultNumberProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultNumberProvider.MAP_CODEC, CommandResultNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<ContextNumberProvider> CONTEXT = registerInternal("context", ContextNumberProvider.MAP_CODEC, ContextNumberProvider.STREAM_CODEC);
 	public static final NumberProviderType<DistanceBetweenPositionsNumberProvider> DISTANCE_BETWEEN_POSITIONS = registerInternal("distance_between_positions", DistanceBetweenPositionsNumberProvider.MAP_CODEC, DistanceBetweenPositionsNumberProvider.STREAM_CODEC);
