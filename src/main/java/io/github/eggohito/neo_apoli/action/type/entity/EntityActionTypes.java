@@ -33,6 +33,7 @@ public class EntityActionTypes {
 	public static final EntityActionType<DismountEntityAction> DISMOUNT = registerInternal("dismount", DismountEntityAction.MAP_CODEC, DismountEntityAction.STREAM_CODEC);
 	public static final EntityActionType<EmitGameEventEntityAction> EMIT_GAME_EVENT = registerInternal("emit_game_event", EmitGameEventEntityAction.MAP_CODEC, EmitGameEventEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ExecuteCommandEntityAction> EXECUTE_COMMAND = registerInternal("execute_command", ExecuteCommandEntityAction.MAP_CODEC, ExecuteCommandEntityAction.STREAM_CODEC);
+	public static final EntityActionType<ExhaustEntityAction> EXHAUST = registerInternal("exhaust", ExhaustEntityAction.MAP_CODEC, ExhaustEntityAction.STREAM_CODEC);
 	public static final EntityActionType<ExtinguishEntityAction> EXTINGUISH = registerInternal("extinguish", ExtinguishEntityAction.MAP_CODEC, ExtinguishEntityAction.STREAM_CODEC);
 	public static final EntityActionType<GiveItemsEntityAction> GIVE_ITEMS = registerInternal("give_items", GiveItemsEntityAction.MAP_CODEC, GiveItemsEntityAction.STREAM_CODEC);
 	public static final EntityActionType<SetOnFireEntityAction> SET_ON_FIRE = registerInternal("set_on_fire", SetOnFireEntityAction.MAP_CODEC, SetOnFireEntityAction.STREAM_CODEC);
