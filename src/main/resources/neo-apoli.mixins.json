@@ -79,6 +79,12 @@
 		"power.custom.ModifyPlayerSpawnPowerMixin$ModifyRespawnPoint",
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",
 		"power.custom.PhasingPowerMixin$PhasingImpl",
+		"power.custom.ReplaceLootTablePowerMixin$LootContextCache",
+		"power.custom.ReplaceLootTablePowerMixin$LootParamsCache",
+		"power.custom.ReplaceLootTablePowerMixin$LootParamsCacheInit",
+		"power.custom.ReplaceLootTablePowerMixin$LootTableCache",
+		"power.custom.ReplaceLootTablePowerMixin$NestedReplacer",
+		"power.custom.ReplaceLootTablePowerMixin$Replacer",
 		"power.misc.DamageModifyingPowerMixin",
 		"power.misc.DamageModifyingPowerMixin$BaseLiving",
 		"power.misc.DamageModifyingPowerMixin$PlayerDelegate"

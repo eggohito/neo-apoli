@@ -42,11 +42,9 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
 
 import java.math.RoundingMode;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class NeoApoliCodecs {
 
@@ -185,5 +183,7 @@ public class NeoApoliCodecs {
 	public static final Codec<ParticleOptions> PARTICLE_OPTIONS = Codec.withAlternative(NeoApoliParticleTypes.OPTIONS_CODEC, SIMPLE_PARTICLE);
 
 	public static final Codec<RoundingMode> ROUNDING_MODE = CodecUtil.enumType(RoundingMode.class);
+
+	public static final Codec<Map<Pattern, String>> REPLACEMENT_MAP = ExtraCodecs.strictUnboundedMap(ExtraCodecs.PATTERN, Codec.STRING);
 
 }

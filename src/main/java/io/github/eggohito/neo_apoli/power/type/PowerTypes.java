@@ -387,6 +387,19 @@ public class PowerTypes {
 		UnaryOperator.identity()
 	);
 
+	public static final PowerType<ReplaceLootTablePower> REPLACE_LOOT_TABLE = registerInternal(
+		"replace_loot_table",
+		ReplaceLootTablePower.MAP_CODEC,
+		ReplaceLootTablePower.STREAM_CODEC,
+		builder -> builder
+			.required(NeoApoliContextParams.ACTOR_ENTITY)
+			.optional(NeoApoliContextParams.TARGET_ENTITY)
+			.optional(NeoApoliContextParams.BLOCK_POS)
+			.optional(NeoApoliContextParams.BLOCK_STATE)
+			.optional(NeoApoliContextParams.BLOCK_ENTITY)
+			.optional(NeoApoliContextParams.ITEM_STACK)
+	);
+
 	public static void registerAll() {
 
 	}

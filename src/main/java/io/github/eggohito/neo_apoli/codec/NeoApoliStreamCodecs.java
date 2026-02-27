@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RecipeUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -38,8 +39,10 @@ import net.minecraft.world.level.LightLayer;
 import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class NeoApoliStreamCodecs {
 
@@ -174,5 +177,9 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<ByteBuf, List<TagEntry>> TAG_ENTRIES = ByteBufCodecs.collection(ObjectArrayList::new, TAG_ENTRY);
 
 	public static final StreamCodec<ByteBuf, RoundingMode> ROUNDING_MODE = StreamCodecUtil.enumType(RoundingMode.class);
+
+	public static final StreamCodec<ByteBuf, Pattern> PATTERN = ByteBufCodecs.STRING_UTF8.map(Pattern::compile, Pattern::pattern);
+
+	public static final StreamCodec<ByteBuf, Map<Pattern, String>> REPLACEMENT_MAP = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, PATTERN, ByteBufCodecs.STRING_UTF8);
 
 }
