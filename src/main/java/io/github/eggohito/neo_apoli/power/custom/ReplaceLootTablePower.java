@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,7 +55,6 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 	);
 
 	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, NeoApoli.id("replaced_loot_table"));
-	public static final Map<ResourceKey<LootTable>, ResourceKey<LootTable>> MATCH_CACHE = new WeakHashMap<>();
 
 	private static final Stack<LootTable> REPLACEMENT_STACK = new Stack<>();
 	private static final Stack<LootTable> BACKTRACK_STACK = new Stack<>();
@@ -109,10 +107,6 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 
 		public Optional<ResourceKey<LootTable>> getReplacement(Context context, ResourceKey<LootTable> key) {
 
-			if (MATCH_CACHE.containsKey(key)) {
-				return Optional.of(MATCH_CACHE.get(key));
-			}
-
 			String tableId = key.location().toString();
 			for (Map.Entry<Pattern, String> entry : power.getReplacements().entrySet()) {
 
@@ -127,7 +121,6 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 						String replaced = matcher.replaceAll(replacement);
 						ResourceKey<LootTable> replacedKey = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(replaced));
 
-						MATCH_CACHE.putIfAbsent(key, replacedKey);
 						return Optional.of(replacedKey);
 
 					}
