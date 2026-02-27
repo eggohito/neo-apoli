@@ -76,6 +76,7 @@
 		"power.custom.ModifyItemWearablePowerMixin$InsertingToArmorSlot",
 		"power.custom.ModifyItemWearablePowerMixin$QuickInserting",
 		"power.custom.ModifyItemWearablePowerMixin$SwapEquipping",
+		"power.custom.ModifyJumpPowerMixin",
 		"power.custom.ModifyPlayerSpawnPowerMixin$ModifyRespawnPoint",
 		"power.custom.PhasingPowerMixin$EntityLogicHandler",
 		"power.custom.PhasingPowerMixin$PhasingImpl",

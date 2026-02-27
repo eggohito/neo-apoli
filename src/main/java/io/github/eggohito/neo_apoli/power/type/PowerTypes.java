@@ -324,6 +324,13 @@ public class PowerTypes {
 			.required(NeoApoliContextParams.ITEM_STACK)
 	);
 
+	public static final PowerType<ModifyJumpPower> MODIFY_JUMP = registerInternal(
+		"modify/jump",
+		ModifyJumpPower.MAP_CODEC,
+		ModifyJumpPower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
+
 	public static final PowerType<ModifyModelColorOtherPower> MODIFY_MODEL_COLOR_OTHER = registerInternal(
 		"modify/model/color/other",
 		ModifyModelColorOtherPower.MAP_CODEC,
@@ -380,13 +387,6 @@ public class PowerTypes {
 			.optional(NeoApoliContextParams.BLOCK_ENTITY)
 	);
 
-	public static final PowerType<TogglePower> TOGGLE = registerInternal(
-		"toggle",
-		TogglePower.MAP_CODEC,
-		TogglePower.STREAM_CODEC,
-		UnaryOperator.identity()
-	);
-
 	public static final PowerType<ReplaceLootTablePower> REPLACE_LOOT_TABLE = registerInternal(
 		"replace_loot_table",
 		ReplaceLootTablePower.MAP_CODEC,
@@ -398,6 +398,13 @@ public class PowerTypes {
 			.optional(NeoApoliContextParams.BLOCK_STATE)
 			.optional(NeoApoliContextParams.BLOCK_ENTITY)
 			.optional(NeoApoliContextParams.ITEM_STACK)
+	);
+
+	public static final PowerType<TogglePower> TOGGLE = registerInternal(
+		"toggle",
+		TogglePower.MAP_CODEC,
+		TogglePower.STREAM_CODEC,
+		UnaryOperator.identity()
 	);
 
 	public static void registerAll() {
