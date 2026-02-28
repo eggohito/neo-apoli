@@ -53,6 +53,7 @@
 		"power.custom.CraftingRecipePowerMixin$TransientCraftingContainerCache",
 		"power.custom.ModifyAirSpeedPowerMixin$LivingTarget",
 		"power.custom.ModifyAirSpeedPowerMixin$Player",
+		"power.custom.ModifyBlockBreakSpeedPowerMixin",
 		"power.custom.ModifyBlockHarvestablePowerMixin$BlockBreakingDeltaProxy",
 		"power.custom.ModifyBlockHarvestablePowerMixin$HarvestableProxy",
 		"power.custom.ModifyBlockSelectablePowerMixin",

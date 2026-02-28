@@ -151,6 +151,16 @@ public class PowerTypes {
 		UnaryOperator.identity()
 	);
 
+	public static final PowerType<ModifyBlockBreakSpeedPower> MODIFY_BLOCK_BREAK_SPEED = registerInternal(
+		"modify/block/break_speed",
+		ModifyBlockBreakSpeedPower.MAP_CODEC,
+		ModifyBlockBreakSpeedPower.STREAM_CODEC,
+		builder -> builder
+			.required(NeoApoliContextParams.BLOCK_POS)
+			.required(NeoApoliContextParams.BLOCK_STATE)
+			.optional(NeoApoliContextParams.BLOCK_ENTITY)
+	);
+
 	public static final PowerType<ModifyBlockHarvestablePower> MODIFY_BLOCK_HARVESTABLE = registerInternal(
 		"modify/block/harvestable",
 		ModifyBlockHarvestablePower.MAP_CODEC,
