@@ -13,5 +13,6 @@ accessible	field	net/minecraft/world/entity/player/StackedItemContents	raw	Lnet/
 accessible class net/minecraft/client/resources/model/AtlasSet$AtlasEntry
 accessible class net/minecraft/util/random/WeightedList$Selector
 
-transitive-inject-interface net/minecraft/commands/CommandSourceStack io/github/eggohito/neo_apoli/context/ContextBuilderHolder
-transitive-inject-interface net/minecraft/util/random/WeightedList io/github/eggohito/neo_apoli/duck/WeightedExtension<TE;>
+transitive-inject-interface net/minecraft/client/renderer/entity/state/EntityRenderState io/github/eggohito/neo_apoli/client/api/EntityRenderCache
+transitive-inject-interface net/minecraft/commands/CommandSourceStack io/github/eggohito/neo_apoli/api/ContextBuilderHolder
+transitive-inject-interface net/minecraft/util/random/WeightedList io/github/eggohito/neo_apoli/api/WeightedExtension<TE;>

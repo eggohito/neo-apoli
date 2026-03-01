@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
+import io.github.eggohito.neo_apoli.api.ContextBuilderHolder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextBuilderHolder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.SharedSuggestionProvider;

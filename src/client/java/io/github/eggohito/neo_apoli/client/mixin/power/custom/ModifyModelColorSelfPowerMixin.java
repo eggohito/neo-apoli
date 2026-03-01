@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.duck.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
@@ -46,11 +45,10 @@ public abstract class ModifyModelColorSelfPowerMixin {
 		@WrapOperation(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
 		private void impl(EntityModel<S> model, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, int color, Operation<Void> original, S methodRenderState, PoseStack methodPoseStack, MultiBufferSource methodBufferSource, int methodLight) {
 
-			modifyColor:
-			if (methodRenderState instanceof EntityRenderCache renderCache && renderCache.neo_apoli$getEntity() != null) {
+			modifyColor: {
 
 				Entity viewer = Minecraft.getInstance().getCameraEntity();
-				Entity rendered = renderCache.neo_apoli$getEntity();
+				Entity rendered = methodRenderState.neo_apoli$getEntity();
 
 				if (viewer == null || rendered == null) {
 					break modifyColor;
@@ -61,7 +59,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 
 				if (originalColor != color) {
 
-					renderCache.neo_apoli$setColor(color);
+					methodRenderState.neo_apoli$setColor(color);
 
 					if (ARGB.alphaFloat(color) < 1.0F) {
 						vertexConsumer = methodBufferSource.getBuffer(RenderType.itemEntityTranslucentCull(this.getTextureLocation(methodRenderState)));

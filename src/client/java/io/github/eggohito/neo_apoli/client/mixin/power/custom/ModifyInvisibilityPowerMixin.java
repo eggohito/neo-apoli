@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyInvisibilityPower;
 import net.minecraft.client.Minecraft;
@@ -58,13 +57,13 @@ public abstract class ModifyInvisibilityPowerMixin {
 
 			try {
 
-				if (!(state instanceof EntityRenderCache renderCache) || !(featureRenderer instanceof HumanoidArmorLayer<?, ?, ?>)) {
-					return true;
+				if (featureRenderer instanceof HumanoidArmorLayer) {
+					BiPredicate<ModifyInvisibilityPower.Instance, Context> renderArmor = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderArmor;
+					return ModifyInvisibilityPower.modify(state.neo_apoli$getEntity(), Minecraft.getInstance().getCameraEntity(), renderArmor.negate(), () -> true);
 				}
 
 				else {
-					BiPredicate<ModifyInvisibilityPower.Instance, Context> renderArmor = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderArmor;
-					return ModifyInvisibilityPower.modify(renderCache.neo_apoli$getEntity(), Minecraft.getInstance().getCameraEntity(), renderArmor.negate(), () -> true);
+					return true;
 				}
 
 			}

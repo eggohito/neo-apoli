@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.client.mixin.access.WingsLayerAccessor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraRenderPower;
@@ -47,11 +46,7 @@ public class PowerWingsLayer<S extends HumanoidRenderState, M extends EntityMode
 	@Override
 	public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S renderState, float yRot, float xRot) {
 
-		if (!(renderState instanceof EntityRenderCache renderCache)) {
-			return;
-		}
-
-		Entity entity = renderCache.neo_apoli$getEntity();
+		Entity entity = renderState.neo_apoli$getEntity();
 		Prioritized.InstanceCollection<ModifyElytraRenderPower.Instance> instances = new Prioritized.InstanceCollection<>(entity, ModifyElytraRenderPower.Instance.class);
 
 		if (instances.isEmpty()) {

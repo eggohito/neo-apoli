@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraRenderPower;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +19,7 @@ public abstract class ModifyElytraRenderPowerMixin {
 
 		//	Disable the vanilla elytra renderer if the rendered entity has the `modify/elytra/render` power type
 		//	(since it has its own renderer)
-		if (renderState instanceof EntityRenderCache renderCache && PowersComponent.hasInstances(renderCache.neo_apoli$getEntity(), ModifyElytraRenderPower.Instance.class)) {
+		if (PowersComponent.hasInstances(renderState.neo_apoli$getEntity(), ModifyElytraRenderPower.Instance.class)) {
 			ci.cancel();
 		}
 

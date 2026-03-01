@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.misc;
 
-import io.github.eggohito.neo_apoli.duck.WeightedExtension;
+import io.github.eggohito.neo_apoli.api.WeightedExtension;
 import it.unimi.dsi.fastutil.objects.ObjectIntImmutablePair;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import net.minecraft.util.RandomSource;
