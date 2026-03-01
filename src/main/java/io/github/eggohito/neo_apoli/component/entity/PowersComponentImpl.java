@@ -466,7 +466,7 @@ public final class PowersComponentImpl implements PowersComponent {
 
 	private static void update(Entity entity, boolean joined) {
 
-		if (joined) {
+		if (joined || entity.level().isClientSide()) {
 			return;
 		}
 
@@ -474,10 +474,9 @@ public final class PowersComponentImpl implements PowersComponent {
 		RegistryOps<Tag> nbtOps = entity.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 		Map<PowerReference, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
-		Object2BooleanMap<PowerReference> differentPowerTypes = new Object2BooleanOpenHashMap<>();
+		Map<PowerReference, PowerType<?>> oldPowerTypes = new Object2ObjectOpenHashMap<>();
 
-		//  Replace old instances of the granted powers with new ones, and store its data to be synced and
-		//  transferred later
+		//  Revoke all unregistered powers, and cache all the old data of the existing powers from the entity
 		for (var reference : powersComponent.getAllReferences()) {
 
 			if (!PowerManager.contains(reference)) {
@@ -493,39 +492,40 @@ public final class PowersComponentImpl implements PowersComponent {
 			else {
 
 				Power.Instance<?> oldInstance = powersComponent.getInstance(reference);
+				PowerType<?> oldPowerType = oldInstance.getPower().getType();
+
+				oldPowerTypes.put(reference, oldPowerType);
 				oldInstance.encodeData(nbtOps)
 					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the transfer process: {}", reference.asDisplayString(false), entity.getName().getString(), error))
 					.ifPresent(tag -> pendingDataSync.put(reference, tag));
-
-				for (var source : powersComponent.getSources(reference)) {
-					powersComponent.revokePowerNoCallback(reference, source);
-					powersComponent.grantPowerNoCallback(reference, source);
-				}
-
-				differentPowerTypes.put(reference, !oldInstance.getClass().isInstance(powersComponent.getInstance(reference)));
 
 			}
 
 		}
 
-		//  Transfer the stored old data of the granted powers
+		//  Re-grant all the existing powers and restore its old data
 		for (var reference : powersComponent.getAllReferences()) {
 
-			if (!pendingDataSync.containsKey(reference)) {
-				continue;
+			for (var source : powersComponent.getSources(reference)) {
+				powersComponent.revokePowerNoCallback(reference, source);
+				powersComponent.grantPowerNoCallback(reference, source);
 			}
 
-			Tag oldData = pendingDataSync.get(reference);
-			boolean differentPowerType = differentPowerTypes.getOrDefault(reference, false);
+			if (pendingDataSync.containsKey(reference)) {
 
-			if (differentPowerType) {
-				NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), entity.getName().getString());
-			}
+				Tag oldData = pendingDataSync.get(reference);
+				Power.Instance<?> newInstance = powersComponent.getInstance(reference);
 
-			else {
-				powersComponent.getInstance(reference)
-					.decodeData(nbtOps, oldData)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {} from entity {}: {}", reference.asDisplayString(false), entity.getName().getString(), error));
+				if (Objects.equals(oldPowerTypes.get(reference), newInstance.getPower().getType())) {
+					newInstance
+						.decodeData(nbtOps, oldData)
+						.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {} from entity {}: {}", reference.asDisplayString(false), entity.getName().getString(), error));
+				}
+
+				else {
+					NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), entity.getName().getString());
+				}
+
 			}
 
 		}
