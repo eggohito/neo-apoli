@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
+package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.eggohito.neo_apoli.NeoApoli;
@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
 import io.github.eggohito.neo_apoli.util.Reporter;
-import lombok.NoArgsConstructor;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,13 +18,14 @@ import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.slf4j.event.Level;
 
-@NoArgsConstructor
-public final class NauseaOverlayHudElementRenderer implements OverlayHudElementRenderer {
+public enum NauseaOverlayHudElementRenderer implements OverlayHudElementRenderer {
+
+	INSTANCE;
 
 	@Override
 	public void render(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof NauseaOverlayHudElement nauseaOverlay) || !this.visibleBasedOnPerspective(context, nauseaOverlay)) {
+		if (!(element instanceof NauseaOverlayHudElement nauseaOverlay) || !this.isVisibleInPerspective(context, nauseaOverlay)) {
 			return;
 		}
 

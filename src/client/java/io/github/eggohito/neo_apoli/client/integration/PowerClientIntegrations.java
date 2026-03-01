@@ -24,7 +24,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.ListIterator;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class PowerClientIntegrations {
 
@@ -52,52 +51,40 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareHudElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static void prepareHudElements(Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
-		Consumer<Power.Instance<?>> preparer = instance -> {
+		if (!(instance instanceof HudRenderPower.Instance hudRender)) {
+			return;
+		}
 
-			if (!(instance instanceof HudRenderPower.Instance hudRender)) {
-				return;
-			}
+		Context context = instance.createHolderContext();
+		ListIterator<HudElement> listIterator = hudRender.getHudElements().listIterator();
 
-			Context context = instance.createHolderContext();
-			ListIterator<HudElement> listIterator = hudRender.getHudElements().listIterator();
+		while (listIterator.hasNext()) {
 
-			while (listIterator.hasNext()) {
+			Context hudContext = context.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
+			HudElement hudElement = listIterator.next();
 
-				Context hudContext = context.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
-				HudElement hudElement = listIterator.next();
-
-				if (dontHide(context, hudElement) && hudElement.shouldRender(hudContext, renderPhase)) {
-					adder.accept(hudContext, hudElement);
-				}
-
-			}
-
-		};
-
-		prepare.accept(preparer);
-
-	}
-
-	private static void prepareCooldownElements(Consumer<Consumer<Power.Instance<?>>> prepare, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
-
-		Consumer<Power.Instance<?>> preparer = instance -> {
-
-			if (!(instance instanceof CooldownPower.Instance cooldown)) {
-				return;
-			}
-
-			Context hudContext = cooldown.createContext().forChild(".hud_element");
-			HudElement hudElement = cooldown.getHudElement();
-
-			if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {
+			if (dontHide(context, hudElement) && hudElement.shouldRender(hudContext, renderPhase)) {
 				adder.accept(hudContext, hudElement);
 			}
 
-		};
+		}
 
-		prepare.accept(preparer);
+	}
+
+	private static void prepareCooldownElements(Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+
+		if (!(instance instanceof CooldownPower.Instance cooldown)) {
+			return;
+		}
+
+		Context hudContext = cooldown.createContext().forChild(".hud_element");
+		HudElement hudElement = cooldown.getHudElement();
+
+		if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {
+			adder.accept(hudContext, hudElement);
+		}
 
 	}
 
