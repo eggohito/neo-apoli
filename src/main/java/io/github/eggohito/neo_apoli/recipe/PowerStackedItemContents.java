@@ -45,7 +45,7 @@ public class PowerStackedItemContents extends StackedItemContents {
 
 			}
 
-			return true;
+			return false;
 
 		}
 
