@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliS2CNetworkHandler;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
@@ -33,7 +33,7 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			((CommandStorageHolder) client).neo_apoli$clear();
-			((PowerRecipeDisplayHolder) client).neo_apoli$setReferencesByDisplayEntry(new Object2ObjectOpenHashMap<>());
+			((PowerRecipeDisplayHolder) client).neo_apoli$setReferencesByIndex(new Int2ObjectOpenHashMap<>());
 		});
 
 	}

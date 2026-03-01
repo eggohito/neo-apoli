@@ -10,12 +10,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 @Getter
 public class PowerStackedItemContents extends StackedItemContents {
@@ -33,17 +31,16 @@ public class PowerStackedItemContents extends StackedItemContents {
 
 		if (this.raw.tryPick(rawIngredients, quantity, itemCallback)) {
 
-			for (Map.Entry<RecipeDisplayEntry, PowerReference> mapEntry : this.getDisplayHolder().neo_apoli$getReferencesByDisplayEntry().entrySet()) {
+			for (var entry : this.getDisplayHolder().neo_apoli$getReferencesByIndex().int2ObjectEntrySet()) {
 
-				RecipeDisplayEntry displayEntry = mapEntry.getKey();
-				PowerReference powerReference = mapEntry.getValue();
+				int index = entry.getIntKey();
+				PowerReference reference = entry.getValue();
 
-				if (displayEntry.id().equals(id)) {
+				if (id.index() == index) {
 					return NeoApoliEntityComponents.POWERS.maybeGet(this.getEntity())
-						.filter(powersComponent -> powersComponent.hasInstance(powerReference))
-						.map(powersComponent -> powersComponent.getInstance(powerReference))
-						.map(CraftingRecipePower.Instance.class::isInstance)
-						.orElse(false);
+						.flatMap(powersComponent -> powersComponent.getOptionalInstance(reference))
+						.stream()
+						.anyMatch(CraftingRecipePower.Instance.class::isInstance);
 				}
 
 			}

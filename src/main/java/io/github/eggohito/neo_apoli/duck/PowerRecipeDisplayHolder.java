@@ -1,19 +1,17 @@
 package io.github.eggohito.neo_apoli.duck;
 
 import io.github.eggohito.neo_apoli.power.PowerReference;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
-
-import java.util.Map;
 
 public interface PowerRecipeDisplayHolder {
 
-	default Map<RecipeDisplayEntry, PowerReference> neo_apoli$getReferencesByDisplayEntry() {
-		return new Object2ObjectOpenHashMap<>();
+	default Int2ObjectMap<PowerReference> neo_apoli$getReferencesByIndex() {
+		return new Int2ObjectOpenHashMap<>();
 	}
 
-	default void neo_apoli$setReferencesByDisplayEntry(Map<RecipeDisplayEntry, PowerReference> referencesByDisplay) {
+	default void neo_apoli$setReferencesByIndex(Int2ObjectMap<PowerReference> referencesById) {
 
 	}
 

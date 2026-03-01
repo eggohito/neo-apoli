@@ -12,7 +12,12 @@ import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
 import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
@@ -56,7 +61,7 @@ public abstract class CraftingRecipePowerMixin {
 		private Map<ResourceKey<Recipe<?>>, List<RecipeManager.ServerDisplayInfo>> recipeToDisplay;
 
 		@Inject(method = "finalizeRecipeLoading", at = @At("HEAD"))
-		private void onInit(FeatureFlagSet features, CallbackInfo ci) {
+		private void onFinalizeLoad(FeatureFlagSet features, CallbackInfo ci) {
 
 			ObjectCollection<RecipeHolder<?>> recipeEntries = new ObjectOpenHashSet<>(this.recipes.values());
 			Object2IntMap<ResourceKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
@@ -73,9 +78,9 @@ public abstract class CraftingRecipePowerMixin {
 				CraftingRecipe recipe = recipeEntry.value();
 				int priority = craftingRecipePower.getPriority();
 
-				if (!replacedRecipes.containsKey(recipeKey) || replacedRecipes.getInt(recipeKey) < priority) {
+				if (!replacedRecipes.containsKey(recipeKey) || priority > replacedRecipes.getInt(recipeKey)) {
 
-					RecipeHolder<PowerCraftingRecipe> replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.reference(), recipe));
+					var replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.reference(), recipe));
 
 					recipeEntries.remove(recipeEntry);
 					recipeEntries.add(replacement);
@@ -91,16 +96,16 @@ public abstract class CraftingRecipePowerMixin {
 		}
 
 		@Unique
-		private final Object2ObjectOpenHashMap<RecipeDisplayEntry, PowerReference> neo_apoli$referencesByDisplayEntry = new Object2ObjectOpenHashMap<>();
+		private final Int2ObjectMap<PowerReference> neo_apoli$referencesByIndex = new Int2ObjectOpenHashMap<>();
 
 		@Inject(method = "finalizeRecipeLoading", at = @At("TAIL"))
-		private void afterInit(FeatureFlagSet features, CallbackInfo ci) {
+		private void afterFinalizeLoad(FeatureFlagSet features, CallbackInfo ci) {
 
-			this.neo_apoli$referencesByDisplayEntry.clear();
+			this.neo_apoli$referencesByIndex.clear();
 			this.recipeToDisplay.forEach((key, serverRecipes) -> serverRecipes.forEach(serverRecipe -> {
 
-				if (serverRecipe.parent().value() instanceof PowerCraftingRecipe(PowerReference powerReference, CraftingRecipe ignoredDelegate)) {
-					neo_apoli$referencesByDisplayEntry.put(serverRecipe.display(), powerReference);
+				if (serverRecipe.parent().value() instanceof PowerCraftingRecipe(PowerReference reference, CraftingRecipe ignored)) {
+					neo_apoli$referencesByIndex.put(serverRecipe.display().id().index(), reference);
 				}
 
 			}));
@@ -108,14 +113,14 @@ public abstract class CraftingRecipePowerMixin {
 		}
 
 		@Override
-		public Map<RecipeDisplayEntry, PowerReference> neo_apoli$getReferencesByDisplayEntry() {
-			return new Object2ObjectOpenHashMap<>(this.neo_apoli$referencesByDisplayEntry);
+		public Int2ObjectMap<PowerReference> neo_apoli$getReferencesByIndex() {
+			return new Int2ObjectOpenHashMap<>(this.neo_apoli$referencesByIndex);
 		}
 
 		@Override
 		public void neo_apoli$sendAll(ServerPlayer recipient) {
 
-			SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getReferencesByDisplayEntry());
+			SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getReferencesByIndex());
 
 			if (ServerPlayNetworking.canSend(recipient, packet.type())) {
 				ServerPlayNetworking.send(recipient, packet);
@@ -246,8 +251,8 @@ public abstract class CraftingRecipePowerMixin {
 		@WrapOperation(method = "canCraft", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/StackedItemContents;canCraft(Ljava/util/List;Lnet/minecraft/world/entity/player/StackedContents$Output;)Z"))
 		private boolean accountForPowerCraftingRecipeDisplays(StackedItemContents contents, List<? extends StackedContents.IngredientInfo<Holder<Item>>> rawIngredients, StackedContents.@Nullable Output<Holder<Item>> itemCallback, Operation<Boolean> original) {
 
-			if (contents instanceof PowerStackedItemContents powerStackedItemContents) {
-				return powerStackedItemContents.isCraftable(this.id(), rawIngredients, 1, itemCallback);
+			if (contents instanceof PowerStackedItemContents powerContents) {
+				return powerContents.isCraftable(this.id(), rawIngredients, 1, itemCallback);
 			}
 
 			else {

@@ -21,7 +21,6 @@
 		"power.custom.CraftingRecipePowerMixin$CraftingRecipeBookComponentProxy",
 		"power.custom.CraftingRecipePowerMixin$CustomPowerRecipeTooltip",
 		"power.custom.CraftingRecipePowerMixin$PowerRecipeDisplayCache",
-		"power.custom.CraftingRecipePowerMixin$RecipeCollectionFilter",
 		"power.custom.ModifyAirSpeedPowerMixin",
 		"power.custom.ModifyElytraRenderPowerMixin",
 		"power.custom.ModifyGlowingOtherPowerMixin$CustomGlowingColor",
