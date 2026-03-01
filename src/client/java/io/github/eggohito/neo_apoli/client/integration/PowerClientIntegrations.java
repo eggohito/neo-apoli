@@ -88,7 +88,7 @@ public class PowerClientIntegrations {
 				return;
 			}
 
-			Context hudContext = instance.createHolderContext().forChild(".hud_element");
+			Context hudContext = cooldown.createContext().forChild(".hud_element");
 			HudElement hudElement = cooldown.getHudElement();
 
 			if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {

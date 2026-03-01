@@ -5,7 +5,6 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -28,17 +27,17 @@ import org.jetbrains.annotations.NotNull;
 public class CooldownPower extends Power {
 
 	public static final MapCodec<CooldownPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberBoundHudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::getHudElement),
+		HudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::getHudElement),
 		NumberProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::getCooldown)
 	).apply(instance, CooldownPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownPower> STREAM_CODEC = StreamCodec.composite(
-		NumberBoundHudElement.STREAM_CODEC, CooldownPower::getHudElement,
+		HudElement.STREAM_CODEC, CooldownPower::getHudElement,
 		NumberProvider.STREAM_CODEC, CooldownPower::getCooldown,
 		CooldownPower::new
 	);
 
-	private final NumberBoundHudElement hudElement;
+	private final HudElement hudElement;
 	private final NumberProvider cooldown;
 
 	@Override
@@ -68,19 +67,6 @@ public class CooldownPower extends Power {
 		}
 
 		@Override
-		public Context.Builder createHolderContextBuilder() {
-
-			Context.Builder builder = super.createHolderContextBuilder();
-			Context context = builder.build(holder.level());
-
-			return builder
-				.withRequired(NeoApoliContextParams.MIN_VALUE, 0.0D)
-				.withRequired(NeoApoliContextParams.MAX_VALUE, power.getCooldown().nextDouble(context.forChild(".cooldown")))
-				.withRequired(NeoApoliContextParams.CURRENT_VALUE, (double) this.getRemainingTicks(context));
-
-		}
-
-		@Override
 		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
 			return LAST_USE_TIME_CODEC.decode(ops, mapInput)
 				.map(value -> this.lastUseTime = value)
@@ -98,6 +84,18 @@ public class CooldownPower extends Power {
 
 		public NumberProvider getCooldown() {
 			return power.getCooldown();
+		}
+
+		public Context createContext() {
+
+			Context holderContext = this.createHolderContext();
+
+			return new Context.Builder(holderContext)
+				.withRequired(NeoApoliContextParams.CURRENT_VALUE, (double) this.getRemainingTicks(holderContext))
+				.withRequired(NeoApoliContextParams.MIN_VALUE, 0.0D)
+				.withRequired(NeoApoliContextParams.MAX_VALUE, power.getCooldown().nextDouble(holderContext))
+				.build(holderContext.level());
+
 		}
 
 		public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
