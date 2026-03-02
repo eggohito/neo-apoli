@@ -19,18 +19,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
 
-public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider amount, BooleanProvider ignoreUnbreaking) implements ItemAction {
+public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider amount, BooleanProvider ignoreEnchantments) implements ItemAction {
 
 	public static final MapCodec<DamageItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(DamageItemAction::entity),
 		NumberProvider.CODEC.optionalFieldOf("amount", new ConstantNumberProvider(1)).forGetter(DamageItemAction::amount),
-		BooleanProvider.CODEC.optionalFieldOf("ignore_unbreaking", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreUnbreaking)
+		BooleanProvider.CODEC.optionalFieldOf("ignore_enchantments", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreEnchantments)
 	).apply(instance, DamageItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DamageItemAction> STREAM_CODEC = StreamCodec.composite(
 		NeoApoliContextParams.StreamCodecs.ENTITY, DamageItemAction::entity,
 		NumberProvider.STREAM_CODEC, DamageItemAction::amount,
-		BooleanProvider.STREAM_CODEC, DamageItemAction::ignoreUnbreaking,
+		BooleanProvider.STREAM_CODEC, DamageItemAction::ignoreEnchantments,
 		DamageItemAction::new
 	);
 
@@ -49,10 +49,10 @@ public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider a
 		SlotAccess stackAccess = context.getRequired(NeoApoliContextParams.SLOT_ACCESS);
 		ItemStack stack = stackAccess.get();
 
-		boolean ignoreUnbreaking = ignoreUnbreaking().nextBoolean(context.forChild(".ignore_unbreaking"));
+		boolean ignoreEnchantments = ignoreEnchantments().nextBoolean(context.forChild(".ignore_enchantments"));
 		int amount = Math.abs(amount().nextInt(context.forChild(".amount")));
 
-		if (ignoreUnbreaking) {
+		if (ignoreEnchantments) {
 
 			if (amount >= stack.getMaxDamage()) {
 				stack.shrink(1);
@@ -83,7 +83,7 @@ public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider a
 		ItemAction.super.validate(validator);
 
 		amount().validate(validator.forChild(".amount"));
-		ignoreUnbreaking().validate(validator.forChild(".ignore_unbreaking"));
+		ignoreEnchantments().validate(validator.forChild(".ignore_enchantments"));
 
 	}
 
