@@ -15,6 +15,7 @@
 		"misc.EntityRenderDispatcherMixin",
 		"misc.EntityRendererMixin",
 		"misc.EntityRenderStateMixin",
+		"misc.GuiMixin",
 		"misc.MaterialMapperMixin",
 		"misc.MinecraftMixin",
 		"misc.ModelManagerMixin",
