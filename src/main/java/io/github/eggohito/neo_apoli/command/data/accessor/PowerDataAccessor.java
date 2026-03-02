@@ -44,7 +44,7 @@ public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, Power
 
 	@Override
 	public @NotNull Component getModifiedSuccess() {
-		return Component.translatableEscape("commands.neo-apoli.data.power.modified", holder().getName(), reference());
+		return Component.translatableEscape("commands.neo-apoli.data.power.modified", reference(), holder().getName());
 	}
 
 	@Override

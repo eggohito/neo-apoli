@@ -47,10 +47,9 @@ public record PowerDataProvider(String target) implements DataCommands.DataProvi
     @Override
     public @NotNull ArgumentBuilder<CommandSourceStack, ?> wrap(ArgumentBuilder<CommandSourceStack, ?> builder, Function<ArgumentBuilder<CommandSourceStack, ?>, ArgumentBuilder<CommandSourceStack, ?>> action) {
         return builder
-            .then(literal(NeoApoli.MOD_NAMESPACE)
-                .then(literal("power")
-                    .then(argument("entity", EntityArgument.entity())
-                        .then(action.apply(argument(target(), PowerArgument.power()))))));
+            .then(literal(NeoApoli.id("power").toString())
+                .then(argument("entity", EntityArgument.entity())
+                    .then(action.apply(argument(target(), PowerArgument.power())))));
     }
 
 }
