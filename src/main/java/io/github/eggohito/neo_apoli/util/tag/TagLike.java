@@ -30,15 +30,30 @@ import java.util.stream.Collectors;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class TagLike<E> {
 
+	private static final TagLike<?> EMPTY = new TagLike<>(ImmutableList.of(), ImmutableList.of());
+
 	private final ImmutableList<TagEntry> entries;
 	private final ImmutableList<E> elements;
+
+	public boolean contains(E e) {
+		return elements.contains(e);
+	}
+
+	public boolean isEmpty() {
+		return elements.isEmpty();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> TagLike<T> empty() {
+		return (TagLike<T>) EMPTY;
+	}
 
 	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> createStreamCodec(HolderLookup.RegistryLookup<T> registryLookup) {
 		return createStreamCodec(lookupFromRegistry(registryLookup));
 	}
 
 	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> createStreamCodec(TagEntry.Lookup<T> lookup) {
-		return NeoApoliStreamCodecs.TAG_ENTRIES.map(tagEntries -> build(tagEntries, lookup).getOrThrow(), TagLike::entries).cast();
+		return NeoApoliStreamCodecs.TAG_ENTRIES.map(tagEntries -> new Builder<>(tagEntries, lookup).build().getOrThrow(), TagLike::entries).cast();
 	}
 
 	public static <T> Codec<TagLike<T>> createCodec(HolderLookup.RegistryLookup<T> registryLookup) {
@@ -46,11 +61,7 @@ public class TagLike<E> {
 	}
 
 	public static <T> Codec<TagLike<T>> createCodec(TagEntry.Lookup<T> lookup) {
-		return TagEntry.CODEC.listOf().comapFlatMap(tagEntries -> build(tagEntries, lookup), TagLike::entries);
-	}
-
-	private static <T> DataResult<TagLike<T>> build(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
-		return toElementsWithPartial(entries, lookup).map(elements -> new TagLike<>(ImmutableList.copyOf(entries), ImmutableList.copyOf(elements)));
+		return TagEntry.CODEC.listOf().comapFlatMap(tagEntries -> new Builder<>(tagEntries, lookup).build(), TagLike::entries);
 	}
 
 	protected static <T> DataResult<ImmutableList<T>> toElementsWithPartial(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
@@ -94,7 +105,7 @@ public class TagLike<E> {
 			@Override
 			public @Nullable Collection<E> tag(ResourceLocation id) {
 				return registryLookup.get(TagKey.create(registryRef, id))
-					.map(TagLike::unwrapHolderSet)
+					.map(this::unwrapHolderSet)
 					.orElse(null);
 			}
 
@@ -103,51 +114,78 @@ public class TagLike<E> {
 				return "Registry \"" + registryRef.location() + "\"";
 			}
 
+			private List<E> unwrapHolderSet(HolderSet<E> holderSet) {
+				return holderSet.stream()
+					.map(Holder::value)
+					.toList();
+			}
+
 		};
 
 	}
 
-	private static <E> List<E> unwrapHolderSet(HolderSet<E> holderSet) {
-		return holderSet.stream()
-			.map(Holder::value)
-			.toList();
-	}
-
 	@Getter
-	public static final class Builder<T> {
+	public static abstract class AbstractBuilder<T, L extends TagLike<T>, B extends AbstractBuilder<T, L, B>> {
 
 		private final List<TagEntry> entries;
 		private final TagEntry.Lookup<T> lookup;
 
-		Builder(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
+		protected AbstractBuilder(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
 			this.entries = entries;
 			this.lookup = lookup;
 		}
 
-		public Builder(TagEntry.Lookup<T> lookup) {
+		public AbstractBuilder(TagEntry.Lookup<T> lookup) {
 			this(new ObjectArrayList<>(), lookup);
 		}
 
-		public Builder(HolderLookup.RegistryLookup<T> registryLookup) {
+		public AbstractBuilder(HolderLookup.RegistryLookup<T> registryLookup) {
 			this(lookupFromRegistry(registryLookup));
 		}
 
-		public Builder<T> add(TagEntry entry) {
+		public abstract B getThis();
+
+		public abstract DataResult<L> build();
+
+		public B add(TagEntry entry) {
 			this.entries.add(entry);
+			return getThis();
+		}
+
+		public B addAll(Collection<TagEntry> entries) {
+			this.entries.addAll(entries);
+			return getThis();
+		}
+
+		public B addAll(TagEntry... entries) {
+			return this.addAll(Arrays.asList(entries));
+		}
+
+	}
+
+	@Getter
+	public static final class Builder<T> extends AbstractBuilder<T, TagLike<T>, Builder<T>> {
+
+		Builder(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
+			super(entries, lookup);
+		}
+
+		public Builder(TagEntry.Lookup<T> lookup) {
+			super(lookup);
+		}
+
+		public Builder(HolderLookup.RegistryLookup<T> registryLookup) {
+			super(registryLookup);
+		}
+
+		@Override
+		public Builder<T> getThis() {
 			return this;
 		}
 
-		public Builder<T> addAll(TagEntry... entries) {
-			return addAll(Arrays.asList(entries));
-		}
-
-		public Builder<T> addAll(Collection<TagEntry> entries) {
-			entries.forEach(this::add);
-			return this;
-		}
-
+		@Override
 		public DataResult<TagLike<T>> build() {
-			return TagLike.build(entries, lookup);
+			return toElementsWithPartial(entries(), lookup()).map(elements -> new TagLike<>(ImmutableList.copyOf(entries()), ImmutableList.copyOf(elements)));
 		}
 
 	}

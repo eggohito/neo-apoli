@@ -104,7 +104,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 				}
 
 				catch (Exception e) {
-					LOGGER.error("Error trying to prepare global power set JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packName, e);
+					LOGGER.error("Error trying to prepare global power JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packName, e);
 				}
 
 			});
@@ -118,7 +118,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 	@Override
 	protected void apply(Map<ResourceLocation, List<JsonObjectWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
-		LOGGER.info("Parsing global power sets from data packs...");
+		LOGGER.info("Parsing global powers from data packs...");
 		BY_ID.clear();
 
 		Map<ResourceLocation, List<GlobalPower.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
@@ -126,7 +126,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 			ResourceLocationUtil.setCurrent(id);
 			elementWithSources.forEach(jsonObjectWithSource -> GlobalPower.CODEC.compressedDecode(ops, jsonObjectWithSource.element())
-				.ifError(error -> LOGGER.error("Error trying to parse global power set \"{}\" from data pack [{}] (skipping): {}", id, jsonObjectWithSource.source(), error.message()))
+				.ifError(error -> LOGGER.error("Error trying to parse global power \"{}\" from data pack [{}] (skipping): {}", id, jsonObjectWithSource.source(), error.message()))
 				.ifSuccess(set -> parsed
 					.computeIfAbsent(id, k -> new ObjectArrayList<>())
 					.add(new GlobalPower.WithSource(set, id, jsonObjectWithSource.source()))));
@@ -135,14 +135,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		});
 
-		LOGGER.info("Finished parsing global power sets. Merging similar global power sets...");
+		LOGGER.info("Finished parsing global powers. Merging similar global powers...");
 
 		parsed.forEach((id, sets) -> sets
 			.stream()
 			.reduce(GlobalPowerManager::merge)
 			.ifPresent(withSource -> BY_ID.put(id, withSource.set())));
 
-		LOGGER.info("Finished merging global power sets. Merged {} global power set(s)", parsed.values().stream().mapToInt(Collection::size).sum());
+		LOGGER.info("Finished merging global powers. Merged {} global power(s)", parsed.values().stream().mapToInt(Collection::size).sum());
 
 	}
 
@@ -171,7 +171,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		if (replace) {
 
-			LOGGER.warn("Global power set \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", second.id(), first.source(), second.source());
+			LOGGER.warn("Global power \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", second.id(), first.source(), second.source());
 
 			order = second.set().order();
 
@@ -186,8 +186,8 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		powers.addAll(second.set().powers().entries());
 
 		GlobalPower set = new GlobalPower(
-			entityTypes.build(),
-			powers.build(),
+			entityTypes.build().resultOrPartial().orElseThrow(),
+			powers.build().resultOrPartial().orElseThrow(),
 			replace,
 			order
 		);
@@ -205,7 +205,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		var iterator = BY_ID.object2ObjectEntrySet().fastIterator();
 		int size = BY_ID.size();
 
-		LOGGER.info("Validating {} global power set(s)...", size);
+		LOGGER.info("Validating {} global power(s)...", size);
 
 		while (iterator.hasNext()) {
 
@@ -220,13 +220,13 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 			set.validate(validator);
 
 			reporter.getErrorsFlattened().ifPresent(error -> {
-				LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error);
+				LOGGER.warn("Found error(s) while validating global power \"{}\" {}", id, error);
 				iterator.remove();
 			});
 
 		}
 
-		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, BY_ID.size());
+		LOGGER.info("Finished validating {} global power(s). Global power set manager contains {} global power set(s)", size, BY_ID.size());
 		BY_ID.trim();
 
 	}
