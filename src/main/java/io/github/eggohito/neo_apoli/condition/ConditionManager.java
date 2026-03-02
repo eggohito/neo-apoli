@@ -9,7 +9,6 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
-import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
@@ -211,10 +210,6 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 	public static boolean containsId(Condition condition) {
 		return BY_CONDITION.containsKey(condition);
-	}
-
-	public static ValueSuppliedElementCodec<Condition> createEntryCodec(boolean allowInlineDefinitions) {
-		return new ValueSuppliedElementCodec<>(Condition.CODEC, allowInlineDefinitions, ConditionManager::getAsResult, ConditionManager::getIdAsResult);
 	}
 
 	public static void init() {

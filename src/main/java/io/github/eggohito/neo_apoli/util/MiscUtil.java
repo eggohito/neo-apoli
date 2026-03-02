@@ -143,7 +143,7 @@ public class MiscUtil {
 
 	public static boolean hasFinishedReading(StringReader reader) {
 		return !reader.canRead()
-			|| reader.peek() == ' ';
+			|| Character.isWhitespace(reader.peek());
 	}
 
 	@Nullable

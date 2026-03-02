@@ -3,7 +3,8 @@ package io.github.eggohito.neo_apoli.command.argument;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.eggohito.neo_apoli.codec.ValueSuppliedElementCodec;
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.NbtOps;
@@ -13,44 +14,46 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-public abstract class ObjectEntryArgument<E> implements ArgumentType<E> {
+public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type<?>> extends ArgumentType<T> {
 
-	protected final HolderLookup.Provider wrapperLookup;
-	protected final ValueSuppliedElementCodec<E> codec;
+	HolderLookup.Provider lookupProvider();
 
-	protected ObjectEntryArgument(HolderLookup.Provider wrapperLookup, ValueSuppliedElementCodec<E> codec) {
-		this.wrapperLookup = wrapperLookup;
-		this.codec = codec;
-	}
+	boolean allowInlineDefinitions();
+
+	T mapType(Either<Dynamic<Tag>, ResourceLocation> either);
 
 	@Override
-	public E parse(StringReader reader) throws CommandSyntaxException {
+	default T parse(StringReader reader) throws CommandSyntaxException {
 
-		RegistryOps<Tag> ops = wrapperLookup.createSerializationContext(NbtOps.INSTANCE);
-		TagParser<Tag> sNbtReader = TagParser.create(ops);
-
+		RegistryOps<Tag> ops = lookupProvider().createSerializationContext(NbtOps.INSTANCE);
 		int prevCursor = reader.getCursor();
-		Tag element = sNbtReader.parseAsArgument(reader);
 
-		if (MiscUtil.hasFinishedReading(reader)) {
-			return codec.parse(ops, element).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
-		}
+		if (allowInlineDefinitions()) {
 
-		else {
-
-			reader.setCursor(prevCursor);
-			ResourceLocation id = ResourceLocation.readNonEmpty(reader);
+			TagParser<Tag> parser = TagParser.create(ops);
+			Tag tag = parser.parseAsArgument(reader);
 
 			if (MiscUtil.hasFinishedReading(reader)) {
-				return codec.parse(ops, ops.createString(id.toString())).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
-			}
-
-			else {
-				reader.setCursor(prevCursor);
-				throw MiscUtil.createCommandExceptionWithContext(reader, Component.translatable("argument.resource_or_id.invalid"));
+				return this.mapType(Either.left(new Dynamic<>(ops, tag)));
 			}
 
 		}
+
+		reader.setCursor(prevCursor);
+		ResourceLocation id = ResourceLocation.readNonEmpty(reader);
+
+		if (MiscUtil.hasFinishedReading(reader)) {
+			return this.mapType(Either.right(id));
+		}
+
+		reader.setCursor(prevCursor);
+		throw MiscUtil.createCommandExceptionWithContext(reader, Component.translatable("argument.resource_or_id.invalid"));
+
+	}
+
+	interface Type<E> {
+
+		E get() throws CommandSyntaxException;
 
 	}
 

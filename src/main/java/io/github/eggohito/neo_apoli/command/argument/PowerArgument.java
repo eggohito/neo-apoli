@@ -123,7 +123,9 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 	}
 
-	public record Info() implements ArgumentTypeInfo<PowerArgument, Info.Template> {
+	public enum Info implements ArgumentTypeInfo<PowerArgument, Info.Template> {
+
+		INSTANCE;
 
 		@Override
 		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
