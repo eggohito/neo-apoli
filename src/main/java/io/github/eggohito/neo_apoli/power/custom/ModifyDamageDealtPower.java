@@ -38,26 +38,26 @@ public class ModifyDamageDealtPower extends DamageModifyingPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends DamageModifyingPower.Instance<ModifyDamageDealtPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyDamageDealtPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyDamageDealtPower power) {
+			super(power);
 		}
 
 		@Override
 		public Context createDamageContext(Entity actor, Entity target, DamageSource source, float amount) {
-			return this.createHolderContextBuilder()
+			return this.createHolderContextBuilder(actor)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, actor)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
 				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
 				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
-				.build(holder.level());
+				.build(actor.level());
 		}
 
 	}

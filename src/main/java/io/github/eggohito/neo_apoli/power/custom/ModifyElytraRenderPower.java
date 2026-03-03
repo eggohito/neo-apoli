@@ -16,7 +16,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
@@ -64,14 +63,14 @@ public class ModifyElytraRenderPower extends Power implements Prioritized<Modify
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<ModifyElytraRenderPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyElytraRenderPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyElytraRenderPower power) {
+			super(power);
 		}
 
 		public ResourceKey<EquipmentAsset> getAssetId() {

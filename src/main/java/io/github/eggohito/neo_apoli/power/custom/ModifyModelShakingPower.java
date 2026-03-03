@@ -33,18 +33,18 @@ public class ModifyModelShakingPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelShakingPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyModelShakingPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyModelShakingPower power) {
+			super(power);
 		}
 
-		public boolean isActive() {
-			return this.isActive(this.createHolderContext());
+		public boolean isActive(Entity holder) {
+			return this.isActive(this.createHolderContext(holder));
 		}
 
 	}

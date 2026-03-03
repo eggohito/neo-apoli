@@ -18,7 +18,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
@@ -48,7 +47,9 @@ import java.util.regex.Pattern;
 
 public class NeoApoliCodecs {
 
-	public static final Codec<Set<ResourceLocation>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = ResourceLocation.CODEC.listOf(1, Integer.MAX_VALUE).xmap(ObjectOpenHashSet::new, ObjectArrayList::new);
+	public static final Codec<Set<ResourceLocation>> IDENTIFIER_SET = ResourceLocation.CODEC.listOf().xmap(Set::copyOf, List::copyOf);
+
+	public static final Codec<Set<ResourceLocation>> NON_EMPTY_IDENTIFIER_SET = CodecUtil.nonEmptySet(IDENTIFIER_SET);
 
 	public static final Codec<InteractionHand> HAND = CodecUtil.enumType(InteractionHand.class, ImmutableMap.<String, InteractionHand>builder()
 		.put("mainhand", InteractionHand.MAIN_HAND)

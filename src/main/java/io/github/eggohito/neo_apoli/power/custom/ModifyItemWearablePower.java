@@ -61,8 +61,8 @@ public class ModifyItemWearablePower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -80,12 +80,12 @@ public class ModifyItemWearablePower extends Power {
 	//	TODO: Unequip all previously equipped items and either drop or insert them to the inventory
 	public static class Instance extends Power.Instance<ModifyItemWearablePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyItemWearablePower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyItemWearablePower power) {
+			super(power);
 		}
 
-		public Context createContext(ItemStack stack) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, ItemStack stack) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ITEM_STACK, stack)
 				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_WEARABLE.keySet());
 		}
@@ -105,7 +105,7 @@ public class ModifyItemWearablePower extends Power {
 		boolean allowed = false;
 		for (var instance : PowersComponent.getInstances(equipper, Instance.class)) {
 
-			Context instanceContext = instance.createContext(equippedStack);
+			Context instanceContext = instance.createContext(equipper, equippedStack);
 
 			try {
 

@@ -26,12 +26,12 @@ public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, Power
 	@Override
 	public void setData(CompoundTag other) throws CommandSyntaxException {
 
-		if (instance().isImmutable()) {
+		if (instance().isImmutable(holder())) {
 			throw UNSUPPORTED_ERROR.create(reference());
 		}
 
 		instance().decodeData(this.ops(), other).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
-		instance().syncData();
+		instance().syncData(holder());
 
 	}
 

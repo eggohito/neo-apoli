@@ -55,8 +55,8 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyEntityTypeTagPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyEntityTypeTagPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyEntityTypeTagPower power) {
+			super(power);
 		}
 
 		public boolean doesApply(TagKey<EntityType<?>> tag) {
@@ -105,7 +105,7 @@ public class ModifyEntityTypeTagPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 

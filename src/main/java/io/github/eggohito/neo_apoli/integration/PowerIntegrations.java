@@ -23,10 +23,10 @@ public class PowerIntegrations {
 
 		for (var instance : PowersComponent.getInstances(player, TogglePower.Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(player);
 
 			if (instance.shouldToggle(context)) {
-				instance.toggle(context);
+				instance.toggle(player, context);
 			}
 
 		}

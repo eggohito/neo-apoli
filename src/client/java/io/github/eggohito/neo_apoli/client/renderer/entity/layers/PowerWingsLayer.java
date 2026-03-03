@@ -63,7 +63,7 @@ public class PowerWingsLayer<S extends HumanoidRenderState, M extends EntityMode
 
 		for (var instance : instances) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 			ResourceKey<EquipmentAsset> assetId = instance.getAssetId();
 
 			if (!instance.isActive(context)) {

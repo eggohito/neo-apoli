@@ -54,18 +54,18 @@ public class ModifyEffectDurationPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<ModifyEffectDurationPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyEffectDurationPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyEffectDurationPower power) {
+			super(power);
 		}
 
-		public Context createContext(MobEffectInstance effectInstance, @Nullable Entity source) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, MobEffectInstance effectInstance, @Nullable Entity source) {
+			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
@@ -84,7 +84,7 @@ public class ModifyEffectDurationPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
 
-			Context context = instance.createContext(effectInstance, source);
+			Context context = instance.createContext(holder, effectInstance, source);
 
 			if (!instance.isActive(context)) {
 				continue;

@@ -34,21 +34,21 @@ public class CallbackPlayerRespawnedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPlayerRespawnedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPlayerRespawnedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPlayerRespawnedPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onRespawned() {
+		public void onRespawned(Entity holder) {
 
-			super.onRespawned();
-			Context context = createHolderContext();
+			super.onRespawned(holder);
+			Context context = createHolderContext(holder);
 
 			if (this.isActive(context)) {
 				power.getAction().execute(context.forChild(".action"));

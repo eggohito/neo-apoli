@@ -39,19 +39,19 @@ public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPlayerWakeUpPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPlayerWakeUpPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPlayerWakeUpPower power) {
+			super(power);
 		}
 
-		public Context createContext(BlockPos sleepingPos) {
+		public Context createContext(Entity holder, BlockPos sleepingPos) {
 			Level level = holder.level();
-			return this.createHolderContextBuilder()
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, sleepingPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(sleepingPos))
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(sleepingPos))
@@ -64,11 +64,11 @@ public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
 
 	}
 
-	public static void execute(Player player, BlockPos sleepingPos) {
+	public static void execute(Player sleeper, BlockPos sleepingPos) {
 
-		for (var instance : PowersComponent.getInstances(player, Instance.class)) {
+		for (var instance : PowersComponent.getInstances(sleeper, Instance.class)) {
 
-			Context context = instance.createContext(sleepingPos);
+			Context context = instance.createContext(sleeper, sleepingPos);
 
 			if (instance.isActive(context)) {
 				instance.execute(context);

@@ -45,17 +45,17 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackProjectileLandPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackProjectileLandPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackProjectileLandPower power) {
+			super(power);
 		}
 
-		public Context createContext(Entity owner, Projectile projectile, HitResult result) {
+		public Context createContext(Entity holder, Entity owner, Projectile projectile, HitResult result) {
 
 			Level level = projectile.level();
 			Vec3 pos = result.getLocation();
@@ -82,7 +82,7 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 				}
 			}
 
-			return this.createHolderContextBuilder()
+			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, owner)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, target)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
@@ -105,14 +105,14 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 	}
 
 	public static void executeAsProjectile(Entity owner, Projectile projectile, HitResult result) {
-		execute(owner, projectile, projectile, result);
+		execute(projectile, owner, projectile, result);
 	}
 
-	public static void execute(Entity owner, Entity powerHolder, Projectile projectile, HitResult result) {
+	public static void execute(Entity powerHolder, Entity owner, Projectile projectile, HitResult result) {
 
 		for (var instance : PowersComponent.getInstances(powerHolder, Instance.class)) {
 
-			Context context = instance.createContext(owner, projectile, result);
+			Context context = instance.createContext(powerHolder, owner, projectile, result);
 
 			if (instance.isActive(context)) {
 				instance.execute(context);

@@ -74,17 +74,17 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<ReplaceLootTablePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ReplaceLootTablePower power) {
-			super(holder, power);
+		protected Instance(@NotNull ReplaceLootTablePower power) {
+			super(power);
 		}
 
-		public Context createContext(LootContext lootContext) {
+		public Context createContext(Entity holder, LootContext lootContext) {
 
 			ServerLevel serverLevel = lootContext.getLevel();
 			Optional<BlockPos> blockPos = Optional.ofNullable(lootContext.getOptionalParameter(LootContextParams.ORIGIN))
@@ -94,7 +94,7 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 			Optional<BlockEntity> blockEntity = Optional.ofNullable(lootContext.getOptionalParameter(LootContextParams.BLOCK_ENTITY))
 				.or(() -> blockPos.flatMap(pos -> Optional.ofNullable(serverLevel.getBlockEntity(pos))));
 
-			return this.createHolderContextBuilder()
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, lootContext.getOptionalParameter(LootContextParams.THIS_ENTITY))
 				.withOptional(NeoApoliContextParams.BLOCK_POS, blockPos)

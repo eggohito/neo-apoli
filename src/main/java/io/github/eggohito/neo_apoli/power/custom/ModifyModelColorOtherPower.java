@@ -48,8 +48,8 @@ public class ModifyModelColorOtherPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -60,12 +60,12 @@ public class ModifyModelColorOtherPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyModelColorOtherPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyModelColorOtherPower power) {
+			super(power);
 		}
 
-		public Context createContext(@NotNull Entity rendered) {
-			return this.createHolderContextBuilder()
+		public Context createContext(@NotNull Entity holder, @NotNull Entity rendered) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, rendered)
 				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_MODEL_COLOR_OTHER.keySet());
@@ -81,9 +81,9 @@ public class ModifyModelColorOtherPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-			Context context = instance.createContext(rendered);
+			Context context = instance.createContext(viewer, rendered);
 
-			if (!Objects.equals(instance.getHolder(), rendered) && instance.isActive(context)) {
+			if (!Objects.equals(viewer, rendered) && instance.isActive(context)) {
 				color = Color.mix(color, instance.getColor(context));
 			}
 

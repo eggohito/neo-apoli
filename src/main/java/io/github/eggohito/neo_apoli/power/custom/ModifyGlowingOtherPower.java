@@ -57,8 +57,8 @@ public class ModifyGlowingOtherPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -73,12 +73,12 @@ public class ModifyGlowingOtherPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyGlowingOtherPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyGlowingOtherPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyGlowingOtherPower power) {
+			super(power);
 		}
 
-		public Context createContext(Entity rendered) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, Entity rendered) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, rendered)
 				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_GLOWING_OTHER.keySet());
@@ -90,11 +90,11 @@ public class ModifyGlowingOtherPower extends Power {
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
-			return this.getPower().getUseTeamColor().nextBoolean(context.forChild(".use_team_color"));
+			return power.getUseTeamColor().nextBoolean(context.forChild(".use_team_color"));
 		}
 
 		public int getColor(Context context) {
-			return this.getPower().getColor().intValue(context.forChild(".color"));
+			return power.getColor().intValue(context.forChild(".color"));
 		}
 
 	}
@@ -103,7 +103,7 @@ public class ModifyGlowingOtherPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-			Context context = instance.createContext(rendered);
+			Context context = instance.createContext(viewer, rendered);
 
 			try {
 
@@ -127,7 +127,7 @@ public class ModifyGlowingOtherPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(viewer, Instance.class)) {
 
-			Context context = instance.createContext(rendered);
+			Context context = instance.createContext(viewer, rendered);
 
 			try {
 

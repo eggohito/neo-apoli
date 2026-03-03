@@ -78,8 +78,8 @@ public abstract class DamageModifyingPower extends Power {
 
 	public static abstract class Instance<P extends DamageModifyingPower> extends Power.Instance<P> {
 
-		protected Instance(@NotNull Entity holder, @NotNull P power) {
-			super(holder, power);
+		protected Instance(@NotNull P power) {
+			super(power);
 		}
 
 		public abstract Context createDamageContext(Entity actor, Entity target, DamageSource source, float amount);

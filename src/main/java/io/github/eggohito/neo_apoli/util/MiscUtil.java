@@ -5,7 +5,9 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.*;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
@@ -13,12 +15,14 @@ import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAcces
 import io.github.eggohito.neo_apoli.mixin.access.ServerPlayerAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -100,15 +104,19 @@ public class MiscUtil {
 
 	}
 
-	public static Set<ServerPlayer> getTrackingPlayers(Entity entity) {
+	public static Set<ServerPlayer> getTrackingOrEmpty(Entity entity) {
 
-		Set<ServerPlayer> players = new ObjectOpenHashSet<>(PlayerLookup.tracking(entity));
-
-		if (entity instanceof ServerPlayer selfPlayer) {
-			players.add(selfPlayer);
+		if (entity.level().isClientSide()) {
+			return new ObjectOpenHashSet<>();
 		}
 
-		return players;
+		Set<ServerPlayer> trackers = new ObjectOpenHashSet<>(PlayerLookup.tracking(entity));
+
+		if (entity instanceof ServerPlayer self) {
+			trackers.add(self);
+		}
+
+		return trackers;
 
 	}
 
@@ -280,16 +288,22 @@ public class MiscUtil {
 		};
 	}
 
-	public static <T, O> boolean isEncodedEqual(DynamicOps<O> ops, Codec<T> codec, T first, T second) {
+	public static void sendToTracking(Entity tracked, CustomPacketPayload payload) {
 
-		O firstEncoded = codec.encodeStart(ops, first)
-			.result()
-			.orElse(null);
-		O secondEncoded = codec.encodeStart(ops, second)
-			.result()
-			.orElse(null);
+		Set<ServerPlayer> trackers = getTrackingOrEmpty(tracked);
+		CustomPacketPayload.Type<?> type = payload.type();
 
-		return Objects.equals(firstEncoded, secondEncoded);
+		for (var tracker : trackers) {
+
+			if (ServerPlayNetworking.canSend(tracker, type)) {
+				ServerPlayNetworking.send(tracker, payload);
+			}
+
+			else {
+				NeoApoli.LOGGER.debug("Couldn't send payload of type \"{}\" to entity {}!", type.id(), tracker.getName().getString());
+			}
+
+		}
 
 	}
 

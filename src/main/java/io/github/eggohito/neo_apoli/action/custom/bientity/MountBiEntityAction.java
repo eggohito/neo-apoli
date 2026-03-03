@@ -10,13 +10,9 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-
-import java.util.Collection;
 
 public record MountBiEntityAction(BooleanProvider force) implements BiEntityAction {
 
@@ -48,14 +44,7 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 		boolean successfulRide = actor.startRiding(target, force);
 
 		if (successfulRide) {
-
-			MountEntityS2CPacket packet = new MountEntityS2CPacket(actor, target, force);
-			Collection<ServerPlayer> trackingPlayers = MiscUtil.getTrackingPlayers(target);
-
-			for (var trackingPlayer : trackingPlayers) {
-				ServerPlayNetworking.send(trackingPlayer, packet);
-			}
-
+			MiscUtil.sendToTracking(target, new MountEntityS2CPacket(actor, target, force));
 		}
 
 	}

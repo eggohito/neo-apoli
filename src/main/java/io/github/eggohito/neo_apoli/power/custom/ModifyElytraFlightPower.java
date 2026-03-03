@@ -55,8 +55,8 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 
 	public static class Instance extends Power.Instance<ModifyElytraFlightPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyElytraFlightPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyElytraFlightPower power) {
+			super(power);
 		}
 
 		public boolean isAllowed(Context context) {
@@ -81,7 +81,7 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 
 		for (var instance : new InstanceCollection<>(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 

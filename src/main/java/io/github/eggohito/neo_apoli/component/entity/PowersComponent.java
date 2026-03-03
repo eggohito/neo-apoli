@@ -1,11 +1,19 @@
 package io.github.eggohito.neo_apoli.component.entity;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.type.PowerType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +28,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ *  TODO:   Migrate to Fabric's data attachment API. Blocking issue: the API doesn't allow for partial values when
+ *          encoding/decoding data attachments, which I think is necessary for lenient parsing of
+ *          {@linkplain Packed packed powers}.
+ */
 @SuppressWarnings("UnstableApiUsage")
 public interface PowersComponent extends Component, AutoSyncedComponent, CommonTickingComponent, RespawnableComponent<PowersComponent> {
 
@@ -176,6 +189,25 @@ public interface PowersComponent extends Component, AutoSyncedComponent, CommonT
 		return NeoApoliEntityComponents.POWERS.maybeGet(holder)
 			.map(powersComponent -> powersComponent.hasInstances(instanceClass))
 			.orElse(false);
+	}
+
+	record Packed<T>(PowerReference reference, PowerType<?> type, Set<ResourceLocation> sources, Dynamic<T> data) {
+
+		public static final Codec<Packed<?>> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			PowerReference.CODEC.fieldOf("id").forGetter(Packed::reference),
+			PowerType.CODEC.fieldOf("type").forGetter(Packed::type),
+			NeoApoliCodecs.NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Packed::sources),
+			Codec.PASSTHROUGH.fieldOf("data").forGetter(Packed::data)
+		).apply(instance, Packed::new));
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Packed<?>> STREAM_CODEC = StreamCodec.composite(
+			PowerReference.STREAM_CODEC, Packed::reference,
+			PowerType.STREAM_CODEC, Packed::type,
+			NeoApoliStreamCodecs.NON_EMPTY_IDENTIFIER_SET, Packed::sources,
+			NeoApoliStreamCodecs.REGISTRY_PASSTHROUGH, Packed::data,
+			Packed::new
+		);
+
 	}
 
 }

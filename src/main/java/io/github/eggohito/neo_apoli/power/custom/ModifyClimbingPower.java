@@ -60,8 +60,8 @@ public class ModifyClimbingPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -76,17 +76,17 @@ public class ModifyClimbingPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyClimbingPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyClimbingPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyClimbingPower power) {
+			super(power);
 		}
 
 		@Override
-		public Context.Builder createHolderContextBuilder() {
+		public Context.Builder createHolderContextBuilder(Entity holder) {
 
 			Level level = holder.level();
 			BlockPos blockPos = holder.blockPosition();
 
-			return super.createHolderContextBuilder()
+			return super.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos));
@@ -95,8 +95,8 @@ public class ModifyClimbingPower extends Power {
 
 		public boolean canHold(Context context) {
 			return this.isActive(context)
-				&& this.getPower().getAllowHolding().nextBoolean(context.forChild(".allow_holding"))
-				&& this.getPower().getHoldingCondition().test(context.forChild(".holding_condition"));
+				&& power.getAllowHolding().nextBoolean(context.forChild(".allow_holding"))
+				&& power.getHoldingCondition().test(context.forChild(".holding_condition"));
 		}
 
 	}
@@ -105,7 +105,7 @@ public class ModifyClimbingPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 

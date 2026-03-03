@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -51,13 +52,13 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareHudElements(Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static void prepareHudElements(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
 		if (!(instance instanceof HudRenderPower.Instance hudRender)) {
 			return;
 		}
 
-		Context context = instance.createHolderContext();
+		Context context = instance.createHolderContext(holder);
 		ListIterator<HudElement> listIterator = hudRender.getHudElements().listIterator();
 
 		while (listIterator.hasNext()) {
@@ -73,13 +74,13 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareCooldownElements(Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static void prepareCooldownElements(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
 		if (!(instance instanceof CooldownPower.Instance cooldown)) {
 			return;
 		}
 
-		Context hudContext = cooldown.createContext().forChild(".hud_element");
+		Context hudContext = cooldown.createContext(holder).forChild(".hud_element");
 		HudElement hudElement = cooldown.getHudElement();
 
 		if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {

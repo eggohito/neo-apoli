@@ -64,8 +64,8 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -80,12 +80,12 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	public static class Instance extends Power.Instance<CallbackBlockBreakPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackBlockBreakPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackBlockBreakPower power) {
+			super(power);
 		}
 
-		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
@@ -104,11 +104,11 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 
 	}
 
-	public static void execute(Player placer, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side, boolean harvested) {
+	public static void execute(Player breaker, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side, boolean harvested) {
 
-		for (var instance : new InstanceCollection<>(placer, Instance.class)) {
+		for (var instance : new InstanceCollection<>(breaker, Instance.class)) {
 
-			Context context = instance.createContext(blockPos, blockState, blockEntity, side);
+			Context context = instance.createContext(breaker, blockPos, blockState, blockEntity, side);
 
 			if (instance.doesApply(context, harvested)) {
 				instance.execute(context);

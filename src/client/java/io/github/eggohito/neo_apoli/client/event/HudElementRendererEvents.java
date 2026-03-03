@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.entity.Entity;
 
 import java.util.function.BiConsumer;
 
@@ -16,10 +17,10 @@ public class HudElementRendererEvents {
 
 	public static final Event<Prepare> PREPARE = EventFactory.createArrayBacked(
 		Prepare.class,
-		callbacks -> (prepare, renderPhase, adder) -> {
+		callbacks -> (holder, prepare, renderPhase, adder) -> {
 
 			for (var callback : callbacks) {
-				callback.prepare(prepare, renderPhase, adder);
+				callback.prepare(holder, prepare, renderPhase, adder);
 			}
 
 		}
@@ -51,7 +52,7 @@ public class HudElementRendererEvents {
 	);
 
 	public interface Prepare {
-		void prepare(Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
+		void prepare(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
 	}
 
 }

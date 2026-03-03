@@ -24,12 +24,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -42,6 +42,7 @@ public class MultiplePower extends Power {
 
 		PowerEntry.MAP_CODEC.keys(JavaOps.INSTANCE)
 			.map(Object::toString)
+			.filter(Predicate.not("value"::equals))
 			.distinct()
 			.map(Pattern::compile)
 			.forEach(filters::add);
@@ -56,7 +57,7 @@ public class MultiplePower extends Power {
 	public static final MapCodec<ImmutableSet<PowerEntry<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
 
 		@Override
-		public <T> Stream<T> keys(DynamicOps<T> dynamicOps) {
+		public <T> Stream<T> keys(DynamicOps<T> ops) {
 			return Stream.empty();
 		}
 
@@ -189,8 +190,8 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance<>(holder, this) {};
+	public Power.Instance<?> createInstance() {
+		return new Instance<>(this) {};
 	}
 
 	@Override

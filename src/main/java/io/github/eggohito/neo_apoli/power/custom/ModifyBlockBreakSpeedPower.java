@@ -60,18 +60,18 @@ public class ModifyBlockBreakSpeedPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockBreakSpeedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockBreakSpeedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyBlockBreakSpeedPower power) {
+			super(power);
 		}
 
-		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
@@ -97,7 +97,7 @@ public class ModifyBlockBreakSpeedPower extends Power {
 
 			try {
 
-				Context context = instance.createContext(blockPos, blockState, blockEntity);
+				Context context = instance.createContext(player, blockPos, blockState, blockEntity);
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
 					entries.addAll(instance.getModifiers(context));

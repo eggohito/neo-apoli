@@ -41,7 +41,7 @@ public record TriggerPowerCooldownEntityAction(PowerReference power) implements 
 		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
 
 		if (powersComponent.getNullableInstance(this.power()) instanceof CooldownPower.Instance cooldownInstance) {
-			cooldownInstance.trigger();
+			cooldownInstance.trigger(entity);
 		}
 
 	}
@@ -49,7 +49,7 @@ public record TriggerPowerCooldownEntityAction(PowerReference power) implements 
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		this.power().validate(validator.forChild(".power"));
+		this.power().validate(validator, CooldownPower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
 	}
 
 }

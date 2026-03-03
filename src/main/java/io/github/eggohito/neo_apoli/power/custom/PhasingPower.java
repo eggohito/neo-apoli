@@ -70,8 +70,8 @@ public class PhasingPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -82,12 +82,12 @@ public class PhasingPower extends Power {
 
 	public static class Instance extends Power.Instance<PhasingPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull PhasingPower power) {
-			super(holder, power);
+		protected Instance(@NotNull PhasingPower power) {
+			super(power);
 		}
 
-		public Context createContext(CachedBlock cachedBlock) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, CachedBlock cachedBlock) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.getPos())
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.getState())
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.getEntity())
@@ -95,29 +95,29 @@ public class PhasingPower extends Power {
 		}
 
 		public RenderType getRenderType() {
-			return this.getPower().getRenderType();
+			return power.getRenderType();
 		}
 
-		public boolean doesApply(Context context, BlockPos blockPos, VoxelShape blockShape) {
+		public boolean doesApply(Entity holder, Context context, BlockPos blockPos, VoxelShape blockShape) {
 			return holder.getY() < (double) blockPos.getY() + blockShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
 				|| power.getPhaseDownCondition().test(context.forChild(".phase_down_condition"));
 		}
 
 		public float getViewDistance() {
-			return this.getPower().getViewDistance();
+			return power.getViewDistance();
 		}
 
 	}
 
 	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, VoxelShape blockShape) {
-		return doesApply(entity, cachedBlock, (instance, context) -> instance.isActive(context) && instance.doesApply(context, cachedBlock.getPos(), blockShape));
+		return doesApply(entity, cachedBlock, (instance, context) -> instance.isActive(context) && instance.doesApply(entity, context, cachedBlock.getPos(), blockShape));
 	}
 
 	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, BiPredicate<Instance, Context> tester) {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createContext(cachedBlock);
+			Context context = instance.createContext(entity, cachedBlock);
 
 			try {
 
@@ -141,7 +141,7 @@ public class PhasingPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createContext(cachedBlock);
+			Context context = instance.createContext(entity, cachedBlock);
 
 			try {
 

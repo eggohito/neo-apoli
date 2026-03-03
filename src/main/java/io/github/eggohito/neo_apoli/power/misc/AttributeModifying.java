@@ -14,6 +14,7 @@ import lombok.Getter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,21 +34,16 @@ public abstract class AttributeModifying extends Power {
 		this.sendUpdate = sendUpdate;
 	}
 
-	public AttributeModifying(List<AttributedModifier> modifiers, BooleanProvider sendUpdate) {
-		this.modifiers = modifiers;
-		this.sendUpdate = sendUpdate;
-	}
-
 	@Override
-	public abstract io.github.eggohito.neo_apoli.power.misc.AttributeModifying.Instance<?> createInstance(Entity holder);
+	public abstract AttributeModifying.Instance<?> createInstance();
 
 	public static abstract class Instance<P extends AttributeModifying> extends Power.Instance<P> {
 
-		protected Instance(@NotNull Entity holder, @NotNull P power) {
-			super(holder, power);
+		protected Instance(@NotNull P power) {
+			super(power);
 		}
 
-		protected void processModifiers(Context context, BiConsumer<AttributeInstance, net.minecraft.world.entity.ai.attributes.AttributeModifier> processor) {
+		protected void processModifiers(Entity holder, Context context, BiConsumer<AttributeInstance, AttributeModifier> processor) {
 
 			if (!(holder instanceof LivingEntity livingHolder) || livingHolder.level().isClientSide()) {
 				return;
@@ -83,12 +79,12 @@ public abstract class AttributeModifying extends Power {
 
 		}
 
-		protected void addModifiersPersistently(Context context) {
-			this.processModifiers(context, AttributeInstance::addOrReplacePermanentModifier);
+		protected void addModifiersPersistently(Entity holder, Context context) {
+			this.processModifiers(holder, context, AttributeInstance::addOrReplacePermanentModifier);
 		}
 
-		protected void addModifiersTemporarily(Context context) {
-			this.processModifiers(context, (attributeInstance, modifier) -> {
+		protected void addModifiersTemporarily(Entity holder, Context context) {
+			this.processModifiers(holder, context, (attributeInstance, modifier) -> {
 
 				if (!attributeInstance.hasModifier(modifier.id())) {
 					attributeInstance.addTransientModifier(modifier);
@@ -97,8 +93,8 @@ public abstract class AttributeModifying extends Power {
 			});
 		}
 
-		protected void removeModifiers(Context context) {
-			this.processModifiers(context, AttributeInstance::removeModifier);
+		protected void removeModifiers(Entity holder, Context context) {
+			this.processModifiers(holder, context, AttributeInstance::removeModifier);
 		}
 
 	}

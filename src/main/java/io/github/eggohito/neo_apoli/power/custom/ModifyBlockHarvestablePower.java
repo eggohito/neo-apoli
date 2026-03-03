@@ -61,8 +61,8 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -73,12 +73,12 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockHarvestablePower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyBlockHarvestablePower power) {
+			super(power);
 		}
 
-		public Context createContext(BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
@@ -95,7 +95,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 
 		for (var instance : new InstanceCollection<>(player, Instance.class)) {
 
-			Context context = instance.createContext(blockPos, blockState, blockEntity);
+			Context context = instance.createContext(player, blockPos, blockState, blockEntity);
 
 			try {
 

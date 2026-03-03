@@ -20,7 +20,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,8 +55,8 @@ public class ModifyJumpPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -68,8 +67,8 @@ public class ModifyJumpPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyJumpPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyJumpPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyJumpPower power) {
+			super(power);
 		}
 
 		public List<Modifier.Entry> getModifiers(Context context) {
@@ -89,7 +88,7 @@ public class ModifyJumpPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 

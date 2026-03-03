@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -14,11 +15,9 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ListIterator;
 
 @EqualsAndHashCode
 @Getter
@@ -45,30 +44,20 @@ public class HudRenderPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
-
 		super.validate(validator);
-		ListIterator<HudElement> listIterator = getHudElements().listIterator();
-
-		while (listIterator.hasNext()) {
-
-			Context.Validator hudElementValidator = validator.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
-
-			listIterator.next().validate(hudElementValidator);
-
-		}
-
+		ContextHelper.validateAll(getHudElements(), validator, index -> ".hud_elements[" + index + "]");
 	}
 
 	public static class Instance extends Power.Instance<HudRenderPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull HudRenderPower power) {
-			super(holder, power);
+		protected Instance(@NotNull HudRenderPower power) {
+			super(power);
 		}
 
 		public List<HudElement> getHudElements() {

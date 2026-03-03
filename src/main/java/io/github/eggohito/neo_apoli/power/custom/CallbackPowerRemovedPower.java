@@ -34,21 +34,21 @@ public class CallbackPowerRemovedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPowerRemovedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerRemovedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPowerRemovedPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onRemoved() {
+		public void onRemoved(Entity holder) {
 
-			super.onRemoved();
-			Context context = createHolderContext();
+			super.onRemoved(holder);
+			Context context = createHolderContext(holder);
 
 			if (this.isActive(context)) {
 				power.getAction().execute(context.forChild(".action"));

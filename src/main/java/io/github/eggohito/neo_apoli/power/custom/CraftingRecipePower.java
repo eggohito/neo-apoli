@@ -15,7 +15,6 @@ import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
@@ -45,18 +44,18 @@ public class CraftingRecipePower extends Power implements Prioritized<CraftingRe
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CraftingRecipePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CraftingRecipePower power) {
-			super(holder, power);
+		protected Instance(@NotNull CraftingRecipePower power) {
+			super(power);
 		}
 
 		public RecipeHolder<CraftingRecipe> getRecipeEntry() {
-			return this.getPower().getRecipeEntry();
+			return power.getRecipeEntry();
 		}
 
 	}

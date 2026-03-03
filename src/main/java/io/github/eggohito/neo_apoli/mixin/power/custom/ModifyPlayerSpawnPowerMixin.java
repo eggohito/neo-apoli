@@ -28,7 +28,7 @@ public abstract class ModifyPlayerSpawnPowerMixin {
 
 				for (var instance : new Prioritized.InstanceCollection<>(player, ModifyPlayerSpawnPower.Instance.class)) {
 
-					Context context = instance.createHolderContext();
+					Context context = instance.createHolderContext(player);
 					Optional<TeleportTransition> destination = instance.getSpawnTeleport();
 
 					try {

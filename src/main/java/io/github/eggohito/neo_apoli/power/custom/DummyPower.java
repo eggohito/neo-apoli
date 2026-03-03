@@ -11,7 +11,6 @@ import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.Entity;
 
 import java.util.Optional;
 
@@ -32,8 +31,8 @@ public class DummyPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance<>(holder, this) {};
+	public Power.Instance<?> createInstance() {
+		return new Instance<>(this) {};
 	}
 
 }

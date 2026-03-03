@@ -18,7 +18,6 @@ import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,8 +63,8 @@ public class TogglePower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<TogglePower> {
@@ -73,42 +72,42 @@ public class TogglePower extends Power {
 		private static final MapCodec<Boolean> DATA_CODEC = Codec.BOOL.fieldOf("toggled");
 		private boolean toggled;
 
-		protected Instance(@NotNull Entity holder, @NotNull TogglePower power) {
-			super(holder, power);
+		protected Instance(@NotNull TogglePower power) {
+			super(power);
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
 			return DATA_CODEC.decode(ops, mapInput)
 				.ifSuccess(bool -> this.toggled = bool)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
 			return DATA_CODEC.encode(this.toggled, ops, prefix);
 		}
 
 		@Override
-		public void onGranted() {
-			this.toggled = power.getActiveByDefault().nextBoolean(this.createHolderContext().forChild(".active_by_default"));
+		public void onGranted(Entity holder) {
+			this.toggled = power.getActiveByDefault().nextBoolean(this.createHolderContext(holder).forChild(".active_by_default"));
 		}
 
 		@Override
-		public void onTick() {
+		public void onTick(Entity holder) {
 
-			Context context = this.createHolderContext();
+			Context context = this.createHolderContext(holder);
 
 			if (toggled && !super.isActive(context)) {
-				this.toggle(context);
+				this.toggle(holder, context);
 			}
 
 		}
 
 		@Override
-		public boolean shouldTick() {
+		public boolean shouldTick(Entity holder) {
 			return power.getActiveCondition().isPresent()
-				&& !power.getRetainState().nextBoolean(this.createHolderContext().forChild(".retain_state"));
+				&& !power.getRetainState().nextBoolean(this.createHolderContext(holder).forChild(".retain_state"));
 		}
 
 		@Override
@@ -121,7 +120,7 @@ public class TogglePower extends Power {
 				&& power.getKeyCondition().test(context.forChild(".key_condition"));
 		}
 
-		public void toggle(Context context) {
+		public void toggle(Entity holder, Context context) {
 
 			try {
 
@@ -130,7 +129,7 @@ public class TogglePower extends Power {
 					if (!holder.level().isClientSide()) {
 
 						this.toggled = !toggled;
-						this.syncData();
+						this.syncData(holder);
 
 					}
 

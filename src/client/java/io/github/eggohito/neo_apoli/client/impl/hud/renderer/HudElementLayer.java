@@ -18,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -45,15 +46,18 @@ public enum HudElementLayer implements IdentifiedLayer {
 	@Override
 	public void render(GuiGraphics graphics, DeltaTracker delta) {
 
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.maybeGet(Minecraft.getInstance().player).orElse(null);
-		Map<HudElementType<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
+		Player player = Minecraft.getInstance().player;
+		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.maybeGet(player).orElse(null);
 
 		if (powersComponent == null) {
 			return;
 		}
 
+		Map<HudElementType<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
+
 		for (var instance : powersComponent.getAllInstances()) {
 			HudElementRendererEvents.PREPARE.invoker().prepare(
+				player,
 				instance,
 				renderPhase,
 				(context, element) -> queue

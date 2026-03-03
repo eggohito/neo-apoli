@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
 
 public record TogglePowerEntityAction(PowerReference power) implements EntityAction {
 
@@ -32,13 +33,17 @@ public record TogglePowerEntityAction(PowerReference power) implements EntityAct
 	@Override
 	public void execute(Context context) {
 
-		Power.Instance<?> instance = context.getOptional(NeoApoliContextParams.THIS_ENTITY)
-			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
+		if (!context.hasAllParameters(this.getRequiredParameters())) {
+			return;
+		}
+
+		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
+		Power.Instance<?> instance = NeoApoliEntityComponents.POWERS.maybeGet(entity)
 			.map(powersComponent -> powersComponent.getInstance(this.power()))
 			.orElse(null);
 
 		if (instance instanceof TogglePower.Instance toggleInstance) {
-			toggleInstance.toggle(context);
+			toggleInstance.toggle(entity, context);
 		}
 
 	}

@@ -163,7 +163,7 @@ public abstract class ReplaceLootTablePowerMixin {
 
 			for (var instance : instances) {
 
-				Context context = instance.createContext(lootContext);
+				Context context = instance.createContext(holder, lootContext);
 				Reporter reporter = context.reporter();
 
 				if (instance.isActive(context)) {

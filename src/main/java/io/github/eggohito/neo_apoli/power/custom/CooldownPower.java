@@ -16,7 +16,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +45,8 @@ public class CooldownPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -62,19 +61,19 @@ public class CooldownPower extends Power {
 		protected static final MapCodec<Long> LAST_USE_TIME_CODEC = Codec.LONG.fieldOf("last_use_time");
 		protected long lastUseTime;
 
-		protected Instance(@NotNull Entity holder, @NotNull CooldownPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CooldownPower power) {
+			super(power);
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
 			return LAST_USE_TIME_CODEC.decode(ops, mapInput)
 				.map(value -> this.lastUseTime = value)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
 			return LAST_USE_TIME_CODEC.encode(this.lastUseTime, ops, prefix);
 		}
 
@@ -86,9 +85,9 @@ public class CooldownPower extends Power {
 			return power.getCooldown();
 		}
 
-		public Context createContext() {
+		public Context createContext(Entity holder) {
 
-			Context holderContext = this.createHolderContext();
+			Context holderContext = this.createHolderContext(holder);
 
 			return new Context.Builder(holderContext)
 				.withRequired(NeoApoliContextParams.CURRENT_VALUE, (double) this.getRemainingTicks(holderContext))
@@ -100,7 +99,7 @@ public class CooldownPower extends Power {
 
 		public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
 
-			long timePassed = holder.level().getGameTime() - lastUseTime;
+			long timePassed = context.level().getGameTime() - lastUseTime;
 			int cooldown = power.getCooldown().nextInt(context.forChild(".cooldown"));
 
 			return timePassed <= cooldown
@@ -110,7 +109,7 @@ public class CooldownPower extends Power {
 
 		public double getProgress(Context context) {
 
-			double diff = holder.level().getGameTime() - lastUseTime;
+			double diff = context.level().getGameTime() - lastUseTime;
 			double progress = diff / getCooldown().nextDouble(context.forChild(".cooldown"));
 
 			return Mth.clamp(progress, 0D, 1D);
@@ -119,21 +118,21 @@ public class CooldownPower extends Power {
 
 		public int getRemainingTicks(Context context) {
 
-			long diff = holder.level().getGameTime() - lastUseTime;
+			long diff = context.level().getGameTime() - lastUseTime;
 			long remainingTicks = getCooldown().nextLong(context.forChild(".cooldown")) - diff;
 
 			return (int) Math.max(0, remainingTicks);
 
 		}
 
-		public void trigger() {
+		public void trigger(Entity holder) {
 
 			if (holder.level().isClientSide()) {
 				return;
 			}
 
 			this.lastUseTime = holder.level().getGameTime();
-			this.syncData();
+			this.syncData(holder);
 
 		}
 

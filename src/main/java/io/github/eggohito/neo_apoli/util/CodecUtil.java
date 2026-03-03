@@ -17,6 +17,7 @@ import net.minecraft.util.ByIdMap;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.*;
@@ -152,6 +153,18 @@ public class CodecUtil {
 
 	public static <T> Codec<ResourceKey<T>> resourceKeyWithDefaultNamespace(ResourceKey<? extends Registry<T>> registryRef, String defaultNamespace) {
 		return ResourceLocationUtil.codecWithDefaultNamespace(defaultNamespace).xmap(location -> ResourceKey.create(registryRef, location), ResourceKey::location);
+	}
+
+	public static <T, C extends Collection<T>> Codec<C> nonEmptyCollection(Codec<C> codec, Supplier<String> errorSupplier) {
+		return codec.validate(collection -> collection.isEmpty() ? DataResult.error(errorSupplier) : DataResult.success(collection));
+	}
+
+	public static <T, C extends Collection<T>> Codec<C> nonEmptyCollection(Codec<C> codec) {
+		return nonEmptyCollection(codec, () -> "Collection must have contents");
+	}
+
+	public static <T, S extends Set<T>> Codec<S> nonEmptySet(Codec<S> codec) {
+		return nonEmptyCollection(codec, () -> "Set must have contents");
 	}
 
 }

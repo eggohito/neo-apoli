@@ -22,7 +22,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -37,7 +36,6 @@ import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -82,8 +80,8 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -105,74 +103,71 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 		@Getter
 		private Optional<TeleportTransition> spawnTeleport = Optional.empty();
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyPlayerSpawnPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyPlayerSpawnPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onGranted() {
-			super.onGranted();
-			this.findSpawnLocation();
+		public void onGranted(Entity holder) {
+			super.onGranted(holder);
+			this.findSpawnLocation(holder);
 		}
 
 		@Override
-		public void onRespawned() {
-			super.onRespawned();
-			this.findSpawnLocation();
+		public void onRespawned(Entity holder) {
+			super.onRespawned(holder);
+			this.findSpawnLocation(holder);
 		}
 
 		@Override
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
 			return LOCATION_MAP_CODEC.decode(ops, mapInput)
-				.ifSuccess(this::setSpawnLocation)
+				.ifSuccess(location -> this.spawnLocation = location)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
-		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
 			return LOCATION_MAP_CODEC.encode(this.getSpawnLocation(), ops, prefix);
 		}
 
-		protected void findSpawnLocation() {
+		private CompletableFuture<Void> findSpawnLocation(Entity holder) {
 
 			if (!(holder instanceof ServerPlayer serverPlayer)) {
-				return;
+				return CompletableFuture.completedFuture(null);
 			}
+
+			return CompletableFuture
+				.supplyAsync(() -> this.getRespawnConfig(serverPlayer))
+				.thenAccept(config -> this.setRespawnPoint(serverPlayer, config));
+
+		}
+
+		private void setRespawnPoint(ServerPlayer serverPlayer, Optional<ServerPlayer.RespawnConfig> config) {
 
 			MinecraftServer server = serverPlayer.server;
-			CompletableFuture<Optional<ServerPlayer.RespawnConfig>> spawnLookup = CompletableFuture.supplyAsync(() -> this.findSpawnLocation(server));
+			ServerLevel dimension = server.getLevel(power.getDimension());
 
-			spawnLookup.thenAccept(this::setSpawnLocation);
-
-		}
-
-		protected void setSpawnLocation(Optional<ServerPlayer.RespawnConfig> location) {
-
-			if (holder.level() instanceof ServerLevel serverLevel) {
-
-				MinecraftServer server = serverLevel.getServer();
-				ServerLevel dimension = Objects.requireNonNull(server.getLevel(power.getDimension()));
-
-				this.spawnTeleport = location.map(config -> new TeleportTransition(dimension, config.pos().getBottomCenter(), Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING));
-
+			if (dimension != null) {
+				this.spawnTeleport = config.map(inner -> new TeleportTransition(dimension, inner.pos().getBottomCenter(), Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING));
 			}
 
-			this.spawnLocation = location;
-
 		}
 
-		private Optional<ServerPlayer.RespawnConfig> findSpawnLocation(MinecraftServer server) {
+		private Optional<ServerPlayer.RespawnConfig> getRespawnConfig(ServerPlayer serverPlayer) {
 
-			if (!(holder instanceof ServerPlayer serverPlayer) || server.getLevel(power.getDimension()) == null) {
+			MinecraftServer server = serverPlayer.server;
+			ServerLevel dimension = server.getLevel(power.getDimension());
+
+			if (dimension == null) {
 				return Optional.empty();
 			}
+
+			BlockPos spawnPos = dimension.getSharedSpawnPos();
 
 			int horizontalStep = NeoApoli.getConfig().modifyPlayerSpawn.horizontalStep;
 			int verticalStep = NeoApoli.getConfig().modifyPlayerSpawn.verticalStep;
 			int radius = NeoApoli.getConfig().modifyPlayerSpawn.radius;
-
-			ServerLevel dimension = Objects.requireNonNull(server.getLevel(power.getDimension()));
-			BlockPos spawnPos = dimension.getSharedSpawnPos();
 
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);

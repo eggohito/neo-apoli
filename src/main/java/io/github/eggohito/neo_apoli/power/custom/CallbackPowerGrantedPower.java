@@ -34,21 +34,21 @@ public class CallbackPowerGrantedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPowerGrantedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerGrantedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPowerGrantedPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onGranted() {
+		public void onGranted(Entity holder) {
 
-			super.onGranted();
-			Context context = createHolderContext();
+			super.onGranted(holder);
+			Context context = createHolderContext(holder);
 
 			if (this.isActive(context)) {
 				power.getAction().execute(context.forChild(".action"));

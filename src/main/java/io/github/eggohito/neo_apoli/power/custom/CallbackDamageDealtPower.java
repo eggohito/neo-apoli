@@ -53,8 +53,8 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -65,12 +65,12 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 	public static class Instance extends Power.Instance<CallbackDamageDealtPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackDamageDealtPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackDamageDealtPower power) {
+			super(power);
 		}
 
-		public Context createContext(Entity target, DamageSource source, float amount) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, Entity target, DamageSource source, float amount) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
 				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
@@ -90,7 +90,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 
 		for (var instance : new InstanceCollection<>(actor, Instance.class)) {
 
-			Context context = instance.createContext(target, damageSource, damageAmount);
+			Context context = instance.createContext(actor, target, damageSource, damageAmount);
 
 			if (instance.isActive(context)) {
 				instance.execute(context);

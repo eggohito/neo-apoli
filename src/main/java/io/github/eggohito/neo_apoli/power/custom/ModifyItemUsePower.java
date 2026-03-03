@@ -85,8 +85,8 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -102,12 +102,12 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	public static class Instance extends Power.Instance<ModifyItemUsePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyItemUsePower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyItemUsePower power) {
+			super(power);
 		}
 
-		public Context createContext(SlotAccess slotAccess) {
-			return this.createHolderContextBuilder()
+		public Context createContext(Entity holder, SlotAccess slotAccess) {
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
 				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
 				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_USE.keySet());
@@ -145,7 +145,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 			for (var instance: instances) {
 
-				Context context = instance.createContext(slotAccess);
+				Context context = instance.createContext(user, slotAccess);
 
 				if (instance.isActive(context)) {
 
@@ -204,7 +204,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 				for (var instance: instances) {
 
-					Context context = instance.createContext(slotAccess);
+					Context context = instance.createContext(user, slotAccess);
 
 					if (instance.isActive(context)) {
 

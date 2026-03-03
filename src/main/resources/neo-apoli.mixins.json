@@ -32,7 +32,6 @@
 		"misc.EitherCodecMixin",
 		"misc.EntityMixin",
 		"misc.ExecuteCommandMixin",
-		"misc.KeyDispatchCodecMixin",
 		"misc.MinecraftServerMixin",
 		"misc.RecipeManagerMixin",
 		"misc.ReloadableServerResourcesMixin",

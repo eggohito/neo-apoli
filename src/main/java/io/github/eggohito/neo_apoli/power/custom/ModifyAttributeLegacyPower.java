@@ -53,8 +53,8 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 	}
 
 	@Override
-	public AttributeModifying.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public AttributeModifying.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyPower> {
@@ -64,42 +64,42 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 
 		private boolean wasActive;
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyAttributeLegacyPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyAttributeLegacyPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onGranted() {
+		public void onGranted(Entity holder) {
 
-			super.onGranted();
+			super.onGranted(holder);
 
-			if (!this.shouldTick()) {
-				this.addModifiersPersistently(this.createHolderContext());
+			if (!this.shouldTick(holder)) {
+				this.addModifiersPersistently(holder, this.createHolderContext(holder));
 			}
 
 		}
 
 		@Override
-		public void onRespawned() {
+		public void onRespawned(Entity holder) {
 
-			super.onRespawned();
+			super.onRespawned(holder);
 
-			if (!this.shouldTick()) {
-				this.addModifiersPersistently(this.createHolderContext());
+			if (!this.shouldTick(holder)) {
+				this.addModifiersPersistently(holder, this.createHolderContext(holder));
 			}
 
 		}
 
 		@Override
-		public void onRevoked() {
-			super.onRevoked();
-			this.removeModifiers(this.createHolderContext());
+		public void onRevoked(Entity holder) {
+			super.onRevoked(holder);
+			this.removeModifiers(holder, this.createHolderContext(holder));
 		}
 
 		@Override
-		public void onTick() {
+		public void onTick(Entity holder) {
 
-			Context context = createHolderContext();
+			Context context = createHolderContext(holder);
 			int tickRate = power.getTickRate().nextInt(context.forChild(".tick_rate"));
 
 			if (context.hasAnyErrors()) {
@@ -122,7 +122,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 					}
 
 					else if (!wasActive && ticks == startTicks) {
-						this.addModifiersTemporarily(context);
+						this.addModifiersTemporarily(holder, context);
 						this.wasActive = true;
 					}
 
@@ -136,7 +136,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 					}
 
 					else if (ticks == endTicks) {
-						this.removeModifiers(context);
+						this.removeModifiers(holder, context);
 						this.wasActive = false;
 					}
 
@@ -147,7 +147,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 		}
 
 		@Override
-		public boolean shouldTick() {
+		public boolean shouldTick(Entity holder) {
 			return power.getActiveCondition().isPresent();
 		}
 

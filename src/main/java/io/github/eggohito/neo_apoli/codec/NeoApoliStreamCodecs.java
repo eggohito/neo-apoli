@@ -46,9 +46,9 @@ import java.util.regex.Pattern;
 
 public class NeoApoliStreamCodecs {
 
-	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> MUTABLE_IDENTIFIER_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ResourceLocation.STREAM_CODEC);
+	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> IDENTIFIER_SET = ByteBufCodecs.collection(ObjectOpenHashSet::new, ResourceLocation.STREAM_CODEC);
 
-	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> MUTABLE_NON_EMPTY_IDENTIFIER_SET = StreamCodecUtil.nonEmptyCollection(MUTABLE_IDENTIFIER_SET);
+	public static final StreamCodec<ByteBuf, Set<ResourceLocation>> NON_EMPTY_IDENTIFIER_SET = StreamCodecUtil.nonEmptyCollection(IDENTIFIER_SET);
 
 	public static final StreamCodec<ByteBuf, InteractionHand> HAND = StreamCodecUtil.enumType(InteractionHand.class);
 

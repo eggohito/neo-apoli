@@ -15,7 +15,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -23,6 +22,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -56,7 +56,7 @@ public abstract class Power implements ContextUser {
 
 	public abstract PowerType<?> getType();
 
-	public abstract Instance<?> createInstance(Entity holder);
+	public abstract Instance<?> createInstance();
 
 	/**
 	 * 	<b>Note:</b> the codec (or the codecs of the field(s) used) for the power has to set a partial value, as this
@@ -78,7 +78,7 @@ public abstract class Power implements ContextUser {
 	}
 
 	/**
-	 * 	<p>The class responsible for providing the functionality of a power. An instance of this class is created
+	 * 	<p>The class is responsible for providing the functionality of a power. An instance of this class is created
 	 * 	every time a power is granted to an entity to ensure that each instance is unique to each entity.</p>
 	 *
 	 * 	<p>The uniqueness of each instance is especially relevant for storing data.</p>
@@ -86,22 +86,12 @@ public abstract class Power implements ContextUser {
 	@Getter
 	public abstract static class Instance<P extends Power> implements ContextUser {
 
-		private static final RuntimeException GRANT_UNREGISTERED_POWER_ERROR = new IllegalStateException("Granting an unregistered power is not allowed!");
-
-		protected final P power;
-		protected final Entity holder;
-
 		protected final PowerReference reference;
-		protected final boolean hidden;
+		protected final P power;
 
-		protected Instance(@NotNull Entity holder, @NotNull P power) {
-
-			this.reference = PowerManager.getReferenceAsResult(power).getOrThrow(error -> GRANT_UNREGISTERED_POWER_ERROR);
-			this.hidden = PowerManager.getEntryAsResult(this.reference).getOrThrow(error -> GRANT_UNREGISTERED_POWER_ERROR).hidden();
-
+		protected Instance(@NotNull P power) {
+			this.reference = PowerManager.getReferenceAsResult(power).getOrThrow(error -> new IllegalStateException("Creating an instance of an unregistered power is not allowed!"));
 			this.power = power;
-			this.holder = holder;
-
 		}
 
 		@Override
@@ -114,82 +104,83 @@ public abstract class Power implements ContextUser {
 			power.validate(validator);
 		}
 
-		public Context.Builder createHolderContextBuilder() {
+		public Context.Builder createHolderContextBuilder(Entity holder) {
 			return new Context.Builder()
 				.withReporter(new Reporter("{\"" + this.getReference() + "\"}"))
 				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.THIS_POS, holder.position());
 		}
 
-		public Context createHolderContext() {
-			return this.createHolderContextBuilder().build(holder.level());
+		public Context createHolderContext(Entity holder) {
+			return this.createHolderContextBuilder(holder).build(holder.level());
 		}
 
-		public final void syncData() {
+		public final void syncData(Entity holder) {
 
-			PowerReference reference = PowerManager.getReferenceAsResult(power).getOrThrow(err -> new IllegalStateException("Couldn't sync data of unregistered power! (" + power + ")"));
-			RegistryOps<Tag> nbtOps = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+			Level level = holder.level();
+			RegistryOps<Tag> ops = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-			if (!holder.level().isClientSide()) {
-				this.encodeData(nbtOps)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error))
-					.map(tag -> SynchronizePowerDataS2CPacket.single(holder.getId(), nbtOps, reference, tag))
-					.ifPresent(packet -> MiscUtil
-						.getTrackingPlayers(holder)
-						.forEach(tracker -> ServerPlayNetworking.send(tracker, packet)));
-			}
-
-			else {
+			if (level.isClientSide()) {
 				NeoApoli.LOGGER.warn("Couldn't initialize syncing data of {} from entity {} in the client!", reference.asDisplayString(false), holder.getName().getString());
 			}
 
+			else if (!PowerManager.contains(reference)) {
+				NeoApoli.LOGGER.warn("Tried syncing instance data of unregistered {} from entity {}!", reference.asDisplayString(false), holder.getName().getString());
+			}
+
+			else {
+				this.encodeData(ops)
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error))
+					.ifPresent(tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, reference, tag)));
+			}
+
 		}
 
-		public <O> RecordBuilder<O> encodeData(RegistryOps<O> ops, RecordBuilder<O> prefix) {
+		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
 			return prefix;
 		}
 
-		public final <O> DataResult<O> encodeData(RegistryOps<O> ops) {
+		public final <O> DataResult<O> encodeData(DynamicOps<O> ops) {
 			return this.encodeData(ops, ops.mapBuilder()).build(ops.empty());
 		}
 
-		public <I> DataResult<Unit> decodeData(RegistryOps<I> ops, MapLike<I> mapInput) {
+		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
 			return DataResult.success(Unit.INSTANCE);
 		}
 
-		public final <I> DataResult<Unit> decodeData(RegistryOps<I> ops, I input) {
+		public final <I> DataResult<Unit> decodeData(DynamicOps<I> ops, I input) {
 			return ops.getMap(input).flatMap(mapInput -> this.decodeData(ops, mapInput));
 		}
 
-		public void onAdded() {
+		public void onAdded(Entity holder) {
 
 		}
 
-		public void onGranted() {
+		public void onGranted(Entity holder) {
 
 		}
 
-		public void onRemoved() {
+		public void onRemoved(Entity holder) {
 
 		}
 
-		public void onRevoked() {
+		public void onRevoked(Entity holder) {
 
 		}
 
-		public void onRespawned() {
+		public void onRespawned(Entity holder) {
 
 		}
 
-		public void onTick() {
+		public void onTick(Entity holder) {
 
 		}
 
-		public boolean isImmutable() {
+		public boolean isImmutable(Entity holder) {
 			return true;
 		}
 
-		public boolean shouldTick() {
+		public boolean shouldTick(Entity holder) {
 			return false;
 		}
 

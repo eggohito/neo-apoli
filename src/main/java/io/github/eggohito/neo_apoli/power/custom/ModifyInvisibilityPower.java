@@ -63,8 +63,8 @@ public class ModifyInvisibilityPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -77,12 +77,12 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyInvisibilityPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyInvisibilityPower power) {
+			super(power);
 		}
 
-		public Context createContext(@Nullable Entity viewer) {
-			return this.createHolderContextBuilder()
+		public Context createContext(@NotNull Entity holder, @Nullable Entity viewer) {
+			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
 				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_INVISIBILITY.keySet());
@@ -109,7 +109,7 @@ public class ModifyInvisibilityPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
 
-			Context context = instance.createContext(viewer);
+			Context context = instance.createContext(holder, viewer);
 
 			try {
 

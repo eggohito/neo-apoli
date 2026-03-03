@@ -34,21 +34,21 @@ public class CallbackPowerRevokedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	public static class Instance extends Power.Instance<CallbackPowerRevokedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerRevokedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPowerRevokedPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onRevoked() {
+		public void onRevoked(Entity holder) {
 
-			super.onRevoked();
-			Context context = createHolderContext();
+			super.onRevoked(holder);
+			Context context = createHolderContext(holder);
 
 			if (this.isActive(context)) {
 				power.getAction().execute(context.forChild(".action"));

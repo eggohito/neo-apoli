@@ -81,8 +81,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -94,11 +94,11 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 	public static class Instance extends Power.Instance<ModifyBlockUsePower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyBlockUsePower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyBlockUsePower power) {
+			super(power);
 		}
 
-		public Context createContext(BlockHitResult blockResult, InteractionHand hand) {
+		public Context createContext(Entity holder, BlockHitResult blockResult, InteractionHand hand) {
 
 			Level level = holder.level();
 			BlockPos blockPos  = blockResult.getBlockPos();
@@ -106,7 +106,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 				? SlotAccess.of(() -> livingEntity.getItemInHand(hand), stack -> livingEntity.setItemInHand(hand, stack))
 				: SlotAccess.NULL;
 
-			return this.createHolderContextBuilder()
+			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
@@ -122,8 +122,8 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 		}
 
 		public boolean doesApply(BlockUsePhase interactionPhase, PriorityPhase priorityPhase) {
-			return this.getPower().getUsePhases().contains(interactionPhase)
-				&& this.getPower().inPriorityPhase(priorityPhase);
+			return power.getUsePhases().contains(interactionPhase)
+				&& power.inPriorityPhase(priorityPhase);
 		}
 
 	}
@@ -198,7 +198,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 			for (var instance : instances) {
 
-				Context context = instance.createContext(blockHitResult, hand);
+				Context context = instance.createContext(player, blockHitResult, hand);
 
 				if (instance.isActive(context)) {
 					previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));
@@ -257,7 +257,7 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 				for (var instance : instances) {
 
-					Context context = instance.createContext(blockHitResult, hand);
+					Context context = instance.createContext(player, blockHitResult, hand);
 
 					if (instance.isActive(context)) {
 						previousResult = MiscUtil.overrideResult(previousResult, instance.apply(context));

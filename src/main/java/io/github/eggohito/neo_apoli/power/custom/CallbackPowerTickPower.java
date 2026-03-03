@@ -60,8 +60,8 @@ public class CallbackPowerTickPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -83,14 +83,14 @@ public class CallbackPowerTickPower extends Power {
 
 		private boolean wasActive;
 
-		protected Instance(@NotNull Entity holder, @NotNull CallbackPowerTickPower power) {
-			super(holder, power);
+		protected Instance(@NotNull CallbackPowerTickPower power) {
+			super(power);
 		}
 
 		@Override
-		public void onTick() {
+		public void onTick(Entity holder) {
 
-			Context context = createHolderContext();
+			Context context = createHolderContext(holder);
 			int interval = power.getInterval().nextInt(context.forChild(".interval"));
 
 			if (context.hasAnyErrors()) {
@@ -149,7 +149,7 @@ public class CallbackPowerTickPower extends Power {
 		}
 
 		@Override
-		public boolean shouldTick() {
+		public boolean shouldTick(Entity holder) {
 			return true;
 		}
 

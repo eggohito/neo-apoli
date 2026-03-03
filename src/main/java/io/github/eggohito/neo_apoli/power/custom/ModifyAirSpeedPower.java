@@ -54,8 +54,8 @@ public class ModifyAirSpeedPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
@@ -66,8 +66,8 @@ public class ModifyAirSpeedPower extends Power {
 
 	public static class Instance extends Power.Instance<ModifyAirSpeedPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyAirSpeedPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyAirSpeedPower power) {
+			super(power);
 		}
 
 		public List<Modifier> getModifiers() {
@@ -82,7 +82,7 @@ public class ModifyAirSpeedPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 

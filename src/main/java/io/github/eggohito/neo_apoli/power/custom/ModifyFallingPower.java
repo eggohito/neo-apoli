@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.api.event.ModifyValue;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -60,32 +61,24 @@ public class ModifyFallingPower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance(Entity holder) {
-		return new Instance(holder, this);
+	public Power.Instance<?> createInstance() {
+		return new Instance(this);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 
 		super.validate(validator);
-		ListIterator<Modifier> listIterator = modifiers.listIterator();
 
-		while (listIterator.hasNext()) {
-
-			Context.Validator modifierValidator = validator.forChild(".modifiers[" + listIterator.nextIndex() + "]");
-
-			listIterator.next().validate(modifierValidator);
-
-		}
-
+		ContextHelper.validateAll(getModifiers(), validator, index -> ".modifiers[" + index + "]");
 		getTakeFallDamage().validate(validator.forChild(".take_fall_damage"));
 
 	}
 
 	public static class Instance extends Power.Instance<ModifyFallingPower> {
 
-		protected Instance(@NotNull Entity holder, @NotNull ModifyFallingPower power) {
-			super(holder, power);
+		protected Instance(@NotNull ModifyFallingPower power) {
+			super(power);
 		}
 
 		public List<Modifier> getModifiers() {
@@ -103,7 +96,7 @@ public class ModifyFallingPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 
@@ -129,7 +122,7 @@ public class ModifyFallingPower extends Power {
 
 		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext();
+			Context context = instance.createHolderContext(entity);
 
 			try {
 
