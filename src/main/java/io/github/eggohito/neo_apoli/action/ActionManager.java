@@ -336,7 +336,7 @@ public final class ActionManager implements JsonReloadListener {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
 
-		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.register(ID, ActionManager::applyPendingTags);
+		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, ActionManager::applyPendingTags);
 
 	}
 

@@ -7,43 +7,22 @@ import net.minecraft.server.ReloadableServerResources;
 public final class ReloadableServerResourcesEvents {
 
 	/**
-	 * 	Events used to inject where the pending loading tags of data packs are applied. Pending loading tags are applied
-	 * 	after reload or after a server finishes initializing its data packs.
+	 *  An event invoked <b>after</b> the postponed tags of data packs are applied. Postponed tags are applied after
+	 *  a reload or after a server finishes initializing its data packs.
 	 */
-	public static final class RegistryTagUpdate {
+	public static final Event<AfterLoad> AFTER_LOAD = EventFactory.createArrayBacked(
+		AfterLoad.class,
+		callbacks -> resources -> {
 
-		public static final Event<Before> BEFORE = EventFactory.createArrayBacked(
-			Before.class,
-			callbacks -> resources -> {
-
-				for (var callback: callbacks) {
-					callback.onBeforeUpdate(resources);
-				}
-
+			for (var callback : callbacks) {
+				callback.afterLoad(resources);
 			}
-		);
 
-		public static final Event<After> AFTER = EventFactory.createArrayBacked(
-			After.class,
-			callbacks -> resources -> {
-
-				for (var callback: callbacks) {
-					callback.onAfterUpdate(resources);
-				}
-
-			}
-		);
-
-		@FunctionalInterface
-		public interface Before {
-			void onBeforeUpdate(ReloadableServerResources resources);
 		}
+	);
 
-		@FunctionalInterface
-		public interface After {
-			void onAfterUpdate(ReloadableServerResources resources);
-		}
-
+	public interface AfterLoad {
+		void afterLoad(ReloadableServerResources resources);
 	}
 
 }

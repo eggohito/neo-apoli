@@ -253,8 +253,8 @@ public final class PowerManager implements JsonReloadListener {
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
 
-		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.addPhaseOrdering(ActionManager.ID, ID);
-		ReloadableServerResourcesEvents.RegistryTagUpdate.AFTER.register(ID, resources -> {
+		ReloadableServerResourcesEvents.AFTER_LOAD.addPhaseOrdering(ActionManager.ID, ID);
+		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, resources -> {
 			validate(resources);
 			applyPendingTags(resources);
 		});
