@@ -27,11 +27,12 @@ public class EntityConditionTypes {
 	public static final EntityConditionType<HasCollidedHorizontallyEntityCondition> HAS_COLLIDED_HORIZONTALLY = registerInternal("has_collided_horizontally", HasCollidedHorizontallyEntityCondition.MAP_CODEC, HasCollidedHorizontallyEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<HasEquippedItemEntityCondition> HAS_EQUIPPED_ITEM = registerInternal("has_equipped_item", HasEquippedItemEntityCondition.MAP_CODEC, HasEquippedItemEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<HasPowerEntityCondition> HAS_POWER = registerInternal("has_power", HasPowerEntityCondition.MAP_CODEC, HasPowerEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<HasPressedKeysSimultaneouslyEntityCondition> HAS_PRESSED_KEYS_SIMULTANEOUSLY = registerInternal("has_pressed_keys_simultaneously", HasPressedKeysSimultaneouslyEntityCondition.MAP_CODEC, HasPressedKeysSimultaneouslyEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsClimbingEntityCondition> IS_CLIMBING = registerInternal("is_climbing", IsClimbingEntityCondition.MAP_CODEC, IsClimbingEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsFallFlyingEntityCondition> IS_FALL_FLYING = registerInternal("is_fall_flying", IsFallFlyingEntityCondition.MAP_CODEC, IsFallFlyingEntityCondition.STREAM_CODEC);
+	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.MAP_CODEC, IsInvisibleEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsInBlockEntityCondition> IS_IN_BLOCK = registerInternal("is_in_block", IsInBlockEntityCondition.MAP_CODEC, IsInBlockEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsInTagEntityCondition> IS_IN_TAG = registerInternal("is_in_tag", IsInTagEntityCondition.MAP_CODEC, IsInTagEntityCondition.STREAM_CODEC);
-	public static final EntityConditionType<IsInvisibleEntityCondition> IS_INVISIBLE = registerInternal("is_invisible", IsInvisibleEntityCondition.MAP_CODEC, IsInvisibleEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsOfEntityCondition> IS_OF = registerInternal("is_of", IsOfEntityCondition.MAP_CODEC, IsOfEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsOnBlockEntityCondition> IS_ON_BLOCK = registerInternal("is_on_block", IsOnBlockEntityCondition.MAP_CODEC, IsOnBlockEntityCondition.STREAM_CODEC);
 	public static final EntityConditionType<IsOnFireEntityCondition> IS_ON_FIRE = registerInternal("is_on_fire", IsOnFireEntityCondition.MAP_CODEC, IsOnFireEntityCondition.STREAM_CODEC);
