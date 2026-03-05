@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.api.key.KeyReference;
+import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -110,7 +111,7 @@ public class TogglePower extends Power {
 
 			Context context = this.createHolderContext(holder);
 
-			if (toggled && !super.isActive(context)) {
+			if (!super.isActive(context)) {
 				this.toggle(holder, context);
 			}
 
@@ -118,7 +119,8 @@ public class TogglePower extends Power {
 
 		@Override
 		public boolean shouldTick(Entity holder) {
-			return power.getActiveCondition().isPresent()
+			return toggled
+				&& power.getActiveCondition().isPresent()
 				&& !power.getRetainState().nextBoolean(this.createHolderContext(holder).forChild(".retain_state"));
 		}
 
@@ -129,6 +131,20 @@ public class TogglePower extends Power {
 
 		public KeyReference getKey() {
 			return power.getKey();
+		}
+
+		public boolean shouldToggle(Context context, KeyState previous, KeyState current) {
+
+			if (current.pressed() && !super.isActive(context)) {
+				return false;
+			}
+
+			String id = getKey().id(context);
+			boolean continuous = getKey().continuous(context);
+
+			return current.id().equals(id)
+				&& (continuous || !previous.pressed());
+
 		}
 
 		public void toggle(Entity holder, Context context) {

@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.integration;
 
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
-import io.github.eggohito.neo_apoli.api.key.KeyReference;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -25,12 +24,8 @@ public class PowerIntegrations {
 		for (var instance : PowersComponent.getInstances(player, TogglePower.Instance.class)) {
 
 			Context context = instance.createHolderContext(player);
-			KeyReference key = instance.getKey();
 
-			String id = key.id(context);
-			boolean continuous = key.continuous(context);
-
-			if (current.id().equals(id) && current.pressed() && (continuous || !previous.pressed())) {
+			if (instance.shouldToggle(context, previous, current)) {
 				instance.toggle(player, context);
 			}
 
