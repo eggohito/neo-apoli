@@ -9,7 +9,7 @@ public interface KeyStateManager {
 
 	static Optional<KeyState> getState(UUID uuid, String key) {
 		return Optional
-			.ofNullable(KeyStateManagerImpl.STATES.get(uuid))
+			.ofNullable(KeyStateManagerImpl.CURRENT_STATES.get().get(uuid))
 			.flatMap(map -> Optional.ofNullable(map.get(key)));
 	}
 

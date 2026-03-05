@@ -7,41 +7,49 @@ import net.minecraft.world.entity.player.Player;
 
 public class KeyStateEvents {
 
-	public static final Event<Runner> PRESSED = EventFactory.createArrayBacked(
-		Runner.class,
-		callbacks -> (player, state) -> {
+	public static final Event<Pressed> PRESSED = EventFactory.createArrayBacked(
+		Pressed.class,
+		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.run(player, state);
+				callback.onPress(player, previous, current);
 			}
 
 		}
 	);
 
-	public static final Event<Runner> HELD = EventFactory.createArrayBacked(
-		Runner.class,
-		callbacks -> (player, state) -> {
+	public static final Event<Released> RELEASED = EventFactory.createArrayBacked(
+		Released.class,
+		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.run(player, state);
+				callback.onRelease(player, previous, current);
 			}
 
 		}
 	);
 
-	public static final Event<Runner> RELEASED = EventFactory.createArrayBacked(
-		Runner.class,
-		callbacks -> (player, state) -> {
+	public static final Event<Held> HELD = EventFactory.createArrayBacked(
+		Held.class,
+		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.run(player, state);
+				callback.onHold(player, previous, current);
 			}
 
 		}
 	);
 
-	public interface Runner {
-		void run(Player player, KeyState state);
+	public interface Pressed {
+		void onPress(Player player, KeyState previous, KeyState current);
+	}
+
+	public interface Released {
+		void onRelease(Player player, KeyState previous, KeyState current);
+	}
+
+	public interface Held {
+		void onHold(Player player, KeyState previous, KeyState current);
 	}
 
 }

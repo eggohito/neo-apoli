@@ -19,7 +19,7 @@ public class PowerIntegrations {
 		KeyStateEvents.PRESSED.register(PowerIntegrations::toggleOnKeyPress);
 	}
 
-	private static void toggleOnKeyPress(Player player, KeyState keyState) {
+	private static void toggleOnKeyPress(Player player, KeyState previous, KeyState current) {
 
 		for (var instance : PowersComponent.getInstances(player, TogglePower.Instance.class)) {
 
