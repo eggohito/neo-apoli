@@ -5,8 +5,8 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
+import io.github.eggohito.neo_apoli.api.key.KeyReference;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.key.KeyCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -29,7 +29,7 @@ public class TogglePower extends Power {
 
 	public static final MapCodec<TogglePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::getAction))
-		.and(KeyCondition.CODEC.fieldOf("key_condition").forGetter(TogglePower::getKeyCondition))
+		.and(KeyReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
 		.apply(instance, TogglePower::new));
@@ -37,22 +37,22 @@ public class TogglePower extends Power {
 	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
 		Action.STREAM_CODEC, TogglePower::getAction,
-		KeyCondition.STREAM_CODEC, TogglePower::getKeyCondition,
+		KeyReference.STREAM_CODEC, TogglePower::getKey,
 		BooleanProvider.STREAM_CODEC, TogglePower::getRetainState,
 		BooleanProvider.STREAM_CODEC, TogglePower::getActiveByDefault,
 		TogglePower::new
 	);
 
 	private final Action action;
-	private final KeyCondition keyCondition;
+	private final KeyReference key;
 
 	private final BooleanProvider retainState;
 	private final BooleanProvider activeByDefault;
 
-	public TogglePower(Optional<Condition> activeCondition, Action action, KeyCondition keyCondition, BooleanProvider retainState, BooleanProvider activeByDefault) {
+	public TogglePower(Optional<Condition> activeCondition, Action action, KeyReference key, BooleanProvider retainState, BooleanProvider activeByDefault) {
 		super(activeCondition);
 		this.action = action;
-		this.keyCondition = keyCondition;
+		this.key = key;
 		this.retainState = retainState;
 		this.activeByDefault = activeByDefault;
 	}
@@ -67,9 +67,21 @@ public class TogglePower extends Power {
 		return new Instance(this);
 	}
 
+	@Override
+	public void validate(Context.Validator validator) {
+
+		super.validate(validator);
+
+		getAction().validate(validator.forChild(".action"));
+		getKey().validate(validator.forChild(".key"));
+		getRetainState().validate(validator.forChild(".retain_state"));
+		getActiveByDefault().validate(validator.forChild(".active_by_default"));
+
+	}
+
 	public static class Instance extends Power.Instance<TogglePower> {
 
-		private static final MapCodec<Boolean> DATA_CODEC = Codec.BOOL.fieldOf("toggled");
+		private static final MapCodec<Boolean> TOGGLED_CODEC = Codec.BOOL.fieldOf("toggled");
 		private boolean toggled;
 
 		protected Instance(@NotNull TogglePower power) {
@@ -78,14 +90,14 @@ public class TogglePower extends Power {
 
 		@Override
 		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
-			return DATA_CODEC.decode(ops, mapInput)
+			return TOGGLED_CODEC.decode(ops, mapInput)
 				.ifSuccess(bool -> this.toggled = bool)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
 		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
-			return DATA_CODEC.encode(this.toggled, ops, prefix);
+			return TOGGLED_CODEC.encode(this.toggled, ops, prefix);
 		}
 
 		@Override
@@ -115,9 +127,8 @@ public class TogglePower extends Power {
 			return toggled;
 		}
 
-		public boolean shouldToggle(Context context) {
-			return super.isActive(context)
-				&& power.getKeyCondition().test(context.forChild(".key_condition"));
+		public KeyReference getKey() {
+			return power.getKey();
 		}
 
 		public void toggle(Entity holder, Context context) {

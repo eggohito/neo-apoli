@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.integration;
 
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
+import io.github.eggohito.neo_apoli.api.key.KeyReference;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -16,16 +17,20 @@ public class PowerIntegrations {
 	public static void registerAll() {
 		EntityElytraEvents.ALLOW.register(PowerIntegrations::allowPowerElytraFlight);
 		EntityElytraEvents.CUSTOM.register(PowerIntegrations::onPowerElytraFlight);
-		KeyStateEvents.PRESSED.register(PowerIntegrations::toggleOnKeyPress);
+		KeyStateEvents.HELD.register(PowerIntegrations::toggleOnKeyHeld);
 	}
 
-	private static void toggleOnKeyPress(Player player, KeyState previous, KeyState current) {
+	private static void toggleOnKeyHeld(Player player, KeyState previous, KeyState current) {
 
 		for (var instance : PowersComponent.getInstances(player, TogglePower.Instance.class)) {
 
 			Context context = instance.createHolderContext(player);
+			KeyReference key = instance.getKey();
 
-			if (instance.shouldToggle(context)) {
+			String id = key.id(context);
+			boolean continuous = key.continuous(context);
+
+			if (current.id().equals(id) && current.pressed() && (continuous || !previous.pressed())) {
 				instance.toggle(player, context);
 			}
 
