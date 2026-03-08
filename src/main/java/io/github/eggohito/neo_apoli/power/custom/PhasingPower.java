@@ -40,27 +40,27 @@ public class PhasingPower extends Power {
 
 	public static final MapCodec<PhasingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
-		.and(RenderType.CODEC.optionalFieldOf("render_type", RenderType.BLINDNESS).forGetter(PhasingPower::getRenderType))
+		.and(RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::getRenderEffect))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PhasingPower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
 		Condition.STREAM_CODEC, PhasingPower::getPhaseDownCondition,
-		RenderType.STREAM_CODEC, PhasingPower::getRenderType,
+		RenderEffect.STREAM_CODEC, PhasingPower::getRenderEffect,
 		ByteBufCodecs.FLOAT, PhasingPower::getViewDistance,
 		PhasingPower::new
 	);
 
 	private final Condition phaseDownCondition;
-	private final RenderType renderType;
+	private final RenderEffect renderEffect;
 
 	private final float viewDistance;
 
-	public PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderType renderType, float viewDistance) {
+	public PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderEffect renderEffect, float viewDistance) {
 		super(activeCondition);
 		this.phaseDownCondition = phaseDownCondition;
-		this.renderType = renderType;
+		this.renderEffect = renderEffect;
 		this.viewDistance = viewDistance;
 	}
 
@@ -94,8 +94,8 @@ public class PhasingPower extends Power {
 				.buildWithRequirements(holder.level(), PowerTypes.PHASING.keySet());
 		}
 
-		public RenderType getRenderType() {
-			return power.getRenderType();
+		public RenderEffect getRenderEffect() {
+			return power.getRenderEffect();
 		}
 
 		public boolean doesApply(Entity holder, Context context, BlockPos blockPos, VoxelShape blockShape) {
@@ -161,17 +161,17 @@ public class PhasingPower extends Power {
 
 	}
 
-	public enum RenderType implements StringRepresentable {
+	public enum RenderEffect implements StringRepresentable {
 
 		BLINDNESS("blindness"),
 		NONE("none");
 
-		public static final Codec<RenderType> CODEC = CodecUtil.enumType(RenderType.class);
-		public static final StreamCodec<ByteBuf, RenderType> STREAM_CODEC = StreamCodecUtil.enumType(RenderType.class);
+		public static final Codec<RenderEffect> CODEC = CodecUtil.enumType(RenderEffect.class);
+		public static final StreamCodec<ByteBuf, RenderEffect> STREAM_CODEC = StreamCodecUtil.enumType(RenderEffect.class);
 
 		private final String name;
 
-		RenderType(String name) {
+		RenderEffect(String name) {
 			this.name = name;
 		}
 

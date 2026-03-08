@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-//	FIXME: Modifying fog color/distance with this method doesn't work with shaders
+//	FIXME: Modifying fog color/distance with this method doesn't seem to work with shaders
 public abstract class PhasingPowerMixin {
 
 	@Mixin(LevelRenderer.class)
@@ -87,7 +87,7 @@ public abstract class PhasingPowerMixin {
 		@Unique
 		private static boolean neo_apoli$shouldApplyBlindnessEffects(Entity entity) {
 			return MiscUtil.getViewBlocking(entity) != null
-				&& PowersComponent.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderType() == PhasingPower.RenderType.BLINDNESS);
+				&& PowersComponent.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderEffect() == PhasingPower.RenderEffect.BLINDNESS);
 		}
 
 	}
