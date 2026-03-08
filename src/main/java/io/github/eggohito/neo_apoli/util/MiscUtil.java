@@ -241,7 +241,7 @@ public class MiscUtil {
         }
 
 		BlockPos result = pos;
-		while (result.getY() < dimension.getMaxY() && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
+		while (result.getY() < dimension.getMaxY() - 1 && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
 			result = result.above();
 		}
 
