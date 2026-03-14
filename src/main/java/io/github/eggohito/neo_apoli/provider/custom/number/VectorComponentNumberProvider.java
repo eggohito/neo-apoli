@@ -32,13 +32,13 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context vectorContext = context.forChild(".vector");
 		Vec3 vector = vector().nextVec3(vectorContext);
 
 		if (vectorContext.hasErrors()) {
-			return 0.0d;
+			return 0.0D;
 		}
 
 		else {

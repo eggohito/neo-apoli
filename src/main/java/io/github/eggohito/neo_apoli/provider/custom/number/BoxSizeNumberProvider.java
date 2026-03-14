@@ -28,7 +28,7 @@ public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context boxContext = context.forChild(".box");
 		AABB box = box().nextBox(boxContext);

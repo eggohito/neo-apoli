@@ -21,8 +21,13 @@ public record AddNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::nextDouble, Double::sum, 0.0d);
+	public double nextDouble(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextDouble, Double::sum, 0.0D);
+	}
+
+	@Override
+	public long nextLong(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::nextLong, Long::sum, 0L);
 	}
 
 }

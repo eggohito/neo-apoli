@@ -30,7 +30,7 @@ public record DivideNumberProvider(NumberProvider dividend, NumberProvider divis
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context dividendContext = context.forChild(".dividend");
 		double dividend = dividend().nextDouble(dividendContext);

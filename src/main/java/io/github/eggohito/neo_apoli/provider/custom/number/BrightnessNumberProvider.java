@@ -29,7 +29,7 @@ public record BrightnessNumberProvider(Vec3Provider position) implements NumberP
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context positionContext = context.forChild(".position");
 		Vec3 position = position().nextVec3(positionContext);

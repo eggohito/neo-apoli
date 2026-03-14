@@ -26,8 +26,8 @@ public record SwitchNumberProvider(List<Case<Condition, NumberProvider>> cases, 
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
-		return nextOrDefault(context, NumberProvider::nextNumber);
+	public double nextDouble(Context context) {
+		return this.nextOrDefault(context, NumberProvider::nextDouble);
 	}
 
 }

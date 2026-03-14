@@ -43,11 +43,11 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(stack -> stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY))
 			.map(modifiers -> this.compute(context, modifiers))
-			.orElse(0.0d);
+			.orElse(0.0D);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 			.map(LivingEntity.class::cast)
 			.filter(entity -> entity.getAttributes().hasAttribute(this.attribute()))
 			.map(entity -> entity.getAttributeBaseValue(this.attribute()))
-			.orElse(0.0d);
+			.orElse(0.0D);
 	}
 
 }

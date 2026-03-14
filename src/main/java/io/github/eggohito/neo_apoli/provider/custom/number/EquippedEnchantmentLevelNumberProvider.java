@@ -53,7 +53,7 @@ public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchant
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Registry<Enchantment> enchantmentRegistry = context.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 		ResourceLocation enchantmentId = enchantment().unwrap().map(ResourceKey::location, enchantmentRegistry::getKey);

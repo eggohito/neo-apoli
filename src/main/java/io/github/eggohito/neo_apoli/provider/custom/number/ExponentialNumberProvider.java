@@ -30,7 +30,7 @@ public record ExponentialNumberProvider(NumberProvider base, NumberProvider expo
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context baseContext = context.forChild(".base");
 		double base = base().nextDouble(baseContext);

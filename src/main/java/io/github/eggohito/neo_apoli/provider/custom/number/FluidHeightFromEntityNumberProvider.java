@@ -38,7 +38,7 @@ public record FluidHeightFromEntityNumberProvider(TagKey<Fluid> fluidTag, Contex
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return context.getOptional(entity())
 			.map(entity -> entity.getFluidHeight(this.fluidTag()))
 			.orElse(0.0D);

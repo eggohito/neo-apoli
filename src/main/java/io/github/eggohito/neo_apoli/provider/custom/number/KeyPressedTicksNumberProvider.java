@@ -35,7 +35,12 @@ public record KeyPressedTicksNumberProvider(StringProvider id) implements Number
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
+		return this.nextLong(context);
+	}
+
+	@Override
+	public long nextLong(Context context) {
 
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 			return 0L;

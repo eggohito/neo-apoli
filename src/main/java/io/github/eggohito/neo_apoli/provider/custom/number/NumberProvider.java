@@ -20,15 +20,10 @@ public interface NumberProvider extends ValueProvider {
 	@NotNull
 	NumberProviderType<?> getType();
 
-	@NotNull
-	Number nextNumber(Context context);
-
-	default double nextDouble(Context context) {
-		return this.nextNumber(context).doubleValue();
-	}
+	double nextDouble(Context context);
 
 	default float nextFloat(Context context) {
-		return this.nextNumber(context).floatValue();
+		return (float) this.nextDouble(context);
 	}
 
 	default long nextLong(Context context) {
@@ -43,7 +38,7 @@ public interface NumberProvider extends ValueProvider {
 		return CODEC.xmap(value -> new ClampedNumberProvider(value, min, max), Function.identity());
 	}
 
-	static <N extends Number & Comparable<N>> Codec<NumberProvider> clamped(N min, N max) {
+	static Codec<NumberProvider> clamped(double min, double max) {
 		return clamped(new ConstantNumberProvider(min), new ConstantNumberProvider(max));
 	}
 

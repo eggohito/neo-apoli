@@ -21,7 +21,7 @@ public record SubtractNumberProvider(List<NumberProvider> numbers) implements Mu
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, (a, b) -> a - b, 0.0d);
 	}
 

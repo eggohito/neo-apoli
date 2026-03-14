@@ -34,7 +34,12 @@ public record KeyPressedTimeNumberProvider(StringProvider id) implements NumberP
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
+		return this.nextLong(context);
+	}
+
+	@Override
+	public long nextLong(Context context) {
 
 		if (!context.hasAllParameters(this.getRequiredParameters())) {
 			return 0L;

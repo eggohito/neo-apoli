@@ -26,7 +26,7 @@ public enum ItemCountNumberProvider implements NumberProvider {
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(ItemStack::getCount)
 			.orElse(0);

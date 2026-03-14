@@ -26,7 +26,7 @@ public enum FuelAmountNumberProvider implements NumberProvider {
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		FuelValues fuelRegistry = context.level().fuelValues();
 		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
 			.map(fuelRegistry::burnDuration)

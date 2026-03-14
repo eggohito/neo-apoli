@@ -38,7 +38,7 @@ public record EffectAmplifierNumberProvider(Holder<MobEffect> effect, ContextPar
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		switch (context.getNullable(entity())) {
 			case LivingEntity livingEntity when livingEntity.hasEffect(effect()) -> {

@@ -51,7 +51,7 @@ public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntit
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		if (!context.hasParameter(actor())) {
 			return 0;

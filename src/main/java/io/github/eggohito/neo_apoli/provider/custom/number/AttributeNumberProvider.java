@@ -40,7 +40,7 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, ContextParame
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		try {
 
@@ -68,7 +68,7 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, ContextParame
 					context.forChild(".entity").reportProblem("Entity can't have attributes!");
 			}
 
-			return 0.0d;
+			return 0.0D;
 
 		}
 

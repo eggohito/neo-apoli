@@ -10,6 +10,9 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ *  TODO: Add the capability of being able to format the provided number via {@link java.text.DecimalFormat}
+ */
 public record NumberStringProvider(NumberProvider number) implements StringProvider {
 
 	public static final MapCodec<NumberStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -28,7 +31,7 @@ public record NumberStringProvider(NumberProvider number) implements StringProvi
 
 	@Override
 	public @NotNull String nextString(Context context) {
-		return number().nextNumber(context.forChild(".number")).toString();
+		return Double.toString(number().nextDouble(context.forChild(".number")));
 	}
 
 	@Override

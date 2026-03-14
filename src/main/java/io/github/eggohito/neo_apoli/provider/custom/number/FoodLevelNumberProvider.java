@@ -33,7 +33,7 @@ public record FoodLevelNumberProvider(ContextParameter<Entity> entity) implement
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return context.getOptional(entity())
 			.filter(Player.class::isInstance)
 			.map(Player.class::cast)

@@ -37,7 +37,7 @@ public record PowerCooldownProgressNumberProvider(PowerReference power, ContextP
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Entity entity = context.getNullable(entity());
 		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)

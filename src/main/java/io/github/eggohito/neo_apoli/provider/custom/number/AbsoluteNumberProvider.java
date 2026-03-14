@@ -28,7 +28,7 @@ public record AbsoluteNumberProvider(NumberProvider number) implements NumberPro
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return Math.abs(this.number().nextDouble(context.forChild(".number")));
 	}
 

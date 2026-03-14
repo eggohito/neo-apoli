@@ -32,7 +32,7 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Level world = context.level();
 		long time = world.getGameTime();

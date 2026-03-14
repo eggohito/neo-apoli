@@ -47,7 +47,7 @@ public record EntitiesInRadiusFromPositionNumberProvider(EntityCondition entityC
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Level level = context.level();
 		int matches = 0;

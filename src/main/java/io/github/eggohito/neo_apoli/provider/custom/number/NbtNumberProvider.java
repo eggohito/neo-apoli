@@ -37,7 +37,7 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context sourceContext = context.forChild(".source");
 		Tag source = source().nextTag(sourceContext);

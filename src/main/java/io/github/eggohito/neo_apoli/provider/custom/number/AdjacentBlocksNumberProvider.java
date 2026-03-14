@@ -41,7 +41,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Level level = context.level();
 		long matches = 0;

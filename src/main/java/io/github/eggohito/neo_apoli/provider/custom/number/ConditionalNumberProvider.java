@@ -23,8 +23,8 @@ public record ConditionalNumberProvider(Condition condition, NumberProvider ifVa
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
-		return this.nextOrElse(context, NumberProvider::nextNumber, () -> 0.0D);
+	public double nextDouble(Context context) {
+		return this.nextOrElse(context, NumberProvider::nextDouble, () -> 0.0D);
 	}
 
 }

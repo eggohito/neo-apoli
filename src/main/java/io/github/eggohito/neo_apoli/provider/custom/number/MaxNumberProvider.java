@@ -21,7 +21,7 @@ public record MaxNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::max, 0.0d);
 	}
 

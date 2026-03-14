@@ -36,7 +36,7 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return this.lerp(context, NumberProvider::nextDouble, Mth::lerp);
 	}
 

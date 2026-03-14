@@ -40,7 +40,7 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		double number = number().nextDouble(context.forChild(".number"));
 		int places = Math.abs(places().nextInt(context.forChild(".places")));

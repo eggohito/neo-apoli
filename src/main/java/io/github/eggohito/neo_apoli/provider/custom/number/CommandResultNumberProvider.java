@@ -35,7 +35,7 @@ public record CommandResultNumberProvider(StringProvider command) implements Num
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		if (!(context.level() instanceof ServerLevel serverWorld)) {
 			return 0;

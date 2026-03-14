@@ -33,16 +33,18 @@ public record ContextNumberProvider(ContextParameter<Number> parameter) implemen
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		ResourceLocation id = parameter().name();
 		Optional<Number> number = context.getOptional(parameter());
 
 		if (number.isEmpty()) {
-			context.reportProblem("Couldn't get and provide number from parameter \"" + id + "\", as it's not included in the context!");
+			context.reportProblem("Couldn't get and provide number from parameter \"" + id + "\"; it's not included in the context!");
 		}
 
-		return number.orElse(0.0D);
+		return number
+			.map(Number::doubleValue)
+			.orElse(0.0D);
 
 	}
 

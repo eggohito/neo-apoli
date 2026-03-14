@@ -37,7 +37,7 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Co
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Entity entity = context.getNullable(entity());
 		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)

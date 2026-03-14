@@ -30,7 +30,7 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 
 		Context firstContext = context.forChild(".first");
 		Vec3 first = first().nextVec3(firstContext);

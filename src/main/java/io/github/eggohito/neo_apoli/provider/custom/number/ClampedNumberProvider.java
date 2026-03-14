@@ -36,7 +36,7 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	}
 
 	@Override
-	public @NotNull Number nextNumber(Context context) {
+	public double nextDouble(Context context) {
 		return this.nextOrElse(context, NumberProvider::nextDouble, Mth::clamp);
 	}
 
