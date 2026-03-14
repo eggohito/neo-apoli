@@ -16,7 +16,7 @@ import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition, Vec3Provider position) implements NumberProvider {
+public record AdjacentBlocksNumberProvider(BlockCondition blockCondition, Vec3Provider position) implements NumberProvider {
 
 	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.BLOCK_POS)
@@ -25,12 +25,12 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 		.build();
 
 	public static final MapCodec<AdjacentBlocksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.fieldOf("block_condition").forGetter(AdjacentBlocksNumberProvider::adjacentBlockCondition),
+		BlockCondition.CODEC.fieldOf("block_condition").forGetter(AdjacentBlocksNumberProvider::blockCondition),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(AdjacentBlocksNumberProvider::position)
 	).apply(instance, AdjacentBlocksNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, AdjacentBlocksNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		BlockCondition.STREAM_CODEC, AdjacentBlocksNumberProvider::adjacentBlockCondition,
+		BlockCondition.STREAM_CODEC, AdjacentBlocksNumberProvider::blockCondition,
 		Vec3Provider.STREAM_CODEC, AdjacentBlocksNumberProvider::position,
 		AdjacentBlocksNumberProvider::new
 	);
@@ -67,7 +67,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(offsetPos))
 				.build(level);
 
-			if (adjacentBlockCondition().test(blockContext.forChild(".block_condition"))) {
+			if (blockCondition().test(blockContext.forChild(".block_condition"))) {
 				matches++;
 			}
 
@@ -82,7 +82,7 @@ public record AdjacentBlocksNumberProvider(BlockCondition adjacentBlockCondition
 
 		NumberProvider.super.validate(validator);
 
-		adjacentBlockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
+		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
 		position().validate(validator.forChild(".position"));
 
 	}
