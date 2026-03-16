@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.util.Locale;
 
 public record RoundNumberProvider(NumberProvider number, NumberProvider places, RoundingMode mode) implements NumberProvider {
@@ -43,16 +44,19 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 	public double nextDouble(Context context) {
 
 		double number = number().nextDouble(context.forChild(".number"));
-		int places = Math.abs(places().nextInt(context.forChild(".places")));
-
-		DecimalFormat decimalFormat = new DecimalFormat("#" + (places > 0 ? "." + Strings.repeat("#", places) : ""), DecimalFormatSymbols.getInstance(Locale.ROOT));
-		decimalFormat.setRoundingMode(mode());
+		int places = places().nextInt(context.forChild(".places"));
 
 		try {
-			return Double.parseDouble(decimalFormat.format(number));
+
+			DecimalFormat decimalFormat = new DecimalFormat("#" + (places > 0 ? "." + Strings.repeat("#", places) : ""), DecimalFormatSymbols.getInstance(Locale.ROOT));
+			decimalFormat.setRoundingMode(mode());
+
+			String formatted = decimalFormat.format(number);
+			return decimalFormat.parse(formatted).doubleValue();
+
 		}
 
-		catch (ArithmeticException e) {
+		catch (ArithmeticException | ParseException e) {
 			context.reportProblem(e.getMessage());
 		}
 
