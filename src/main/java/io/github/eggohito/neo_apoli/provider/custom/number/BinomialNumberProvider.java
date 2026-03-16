@@ -32,6 +32,11 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 
 	@Override
 	public double nextDouble(Context context) {
+		return this.nextLong(context);
+	}
+
+	@Override
+	public long nextLong(Context context) {
 
 		RandomSource random = context.level().getRandom();
 		long result = 0;
