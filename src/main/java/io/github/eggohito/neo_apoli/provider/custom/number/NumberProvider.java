@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.util.PrimitiveNumberType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,31 @@ public interface NumberProvider extends ValueProvider {
 
 	default int nextInt(Context context) {
 		return (int) this.nextLong(context);
+	}
+
+	default short nextShort(Context context) {
+		return (short) this.nextInt(context);
+	}
+
+	default byte nextByte(Context context) {
+		return (byte) this.nextInt(context);
+	}
+
+	default Number next(PrimitiveNumberType type, Context context) {
+		return switch (type) {
+			case DOUBLE ->
+				this.nextDouble(context);
+			case FLOAT ->
+				this.nextFloat(context);
+			case LONG ->
+				this.nextLong(context);
+			case INT ->
+				this.nextInt(context);
+			case SHORT ->
+				this.nextShort(context);
+			case BYTE ->
+				this.nextByte(context);
+		};
 	}
 
 	static Codec<NumberProvider> clamped(NumberProvider min, NumberProvider max) {
