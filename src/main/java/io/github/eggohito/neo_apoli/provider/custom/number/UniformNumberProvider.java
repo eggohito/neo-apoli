@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 public record UniformNumberProvider(Random random, NumberProvider min, NumberProvider max) implements NumberProvider{
@@ -41,22 +40,21 @@ public record UniformNumberProvider(Random random, NumberProvider min, NumberPro
 
 	@Override
 	public double nextDouble(Context context) {
-		return this.randomize(context, NumberProvider::nextDouble, RandomGenerator::nextDouble, () -> 0.0D);
+		return this.randomize(context, NumberProvider::nextDouble, RandomGenerator::nextDouble);
 	}
 
 	@Override
 	public long nextLong(Context context) {
-		return this.randomize(context, NumberProvider::nextLong, RandomGenerator::nextLong, () -> 0L);
+		return this.randomize(context, NumberProvider::nextLong, RandomGenerator::nextLong);
 	}
 
-	private <N extends Number & Comparable<N>> N randomize(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Random, N, N, N> method, Supplier<N> errorValue) {
+	private <N extends Number & Comparable<N>> N randomize(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Random, N, N, N> method) {
 
 		N min = getter.apply(min(), context.forChild(".min"));
 		N max = getter.apply(max(), context.forChild(".max"));
 
 		if (min.compareTo(max) >= 0) {
-			context.reportProblem("Minimum value (" + min + ") cannot be higher than maximum value (" + max + ")!");
-			return errorValue.get();
+			return min;
 		}
 
 		else {
