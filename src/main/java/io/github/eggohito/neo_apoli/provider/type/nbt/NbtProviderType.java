@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public record NbtProviderType<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) implements ValueProviderType<P> {
 
-	public static final RegistryFixedAlias<NbtProviderType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.NBT_PROVIDER_TYPE);
+	public static final FixedRegistryAlias<NbtProviderType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.NBT_PROVIDER_TYPE);
 
 	public static final Codec<NbtProviderType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

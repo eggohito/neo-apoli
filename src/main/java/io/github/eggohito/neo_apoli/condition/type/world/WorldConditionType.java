@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ public record WorldConditionType<C extends WorldCondition>(MapCodec<C> mapCodec,
 
 	public static final String PREFIX = "world/";
 
-	public static final RegistryFixedAlias<WorldConditionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.WORLD_CONDITION_TYPE, ConditionType.ALIASES);
+	public static final FixedRegistryAlias<WorldConditionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.WORLD_CONDITION_TYPE, ConditionType.ALIASES);
 
 	public static final Codec<WorldConditionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

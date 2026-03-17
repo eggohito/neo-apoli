@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ public record ItemConditionType<C extends ItemCondition>(MapCodec<C> mapCodec, S
 
 	public static final String PREFIX = "item/";
 
-	public static final RegistryFixedAlias<ItemConditionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.ITEM_CONDITION_TYPE, ConditionType.ALIASES);
+	public static final FixedRegistryAlias<ItemConditionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.ITEM_CONDITION_TYPE, ConditionType.ALIASES);
 
 	public static final Codec<ItemConditionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

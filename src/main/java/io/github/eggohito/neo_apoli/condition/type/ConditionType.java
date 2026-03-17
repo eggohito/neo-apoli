@@ -6,14 +6,14 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public interface ConditionType<C extends Condition> {
 
-	RegistryFixedAlias<ConditionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.CONDITION_TYPE);
+	FixedRegistryAlias<ConditionType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONDITION_TYPE);
 
 	Codec<ConditionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

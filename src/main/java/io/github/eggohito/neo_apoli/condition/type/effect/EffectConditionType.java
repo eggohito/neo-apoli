@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.custom.effect.EffectCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ public record EffectConditionType<C extends EffectCondition>(MapCodec<C> mapCode
 
 	public static final String PREFIX = "effect/";
 
-	public static final RegistryFixedAlias<EffectConditionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.EFFECT_CONDITION_TYPE, ConditionType.ALIASES);
+	public static final FixedRegistryAlias<EffectConditionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.EFFECT_CONDITION_TYPE, ConditionType.ALIASES);
 
 	public static final Codec<EffectConditionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

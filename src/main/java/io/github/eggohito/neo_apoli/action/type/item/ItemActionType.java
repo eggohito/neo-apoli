@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.action.custom.item.ItemAction;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ public record ItemActionType<A extends ItemAction>(MapCodec<A> mapCodec, StreamC
 
 	public static final String PREFIX = "item/";
 
-	public static final RegistryFixedAlias<ItemActionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.ITEM_ACTION_TYPE, ActionType.ALIASES);
+	public static final FixedRegistryAlias<ItemActionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.ITEM_ACTION_TYPE, ActionType.ALIASES);
 
 	public static final Codec<ItemActionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

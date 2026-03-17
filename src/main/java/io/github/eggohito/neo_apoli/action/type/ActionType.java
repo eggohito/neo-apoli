@@ -6,14 +6,14 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public interface ActionType<A extends Action> {
 
-	RegistryFixedAlias<ActionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.ACTION_TYPE);
+	FixedRegistryAlias<ActionType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.ACTION_TYPE);
 
 	Codec<ActionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

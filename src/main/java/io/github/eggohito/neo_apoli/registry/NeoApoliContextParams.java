@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.*;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
@@ -31,7 +31,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class NeoApoliContextParams {
 
-	public static final RegistryFixedAlias<ContextParameter<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.CONTEXT_PARAMETER);
+	public static final FixedRegistryAlias<ContextParameter<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONTEXT_PARAMETER);
 
 	public static final Codec<ContextParameter<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextParameter<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.CONTEXT_PARAMETER);

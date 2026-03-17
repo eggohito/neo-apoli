@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Range;
 
 public interface ContainerType {
 
-	RegistryFixedAlias<ContainerType> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.CONTAINER_TYPE);
+	FixedRegistryAlias<ContainerType> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONTAINER_TYPE);
 
 	Codec<ContainerType> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public record BoxProviderType<P extends BoxProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) implements ValueProviderType<P> {
 
-	public static final RegistryFixedAlias<BoxProviderType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.BOX_PROVIDER_TYPE);
+	public static final FixedRegistryAlias<BoxProviderType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.BOX_PROVIDER_TYPE);
 
 	public static final Codec<BoxProviderType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 

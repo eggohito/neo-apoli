@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.custom.damage.DamageCondition;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.alias.RegistryFixedAlias;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ public record DamageConditionType<C extends DamageCondition>(MapCodec<C> mapCode
 
 	public static final String PREFIX = "damage/";
 
-	public static final RegistryFixedAlias<DamageConditionType<?>> ALIASES = RegistryFixedAlias.of(NeoApoliRegistries.DAMAGE_CONDITION_TYPE, ConditionType.ALIASES);
+	public static final FixedRegistryAlias<DamageConditionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.DAMAGE_CONDITION_TYPE, ConditionType.ALIASES);
 
 	public static final Codec<DamageConditionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
