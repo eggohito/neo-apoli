@@ -88,9 +88,9 @@ public class PhasingPower extends Power {
 
 		public Context createContext(Entity holder, CachedBlock cachedBlock) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.getPos())
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.getState())
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.getEntity())
+				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.pos())
+				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.state())
+				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.entity())
 				.buildWithRequirements(holder.level(), PowerTypes.PHASING.keySet());
 		}
 
@@ -110,7 +110,7 @@ public class PhasingPower extends Power {
 	}
 
 	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, VoxelShape blockShape) {
-		return doesApply(entity, cachedBlock, (instance, context) -> instance.isActive(context) && instance.doesApply(entity, context, cachedBlock.getPos(), blockShape));
+		return doesApply(entity, cachedBlock, (instance, context) -> instance.isActive(context) && instance.doesApply(entity, context, cachedBlock.pos(), blockShape));
 	}
 
 	public static boolean doesApply(Entity entity, CachedBlock cachedBlock, BiPredicate<Instance, Context> tester) {

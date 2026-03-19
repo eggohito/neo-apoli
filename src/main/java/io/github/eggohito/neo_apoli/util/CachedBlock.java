@@ -1,42 +1,33 @@
 package io.github.eggohito.neo_apoli.util;
 
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BiFunction;
+public record CachedBlock(BlockPos pos, BlockState state, @Nullable BlockEntity entity) {
 
-public class CachedBlock extends BlockInWorld {
+	public static CachedBlock fromLoadedPos(Level level, BlockPos pos) {
 
-	private final BlockState blockState;
-	private final BlockEntity blockEntity;
+		if (!level.hasChunkAt(pos)) {
+			throw new PosUnloadedException(level, pos);
+		}
 
-	public CachedBlock(LevelReader worldView, BlockPos blockPos, BiFunction<LevelReader, BlockPos, BlockState> blockStateGetter, BiFunction<LevelReader, BlockPos, BlockEntity> blockEntityGetter) {
-		super(worldView, blockPos, false);
-		this.blockState = blockStateGetter.apply(worldView, blockPos);
-		this.blockEntity = blockEntityGetter.apply(worldView, blockPos);
+		else if (!level.isInWorldBounds(pos)) {
+			throw new PosOutOfBoundsException(level, pos);
+		}
+
+		else {
+			return fromPos(level, pos);
+		}
+
 	}
 
-	public CachedBlock(LevelReader worldView, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {
-		this(worldView, blockPos, (world, pos) -> blockState, (world, pos) -> blockEntity);
-	}
-
-	public CachedBlock(LevelReader worldView, BlockPos blockPos, boolean forceload) {
-		this(worldView, blockPos, (world, pos) -> forceload || world.hasChunkAt(pos) ? world.getBlockState(pos) : null, (world, pos) -> forceload || world.hasChunkAt(pos) ? world.getBlockEntity(pos) : null);
-	}
-
-	@Override
-	public BlockState getState() {
-		return blockState;
-	}
-
-	@Nullable
-	@Override
-	public BlockEntity getEntity() {
-		return blockEntity;
+	public static CachedBlock fromPos(Level level, BlockPos pos) {
+		return new CachedBlock(pos, level.getBlockState(pos), level.getBlockEntity(pos));
 	}
 
 }

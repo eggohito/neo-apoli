@@ -140,7 +140,7 @@ public class MiscUtil {
 			BlockState blockState = level.getBlockState(mutable);
 
 			if (blockState.getRenderShape() != RenderShape.INVISIBLE && blockState.isViewBlocking(level, mutable)) {
-				return new CachedBlock(level, mutable, blockState, level.getBlockEntity(mutable));
+				return new CachedBlock(mutable, blockState, level.getBlockEntity(mutable));
 			}
 
 		}

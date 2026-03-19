@@ -52,7 +52,7 @@ public abstract class PhasingPowerMixin {
 			if (MiscUtil.collisionHasEntity(collision)) {
 
 				Entity entity = Objects.requireNonNull(MiscUtil.getEntityFromCollision(collision));
-				CachedBlock cachedBlock = new CachedBlock(entity.level(), blockPos, this.asState(), level.getBlockEntity(blockPos));
+				CachedBlock cachedBlock = new CachedBlock(blockPos, this.asState(), level.getBlockEntity(blockPos));
 
 				if (PhasingPower.doesApply(entity, cachedBlock, original)) {
 					return Shapes.empty();
@@ -67,7 +67,7 @@ public abstract class PhasingPowerMixin {
 		@ModifyExpressionValue(method = "getEntityInsideCollisionShape", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;getEntityInsideCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
 		private VoxelShape emptyEntityInsideShapeIfAffectedByPhasing(VoxelShape original, BlockGetter level, BlockPos pos, Entity entity) {
 
-			if (PhasingPower.doesApply(entity, new CachedBlock(entity.level(), pos, this.asState(), level.getBlockEntity(pos)), original)) {
+			if (PhasingPower.doesApply(entity, new CachedBlock(pos, this.asState(), level.getBlockEntity(pos)), original)) {
 				return Shapes.empty();
 			}
 
