@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
@@ -87,7 +87,7 @@ public abstract class PhasingPowerMixin {
 		@Unique
 		private static boolean neo_apoli$shouldApplyBlindnessEffects(Entity entity) {
 			return MiscUtil.getViewBlocking(entity) != null
-				&& PowersComponent.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderEffect() == PhasingPower.RenderEffect.BLINDNESS);
+				&& Powers.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderEffect() == PhasingPower.RenderEffect.BLINDNESS);
 		}
 
 	}

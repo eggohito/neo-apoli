@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
@@ -102,7 +102,7 @@ public class ModifyGlowingSelfPower extends Power {
 
 	public static boolean modifyGlowing(Entity viewer, @NotNull Entity rendered) {
 
-		for (var instance : PowersComponent.getInstances(rendered, Instance.class)) {
+		for (var instance : Powers.getInstances(rendered, Instance.class)) {
 
 			Context context = instance.createContext(rendered, viewer);
 
@@ -126,7 +126,7 @@ public class ModifyGlowingSelfPower extends Power {
 
 	public static int modifyColor(Entity viewer, @NotNull Entity rendered, boolean hasTeamColor, int color) {
 
-		for (var instance : PowersComponent.getInstances(rendered, Instance.class)) {
+		for (var instance : Powers.getInstances(rendered, Instance.class)) {
 
 			Context context = instance.createContext(rendered, viewer);
 

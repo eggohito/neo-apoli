@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.ConstantCondition;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -107,7 +107,7 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static boolean modify(Entity holder, @Nullable Entity viewer, BiPredicate<Instance, Context> tester, BooleanSupplier defaultValue) {
 
-		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
+		for (var instance : Powers.getInstances(holder, Instance.class)) {
 
 			Context context = instance.createContext(holder, viewer);
 

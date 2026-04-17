@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -33,7 +33,7 @@ public abstract class PhasingPowerMixin {
 		@WrapOperation(method = "method_30022", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
 		private VoxelShape includeEntityInCollision(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, Operation<VoxelShape> original) {
 			Entity entity = (Entity) (Object) this;
-			return PowersComponent.hasInstances(entity, PhasingPower.Instance.class)
+			return Powers.hasInstances(entity, PhasingPower.Instance.class)
 				? blockState.getCollisionShape(blockGetter, blockPos, CollisionContext.of(entity))
 				: original.call(blockState, blockGetter, blockPos);
 		}

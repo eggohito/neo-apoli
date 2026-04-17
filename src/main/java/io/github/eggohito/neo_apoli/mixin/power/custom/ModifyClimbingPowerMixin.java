@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +37,7 @@ public abstract class ModifyClimbingPowerMixin extends Entity {
 	private boolean overrideClimbingHold(boolean original) {
 
 		try {
-			return PowersComponent.hasInstances(this, ModifyClimbingPower.Instance.class)
+			return Powers.hasInstances(this, ModifyClimbingPower.Instance.class)
 				? ModifyClimbingPower.modify(this, ModifyClimbingPower.Instance::canHold)
 				: original;
 		}

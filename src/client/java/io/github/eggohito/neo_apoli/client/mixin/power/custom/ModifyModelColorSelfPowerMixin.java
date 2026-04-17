@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.duck.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
 import net.minecraft.client.Minecraft;
@@ -105,7 +105,7 @@ public abstract class ModifyModelColorSelfPowerMixin {
 
 			Entity entity = this.neo_apoli$getEntity();
 
-			if (entity != null && PowersComponent.hasInstances(entity, ModifyModelColorSelfPower.Instance.class)) {
+			if (entity != null && Powers.hasInstances(entity, ModifyModelColorSelfPower.Instance.class)) {
 				armPart.render(matrices, vertices, light, overlay, ModifyModelColorSelfPower.modify(null, entity, -1));
 			}
 

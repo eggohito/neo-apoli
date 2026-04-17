@@ -1,9 +1,8 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
@@ -47,15 +46,15 @@ public enum HudElementLayer implements IdentifiedLayer {
 	public void render(GuiGraphics graphics, DeltaTracker delta) {
 
 		Player player = Minecraft.getInstance().player;
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.maybeGet(player).orElse(null);
+		Powers powers = Powers.getNullable(player);
 
-		if (powersComponent == null) {
+		if (powers == null) {
 			return;
 		}
 
 		Map<HudElementType<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
 
-		for (var instance : powersComponent.getAllInstances()) {
+		for (var instance : powers.getAllInstances()) {
 			HudElementRendererEvents.PREPARE.invoker().prepare(
 				player,
 				instance,

@@ -10,9 +10,8 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -38,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -100,10 +100,10 @@ public class PowerCommand {
 
 			for (var target : targets) {
 
-				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				Powers powers = Powers.getOrCreate(target);
 				long grantedPowers = entries
 					.stream()
-					.filter(entry -> powersComponent.grantPower(entry.reference(), source))
+					.filter(entry -> powers.grantWithCallback(entry.reference(), source))
 					.count();
 
 				if (grantedPowers <= 0) {
@@ -111,7 +111,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, grantedPowers);
-				powersComponent.checkForUpdates();
+				powers.update();
 
 			}
 
@@ -250,12 +250,16 @@ public class PowerCommand {
 
 			for (Entity target : targets) {
 
-				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				if (!Powers.has(target)) {
+					continue;
+				}
+
+				Powers powers = Powers.getOrCreate(target);
 				long revokedPowers;
 
 				if (entry != null) {
 
-					if (powersComponent.revokePower(entry.reference(), source)) {
+					if (powers.revokeWithCallback(entry.reference(), source)) {
 						revokedPowers = 1;
 					}
 
@@ -266,9 +270,9 @@ public class PowerCommand {
 				}
 
 				else {
-					revokedPowers = powersComponent.getAllFromSource(source)
+					revokedPowers = powers.getAllFromSource(source)
 						.stream()
-						.filter(inner -> powersComponent.revokePower(inner.reference(), source))
+						.filter(inner -> powers.revokeWithCallback(inner.reference(), source))
 						.count();
 				}
 
@@ -277,7 +281,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, revokedPowers);
-				powersComponent.checkForUpdates();
+				powers.update();
 
 			}
 
@@ -395,12 +399,16 @@ public class PowerCommand {
 
 			for (Entity target : targets) {
 
-				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
-				Set<ResourceLocation> sources = powersComponent.getSources(entry.reference());
+				if (!Powers.has(target)) {
+					continue;
+				}
+
+				Powers powers = Powers.getOrCreate(target);
+				Set<ResourceLocation> sources = powers.getSources(entry.reference());
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> powersComponent.revokePower(entry.reference(), source))
+					.filter(source -> powers.revokeWithCallback(entry.reference(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -408,7 +416,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.add(target);
-				powersComponent.checkForUpdates();
+				powers.update();
 
 			}
 
@@ -470,14 +478,18 @@ public class PowerCommand {
 
 			for (Entity target : targets) {
 
-				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+				Powers powers = Powers.getNullable(target);
 				long clearedPowers = 0;
 
-				for (var entry : powersComponent.getAll()) {
+				if (powers == null) {
+					continue;
+				}
 
-					for (var source : powersComponent.getSources(entry.reference())) {
+				for (var entry : powers.getAll()) {
 
-						if (powersComponent.revokePower(entry.reference(), source)) {
+					for (var source : powers.getSources(entry.reference())) {
+
+						if (powers.revokeWithCallback(entry.reference(), source)) {
 							clearedPowers++;
 						}
 
@@ -490,7 +502,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, clearedPowers);
-				powersComponent.checkForUpdates();
+				powers.update();
 
 			}
 
@@ -563,17 +575,22 @@ public class PowerCommand {
 
 		static int execute(CommandContext<CommandSourceStack> commandContext, Entity target, boolean includeSubPowers) {
 
-			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(target);
+			Powers powers = Powers.getNullable(target);
 			CommandSourceStack commandSource = commandContext.getSource();
 
+			List<PowerEntry<?>> entries = Optional.ofNullable(powers).map(self -> self.getAll(includeSubPowers)).orElseGet(ObjectArrayList::new);
 			List<Component> powerTooltips = new ObjectArrayList<>();
 
-			for (var entry : powersComponent.getAll(includeSubPowers)) {
+			for (var entry : entries) {
+
+				if (powers == null) {
+					break;
+				}
 
 				Power power = entry.power();
 				PowerType<?> type = power.getType();
 
-				List<Component> sourceTooltips = powersComponent.getSources(entry.reference())
+				List<Component> sourceTooltips = powers.getSources(entry.reference())
 					.stream()
 					.map(Objects::toString)
 					.map(source -> Component.literal(source).withStyle())

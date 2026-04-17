@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.power.misc;
 
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
@@ -75,7 +75,7 @@ public interface Prioritized<P extends Power & Prioritized<P>> extends Comparabl
 
 		public <U extends I> void add(Entity holder, @NotNull Class<U> instanceClass, @NotNull Predicate<U> instanceFilter) {
 
-			PowersComponent.getAllInstances(holder).forEach(instance -> {
+			Powers.getAllInstances(holder).forEach(instance -> {
 
 				if (instanceClass.isInstance(instance)) {
 

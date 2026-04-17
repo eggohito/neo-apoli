@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.client.mixin.power.custom;
 
 import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -92,16 +91,16 @@ public abstract class CraftingRecipePowerMixin {
 		private void appendPowerRecipeTooltip(ItemStack stack, CallbackInfoReturnable<List<Component>> cir, @Local List<Component> components) {
 
 			Minecraft client = Minecraft.getInstance();
-			PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.maybeGet(client.player).orElse(null);
+			Powers powers = Powers.getNullable(client.player);
 
-			if (powersComponent == null) {
+			if (powers == null) {
 				return;
 			}
 
 			Int2ObjectMap<PowerReference> referencesByIndex = ((PowerRecipeDisplayHolder) client).neo_apoli$getReferencesByIndex();
 			PowerReference reference = referencesByIndex.get(this.getCurrentRecipe().index());
 
-			if (reference == null || !PowerManager.contains(reference) || powersComponent.hasInstance(reference)) {
+			if (reference == null || !PowerManager.contains(reference) || powers.hasInstance(reference)) {
 				return;
 			}
 

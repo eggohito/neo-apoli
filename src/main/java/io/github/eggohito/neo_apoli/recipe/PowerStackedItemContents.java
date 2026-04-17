@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.recipe;
 
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
@@ -37,8 +37,8 @@ public class PowerStackedItemContents extends StackedItemContents {
 				PowerReference reference = entry.getValue();
 
 				if (id.index() == index) {
-					return NeoApoliEntityComponents.POWERS.maybeGet(this.getEntity())
-						.flatMap(powersComponent -> powersComponent.getOptionalInstance(reference))
+					return Powers.getOptional(this.getEntity())
+						.flatMap(powers -> powers.getOptionalInstance(reference))
 						.stream()
 						.anyMatch(CraftingRecipePower.Instance.class::isInstance);
 				}

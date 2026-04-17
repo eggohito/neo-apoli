@@ -1,13 +1,14 @@
 package io.github.eggohito.neo_apoli.mixin.power;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public abstract class PowerMixin {
@@ -19,7 +20,32 @@ public abstract class PowerMixin {
 		private void onRespawn(ServerPlayer player, boolean alive, Entity.RemovalReason removalReason, CallbackInfoReturnable<ServerPlayer> cir, @Local(ordinal = 1) ServerPlayer newPlayer) {
 
 			if (!alive) {
-				PowersComponent.getAllInstances(newPlayer).forEach(instance -> instance.onRespawned(newPlayer));
+				Powers.getAllInstances(newPlayer).forEach(instance -> instance.onRespawned(newPlayer));
+			}
+
+		}
+
+	}
+
+	@Mixin(Entity.class)
+	public static abstract class TickCallback {
+
+		@Inject(method = "baseTick", at = @At("TAIL"))
+		private void onTick(CallbackInfo ci) {
+
+			var thisAsEntity = (Entity) (Object) this;
+			Powers powers = Powers.getNullable(thisAsEntity);
+
+			if (powers == null) {
+				return;
+			}
+
+			for (var instance : powers.getAllInstances()) {
+
+				if (instance.shouldTick(thisAsEntity)) {
+					instance.onTick(thisAsEntity);
+				}
+
 			}
 
 		}

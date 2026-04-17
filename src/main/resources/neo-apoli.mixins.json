@@ -39,6 +39,7 @@
 		"misc.ServerLevelMixin",
 		"misc.WeightedListMixin",
 		"power.PowerMixin$Callbacks",
+		"power.PowerMixin$TickCallback",
 		"power.custom.CallbackBlockBreakPowerMixin",
 		"power.custom.CallbackDamageDealtPowerMixin$ArmorStandDelegate",
 		"power.custom.CallbackDamageDealtPowerMixin$BaseImpl",

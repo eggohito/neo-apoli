@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -80,7 +80,7 @@ public class ModifyModelColorSelfPower extends Power {
 
 	public static int modify(@Nullable Entity viewer, @NotNull Entity rendered, int color) {
 
-		for (var instance : PowersComponent.getInstances(rendered, Instance.class)) {
+		for (var instance : Powers.getInstances(rendered, Instance.class)) {
 
 			Context context = instance.createContext(rendered, viewer);
 

@@ -4,9 +4,9 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.command.data.accessor.PowerDataAccessor;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import net.minecraft.commands.CommandSourceStack;
@@ -32,7 +32,9 @@ public record PowerDataProvider(String target) implements DataCommands.DataProvi
         PowerEntry<?> entry = PowerArgument.getPower(context, target());
 
         RegistryOps<Tag> ops = context.getSource().registryAccess().createSerializationContext(NbtOps.INSTANCE);
-        Power.Instance<?> instance = NeoApoliEntityComponents.POWERS.get(holder).getNullableInstance(entry.reference());
+        Power.Instance<?> instance = Powers.getOptional(holder)
+            .flatMap(powers -> powers.getOptionalInstance(entry.reference()))
+            .orElse(null);
 
         if (instance != null) {
             return new PowerDataAccessor(holder, instance, entry.reference(), ops);

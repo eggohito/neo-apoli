@@ -6,8 +6,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -269,27 +268,27 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 	private static void applyAll(Entity entity, ServerLevel serverLevel) {
 
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+		Powers powers = Powers.getOrCreate(entity);
 
 		List<GlobalPower> applicableSets = getApplicableSets(entity);
 		Set<PowerEntry<?>> expectedEntries = flattenPowers(applicableSets);
 
 		//	Revoke all powers that are from the global power source, but not within the expected
 		//	set of powers collected from all global power sets
-		for (var entryFromSource : powersComponent.getAllFromSource(GlobalPower.POWER_SOURCE)) {
+		for (var entryFromSource : powers.getAllFromSource(GlobalPower.POWER_SOURCE)) {
 
 			if (!expectedEntries.contains(entryFromSource)) {
-				powersComponent.revokePower(entryFromSource.reference(), GlobalPower.POWER_SOURCE);
+				powers.revokeWithCallback(entryFromSource.reference(), GlobalPower.POWER_SOURCE);
 			}
 
 		}
 
 		//	Re-add all the expected powers collected from all global power sets
 		for (var expectedEntry : expectedEntries) {
-			powersComponent.grantPower(expectedEntry.reference(), GlobalPower.POWER_SOURCE);
+			powers.grantWithCallback(expectedEntry.reference(), GlobalPower.POWER_SOURCE);
 		}
 
-		powersComponent.checkForUpdates();
+		powers.update();
 
 	}
 

@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -38,9 +38,11 @@ public record TriggerPowerCooldownEntityAction(PowerReference power) implements 
 		}
 
 		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
-		PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+		Power.Instance<?> instance = Powers.getOptional(entity)
+			.map(powers -> powers.getInstance(this.power()))
+			.orElse(null);
 
-		if (powersComponent.getNullableInstance(this.power()) instanceof CooldownPower.Instance cooldownInstance) {
+		if (instance instanceof CooldownPower.Instance cooldownInstance) {
 			cooldownInstance.trigger(entity);
 		}
 

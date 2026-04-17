@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.integration;
 
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraFlightPower;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
@@ -21,7 +21,7 @@ public class PowerIntegrations {
 
 	private static void toggleOnKeyHeld(Player player, KeyState previous, KeyState current) {
 
-		for (var instance : PowersComponent.getInstances(player, TogglePower.Instance.class)) {
+		for (var instance : Powers.getInstances(player, TogglePower.Instance.class)) {
 
 			Context context = instance.createHolderContext(player);
 

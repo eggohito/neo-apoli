@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.power.custom;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.mixin.power.misc.DamageModifyingPowerMixin;
 import io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower;
 import net.minecraft.server.level.ServerLevel;
@@ -50,7 +50,7 @@ public abstract class ModifyDamageDealtPowerMixin {
 
 		@Inject(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;removeEntitiesOnShoulder()V"))
 		private void accountForModifyingPowers(ServerLevel level, DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> cir, @Share(value = "hasDamageModifyingPowers", namespace = NeoApoli.MOD_NAMESPACE) LocalBooleanRef hasDamageModifyingPowersRef) {
-			hasDamageModifyingPowersRef.set(hasDamageModifyingPowersRef.get() || PowersComponent.hasInstances(this, ModifyDamageDealtPower.Instance.class));
+			hasDamageModifyingPowersRef.set(hasDamageModifyingPowersRef.get() || Powers.hasInstances(this, ModifyDamageDealtPower.Instance.class));
 		}
 
 	}

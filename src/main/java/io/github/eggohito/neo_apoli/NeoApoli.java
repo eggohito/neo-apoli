@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.action.ActionManager;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
+import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
@@ -82,6 +83,8 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliRecipeSerializers.registerAll();
 		NeoApoliRecipeBookCategories.registerAll();
+
+		NeoApoliEntityAttachments.registerAll();
 
 		ComparisonTypes.registerAll();
 		ColorTypes.registerAll();

@@ -4,11 +4,11 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
 import io.github.eggohito.neo_apoli.network.packet.c2s.RequestActionTagsC2SPacket;
 import io.github.eggohito.neo_apoli.network.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.*;
@@ -39,6 +39,8 @@ public class NeoApoliS2CNetworkHandler {
 			ClientPlayNetworking.registerReceiver(SynchronizePowerRecipeDisplaysS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowerRecipeDisplaysSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowersSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerTagsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowerTagsSynchronized);
+			ClientPlayNetworking.registerReceiver(PowersImpl.GrantS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
+			ClientPlayNetworking.registerReceiver(PowersImpl.RevokeS2CPacket.TYPE,  (payload, context) -> payload.handle(context.player().level()));
 		});
 
 	}
@@ -125,12 +127,12 @@ public class NeoApoliS2CNetworkHandler {
 
 			else {
 
-				PowersComponent powersComponent = NeoApoliEntityComponents.POWERS.get(entity);
+				Powers powers = Powers.getOrCreate(entity);
 				RegistryOps<Tag> nbtOps = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-				if (powersComponent.hasInstance(reference)) {
+				if (powers.hasInstance(reference)) {
 
-					Power.Instance<?> instance = powersComponent.getInstance(reference);
+					Power.Instance<?> instance = powers.getInstance(reference);
 					Tag nbtData = data.convert(nbtOps).getValue();
 
 					if (instance.decodeData(nbtOps, nbtData) instanceof DataResult.Error<Unit> error) {

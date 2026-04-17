@@ -2,9 +2,9 @@ package io.github.eggohito.neo_apoli.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
@@ -29,8 +29,8 @@ public record PowerCraftingRecipe(PowerReference power, CraftingRecipe delegate)
 			return false;
 		}
 
-		CraftingRecipe powerDefinedRecipe = NeoApoliEntityComponents.POWERS.maybeGet(pci.neo_apoli$getEntity())
-			.flatMap(component -> component.getOptionalInstance(this.power()))
+		CraftingRecipe powerDefinedRecipe = Powers.getOptional(pci.neo_apoli$getEntity())
+			.flatMap(powers -> powers.getOptionalInstance(this.power()))
 			.filter(CraftingRecipePower.Instance.class::isInstance)
 			.map(CraftingRecipePower.Instance.class::cast)
 			.map(CraftingRecipePower.Instance::getRecipeEntry)

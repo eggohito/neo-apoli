@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -49,8 +48,8 @@ public record PowerNbtProvider(PowerReference power, ContextParameter<Entity> en
 		}
 
 		return context.getOptional(entity())
-			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
-			.flatMap(powersComponent -> this.getAndCreate(context, powersComponent))
+			.flatMap(Powers::getOptional)
+			.flatMap(powers -> this.getAndCreate(context, powers))
 			.orElseGet(CompoundTag::new);
 
 	}
@@ -66,9 +65,9 @@ public record PowerNbtProvider(PowerReference power, ContextParameter<Entity> en
 		this.power().validate(validator.forChild(".power"));
 	}
 
-	private Optional<Tag> getAndCreate(Context context, PowersComponent powersComponent) {
+	private Optional<Tag> getAndCreate(Context context, Powers powers) {
 		RegistryOps<Tag> ops = context.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
-		return powersComponent.getOptionalInstance(this.power())
+		return powers.getOptionalInstance(this.power())
 			.flatMap(instance -> instance.encodeData(ops)
 				.resultOrPartial(err -> context.reportProblem("Error while encoding and providing data of " + power().asDisplayString(false) + ": " + err)));
 	}

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
@@ -103,7 +103,7 @@ public class ModifyItemWearablePower extends Power {
 	public static boolean modify(Entity equipper, ItemStack equippedStack, EquipmentSlot targetSlot, BooleanSupplier defaultValue) {
 
 		boolean allowed = false;
-		for (var instance : PowersComponent.getInstances(equipper, Instance.class)) {
+		for (var instance : Powers.getInstances(equipper, Instance.class)) {
 
 			Context instanceContext = instance.createContext(equipper, equippedStack);
 

@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -37,12 +36,12 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 	@Override
 	public boolean test(Context context) {
 
-		PowersComponent powersComponent = context.getOptional(NeoApoliContextParams.THIS_ENTITY)
-			.flatMap(NeoApoliEntityComponents.POWERS::maybeGet)
+		Powers powers = context.getOptional(NeoApoliContextParams.THIS_ENTITY)
+			.flatMap(Powers::getOptional)
 			.orElse(null);
 
-		return powersComponent != null
-			&& this.testInternal(powersComponent);
+		return powers != null
+			&& this.testInternal(powers);
 
 	}
 
@@ -52,10 +51,10 @@ public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLoc
 		power().validate(validator.forChild(".power"));
 	}
 
-	private boolean testInternal(PowersComponent powersComponent) {
+	private boolean testInternal(Powers powers) {
 		return this.source()
-			.map(innerSource -> powersComponent.hasInstance(power(), innerSource))
-			.orElseGet(() -> powersComponent.hasInstance(power()));
+			.map(innerSource -> powers.hasInstance(power(), innerSource))
+			.orElseGet(() -> powers.hasInstance(power()));
 	}
 
 }

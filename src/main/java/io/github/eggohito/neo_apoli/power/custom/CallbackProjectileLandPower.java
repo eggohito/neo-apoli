@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -110,7 +110,7 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 
 	public static void execute(Entity powerHolder, Entity owner, Projectile projectile, HitResult result) {
 
-		for (var instance : PowersComponent.getInstances(powerHolder, Instance.class)) {
+		for (var instance : Powers.getInstances(powerHolder, Instance.class)) {
 
 			Context context = instance.createContext(powerHolder, owner, projectile, result);
 

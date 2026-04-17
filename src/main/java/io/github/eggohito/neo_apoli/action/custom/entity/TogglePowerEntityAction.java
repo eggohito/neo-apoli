@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -38,8 +38,8 @@ public record TogglePowerEntityAction(PowerReference power) implements EntityAct
 		}
 
 		Entity entity = context.getRequired(NeoApoliContextParams.THIS_ENTITY);
-		Power.Instance<?> instance = NeoApoliEntityComponents.POWERS.maybeGet(entity)
-			.map(powersComponent -> powersComponent.getInstance(this.power()))
+		Power.Instance<?> instance = Powers.getOptional(entity)
+			.map(powers -> powers.getInstance(this.power()))
 			.orElse(null);
 
 		if (instance instanceof TogglePower.Instance toggleInstance) {
@@ -51,7 +51,7 @@ public record TogglePowerEntityAction(PowerReference power) implements EntityAct
 	@Override
 	public void validate(Context.Validator validator) {
 		EntityAction.super.validate(validator);
-		this.power().validate(validator.forChild(".power"));
+		this.power().validate(validator.forChild(".power"), TogglePower.class, () -> power().asDisplayString() + " cannot be toggled!");
 	}
 
 }

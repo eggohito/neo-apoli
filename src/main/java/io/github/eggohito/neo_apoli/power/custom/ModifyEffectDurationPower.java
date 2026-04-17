@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -82,7 +82,7 @@ public class ModifyEffectDurationPower extends Power {
 
 		List<Modifier.Entry> entries = new ObjectArrayList<>();
 
-		for (var instance : PowersComponent.getInstances(holder, Instance.class)) {
+		for (var instance : Powers.getInstances(holder, Instance.class)) {
 
 			Context context = instance.createContext(holder, effectInstance, source);
 

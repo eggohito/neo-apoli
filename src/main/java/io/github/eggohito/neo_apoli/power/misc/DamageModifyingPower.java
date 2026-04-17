@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.api.event.ModifyValue;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
@@ -98,7 +98,7 @@ public abstract class DamageModifyingPower extends Power {
 
 		List<Modifier.Entry> entries = new ObjectArrayList<>();
 
-		for (var instance : PowersComponent.getInstances(holder, instanceClass)) {
+		for (var instance : Powers.getInstances(holder, instanceClass)) {
 
 			Context context = instance.createDamageContext(actor, target, source, amount);
 

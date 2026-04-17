@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
@@ -103,7 +103,7 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	public static boolean modify(Entity entity, TagKey<EntityType<?>> tag) {
 
-		for (var instance : PowersComponent.getInstances(entity, Instance.class)) {
+		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
 			Context context = instance.createHolderContext(entity);
 

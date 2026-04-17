@@ -20,9 +20,6 @@
 		"client": [
 			"io.github.eggohito.neo_apoli.client.NeoApoliClient"
 		],
-		"cardinal-components": [
-			"io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents"
-		],
 		"modmenu": [
 			"io.github.eggohito.neo_apoli.client.integration.ModMenuIntegration"
 		]

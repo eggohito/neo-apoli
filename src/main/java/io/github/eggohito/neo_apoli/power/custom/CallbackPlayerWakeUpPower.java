@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.component.entity.PowersComponent;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -66,7 +66,7 @@ public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
 
 	public static void execute(Player sleeper, BlockPos sleepingPos) {
 
-		for (var instance : PowersComponent.getInstances(sleeper, Instance.class)) {
+		for (var instance : Powers.getInstances(sleeper, Instance.class)) {
 
 			Context context = instance.createContext(sleeper, sleepingPos);
 

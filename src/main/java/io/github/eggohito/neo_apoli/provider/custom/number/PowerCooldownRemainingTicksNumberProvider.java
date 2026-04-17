@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.component.NeoApoliEntityComponents;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.PowerReference;
@@ -40,8 +40,8 @@ public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, Co
 	public double nextDouble(Context context) {
 
 		Entity entity = context.getNullable(entity());
-		CooldownPower.Instance cooldownInstance = NeoApoliEntityComponents.POWERS.maybeGet(entity)
-			.flatMap(powersComponent -> powersComponent.getOptionalInstance(this.power()))
+		CooldownPower.Instance cooldownInstance = Powers.getOptional(entity)
+			.flatMap(powers -> powers.getOptionalInstance(this.power()))
 			.filter(CooldownPower.Instance.class::isInstance)
 			.map(CooldownPower.Instance.class::cast)
 			.orElse(null);
