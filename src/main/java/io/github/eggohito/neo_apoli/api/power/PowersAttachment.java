@@ -97,6 +97,8 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 
 	}
 
+	//  TODO:   Pass the identity as the result since decoding/encoding data attachments in FAPI in version
+	//          26.1.x now promotes its partial result
 	/**
 	 *  <p>Enforce partial result as success result since FAPI doesn't allow partial results when serializing data
 	 *  attachments (yet?)</p>

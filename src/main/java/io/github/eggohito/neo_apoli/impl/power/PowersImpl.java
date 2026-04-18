@@ -42,7 +42,7 @@ public final class PowersImpl implements Powers {
 	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, REFERENCE_AND_CALLBACK_STREAM_CODEC);
 
 	private final Entity holder;
-	private final PowersAttachment.Mutable mutableAttachment;
+	private PowersAttachment.Mutable mutableAttachment;
 
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
@@ -52,6 +52,8 @@ public final class PowersImpl implements Powers {
 		this.holder = holder;
 		this.mutableAttachment = new PowersAttachment.Mutable(attachment);
 
+		//  TODO:   Remove this once the codebase has been ported to 26.1.x since decoding/encoding data attachments
+		//          in FAPI in that version promotes its partial result
 		attachment.decodingErrors().ifPresent(errors -> NeoApoli.LOGGER.warn("Found errors while decoding powers attachment on entity {}: {}", holder.getName().getString(), errors));
 
 	}
@@ -173,19 +175,22 @@ public final class PowersImpl implements Powers {
 			return;
 		}
 
-		if (!revokedPowers.isEmpty() || !grantedPowers.isEmpty()) {
+		if (!this.revokedPowers.isEmpty() || !this.grantedPowers.isEmpty()) {
 
-			if (!revokedPowers.isEmpty()) {
+			if (!this.revokedPowers.isEmpty()) {
 				MiscUtil.sendToTracking(holder, new RevokeS2CPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.revokedPowers)));
 			}
 
-			if (!grantedPowers.isEmpty()) {
+			if (!this.grantedPowers.isEmpty()) {
 				MiscUtil.sendToTracking(holder, new GrantS2CPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.grantedPowers)));
 			}
 
-		}
+			PowersAttachment attachment = this.mutableAttachment.toImmutable();
 
-		holder.setAttached(NeoApoliEntityAttachments.POWERS, mutableAttachment.toImmutable());
+			this.holder.setAttached(NeoApoliEntityAttachments.POWERS, attachment);
+			this.mutableAttachment = new PowersAttachment.Mutable(attachment);
+
+		}
 
 		this.revokedPowers.clear();
 		this.grantedPowers.clear();
@@ -389,7 +394,7 @@ public final class PowersImpl implements Powers {
 		);
 
 		@Override
-		public Type<? extends CustomPacketPayload> type() {
+		public @NotNull Type<? extends CustomPacketPayload> type() {
 			return TYPE;
 		}
 
@@ -420,7 +425,7 @@ public final class PowersImpl implements Powers {
 		);
 
 		@Override
-		public Type<? extends CustomPacketPayload> type() {
+		public @NotNull Type<? extends CustomPacketPayload> type() {
 			return TYPE;
 		}
 
