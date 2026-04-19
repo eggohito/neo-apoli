@@ -105,7 +105,7 @@ public final class PowerManager implements JsonReloadListener {
 
 	private final RegistryOps<JsonElement> ops;
 
-	public PowerManager(HolderLookup.Provider wrapperLookup) {
+	PowerManager(HolderLookup.Provider wrapperLookup) {
 		this.ops = wrapperLookup.createSerializationContext(JsonOps.INSTANCE);
 	}
 
@@ -214,18 +214,12 @@ public final class PowerManager implements JsonReloadListener {
 		prepared.forEach((id, elementWithSource) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			PowerEntry.CODEC.parse(ops, elementWithSource.element())
-				.ifSuccess(PowerManager::register)
-				.ifError(error -> error
-					.resultOrPartial()
-					.filter(PowerEntry::canBePartiallyParsed)
-					.ifPresentOrElse(
-						entry -> {
-							LOGGER.warn("Found warnings while parsing power {} from data pack [{}]: {}", id, elementWithSource.source(), error.message());
-							register(entry);
-						},
-						() -> LOGGER.error("Error trying to parse power {} from data pack [{}] (skipping): {}", id, elementWithSource.source(), error.message())
-					));
+			MiscUtil.handleResult(
+				PowerEntry.CODEC.parse(ops, elementWithSource.element()),
+				PowerManager::register,
+				warning -> LOGGER.warn("Found warnings while parsing power {} from data pack [{}]: {}", id, elementWithSource.source(), warning),
+				error -> LOGGER.error("Error trying to parse power {} from data pack [{}] (skipping): {}", id, elementWithSource.source(), error)
+			);
 
 			ResourceLocationUtil.setCurrent(null);
 

@@ -26,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.apache.commons.lang3.function.Consumers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -340,9 +341,12 @@ public final class PowersImpl implements Powers {
 				PowerType<?> oldType = oldInstance.getPower().getType();
 
 				oldTypes.put(reference, oldType);
-				oldInstance.encodeData(ops)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the transfer process: {}", reference.asDisplayString(false), entity.getName().getString(), error))
-					.ifPresent(tag -> pendingDataSync.put(reference, tag));
+				MiscUtil.handleResult(
+					oldInstance.encodeData(ops),
+					tag -> pendingDataSync.put(reference, tag),
+					warning -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the update process (proceeding with partial result): {}", reference.asDisplayString(false), entity.getName().getString(), warning),
+					error -> NeoApoli.LOGGER.warn("Couldn't encode old data of {} from entity {} during the update process (skipping): {}", reference.asDisplayString(false), entity.getName().getString(), error)
+				);
 
 			}
 
@@ -362,9 +366,12 @@ public final class PowersImpl implements Powers {
 				Power.Instance<?> newInstance = powers.getInstance(reference);
 
 				if (Objects.equals(oldTypes.get(reference), newInstance.getPower().getType())) {
-					newInstance
-						.decodeData(ops, oldData)
-						.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't transfer data of {} from entity {}: {}", reference.asDisplayString(false), entity.getName().getString(), error));
+					MiscUtil.handleResult(
+						newInstance.decodeData(ops, oldData),
+						Consumers.nop(),
+						warning -> NeoApoli.LOGGER.warn("Couldn't fully decode old data of {} from entity {} during the update process (proceeding with partial result): {}", reference.asDisplayString(false), entity.getName().getString(), warning),
+						error -> NeoApoli.LOGGER.warn("Couldn't decode old data of {} from entity {} during the update process (skipping): {}", reference.asDisplayString(false), entity.getName().getString(), error)
+					);
 				}
 
 				else {

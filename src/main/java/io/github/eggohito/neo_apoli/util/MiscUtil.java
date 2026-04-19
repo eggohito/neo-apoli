@@ -47,6 +47,7 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -304,6 +305,26 @@ public class MiscUtil {
 			}
 
 		}
+
+	}
+
+	public static <T> DataResult<T> handleResult(DataResult<T> result, Consumer<T> resultOrPartial, Consumer<String> onPartial, Consumer<String> onError) {
+
+		result.resultOrPartial().ifPresent(resultOrPartial);
+
+		result.ifError(error -> {
+
+			if (error.hasResultOrPartial()) {
+				onPartial.accept(error.message());
+			}
+
+			else {
+				onError.accept(error.message());
+			}
+
+		});
+
+		return result;
 
 	}
 
