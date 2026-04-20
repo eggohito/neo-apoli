@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.codec;
 
-import com.google.gson.internal.LazilyParsedNumber;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
@@ -56,67 +55,6 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, EnumSet<InteractionHand>> HAND_SET = HANDS.map(EnumSet::copyOf, ObjectArrayList::new);
 
-	public static final StreamCodec<FriendlyByteBuf, Number> NUMBER = new StreamCodec<>() {
-
-		@Override
-		public Number decode(FriendlyByteBuf buf) {
-			byte type = buf.readByte();
-			return switch (type) {
-				case 0 ->
-					buf.readByte();
-				case 1 ->
-					buf.readDouble();
-				case 2 ->
-					buf.readFloat();
-				case 3 ->
-					buf.readInt();
-				case 4 ->
-					buf.readLong();
-				case 5 ->
-					buf.readShort();
-				case 6 ->
-					new LazilyParsedNumber(buf.readUtf());
-				default ->
-					throw new IllegalArgumentException("Unsupported number type: " + type);
-			};
-		}
-
-		@Override
-		public void encode(FriendlyByteBuf buf, Number value) {
-			switch (value) {
-				case Byte b -> {
-					buf.writeByte(0);
-					buf.writeByte(b);
-				}
-				case Double d -> {
-					buf.writeByte(1);
-					buf.writeDouble(d);
-				}
-				case Float f -> {
-					buf.writeByte(2);
-					buf.writeFloat(f);
-				}
-				case Integer i -> {
-					buf.writeByte(3);
-					buf.writeInt(i);
-				}
-				case Long l -> {
-					buf.writeByte(4);
-					buf.writeLong(l);
-				}
-				case Short s -> {
-					buf.writeByte(5);
-					buf.writeShort(s);
-				}
-				default -> {
-					buf.writeByte(6);
-					buf.writeUtf(value.toString());
-				}
-			}
-		}
-
-	};
-
 	public static final StreamCodec<ByteBuf, NbtPathArgument.NbtPath> NBT_PATH = ByteBufCodecs.fromCodecTrusted(NbtPathArgument.NbtPath.CODEC);
 
 	public static final StreamCodec<ByteBuf, LightLayer> LIGHT_TYPE = StreamCodecUtil.enumType(LightLayer.class);
@@ -129,7 +67,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Explosion.BlockInteraction> DESTRUCTION_TYPE = StreamCodecUtil.enumType(Explosion.BlockInteraction.class);
 
-	public static final StreamCodec<FriendlyByteBuf, InteractionResult> ACTION_RESULT = StreamCodecUtil.mapped(MiscUtil.ACTION_RESULTS);
+	public static final StreamCodec<FriendlyByteBuf, InteractionResult> INTERACTION_RESULT = StreamCodecUtil.mapped(MiscUtil.INTERACTION_RESULTS);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockInput> BLOCK_INPUT = ByteBufCodecs.fromCodecWithRegistriesTrusted(NeoApoliCodecs.STRINGIFIED_BLOCK_INPUT);
 

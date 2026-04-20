@@ -2,11 +2,9 @@ package io.github.eggohito.neo_apoli.codec;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
@@ -60,20 +58,6 @@ public class NeoApoliCodecs {
 
 	public static final Codec<EnumSet<InteractionHand>> HAND_SET = HANDS.xmap(EnumSet::copyOf, ObjectArrayList::new);
 
-	public static final Codec<Number> NUMBER = new Codec<>() {
-
-		@Override
-		public <I> DataResult<Pair<Number, I>> decode(DynamicOps<I> ops, I input) {
-			return ops.getNumberValue(input).map(number -> Pair.of(number, input));
-		}
-
-		@Override
-		public <I> DataResult<I> encode(Number number, DynamicOps<I> ops, I prefix) {
-			return DataResult.success(ops.createNumeric(number));
-		}
-
-	};
-
 	public static final Codec<LightLayer> LIGHT_TYPE = CodecUtil.enumType(LightLayer.class);
 
 	public static final Codec<Explosion.BlockInteraction> DESTRUCTION_TYPE = CodecUtil.enumType(Explosion.BlockInteraction.class);
@@ -82,7 +66,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<EnumSet<Direction>> DIRECTION_SET = DIRECTIONS.xmap(EnumSet::copyOf, ObjectArrayList::new);
 
-	public static final Codec<InteractionResult> ACTION_RESULT = CodecUtil.mapped(MiscUtil.ACTION_RESULTS);
+	public static final Codec<InteractionResult> INTERACTION_RESULT = CodecUtil.mapped(MiscUtil.INTERACTION_RESULTS);
 
 	public static final Codec<Tag> STRINGIFIED_TAG = Codec.STRING.comapFlatMap(
 		str -> {

@@ -58,16 +58,6 @@ public abstract class Power implements ContextUser {
 
 	public abstract Instance<?> createInstance();
 
-	/**
-	 * 	<b>Note:</b> the codec (or the codecs of the field(s) used) for the power has to set a partial value, as this
-	 * 	method does not and cannot handle it automatically.
-	 *
-	 *	@return whether the power can be partially parsed.
-	 */
-	public boolean canBePartiallyParsed() {
-		return false;
-	}
-
 	@Override
 	public void validate(Context.Validator validator) {
 		this.getActiveCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));

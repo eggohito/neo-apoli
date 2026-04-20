@@ -132,12 +132,12 @@ public class ModifyBlockUsePower extends Power implements Prioritized<ModifyBloc
 
 		public static final MapCodec<Actions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			Action.CODEC.optionalFieldOf("action", NothingItemAction.INSTANCE).forGetter(Actions::action),
-			NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(Actions::result)
+			NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(Actions::result)
 		).apply(instance, Actions::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Actions> STREAM_CODEC = StreamCodec.composite(
 			Action.STREAM_CODEC, Actions::action,
-			NeoApoliStreamCodecs.ACTION_RESULT, Actions::result,
+			NeoApoliStreamCodecs.INTERACTION_RESULT, Actions::result,
 			Actions::new
 		);
 

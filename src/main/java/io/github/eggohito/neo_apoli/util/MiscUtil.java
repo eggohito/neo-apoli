@@ -5,11 +5,11 @@ import com.mojang.brigadier.ImmutableStringReader;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.exception.DummyCommandExceptionType;
 import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ReloadableServerRegistriesAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.ServerPlayerAccessor;
@@ -46,14 +46,17 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MiscUtil {
 
-	public static final ImmutableBiMap<String, InteractionResult> ACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
+	public static final ImmutableBiMap<String, InteractionResult> INTERACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
 		.put("success", InteractionResult.SUCCESS)
 		.put("success_server", InteractionResult.SUCCESS_SERVER)
 		.put("consume", InteractionResult.CONSUME)
@@ -64,11 +67,11 @@ public class MiscUtil {
 	public static final String ERROR_PADDING = "\n\t";
 
 	public static CommandSyntaxException createCommandException(Message message) {
-		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message);
+		return new SimpleCommandExceptionType(message).create();
 	}
 
 	public static CommandSyntaxException createCommandExceptionWithContext(ImmutableStringReader reader, Message message) {
-		return new CommandSyntaxException(DummyCommandExceptionType.INSTANCE, message, reader.getString(), reader.getCursor());
+		return new SimpleCommandExceptionType(message).createWithContext(reader);
 	}
 
 	private static final MapCodec<Optional<ResourceCondition>> RESOURCE_CONDITION_MAP_CODEC = ResourceCondition.CONDITION_CODEC.optionalFieldOf(ResourceConditions.CONDITIONS_KEY);
@@ -171,13 +174,8 @@ public class MiscUtil {
 	}
 
 	public static String mergeErrors(String firstError, String secondError) {
-
-		String firstPrefix = padError(firstError);
-		String secondPrefix = padError(secondError);
-
-		return 	firstPrefix + firstError +
-				secondPrefix + secondError;
-
+		return padError(firstError) + firstError
+			+ padError(secondError) + secondError;
 	}
 
 	private static String padError(String error) {
@@ -260,17 +258,6 @@ public class MiscUtil {
 
 		while (listIterator.hasNext()) {
 			consumer.accept(listIterator.nextIndex(), listIterator.next());
-		}
-
-	}
-
-	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer) {
-
-		Iterator<E> iterator = iterable.iterator();
-		int index = 0;
-
-		while (iterator.hasNext()) {
-			consumer.accept(index++, iterator.next());
 		}
 
 	}

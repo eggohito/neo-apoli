@@ -46,7 +46,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 
 	public static final MapCodec<ModifyItemUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
-		.and(NeoApoliCodecs.ACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
+		.and(NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
 		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::getHands))
 		.and(TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::getTriggerType))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyItemUsePower::getPriority))
@@ -55,7 +55,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemUsePower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
 		Action.STREAM_CODEC, ModifyItemUsePower::getOnUseAction,
-		NeoApoliStreamCodecs.ACTION_RESULT, ModifyItemUsePower::getResult,
+		NeoApoliStreamCodecs.INTERACTION_RESULT, ModifyItemUsePower::getResult,
 		NeoApoliStreamCodecs.HAND_SET, ModifyItemUsePower::getHands,
 		TriggerType.STREAM_CODEC, ModifyItemUsePower::getTriggerType,
 		ByteBufCodecs.INT, ModifyItemUsePower::getPriority,
