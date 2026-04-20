@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -22,15 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record PowerNbtProvider(PowerReference power, ContextParameter<Entity> entity) implements NbtProvider {
+public record PowerNbtProvider(PowerIdentifier power, ContextParameter<Entity> entity) implements NbtProvider {
 
 	public static final MapCodec<PowerNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf("power").forGetter(PowerNbtProvider::power),
+		PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerNbtProvider::power),
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(PowerNbtProvider::entity)
 	).apply(instance, PowerNbtProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerNbtProvider> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, PowerNbtProvider::power,
+		PowerIdentifier.STREAM_CODEC, PowerNbtProvider::power,
 		NeoApoliContextParams.StreamCodecs.ENTITY, PowerNbtProvider::entity,
 		PowerNbtProvider::new
 	);

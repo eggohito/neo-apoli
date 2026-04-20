@@ -152,7 +152,7 @@ public class NeoApoliS2CNetworkHandler {
 	}
 
 	private static void onPowerRecipeDisplaysSynchronized(SynchronizePowerRecipeDisplaysS2CPacket payload, ClientPlayNetworking.Context context) {
-		((PowerRecipeDisplayHolder) context.client()).neo_apoli$setReferencesByIndex(payload.displays());
+		((PowerRecipeDisplayHolder) context.client()).neo_apoli$setPowerIdsByIndex(payload.displays());
 	}
 
 	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {

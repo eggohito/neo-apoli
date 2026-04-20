@@ -12,12 +12,12 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Objects;
 
-public record PowerEntry<P extends Power>(PowerReference reference, P power, Component name, Component description, boolean hidden) {
+public record PowerEntry<P extends Power>(PowerIdentifier id, P power, Component name, Component description, boolean hidden) {
 
-	public static final String REFERENCE_KEY = "reference";
+	public static final String ID_KEY = "id";
 
 	private static final MapCodec<PowerEntry<?>> FULL_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf(REFERENCE_KEY).forGetter(PowerEntry::reference),
+		PowerIdentifier.CODEC.fieldOf(ID_KEY).forGetter(PowerEntry::id),
 		Power.MAP_CODEC.forGetter(PowerEntry::power),
 		ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerEntry::name),
 		ComponentSerialization.CODEC.optionalFieldOf("description", Component.empty()).forGetter(PowerEntry::description),
@@ -42,7 +42,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 	public static final Codec<PowerEntry<?>> CODEC = MAP_CODEC.codec();
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerEntry<?>> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, PowerEntry::reference,
+		PowerIdentifier.STREAM_CODEC, PowerEntry::id,
 		Power.STREAM_CODEC, PowerEntry::power,
 		ComponentSerialization.TRUSTED_STREAM_CODEC, PowerEntry::name,
 		ComponentSerialization.TRUSTED_STREAM_CODEC, PowerEntry::description,
@@ -52,16 +52,16 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 
 	public PowerEntry {
 
-		String translationKey = reference.createTranslationKey();
+		String translationKey = id.createTranslationKey();
 
 		name = ComponentUtil.forceTranslatable(translationKey + ".name", name);
 		description = ComponentUtil.forceTranslatable(translationKey + ".description", description);
-		hidden = hidden || reference.isSubPower();
+		hidden = hidden || id.isSubPower();
 
 	}
 
 	public boolean isSubPower() {
-		return reference().isSubPower();
+		return id().isSubPower();
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 		}
 
 		else if (obj instanceof PowerEntry<?> that) {
-			return Objects.equals(this.reference(), that.reference());
+			return Objects.equals(this.id(), that.id());
 		}
 
 		else {
@@ -83,7 +83,7 @@ public record PowerEntry<P extends Power>(PowerReference reference, P power, Com
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(this.reference());
+		return Objects.hashCode(this.id());
 	}
 
 }

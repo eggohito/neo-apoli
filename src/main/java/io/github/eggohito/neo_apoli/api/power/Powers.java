@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -27,7 +27,7 @@ public interface Powers {
 	int VERSION = 1;
 
 
-	Set<PowerReference> getAllReferences();
+	Set<PowerIdentifier> getAllIds();
 
 	Set<ResourceLocation> getAllSources();
 
@@ -41,17 +41,17 @@ public interface Powers {
 
 	List<PowerEntry<?>> getAllFromSource(ResourceLocation source);
 
-	Set<ResourceLocation> getSources(PowerReference reference);
+	Set<ResourceLocation> getSources(PowerIdentifier id);
 
 
 	@NotNull
-	Power.Instance<?> getInstance(PowerReference reference);
+	Power.Instance<?> getInstance(PowerIdentifier id);
 
 	@Nullable
-	default Power.Instance<?> getNullableInstance(PowerReference reference) {
+	default Power.Instance<?> getNullableInstance(PowerIdentifier id) {
 
-		if (this.hasInstance(reference)) {
-			return this.getInstance(reference);
+		if (this.hasInstance(id)) {
+			return this.getInstance(id);
 		}
 
 		else {
@@ -60,14 +60,14 @@ public interface Powers {
 
 	}
 
-	default Optional<Power.Instance<?>> getOptionalInstance(PowerReference reference) {
-		return Optional.ofNullable(this.getNullableInstance(reference));
+	default Optional<Power.Instance<?>> getOptionalInstance(PowerIdentifier id) {
+		return Optional.ofNullable(this.getNullableInstance(id));
 	}
 
 
-	boolean hasInstance(PowerReference reference, ResourceLocation source);
+	boolean hasInstance(PowerIdentifier id, ResourceLocation source);
 
-	boolean hasInstance(PowerReference reference);
+	boolean hasInstance(PowerIdentifier id);
 
 
 	<I extends Power.Instance<?>> List<I> getInstances(Class<I> instanceClass, Predicate<I> instanceFilter);
@@ -87,59 +87,25 @@ public interface Powers {
 	}
 
 
-	boolean grant(PowerReference reference, ResourceLocation source, boolean invokeCallbacks);
+	boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
 
-	default boolean grantWithCallback(PowerReference reference, ResourceLocation source) {
-		return this.grant(reference, source, true);
+	default boolean grantWithCallback(PowerIdentifier id, ResourceLocation source) {
+		return this.grant(id, source, true);
 	}
 
-	default boolean grantWithoutCallback(PowerReference reference, ResourceLocation source) {
-		return this.grant(reference, source, false);
-	}
-
-	default boolean grantImmediately(PowerReference reference, ResourceLocation sources, boolean invokeCallbacks) {
-
-		boolean result = this.grant(reference, sources, invokeCallbacks);
-		this.update();
-
-		return result;
-
-	}
-
-	default boolean grantImmediatelyWithCallback(PowerReference reference, ResourceLocation source) {
-		return this.grantImmediately(reference, source, true);
-	}
-
-	default boolean grantImmediatelyWithoutCallback(PowerReference reference, ResourceLocation source) {
-		return this.grantImmediately(reference, source, false);
+	default boolean grantWithoutCallback(PowerIdentifier id, ResourceLocation source) {
+		return this.grant(id, source, false);
 	}
 
 
-	boolean revoke(PowerReference reference, ResourceLocation source, boolean invokeCallbacks);
+	boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
 
-	default boolean revokeWithCallback(PowerReference reference, ResourceLocation source) {
-		return this.revoke(reference, source, true);
+	default boolean revokeWithCallback(PowerIdentifier id, ResourceLocation source) {
+		return this.revoke(id, source, true);
 	}
 
-	default boolean revokeWithoutCallback(PowerReference reference, ResourceLocation source) {
-		return this.revoke(reference, source, false);
-	}
-
-	default boolean revokeImmediately(PowerReference reference, ResourceLocation sources, boolean invokeCallbacks) {
-
-		boolean result = this.revoke(reference, sources, invokeCallbacks);
-		this.update();
-
-		return result;
-
-	}
-
-	default boolean revokeImmediatelyWithCallback(PowerReference reference, ResourceLocation source) {
-		return this.revokeImmediately(reference, source, true);
-	}
-
-	default boolean revokeImmediatelyWithoutCallback(PowerReference reference, ResourceLocation source) {
-		return this.revokeImmediately(reference, source, false);
+	default boolean revokeWithoutCallback(PowerIdentifier id, ResourceLocation source) {
+		return this.revoke(id, source, false);
 	}
 
 

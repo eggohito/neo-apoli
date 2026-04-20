@@ -14,7 +14,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -103,7 +103,7 @@ public class PowerCommand {
 				Powers powers = Powers.getOrCreate(target);
 				long grantedPowers = entries
 					.stream()
-					.filter(entry -> powers.grantWithCallback(entry.reference(), source))
+					.filter(entry -> powers.grantWithCallback(entry.id(), source))
 					.count();
 
 				if (grantedPowers <= 0) {
@@ -259,7 +259,7 @@ public class PowerCommand {
 
 				if (entry != null) {
 
-					if (powers.revokeWithCallback(entry.reference(), source)) {
+					if (powers.revokeWithCallback(entry.id(), source)) {
 						revokedPowers = 1;
 					}
 
@@ -272,7 +272,7 @@ public class PowerCommand {
 				else {
 					revokedPowers = powers.getAllFromSource(source)
 						.stream()
-						.filter(inner -> powers.revokeWithCallback(inner.reference(), source))
+						.filter(inner -> powers.revokeWithCallback(inner.id(), source))
 						.count();
 				}
 
@@ -291,8 +291,8 @@ public class PowerCommand {
 
 					if (entry != null) {
 
-						PowerReference reference = entry.reference();
-						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(reference.toString()))));
+						PowerIdentifier powerId = entry.id();
+						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
 
 						commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), powerName, source));
 
@@ -308,8 +308,8 @@ public class PowerCommand {
 
 					if (entry != null) {
 
-						PowerReference reference = entry.reference();
-						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(reference.toString()))));
+						PowerIdentifier powerId = entry.id();
+						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
 
 						commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), powerName, source.toString()));
 
@@ -330,8 +330,8 @@ public class PowerCommand {
 					var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
 					if (entry != null) {
 
-						PowerReference reference = entry.reference();
-						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(reference.toString()))));
+						PowerIdentifier powerId = entry.id();
+						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
 
 						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.single", processedTarget.getKey().getName(), powerName, source.toString()), true);
 
@@ -347,8 +347,8 @@ public class PowerCommand {
 
 					if (entry != null) {
 
-						PowerReference reference = entry.reference();
-						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(reference.toString()))));
+						PowerIdentifier powerId = entry.id();
+						Component powerName = entry.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
 
 						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), powerName, source.toString()), true);
 
@@ -404,11 +404,11 @@ public class PowerCommand {
 				}
 
 				Powers powers = Powers.getOrCreate(target);
-				Set<ResourceLocation> sources = powers.getSources(entry.reference());
+				Set<ResourceLocation> sources = powers.getSources(entry.id());
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> powers.revokeWithCallback(entry.reference(), source))
+					.filter(source -> powers.revokeWithCallback(entry.id(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -487,9 +487,9 @@ public class PowerCommand {
 
 				for (var entry : powers.getAll()) {
 
-					for (var source : powers.getSources(entry.reference())) {
+					for (var source : powers.getSources(entry.id())) {
 
-						if (powers.revokeWithCallback(entry.reference(), source)) {
+						if (powers.revokeWithCallback(entry.id(), source)) {
 							clearedPowers++;
 						}
 
@@ -590,13 +590,13 @@ public class PowerCommand {
 				Power power = entry.power();
 				PowerType<?> type = power.getType();
 
-				List<Component> sourceTooltips = powers.getSources(entry.reference())
+				List<Component> sourceTooltips = powers.getSources(entry.id())
 					.stream()
 					.map(Objects::toString)
 					.map(source -> Component.literal(source).withStyle())
 					.collect(Collectors.toCollection(ObjectArrayList::new));
 
-				Component idTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.id", Component.literal("\"" + entry.reference().toString() + "\"").withStyle(ChatFormatting.GREEN));
+				Component idTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.id", Component.literal("\"" + entry.id().toString() + "\"").withStyle(ChatFormatting.GREEN));
 				Component typeTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.type", Component.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\"").withStyle(ChatFormatting.GOLD));
 				Component joinedSourcesTooltip = Component.translatable("commands.neo-apoli.power.list.info.sources", ComponentUtils.formatList(sourceTooltips, Component.nullToEmpty(", ")));
 
@@ -660,10 +660,10 @@ public class PowerCommand {
 						JsonObject newJsonObject = new JsonObject();
 						jsonObject.asMap().forEach((key, value) -> {
 
-							String newKey = key.substring(key.indexOf(PowerReference.SEPARATOR) + 1);
+							String newKey = key.substring(key.indexOf(PowerIdentifier.SEPARATOR) + 1);
 
 							if (value instanceof JsonObject valueObject) {
-								valueObject.remove(PowerEntry.REFERENCE_KEY);
+								valueObject.remove(PowerEntry.ID_KEY);
 							}
 
 							newJsonObject.add(newKey, value);

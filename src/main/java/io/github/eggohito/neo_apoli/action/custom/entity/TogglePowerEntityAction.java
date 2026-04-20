@@ -7,21 +7,21 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record TogglePowerEntityAction(PowerReference power) implements EntityAction {
+public record TogglePowerEntityAction(PowerIdentifier power) implements EntityAction {
 
 	public static final MapCodec<TogglePowerEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(PowerReference.CODEC.fieldOf("power").forGetter(TogglePowerEntityAction::power))
+		.group(PowerIdentifier.CODEC.fieldOf("power").forGetter(TogglePowerEntityAction::power))
 		.apply(instance, TogglePowerEntityAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePowerEntityAction> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, TogglePowerEntityAction::power,
+		PowerIdentifier.STREAM_CODEC, TogglePowerEntityAction::power,
 		TogglePowerEntityAction::new
 	);
 

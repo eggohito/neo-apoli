@@ -33,7 +33,7 @@ public class NeoApoliClient implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			((CommandStorageHolder) client).neo_apoli$clear();
-			((PowerRecipeDisplayHolder) client).neo_apoli$setReferencesByIndex(new Int2ObjectOpenHashMap<>());
+			((PowerRecipeDisplayHolder) client).neo_apoli$setPowerIdsByIndex(new Int2ObjectOpenHashMap<>());
 		});
 
 	}

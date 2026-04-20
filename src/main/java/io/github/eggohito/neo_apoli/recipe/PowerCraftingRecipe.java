@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import net.minecraft.core.HolderLookup;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Objects;
 
-public record PowerCraftingRecipe(PowerReference power, CraftingRecipe delegate) implements CraftingRecipe {
+public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate) implements CraftingRecipe {
 
 	@Override
 	public boolean matches(CraftingInput input, Level world) {
@@ -85,12 +85,12 @@ public record PowerCraftingRecipe(PowerReference power, CraftingRecipe delegate)
 	public static class Serializer implements RecipeSerializer<PowerCraftingRecipe> {
 
 		public static final MapCodec<PowerCraftingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			PowerReference.CODEC.fieldOf("power").forGetter(PowerCraftingRecipe::power),
+			PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerCraftingRecipe::power),
 			NeoApoliMapCodecs.CRAFTING_RECIPE.codec().fieldOf("recipe").forGetter(PowerCraftingRecipe::delegate)
 		).apply(instance, PowerCraftingRecipe::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> STREAM_CODEC = StreamCodec.composite(
-			PowerReference.STREAM_CODEC, PowerCraftingRecipe::power,
+			PowerIdentifier.STREAM_CODEC, PowerCraftingRecipe::power,
 			NeoApoliStreamCodecs.CRAFTING_RECIPE, PowerCraftingRecipe::delegate,
 			PowerCraftingRecipe::new
 		);

@@ -11,8 +11,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> instances, ImmutableSetMultimap<PowerReference, ResourceLocation> sources, Optional<String> decodingErrors, int version) {
+public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> instances, ImmutableSetMultimap<PowerIdentifier, ResourceLocation> sources, Optional<String> decodingErrors, int version) {
 
 	public static final Codec<PowersAttachment> CODEC = new Codec<>() {
 
@@ -108,16 +108,16 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 	 */
 	private static <T> DataResult<PowersAttachment> unpack(DynamicOps<T> ops, Packed packed) {
 
-		Object2ObjectMap<PowerReference, Power.Instance<?>> instancesMap = new Object2ObjectLinkedOpenHashMap<>();
-		SetMultimap<PowerReference, ResourceLocation> sourcesMap = LinkedHashMultimap.create();
+		Object2ObjectMap<PowerIdentifier, Power.Instance<?>> instancesMap = new Object2ObjectLinkedOpenHashMap<>();
+		SetMultimap<PowerIdentifier, ResourceLocation> sourcesMap = LinkedHashMultimap.create();
 
 		Set<Entry> entries = packed.entries();
 		DataResult<Unit> identity = DataResult.success(Unit.INSTANCE);
 
 		for (var entry : entries) {
 
-			PowerReference reference = entry.id();
-			DataResult<Power> powerResult = PowerManager.getAsResult(reference);
+			PowerIdentifier powerId = entry.id();
+			DataResult<Power> powerResult = PowerManager.getAsResult(powerId);
 
 			identity = identity.apply2stable((unit, power) -> unit, powerResult);
 
@@ -139,8 +139,8 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 				identity = identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Couldn't transfer old data of " + entry.id().asDisplayString(false) + ", as it's now using a different power type!"));
 			}
 
-			instancesMap.put(reference, instance);
-			sourcesMap.putAll(reference, sources);
+			instancesMap.put(powerId, instance);
+			sourcesMap.putAll(powerId, sources);
 
 		}
 
@@ -164,10 +164,10 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 
 	}
 
-	record Entry(PowerReference id, PowerType<?> type, Set<ResourceLocation> sources, Dynamic<?> data) {
+	record Entry(PowerIdentifier id, PowerType<?> type, Set<ResourceLocation> sources, Dynamic<?> data) {
 
 		public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			PowerReference.CODEC.fieldOf("id").forGetter(Entry::id),
+			PowerIdentifier.CODEC.fieldOf("id").forGetter(Entry::id),
 			PowerType.CODEC.fieldOf("type").forGetter(Entry::type),
 			NeoApoliCodecs.NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
@@ -176,7 +176,7 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 		public static final Codec<Set<Entry>> SET_CODEC = CODEC.listOf().xmap(ImmutableSet::copyOf, ImmutableList::copyOf);
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
-			PowerReference.STREAM_CODEC, Entry::id,
+			PowerIdentifier.STREAM_CODEC, Entry::id,
 			PowerType.STREAM_CODEC, Entry::type,
 			NeoApoliStreamCodecs.NON_EMPTY_IDENTIFIER_SET, Entry::sources,
 			NeoApoliStreamCodecs.REGISTRY_PASSTHROUGH, Entry::data,
@@ -187,7 +187,7 @@ public record PowersAttachment(ImmutableMap<PowerReference, Power.Instance<?>> i
 
 	}
 
-	public record Mutable(Object2ObjectMap<PowerReference, Power.Instance<?>> instances, SetMultimap<PowerReference, ResourceLocation> sources) {
+	public record Mutable(Object2ObjectMap<PowerIdentifier, Power.Instance<?>> instances, SetMultimap<PowerIdentifier, ResourceLocation> sources) {
 
 		public Mutable(PowersAttachment attachment) {
 			this(new Object2ObjectLinkedOpenHashMap<>(attachment.instances()), LinkedHashMultimap.create(attachment.sources()));

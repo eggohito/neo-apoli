@@ -9,8 +9,8 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
@@ -39,8 +39,8 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 		}
 
 		else {
-			PowerReference reference = PowerReference.read(reader);
-			return new Type.Singleton(reference);
+			PowerIdentifier powerId = PowerIdentifier.read(reader);
+			return new Type.Singleton(powerId);
 		}
 
 	}
@@ -52,7 +52,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 			SharedSuggestionProvider.suggestResource(PowerManager.getTags(), builder, "#");
 		}
 
-		return SharedSuggestionProvider.suggest(PowerManager.streamReferences().map(PowerReference::toString), builder);
+		return SharedSuggestionProvider.suggest(PowerManager.streamIds().map(PowerIdentifier::toString), builder);
 
 	}
 
@@ -99,7 +99,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 		List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException;
 
-		record Singleton(PowerReference id) implements Type {
+		record Singleton(PowerIdentifier id) implements Type {
 
 			@Override
 			public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

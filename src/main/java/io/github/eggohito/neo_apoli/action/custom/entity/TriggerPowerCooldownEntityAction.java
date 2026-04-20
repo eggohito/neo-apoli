@@ -7,21 +7,21 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record TriggerPowerCooldownEntityAction(PowerReference power) implements EntityAction {
+public record TriggerPowerCooldownEntityAction(PowerIdentifier power) implements EntityAction {
 
 	public static final MapCodec<TriggerPowerCooldownEntityAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(PowerReference.CODEC.fieldOf("power").forGetter(TriggerPowerCooldownEntityAction::power))
+		.group(PowerIdentifier.CODEC.fieldOf("power").forGetter(TriggerPowerCooldownEntityAction::power))
 		.apply(instance, TriggerPowerCooldownEntityAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TriggerPowerCooldownEntityAction> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, TriggerPowerCooldownEntityAction::power,
+		PowerIdentifier.STREAM_CODEC, TriggerPowerCooldownEntityAction::power,
 		TriggerPowerCooldownEntityAction::new
 	);
 

@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.recipe;
 
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import lombok.Getter;
 import net.minecraft.core.Holder;
@@ -31,14 +31,14 @@ public class PowerStackedItemContents extends StackedItemContents {
 
 		if (this.raw.tryPick(rawIngredients, quantity, itemCallback)) {
 
-			for (var entry : this.getDisplayHolder().neo_apoli$getReferencesByIndex().int2ObjectEntrySet()) {
+			for (var entry : this.getDisplayHolder().neo_apoli$getPowerIdsByIndex().int2ObjectEntrySet()) {
 
 				int index = entry.getIntKey();
-				PowerReference reference = entry.getValue();
+				PowerIdentifier powerId = entry.getValue();
 
 				if (id.index() == index) {
 					return Powers.getOptional(this.getEntity())
-						.flatMap(powers -> powers.getOptionalInstance(reference))
+						.flatMap(powers -> powers.getOptionalInstance(powerId))
 						.stream()
 						.anyMatch(CraftingRecipePower.Instance.class::isInstance);
 				}

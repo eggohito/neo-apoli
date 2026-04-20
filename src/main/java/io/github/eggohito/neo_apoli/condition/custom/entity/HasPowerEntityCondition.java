@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,15 +15,15 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
-public record HasPowerEntityCondition(PowerReference power, Optional<ResourceLocation> source) implements EntityCondition {
+public record HasPowerEntityCondition(PowerIdentifier power, Optional<ResourceLocation> source) implements EntityCondition {
 
 	public static final MapCodec<HasPowerEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf("power").forGetter(HasPowerEntityCondition::power),
+		PowerIdentifier.CODEC.fieldOf("power").forGetter(HasPowerEntityCondition::power),
 		ResourceLocation.CODEC.optionalFieldOf("source").forGetter(HasPowerEntityCondition::source)
 	).apply(instance, HasPowerEntityCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, HasPowerEntityCondition> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, HasPowerEntityCondition::power,
+		PowerIdentifier.STREAM_CODEC, HasPowerEntityCondition::power,
 		ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), HasPowerEntityCondition::source,
 		HasPowerEntityCondition::new
 	);

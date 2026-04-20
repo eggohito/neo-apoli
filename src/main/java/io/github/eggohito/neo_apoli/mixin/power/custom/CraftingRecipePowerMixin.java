@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerRecipeDisplaysS2CPacket;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
 import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
@@ -80,7 +80,7 @@ public abstract class CraftingRecipePowerMixin {
 
 				if (!replacedRecipes.containsKey(recipeKey) || priority > replacedRecipes.getInt(recipeKey)) {
 
-					var replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.reference(), recipe));
+					var replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.id(), recipe));
 
 					recipeEntries.remove(recipeEntry);
 					recipeEntries.add(replacement);
@@ -96,16 +96,16 @@ public abstract class CraftingRecipePowerMixin {
 		}
 
 		@Unique
-		private final Int2ObjectMap<PowerReference> neo_apoli$referencesByIndex = new Int2ObjectOpenHashMap<>();
+		private final Int2ObjectMap<PowerIdentifier> neo_apoli$powerIdsByIndex = new Int2ObjectOpenHashMap<>();
 
 		@Inject(method = "finalizeRecipeLoading", at = @At("TAIL"))
 		private void afterFinalizeLoad(FeatureFlagSet features, CallbackInfo ci) {
 
-			this.neo_apoli$referencesByIndex.clear();
+			this.neo_apoli$powerIdsByIndex.clear();
 			this.recipeToDisplay.forEach((key, serverRecipes) -> serverRecipes.forEach(serverRecipe -> {
 
-				if (serverRecipe.parent().value() instanceof PowerCraftingRecipe(PowerReference reference, CraftingRecipe ignored)) {
-					neo_apoli$referencesByIndex.put(serverRecipe.display().id().index(), reference);
+				if (serverRecipe.parent().value() instanceof PowerCraftingRecipe(PowerIdentifier id, CraftingRecipe ignored)) {
+					neo_apoli$powerIdsByIndex.put(serverRecipe.display().id().index(), id);
 				}
 
 			}));
@@ -113,14 +113,14 @@ public abstract class CraftingRecipePowerMixin {
 		}
 
 		@Override
-		public Int2ObjectMap<PowerReference> neo_apoli$getReferencesByIndex() {
-			return new Int2ObjectOpenHashMap<>(this.neo_apoli$referencesByIndex);
+		public Int2ObjectMap<PowerIdentifier> neo_apoli$getPowerIdsByIndex() {
+			return new Int2ObjectOpenHashMap<>(this.neo_apoli$powerIdsByIndex);
 		}
 
 		@Override
 		public void neo_apoli$sendAll(ServerPlayer recipient) {
 
-			SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getReferencesByIndex());
+			SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getPowerIdsByIndex());
 
 			if (ServerPlayNetworking.canSend(recipient, packet.type())) {
 				ServerPlayNetworking.send(recipient, packet);

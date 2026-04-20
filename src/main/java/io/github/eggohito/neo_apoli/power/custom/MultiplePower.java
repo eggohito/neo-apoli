@@ -8,7 +8,7 @@ import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
@@ -79,13 +79,13 @@ public class MultiplePower extends Power {
 						return identity.apply2stable((unit, o) -> unit, valueResult);
 					}
 
-					DataResult<PowerReference> referenceResult = PowerReference.parseAsResult(keyResult.getOrThrow())
+					DataResult<PowerIdentifier> powerIdResult = PowerIdentifier.parseAsResult(keyResult.getOrThrow())
 						.flatMap(powerId -> powerId.isSubPower()
 							? DataResult.success(powerId)
 							: DataResult.error(() -> "A sub-power must have a sub-power ID!"));
 
-					if (referenceResult.isError()) {
-						return identity.apply2stable((unit, o) -> unit, referenceResult);
+					if (powerIdResult.isError()) {
+						return identity.apply2stable((unit, o) -> unit, powerIdResult);
 					}
 
 					DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
@@ -120,7 +120,7 @@ public class MultiplePower extends Power {
 		public <O> RecordBuilder<O> encode(ImmutableSet<PowerEntry<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
 
 			for (var entry : entries) {
-				prefix.add(entry.reference().toString(), PowerEntry.CODEC.encodeStart(ops, entry));
+				prefix.add(entry.id().toString(), PowerEntry.CODEC.encodeStart(ops, entry));
 			}
 
 			return prefix;
@@ -146,7 +146,7 @@ public class MultiplePower extends Power {
 				}
 
 				else {
-					throw new IllegalArgumentException("Expected a sub-power, but got " + entry.reference().asDisplayString(false) + "!");
+					throw new IllegalArgumentException("Expected a sub-power, but got " + entry.id().asDisplayString(false) + "!");
 				}
 
 			}
@@ -215,7 +215,7 @@ public class MultiplePower extends Power {
 		}
 
 		Map<String, JsonElement> powerJsonMap = powerJson.asMap();
-		String separator = Character.toString(PowerReference.SEPARATOR);
+		String separator = Character.toString(PowerIdentifier.SEPARATOR);
 
 		powerJsonMap.entrySet().removeIf(entry -> !isKeyIgnored(entry.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, entry.getValue(), directoryPath, ops));
 
@@ -230,7 +230,7 @@ public class MultiplePower extends Power {
 
 				//	Append the sub-power's ID into its value object for proper parsing later
 				if (value instanceof JsonObject jsonObject) {
-					jsonObject.addProperty(PowerEntry.REFERENCE_KEY, key);
+					jsonObject.addProperty(PowerEntry.ID_KEY, key);
 				}
 
 			}

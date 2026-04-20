@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -35,20 +35,20 @@ public abstract class CraftingRecipePowerMixin {
 	public static class PowerRecipeDisplayCache implements PowerRecipeDisplayHolder {
 
 		@Unique
-		private final Int2ObjectOpenHashMap<PowerReference> neo_apoli$referencesByIndex = new Int2ObjectOpenHashMap<>();
+		private final Int2ObjectOpenHashMap<PowerIdentifier> neo_apoli$powerIdsByIndex = new Int2ObjectOpenHashMap<>();
 
 		@Override
-		public Int2ObjectMap<PowerReference> neo_apoli$getReferencesByIndex() {
-			return new Int2ObjectOpenHashMap<>(neo_apoli$referencesByIndex);
+		public Int2ObjectMap<PowerIdentifier> neo_apoli$getPowerIdsByIndex() {
+			return new Int2ObjectOpenHashMap<>(neo_apoli$powerIdsByIndex);
 		}
 
 		@Override
-		public void neo_apoli$setReferencesByIndex(Int2ObjectMap<PowerReference> referencesByIndex) {
+		public void neo_apoli$setPowerIdsByIndex(Int2ObjectMap<PowerIdentifier> powerIdsByIndex) {
 
-			this.neo_apoli$referencesByIndex.clear();
+			this.neo_apoli$powerIdsByIndex.clear();
 
-			this.neo_apoli$referencesByIndex.putAll(referencesByIndex);
-			this.neo_apoli$referencesByIndex.trim();
+			this.neo_apoli$powerIdsByIndex.putAll(powerIdsByIndex);
+			this.neo_apoli$powerIdsByIndex.trim();
 
 		}
 
@@ -97,15 +97,15 @@ public abstract class CraftingRecipePowerMixin {
 				return;
 			}
 
-			Int2ObjectMap<PowerReference> referencesByIndex = ((PowerRecipeDisplayHolder) client).neo_apoli$getReferencesByIndex();
-			PowerReference reference = referencesByIndex.get(this.getCurrentRecipe().index());
+			Int2ObjectMap<PowerIdentifier> powerIdsByIndex = ((PowerRecipeDisplayHolder) client).neo_apoli$getPowerIdsByIndex();
+			PowerIdentifier powerId = powerIdsByIndex.get(this.getCurrentRecipe().index());
 
-			if (reference == null || !PowerManager.contains(reference) || powers.hasInstance(reference)) {
+			if (powerId == null || !PowerManager.contains(powerId) || powers.hasInstance(powerId)) {
 				return;
 			}
 
 			components.add(Component.empty());
-			components.add(Component.literal("Missing power: ").withStyle(ChatFormatting.RED).append(PowerManager.getEntry(reference).name()));
+			components.add(Component.literal("Missing power: ").withStyle(ChatFormatting.RED).append(PowerManager.getEntry(powerId).name()));
 
 		}
 

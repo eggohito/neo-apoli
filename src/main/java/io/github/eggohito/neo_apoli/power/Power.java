@@ -76,11 +76,11 @@ public abstract class Power implements ContextUser {
 	@Getter
 	public abstract static class Instance<P extends Power> implements ContextUser {
 
-		protected final PowerReference reference;
+		protected final PowerIdentifier id;
 		protected final P power;
 
 		protected Instance(@NotNull P power) {
-			this.reference = PowerManager.getReferenceAsResult(power).getOrThrow(error -> new IllegalStateException("Creating an instance of an unregistered power is not allowed!"));
+			this.id = PowerManager.getIdAsResult(power).getOrThrow(error -> new IllegalStateException("Tried to created an instance of an unregistered power!"));
 			this.power = power;
 		}
 
@@ -96,7 +96,7 @@ public abstract class Power implements ContextUser {
 
 		public Context.Builder createHolderContextBuilder(Entity holder) {
 			return new Context.Builder()
-				.withReporter(new Reporter("{\"" + this.getReference() + "\"}"))
+				.withReporter(new Reporter("{\"" + this.getId() + "\"}"))
 				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.THIS_POS, holder.position());
 		}
@@ -111,17 +111,17 @@ public abstract class Power implements ContextUser {
 			RegistryOps<Tag> ops = holder.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 			if (level.isClientSide()) {
-				NeoApoli.LOGGER.warn("Couldn't initialize syncing data of {} from entity {} in the client!", reference.asDisplayString(false), holder.getName().getString());
+				NeoApoli.LOGGER.warn("Couldn't initialize syncing data of {} from entity {} in the client!", id.asDisplayString(false), holder.getName().getString());
 			}
 
-			else if (!PowerManager.contains(reference)) {
-				NeoApoli.LOGGER.warn("Tried syncing instance data of unregistered {} from entity {}!", reference.asDisplayString(false), holder.getName().getString());
+			else if (!PowerManager.contains(id)) {
+				NeoApoli.LOGGER.warn("Tried syncing instance data of unregistered {} from entity {}!", id.asDisplayString(false), holder.getName().getString());
 			}
 
 			else {
 				this.encodeData(ops)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode data of {} to sync to entity {}: {}", reference.asDisplayString(false), holder.getName().getString(), error))
-					.ifPresent(tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, reference, tag)));
+					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode data of {} to sync to entity {}: {}", id.asDisplayString(false), holder.getName().getString(), error))
+					.ifPresent(tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, id, tag)));
 			}
 
 		}

@@ -4,7 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.CompoundTag;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, PowerReference reference, RegistryOps<Tag> ops) implements DataAccessor {
+public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, PowerIdentifier id, RegistryOps<Tag> ops) implements DataAccessor {
 
 	public static final Dynamic2CommandExceptionType UNGRANTED_ERROR = new Dynamic2CommandExceptionType((a, b) -> Component.translatableEscape("commands.neo-apoli.data.power.ungranted", a, b));
 	public static final DynamicCommandExceptionType UNSUPPORTED_ERROR = new DynamicCommandExceptionType(o -> Component.translatableEscape("commands.neo-apoli.data.power.unsupported", o));
@@ -27,7 +27,7 @@ public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, Power
 	public void setData(CompoundTag other) throws CommandSyntaxException {
 
 		if (instance().isImmutable(holder())) {
-			throw UNSUPPORTED_ERROR.create(reference());
+			throw UNSUPPORTED_ERROR.create(id());
 		}
 
 		instance().decodeData(this.ops(), other).getOrThrow(err -> MiscUtil.createCommandException(() -> err));
@@ -44,17 +44,17 @@ public record PowerDataAccessor(Entity holder, Power.Instance<?> instance, Power
 
 	@Override
 	public @NotNull Component getModifiedSuccess() {
-		return Component.translatableEscape("commands.neo-apoli.data.power.modified", reference(), holder().getName());
+		return Component.translatableEscape("commands.neo-apoli.data.power.modified", id(), holder().getName());
 	}
 
 	@Override
 	public @NotNull Component getPrintSuccess(Tag nbt) {
-		return Component.translatableEscape("commands.neo-apoli.data.power.query", reference(), holder().getName(), NbtUtils.toPrettyComponent(nbt));
+		return Component.translatableEscape("commands.neo-apoli.data.power.query", id(), holder().getName(), NbtUtils.toPrettyComponent(nbt));
 	}
 
 	@Override
 	public @NotNull Component getPrintSuccess(NbtPathArgument.NbtPath path, double scale, int value) {
-		return Component.translatableEscape("commands.neo-apoli.data.power.query.scaled", path.asString(), reference(), holder().getName(), String.format(Locale.ROOT, "%.2f", scale), value);
+		return Component.translatableEscape("commands.neo-apoli.data.power.query.scaled", path.asString(), id(), holder().getName(), String.format(Locale.ROOT, "%.2f", scale), value);
 	}
 
 }

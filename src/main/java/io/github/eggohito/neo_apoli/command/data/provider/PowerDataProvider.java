@@ -33,15 +33,15 @@ public record PowerDataProvider(String target) implements DataCommands.DataProvi
 
         RegistryOps<Tag> ops = context.getSource().registryAccess().createSerializationContext(NbtOps.INSTANCE);
         Power.Instance<?> instance = Powers.getOptional(holder)
-            .flatMap(powers -> powers.getOptionalInstance(entry.reference()))
+            .flatMap(powers -> powers.getOptionalInstance(entry.id()))
             .orElse(null);
 
         if (instance != null) {
-            return new PowerDataAccessor(holder, instance, entry.reference(), ops);
+            return new PowerDataAccessor(holder, instance, entry.id(), ops);
         }
 
         else {
-            throw PowerDataAccessor.UNGRANTED_ERROR.create(holder.getName(), entry.reference());
+            throw PowerDataAccessor.UNGRANTED_ERROR.create(holder.getName(), entry.id());
         }
 
     }

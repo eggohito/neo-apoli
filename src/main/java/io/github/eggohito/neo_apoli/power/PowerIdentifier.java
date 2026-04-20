@@ -23,25 +23,28 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public record PowerReference(ResourceLocation id, @Nullable String suffix) implements StringDisplayable, ContextUser {
+public record PowerIdentifier(ResourceLocation id, @Nullable String subName) implements StringDisplayable, ContextUser {
 
-	public static final Codec<PowerReference> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerReference::parseAsResult, PowerReference::toString);
-	public static final StreamCodec<ByteBuf, PowerReference> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerReference::parse, PowerReference::toString);
+	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::parseAsResult, PowerIdentifier::toString);
+	public static final StreamCodec<ByteBuf, PowerIdentifier> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerIdentifier::parse, PowerIdentifier::toString);
 
 	public static final char SEPARATOR = '@';
 
 	@Deprecated
-	public PowerReference {
-		id = ResourceLocationUtil.validateNonEmpty(id).getOrThrow();
-		suffix = suffix != null
-			? MultiplePower.validateSubPowerName(suffix).getOrThrow()
-			: null;
+	public PowerIdentifier {
+
+		ResourceLocationUtil.validateNonEmpty(id).getOrThrow();
+
+		if (subName != null) {
+			MultiplePower.validateSubPowerName(subName).getOrThrow();
+		}
+
 	}
 
 	@Override
 	public String asDisplayString() {
 		return isSubPower()
-			? "Sub-power \"" + suffix() + "\" of power \"" + id() + "\""
+			? "Sub-power \"" + subName() + "\" of power \"" + id() + "\""
 			: "Power \"" + id() + "\"";
 	}
 
@@ -52,7 +55,7 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 
 	@Override
 	public @NotNull String toString() {
-		return id() + (isSubPower() ? SEPARATOR + suffix() : "");
+		return id() + (isSubPower() ? SEPARATOR + subName() : "");
 	}
 
 	@Override
@@ -62,9 +65,9 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 			return true;
 		}
 
-		else if (obj instanceof PowerReference(ResourceLocation thatId, String thatSuffix)) {
+		else if (obj instanceof PowerIdentifier(ResourceLocation thatId, String thatSubName)) {
 			return Objects.equals(this.id(), thatId)
-				&& Objects.equals(this.suffix(), thatSuffix);
+				&& Objects.equals(this.subName(), thatSubName);
 		}
 
 		else {
@@ -75,15 +78,15 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id(), suffix());
+		return Objects.hash(id(), subName());
 	}
 
 	public String createTranslationKey() {
-		return Util.makeDescriptionId("power", id()) + (isSubPower() ? SEPARATOR + suffix() : "");
+		return Util.makeDescriptionId("power", id()) + (isSubPower() ? SEPARATOR + subName() : "");
 	}
 
 	public boolean isSubPower() {
-		return suffix() != null;
+		return subName() != null;
 	}
 
 	public void validate(Context.Validator validator, Class<? extends Power> powerClass, Supplier<String> errorSupplier) {
@@ -92,15 +95,15 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 			.resultOrPartial(validator::reportProblem);
 	}
 
-	public static PowerReference of(@NotNull ResourceLocation id) {
-		return new PowerReference(id, null);
+	public static PowerIdentifier of(@NotNull ResourceLocation id) {
+		return new PowerIdentifier(id, null);
 	}
 
-	public static PowerReference subPower(@NotNull ResourceLocation id, @NotNull String name) {
-		return new PowerReference(id, name);
+	public static PowerIdentifier subPower(@NotNull ResourceLocation id, @NotNull String name) {
+		return new PowerIdentifier(id, name);
 	}
 
-	public static PowerReference parse(String input) {
+	public static PowerIdentifier parse(String input) {
 
 		int separatorIndex = input.indexOf(SEPARATOR);
 		ResourceLocation id = separatorIndex >= 0
@@ -113,7 +116,7 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 
 	}
 
-	public static DataResult<PowerReference> parseAsResult(String input) {
+	public static DataResult<PowerIdentifier> parseAsResult(String input) {
 
 		try {
 			return DataResult.success(parse(input));
@@ -125,7 +128,7 @@ public record PowerReference(ResourceLocation id, @Nullable String suffix) imple
 
 	}
 
-	public static PowerReference read(StringReader reader) throws CommandSyntaxException {
+	public static PowerIdentifier read(StringReader reader) throws CommandSyntaxException {
 
 		int cursor = reader.getCursor();
 		String input = readGreedily(reader);

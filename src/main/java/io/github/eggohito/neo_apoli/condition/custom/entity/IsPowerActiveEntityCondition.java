@@ -6,20 +6,20 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 
-public record IsPowerActiveEntityCondition(PowerReference power) implements EntityCondition {
+public record IsPowerActiveEntityCondition(PowerIdentifier power) implements EntityCondition {
 
 	public static final MapCodec<IsPowerActiveEntityCondition> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(PowerReference.CODEC.fieldOf("power").forGetter(IsPowerActiveEntityCondition::power))
+		.group(PowerIdentifier.CODEC.fieldOf("power").forGetter(IsPowerActiveEntityCondition::power))
 		.apply(instance, IsPowerActiveEntityCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsPowerActiveEntityCondition> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, IsPowerActiveEntityCondition::power,
+		PowerIdentifier.STREAM_CODEC, IsPowerActiveEntityCondition::power,
 		IsPowerActiveEntityCondition::new
 	);
 

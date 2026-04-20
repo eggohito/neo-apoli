@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
-import io.github.eggohito.neo_apoli.power.PowerReference;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
@@ -18,15 +18,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record PowerCooldownRemainingTicksNumberProvider(PowerReference power, ContextParameter<Entity> entity) implements NumberProvider {
+public record PowerCooldownRemainingTicksNumberProvider(PowerIdentifier power, ContextParameter<Entity> entity) implements NumberProvider {
 
 	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerReference.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),
+		PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(PowerCooldownRemainingTicksNumberProvider::entity)
 	).apply(instance, PowerCooldownRemainingTicksNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownRemainingTicksNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		PowerReference.STREAM_CODEC, PowerCooldownRemainingTicksNumberProvider::power,
+		PowerIdentifier.STREAM_CODEC, PowerCooldownRemainingTicksNumberProvider::power,
 		NeoApoliContextParams.StreamCodecs.ENTITY, PowerCooldownRemainingTicksNumberProvider::entity,
 		PowerCooldownRemainingTicksNumberProvider::new
 	);

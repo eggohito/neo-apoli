@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.PowerReference;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -39,14 +39,14 @@ import java.util.function.Predicate;
 @SuppressWarnings("UnstableApiUsage")
 public final class PowersImpl implements Powers {
 
-	private static final StreamCodec<ByteBuf, Object2BooleanMap<PowerReference>> REFERENCE_AND_CALLBACK_STREAM_CODEC = ByteBufCodecs.map(Object2BooleanOpenHashMap::new, PowerReference.STREAM_CODEC, ByteBufCodecs.BOOL);
-	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, REFERENCE_AND_CALLBACK_STREAM_CODEC);
+	private static final StreamCodec<ByteBuf, Object2BooleanMap<PowerIdentifier>> REFERENCE_AND_CALLBACK_STREAM_CODEC = ByteBufCodecs.map(Object2BooleanOpenHashMap::new, PowerIdentifier.STREAM_CODEC, ByteBufCodecs.BOOL);
+	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, REFERENCE_AND_CALLBACK_STREAM_CODEC);
 
 	private final Entity holder;
 	private PowersAttachment.Mutable mutableAttachment;
 
-	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
-	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
+	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
+	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
 
 	public PowersImpl(Entity holder, PowersAttachment attachment) {
 
@@ -60,7 +60,7 @@ public final class PowersImpl implements Powers {
 	}
 
 	@Override
-	public Set<PowerReference> getAllReferences() {
+	public Set<PowerIdentifier> getAllIds() {
 		return new ObjectLinkedOpenHashSet<>(mutableAttachment.instances().keySet());
 	}
 
@@ -96,23 +96,23 @@ public final class PowersImpl implements Powers {
 	}
 
 	@Override
-	public Set<ResourceLocation> getSources(PowerReference reference) {
+	public Set<ResourceLocation> getSources(PowerIdentifier id) {
 		return new ObjectOpenHashSet<>(mutableAttachment.sources().values());
 	}
 
 	@Override
-	public @NotNull Power.Instance<?> getInstance(PowerReference reference) {
-		return Objects.requireNonNull(mutableAttachment.instances().get(reference), "Entity " + holder.getName().getString() + " didn't have " + reference.asDisplayString(false) + " granted!");
+	public @NotNull Power.Instance<?> getInstance(PowerIdentifier id) {
+		return Objects.requireNonNull(mutableAttachment.instances().get(id), "Entity " + holder.getName().getString() + " didn't have " + id.asDisplayString(false) + " granted!");
 	}
 
 	@Override
-	public boolean hasInstance(PowerReference reference, ResourceLocation source) {
-		return mutableAttachment.sources().get(reference).contains(source);
+	public boolean hasInstance(PowerIdentifier id, ResourceLocation source) {
+		return mutableAttachment.sources().get(id).contains(source);
 	}
 
 	@Override
-	public boolean hasInstance(PowerReference reference) {
-		return mutableAttachment.instances().containsKey(reference);
+	public boolean hasInstance(PowerIdentifier id) {
+		return mutableAttachment.instances().containsKey(id);
 	}
 
 	@Override
@@ -158,15 +158,15 @@ public final class PowersImpl implements Powers {
 	}
 
 	@Override
-	public boolean grant(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.grantPowerInternal(reference, source, invokeCallbacks);
+			&& this.grantPowerInternal(id, source, invokeCallbacks);
 	}
 
 	@Override
-	public boolean revoke(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.revokePowerInternal(reference, source, invokeCallbacks);
+			&& this.revokePowerInternal(id, source, invokeCallbacks);
 	}
 
 	@Override
@@ -198,12 +198,12 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	private boolean grantPowerInternal(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean grantPowerInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 
 		List<Power.Instance<?>> addedPowers = new ObjectArrayList<>();
 		List<Power.Instance<?>> grantedPowers = new ObjectArrayList<>();
 
-		boolean granted = this.grantPowerRecursively(reference, source, addedPowers::add, grantedPowers::add, invokeCallbacks);
+		boolean granted = this.grantPowerRecursively(id, source, addedPowers::add, grantedPowers::add, invokeCallbacks);
 
 		addedPowers.forEach(instance -> instance.onAdded(holder));
 		grantedPowers.forEach(instance -> instance.onGranted(holder));
@@ -212,26 +212,26 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	private boolean grantPowerRecursively(PowerReference reference, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
+	private boolean grantPowerRecursively(PowerIdentifier id, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
 
-		if (!PowerManager.contains(reference)) {
+		if (!PowerManager.contains(id)) {
 			return false;
 		}
 
-		Set<ResourceLocation> sources = mutableAttachment.sources().get(reference);
-		boolean firstTimeGranting = !mutableAttachment.instances().containsKey(reference);
+		Set<ResourceLocation> sources = mutableAttachment.sources().get(id);
+		boolean firstTimeGranting = !mutableAttachment.instances().containsKey(id);
 
 		if (!sources.add(source)) {
 			return false;
 		}
 
-		Power power = PowerManager.get(reference);
-		Power.Instance<?> instance = mutableAttachment.instances().computeIfAbsent(reference, k -> power.createInstance());
+		Power power = PowerManager.get(id);
+		Power.Instance<?> instance = mutableAttachment.instances().computeIfAbsent(id, k -> power.createInstance());
 
 		if (power instanceof MultiplePower multiplePower) {
 
 			for (var subPower : multiplePower.getSubPowers()) {
-				this.grantPowerRecursively(subPower.reference(), source, onAdded, onGranted, invokeCallbacks);
+				this.grantPowerRecursively(subPower.id(), source, onAdded, onGranted, invokeCallbacks);
 			}
 
 		}
@@ -249,17 +249,17 @@ public final class PowersImpl implements Powers {
 		if (!holder.level().isClientSide()) {
 			this.grantedPowers
 				.computeIfAbsent(source, k -> new Object2BooleanLinkedOpenHashMap<>())
-				.put(reference, invokeCallbacks);
+				.put(id, invokeCallbacks);
 		}
 
 		return true;
 
 	}
 
-	private boolean revokePowerInternal(PowerReference reference, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean revokePowerInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 
-		List<PowerReference> revokedPowers = new ObjectArrayList<>();
-		boolean result = this.revokePowerRecursively(reference, source, revokedPowers::add, invokeCallbacks);
+		List<PowerIdentifier> revokedPowers = new ObjectArrayList<>();
+		boolean result = this.revokePowerRecursively(id, source, revokedPowers::add, invokeCallbacks);
 
 		mutableAttachment.instances().keySet().removeIf(revokedPowers::contains);
 		mutableAttachment.sources().keySet().removeIf(revokedPowers::contains);
@@ -268,26 +268,26 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	private boolean revokePowerRecursively(PowerReference reference, ResourceLocation source, Consumer<PowerReference> onRevoked, boolean invokeCallbacks) {
+	private boolean revokePowerRecursively(PowerIdentifier id, ResourceLocation source, Consumer<PowerIdentifier> onRevoked, boolean invokeCallbacks) {
 
-		if (!mutableAttachment.sources().remove(reference, source) || !mutableAttachment.instances().containsKey(reference)) {
+		if (!mutableAttachment.sources().remove(id, source) || !mutableAttachment.instances().containsKey(id)) {
 			return false;
 		}
 
-		Power.Instance<?> instance = mutableAttachment.instances().get(reference);
-		boolean revoked = mutableAttachment.sources().get(reference).isEmpty();
+		Power.Instance<?> instance = mutableAttachment.instances().get(id);
+		boolean revoked = mutableAttachment.sources().get(id).isEmpty();
 
 		if (instance.getPower() instanceof MultiplePower multiplePower) {
 
 			for (var subPower : multiplePower.getSubPowers()) {
-				this.revokePowerRecursively(subPower.reference(), source, onRevoked, invokeCallbacks);
+				this.revokePowerRecursively(subPower.id(), source, onRevoked, invokeCallbacks);
 			}
 
 		}
 
 		if (revoked) {
 
-			onRevoked.accept(reference);
+			onRevoked.accept(id);
 
 			if (invokeCallbacks) {
 				instance.onRevoked(holder);
@@ -302,7 +302,7 @@ public final class PowersImpl implements Powers {
 		if (!holder.level().isClientSide()) {
 			this.revokedPowers
 				.computeIfAbsent(source, k -> new Object2BooleanLinkedOpenHashMap<>())
-				.put(reference, invokeCallbacks);
+				.put(id, invokeCallbacks);
 		}
 
 		return true;
@@ -319,11 +319,11 @@ public final class PowersImpl implements Powers {
 		Powers powers = Powers.getOrCreate(entity);
 		RegistryOps<Tag> ops = entity.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-		Map<PowerReference, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
-		Map<PowerReference, PowerType<?>> oldTypes = new Object2ObjectOpenHashMap<>();
+		Map<PowerIdentifier, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
+		Map<PowerIdentifier, PowerType<?>> oldTypes = new Object2ObjectOpenHashMap<>();
 
 		//  Revoke all unregistered powers, and cache the old data of those that are on the entity
-		for (var reference : powers.getAllReferences()) {
+		for (var reference : powers.getAllIds()) {
 
 			if (!PowerManager.contains(reference)) {
 
@@ -353,7 +353,7 @@ public final class PowersImpl implements Powers {
 		}
 
 		//  Re-grant all the existing powers and restore its old data
-		for (var reference : powers.getAllReferences()) {
+		for (var reference : powers.getAllIds()) {
 
 			for (var source : powers.getSources(reference)) {
 				powers.revokeWithoutCallback(reference, source);
@@ -391,7 +391,7 @@ public final class PowersImpl implements Powers {
 	}
 
 
-	public record GrantS2CPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> powers) implements CustomPacketPayload {
+	public record GrantS2CPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> powers) implements CustomPacketPayload {
 
 		public static final Type<GrantS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/grant_powers"));
 		public static final StreamCodec<ByteBuf, GrantS2CPacket> CODEC = StreamCodec.composite(
@@ -422,7 +422,7 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	public record RevokeS2CPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerReference>> powers) implements CustomPacketPayload {
+	public record RevokeS2CPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> powers) implements CustomPacketPayload {
 
 		public static final Type<RevokeS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/revoke_powers"));
 		public static final StreamCodec<ByteBuf, RevokeS2CPacket> CODEC = StreamCodec.composite(
