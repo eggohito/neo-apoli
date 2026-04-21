@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
-import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
@@ -19,6 +18,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
@@ -49,7 +49,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
-public final class ActionManager implements JsonReloadListener {
+public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/actions");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();

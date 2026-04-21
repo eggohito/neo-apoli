@@ -18,7 +18,6 @@ import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
-import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -31,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
@@ -63,7 +63,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public final class PowerManager implements JsonReloadListener {
+public final class PowerManager implements IdentifiableResourceReloadListener {
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/powers");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
@@ -116,7 +116,7 @@ public final class PowerManager implements JsonReloadListener {
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
 			.thenCompose(barrier::wait)
-			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profiler.get()), gameExecutor);
+			.thenAcceptAsync(unusedAndElements -> this.applyElements(unusedAndElements.getSecond(), manager, Profiler.get()), gameExecutor);
 
 	}
 

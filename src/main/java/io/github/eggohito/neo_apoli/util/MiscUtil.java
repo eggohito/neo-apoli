@@ -343,6 +343,8 @@ public class MiscUtil {
 	public static Map<ResourceLocation, JsonWithSource> collectJson(ResourceManager manager, JsonFileToIdConverter converter, DynamicOps<JsonElement> ops, Gson gson, Consumer<String> errorHandler) {
 
 		Map<ResourceLocation, JsonWithSource> result = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, JsonFormat> history = new Object2ObjectOpenHashMap<>();
+
 		converter.listMatchingResources(manager).forEach((fileId, resource) -> {
 
 			String packId = resource.sourcePackId();
@@ -356,8 +358,14 @@ public class MiscUtil {
 				switch (gson.fromJson(gsonReader, JsonElement.class)) {
 					case JsonElement asIs when isResourceConditionFulfilled(resourceId, asIs, converter.directory(), ops) -> {
 
-						if (result.putIfAbsent(resourceId, new JsonWithSource(packId, asIs, jsonFormat)) != null) {
-							errorHandler.accept("JSON file \"" + fileId + "\" from pack [" + packId + "] has a duplicate with a different file extension! (prev. file extension: \"" + result.get(resourceId).format().name().toLowerCase(Locale.ROOT) + "\")");
+						var prevFormat = history.putIfAbsent(resourceId, jsonFormat);
+
+						if (prevFormat != null) {
+							errorHandler.accept("JSON file \"" + fileId + "\" from pack [" + packId + "] has a duplicate with a different file extension! (prev. file extension: \"." + prevFormat.toString().toLowerCase(Locale.ROOT) + "\")");
+						}
+
+						else {
+							result.putIfAbsent(resourceId, new JsonWithSource(asIs, packId));
 						}
 
 					}
@@ -390,6 +398,8 @@ public class MiscUtil {
 	public static Map<ResourceLocation, List<JsonWithSource>> collectJsonStack(ResourceManager manager, JsonFileToIdConverter converter, DynamicOps<JsonElement> ops, Gson gson, Consumer<String> errorHandler) {
 
 		Map<ResourceLocation, List<JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
+		Map<String, Map<ResourceLocation, JsonFormat>> history = new Object2ObjectOpenHashMap<>();
+
 		converter.listMatchingResourceStacks(manager).forEach((fileId, resources) -> {
 
 			for (var resource : resources) {
@@ -405,18 +415,18 @@ public class MiscUtil {
 					switch (gson.fromJson(gsonReader, JsonElement.class)) {
 						case JsonElement asIs when isResourceConditionFulfilled(resourceId, asIs, converter.directory(), ops) -> {
 
-							var list = result.computeIfAbsent(resourceId, k -> new ObjectArrayList<>());
-							var duplicate = list.stream()
-								.filter(jws -> jws.matches(packId, jsonFormat))
-								.findFirst()
-								.orElse(null);
+							var prevFormat = history
+								.computeIfAbsent(packId, k -> new Object2ObjectOpenHashMap<>())
+								.putIfAbsent(resourceId, jsonFormat);
 
-							if (duplicate != null) {
-								errorHandler.accept("JSON file \"" + fileId + "\" from pack [" + packId + "] has a duplicate with a different file extension! (prev. file extension: \"" + duplicate.format().name().toLowerCase(Locale.ROOT) + "\")");
+							if (prevFormat != null) {
+								errorHandler.accept("JSON file \"" + fileId + "\" from pack [" + packId + "] has a duplicate with a different file extension! (prev. file extension: \"." + prevFormat.toString().toLowerCase(Locale.ROOT) + "\")");
 							}
 
 							else {
-								list.add(new JsonWithSource(packId, asIs, jsonFormat));
+								result
+									.computeIfAbsent(resourceId, k -> new ObjectArrayList<>())
+									.add(new JsonWithSource(asIs, packId));
 							}
 
 

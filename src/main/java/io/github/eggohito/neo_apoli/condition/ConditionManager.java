@@ -8,13 +8,13 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
-import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
@@ -39,7 +39,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonWithSource>> implements JsonReloadListener {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonWithSource>> implements IdentifiableResourceReloadListener {
 
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);

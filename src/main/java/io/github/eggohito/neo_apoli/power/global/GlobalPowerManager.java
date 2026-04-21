@@ -13,7 +13,6 @@ import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
-import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
@@ -23,6 +22,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GlobalPowerManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonWithSource>>> implements JsonReloadListener {
+public class GlobalPowerManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonWithSource>>> implements IdentifiableResourceReloadListener {
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/global_powers");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build();
