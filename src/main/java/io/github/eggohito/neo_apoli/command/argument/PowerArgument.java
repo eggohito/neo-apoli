@@ -103,7 +103,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 			@Override
 			public List<PowerHolder<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-				return List.of(PowerManager.getHolderAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
+				return List.of(PowerManager.getAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
 			}
 
 		}
@@ -112,7 +112,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 			@Override
 			public List<PowerHolder<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-				return PowerManager.getHoldersFromTag(tag()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+				return PowerManager.getAllFromTag(tag()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
 			public ResourceLocation id() {

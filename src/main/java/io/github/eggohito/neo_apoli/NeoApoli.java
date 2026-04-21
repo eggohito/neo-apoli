@@ -18,7 +18,6 @@ import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.network.NeoApoliC2SNetworkHandler;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerManager;
@@ -101,7 +100,6 @@ public class NeoApoli implements ModInitializer {
 		ActionManager.init();
 
 		NeoApoliPackets.registerAll();
-		NeoApoliC2SNetworkHandler.init();
 
 		PowerIntegrations.registerAll();
 		NeoApoliConfig.HANDLER.load();

@@ -73,7 +73,7 @@ public final class PowersImpl implements Powers {
 	public List<PowerHolder<?>> getAll(boolean includeSubPowers) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		mutableAttachment.instances().keySet().forEach(reference -> PowerManager.getHolderAsResult(reference)
+		mutableAttachment.instances().keySet().forEach(reference -> PowerManager.getAsResult(reference)
 			.result()
 			.filter(entry -> includeSubPowers || !entry.isSubPower())
 			.ifPresent(result::add));
@@ -86,7 +86,7 @@ public final class PowersImpl implements Powers {
 	public List<PowerHolder<?>> getAllFromSource(ResourceLocation source) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		mutableAttachment.sources().asMap().forEach((reference, sources) -> PowerManager.getHolderAsResult(reference)
+		mutableAttachment.sources().asMap().forEach((reference, sources) -> PowerManager.getAsResult(reference)
 			.result()
 			.filter(entry -> sources.contains(source))
 			.ifPresent(result::add));
@@ -225,7 +225,7 @@ public final class PowersImpl implements Powers {
 			return false;
 		}
 
-		Power power = PowerManager.get(id);
+		Power power = PowerManager.get(id).value();
 		Power.Instance<?> instance = mutableAttachment.instances().computeIfAbsent(id, k -> power.createInstance());
 
 		if (power instanceof MultiplePower multiplePower) {

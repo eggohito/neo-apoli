@@ -11,6 +11,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -117,7 +118,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		for (var entry : entries) {
 
 			PowerIdentifier powerId = entry.id();
-			DataResult<Power> powerResult = PowerManager.getAsResult(powerId);
+			DataResult<PowerHolder<?>> powerResult = PowerManager.getAsResult(powerId);
 
 			identity = identity.apply2stable((unit, power) -> unit, powerResult);
 
@@ -125,7 +126,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 				continue;
 			}
 
-			Power power = powerResult.getOrThrow();
+			Power power = powerResult.getOrThrow().value();
 			Power.Instance<?> instance = power.createInstance();
 
 			Dynamic<T> data = entry.data().convert(ops);

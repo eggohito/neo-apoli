@@ -1,7 +1,8 @@
 package io.github.eggohito.neo_apoli.power;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -12,29 +13,32 @@ import io.github.eggohito.neo_apoli.api.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.api.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerTagsS2CPacket;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowersS2CPacket;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
@@ -46,15 +50,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.quiltmc.parsers.json.JsonFormat;
-import org.quiltmc.parsers.json.JsonReader;
-import org.quiltmc.parsers.json.gson.GsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -71,13 +73,13 @@ public final class PowerManager implements JsonReloadListener {
 		@Nullable
 		@Override
 		public PowerHolder<?> element(ResourceLocation id, boolean required) {
-			return getHolderAsResult(PowerIdentifier.of(id)).result().orElse(null);
+			return getAsResult(PowerIdentifier.of(id)).result().orElse(null);
 		}
 
 		@Nullable
 		@Override
 		public Collection<PowerHolder<?>> tag(ResourceLocation id) {
-			return getHoldersFromTag(id).result().orElse(null);
+			return getAllFromTag(id).result().orElse(null);
 		}
 
 		@Override
@@ -87,21 +89,15 @@ public final class PowerManager implements JsonReloadListener {
 
 	};
 
-	private static final String TAG_DIRECTORY = Registries.tagsDirPath(NeoApoliRegistryKeys.POWER);
-	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.POWER);
-
-	private static final Gson GSON = new GsonBuilder()
-		.disableHtmlEscaping()
-		.setPrettyPrinting()
-		.create();
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerManager.class);
-	private static final TagLoader<PowerHolder<?>> TAG_LOADER = new TagLoader<>((id, required) -> getHolderAsResult(PowerIdentifier.of(id)).result(), TAG_DIRECTORY);
+
+	private static final TagLoader<PowerHolder<?>> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(PowerIdentifier.of(id)).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.POWER));
+	private static final JsonFileToIdConverter ELEMENT_LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.POWER);
 
 	private static final Object2ObjectOpenHashMap<PowerIdentifier, PowerHolder<?>> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final Map<Power, PowerIdentifier> BY_POWER = new IdentityHashMap<>();
 
-	private static final Object2ObjectOpenHashMap<ResourceLocation, List<TagLoader.EntryWithSource>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, List<TagLoader.EntryWithSource>> POSTPONED_TAGS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<ResourceLocation, List<PowerHolder<?>>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
@@ -111,101 +107,39 @@ public final class PowerManager implements JsonReloadListener {
 	}
 
 	@Override
-	public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
 
-		CompletableFuture<Map<ResourceLocation, JsonObjectWithSource>> preparedElementsFuture = CompletableFuture
-			.supplyAsync(() -> this.prepareElements(manager, Profiler.get()), prepareExecutor);
-		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> preparedTagsFuture = CompletableFuture
-			.supplyAsync(() -> this.preparePendingTags(manager, Profiler.get()), prepareExecutor);
+		CompletableFuture<Map<ResourceLocation, JsonWithSource>> preparedElementsFuture = CompletableFuture
+			.supplyAsync(() -> prepareElements(manager, Profiler.get()), backgroundExecutor);
+		CompletableFuture<Void> preparedTagsFuture = CompletableFuture
+			.runAsync(() -> prepareTags(manager, Profiler.get()), backgroundExecutor);
 
 		return preparedTagsFuture.thenCombine(preparedElementsFuture, Pair::of)
-			.thenCompose(synchronizer::wait)
-			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profiler.get()), applyExecutor);
+			.thenCompose(barrier::wait)
+			.thenAcceptAsync(preparedTagsAndElements -> this.applyElements(preparedTagsAndElements.getSecond(), manager, Profiler.get()), gameExecutor);
 
 	}
 
-	private Map<ResourceLocation, List<TagLoader.EntryWithSource>> preparePendingTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
-
-		PREPARED_TAGS.clear();
-		Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = TAG_LOADER.load(manager);
-
-		PREPARED_TAGS.putAll(pendingTags);
-		PREPARED_TAGS.trim();
-
-		return PREPARED_TAGS;
-
+	@Override
+	public ResourceLocation getFabricId() {
+		return ID;
 	}
 
-	private static void applyPendingTags(ReloadableServerResources ignored) {
-
-		if (PREPARED_TAGS.isEmpty()) {
-			return;
-		}
-
-		LOGGER.info("Parsing power tags from data packs...");
-		TAGS.clear();
-
-		TAGS.putAll(TAG_LOADER.build(PREPARED_TAGS));
-		LOGGER.info("Finished parsing power tags from data packs. Parsed {} power tag(s)", TAGS.size());
-
-		PREPARED_TAGS.clear();
-		TAGS.trim();
-
+	@Override
+	public Collection<ResourceLocation> getFabricDependencies() {
+		return DEPENDENCIES;
 	}
 
-	private Map<ResourceLocation, JsonObjectWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<ResourceLocation, JsonWithSource> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<ResourceLocation, JsonObjectWithSource> prepared = new Object2ObjectOpenHashMap<>();
-		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
-
-			String packId = resource.sourcePackId();
-			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
-
-			try (BufferedReader resourceReader = resource.openAsReader()) {
-
-				JsonFormat jsonFormat = this.getFormat(fileId);
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
-
-				switch (GSON.fromJson(gsonReader, JsonElement.class)) {
-					case JsonObject jsonObject when MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops) -> {
-
-						jsonObject.addProperty(PowerHolder.ID_KEY, resourceId.toString());
-						var newElement = new JsonObjectWithSource(packId, jsonObject, jsonFormat);
-
-						if (prepared.putIfAbsent(resourceId, newElement) != null) {
-							throw new IllegalStateException("Duplicate of a power JSON with the same name, but different file extension! (prev. file extension: " + prepared.get(resourceId).format().name().toLowerCase(Locale.ROOT) + ")");
-						}
-
-						else {
-							PowerPreparation.EVENT.invoker().prepare(resourceId, newElement, DIRECTORY, ops);
-						}
-
-					}
-					case JsonObject ignored -> {
-						//	No-op since the resource conditions weren't fulfilled
-					}
-					case JsonElement jsonElement ->
-						throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
-					case null ->
-						throw new JsonSyntaxException("JSON file cannot be empty!");
-					default -> {
-						//  No-op since everything should already be handled by the 'jsonElement' case
-					}
-				}
-
-			}
-
-			catch (Exception e) {
-				LOGGER.error("Error trying to prepare power JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packId, e);
-			}
-
-		});
+		Map<ResourceLocation, JsonWithSource> prepared = MiscUtil.collectJson(manager, ELEMENT_LOADER, ops, LOGGER::error);
+		prepared.forEach((resourceLocation, jsonWithSource) -> PowerPreparation.EVENT.invoker().prepare(resourceLocation, jsonWithSource, ELEMENT_LOADER.directory(), ops));
 
 		return prepared;
 
 	}
 
-	private void applyElements(Map<ResourceLocation, JsonObjectWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	private void applyElements(Map<ResourceLocation, JsonWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
 
@@ -216,7 +150,7 @@ public final class PowerManager implements JsonReloadListener {
 
 			ResourceLocationUtil.setCurrent(id);
 			MiscUtil.handleResult(
-				PowerHolder.CODEC.parse(ops, elementWithSource.element()),
+				PowerHolder.CODEC.parse(ops, elementWithSource.json()),
 				PowerManager::register,
 				warning -> LOGGER.warn("Found warnings while parsing power {} from data pack [{}]: {}", id, elementWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse power {} from data pack [{}] (skipping): {}", id, elementWithSource.source(), error)
@@ -238,21 +172,111 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	static {
+	public static DataResult<List<PowerHolder<?>>> getAllFromTag(TagKey<PowerHolder<?>> tag) {
+		return getAllFromTag(tag.location());
+	}
 
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
-		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+	public static DataResult<List<PowerHolder<?>>> getAllFromTag(ResourceLocation tagId) {
+		return Optional.ofNullable(TAGS.get(tagId))
+			.map(DataResult::success)
+			.orElseGet(() -> DataResult.error(() -> "Unknown power tag: " + tagId));
+	}
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+	public static DataResult<PowerHolder<?>> getAsResult(PowerIdentifier id) {
+		return contains(id)
+			? DataResult.success(BY_ID.get(id))
+			: DataResult.error(() -> "Referenced " + id.asDisplayString(false) + " doesn't exist!");
+	}
 
-		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+	public static PowerHolder<?> get(PowerIdentifier id) {
+		return getAsResult(id).getOrThrow(IllegalArgumentException::new);
+	}
 
-		ReloadableServerResourcesEvents.AFTER_LOAD.addPhaseOrdering(ActionManager.ID, ID);
-		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, resources -> {
-			validate(resources);
-			applyPendingTags(resources);
-		});
+	public static DataResult<PowerIdentifier> getIdAsResult(Power power) {
+		return containsId(power)
+			? DataResult.success(BY_POWER.get(power))
+			: DataResult.error(() -> power + " doesn't correspond to any IDs!");
+	}
+
+	public static PowerIdentifier getId(Power power) {
+		return getIdAsResult(power).getOrThrow(IllegalArgumentException::new);
+	}
+
+	public static Set<ResourceLocation> tags() {
+		return TAGS.keySet();
+	}
+
+	public static Set<PowerIdentifier> ids() {
+		return new ObjectOpenHashSet<>(BY_ID.keySet());
+	}
+
+	public static Collection<PowerHolder<?>> powers() {
+		return new ObjectOpenHashSet<>(BY_ID.values());
+	}
+
+	public static boolean contains(PowerIdentifier id) {
+		return BY_ID.containsKey(id);
+	}
+
+	public static boolean containsId(Power power) {
+		return BY_POWER.containsKey(power);
+	}
+
+	private static void startLoading() {
+		BY_ID.clear();
+		BY_POWER.clear();
+	}
+
+	private static void endLoading() {
+		BY_ID.trim();
+	}
+
+	private static void prepareTags(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+
+		POSTPONED_TAGS.clear();
+		Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = TAG_LOADER.load(manager);
+
+		POSTPONED_TAGS.putAll(pendingTags);
+		POSTPONED_TAGS.trim();
+
+	}
+
+	private static void applyTags() {
+
+		if (POSTPONED_TAGS.isEmpty()) {
+			return;
+		}
+
+		LOGGER.info("Parsing power tags from data packs...");
+		TAGS.clear();
+
+		TAGS.putAll(TAG_LOADER.build(POSTPONED_TAGS));
+		LOGGER.info("Finished parsing power tags from data packs. Parsed {} power tag(s)", TAGS.size());
+
+		POSTPONED_TAGS.clear();
+		TAGS.trim();
+
+	}
+
+	private static <P extends Power> void register(PowerHolder<P> powerHolder) {
+
+		PowerIdentifier powerId = powerHolder.id();
+		Power power = powerHolder.value();
+
+		BY_ID.put(powerId, powerHolder);
+		BY_POWER.put(power, powerId);
+
+		if (power instanceof MultiplePower multiplePower) {
+
+			if (powerId.isSubPower()) {
+				throw new IllegalStateException("Tried to register \"" + powerId.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which is not allowed!");
+			}
+
+			else {
+				multiplePower.getSubPowers().forEach(PowerManager::register);
+			}
+
+		}
 
 	}
 
@@ -292,20 +316,9 @@ public final class PowerManager implements JsonReloadListener {
 
 	}
 
-	@Override
-	public ResourceLocation getFabricId() {
-		return ID;
-	}
+	private static void sync(ServerPlayer recipient) {
 
-	@Override
-	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES;
-	}
-
-	@ApiStatus.Internal
-	public static void sendSyncPayload(ServerPlayer player) {
-
-		if (!player.server.isPublished()) {
+		if (!recipient.server.isPublished()) {
 			return;
 		}
 
@@ -314,130 +327,93 @@ public final class PowerManager implements JsonReloadListener {
 			.filter(Predicate.not(PowerHolder::isSubPower))
 			.collect(Collectors.toCollection(ObjectOpenHashSet::new));
 
-		LOGGER.info("Sent {} power(s) to player {}!", filtered.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizePowersS2CPacket(filtered));
+		LOGGER.info("Sent {} power(s) to player {}!", filtered.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new SynchronizeS2CPacket(filtered));
+
+		LOGGER.info("Sent {} power tag(s) to player {}!", TAGS.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new SynchronizeTagsS2CPacket(TAGS));
 
 	}
 
-	@ApiStatus.Internal
-	public static void sendTagSyncPayload(ServerPlayer player) {
+	static {
 
-		if (!player.server.isPublished()) {
-			return;
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, PowerManager::new);
+		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sync(player));
+
+		PowerPreparation.EVENT.addPhaseOrdering(ID, MultiplePower.ID);
+
+		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+		PowerPreparation.EVENT.register(ID, (id, jsonWithSource, directoryPath, ops) -> {
+
+			if (jsonWithSource.json() instanceof JsonObject jsonObject) {
+				jsonObject.addProperty(PowerHolder.ID_KEY, id.toString());
+			}
+
+		});
+
+		ReloadableServerResourcesEvents.AFTER_LOAD.addPhaseOrdering(ActionManager.ID, ID);
+		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, resources -> {
+			validate(resources);
+			applyTags();
+		});
+
+	}
+
+	public record SynchronizeS2CPacket(Set<PowerHolder<?>> powers) implements CustomPacketPayload {
+
+		private static final StreamCodec<RegistryFriendlyByteBuf, List<PowerHolder<?>>> LIST_CODEC = ByteBufCodecs.collection(ObjectArrayList::new, PowerHolder.STREAM_CODEC);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Set<PowerHolder<?>>> SET_CODEC = LIST_CODEC.map(ObjectOpenHashSet::new, ObjectArrayList::new);
+
+		public static final Type<SynchronizeS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_powers"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeS2CPacket> CODEC = SET_CODEC.map(SynchronizeS2CPacket::new, SynchronizeS2CPacket::powers);
+
+		@Override
+		public @NotNull Type<? extends CustomPacketPayload> type() {
+			return TYPE;
 		}
 
-		LOGGER.info("Sent {} power tag(s) to player {}!", TAGS.size(), player.getName().getString());
-		ServerPlayNetworking.send(player, new SynchronizePowerTagsS2CPacket(TAGS));
+		public void handle(Level level) {
 
-	}
-
-	@Environment(EnvType.CLIENT)
-	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizePowersS2CPacket payload) {
-
-		startLoading();
-		payload.powers().forEach(PowerManager::register);
-		endLoading();
-
-	}
-
-	@Environment(EnvType.CLIENT)
-	@ApiStatus.Internal
-	public static void receiveSyncTagPayload(SynchronizePowerTagsS2CPacket payload) {
-
-		TAGS.clear();
-		TAGS.putAll(payload.powerTags());
-		TAGS.trim();
-
-	}
-
-	public static DataResult<List<PowerHolder<?>>> getHoldersFromTag(TagKey<PowerHolder<?>> tag) {
-		return getHoldersFromTag(tag.location());
-	}
-
-	public static DataResult<List<PowerHolder<?>>> getHoldersFromTag(ResourceLocation tagId) {
-		return Optional.ofNullable(TAGS.get(tagId))
-			.map(DataResult::success)
-			.orElseGet(() -> DataResult.error(() -> "Unknown power tag: " + tagId));
-	}
-
-	public static DataResult<PowerHolder<?>> getHolderAsResult(PowerIdentifier id) {
-		return contains(id)
-			? DataResult.success(BY_ID.get(id))
-			: DataResult.error(() -> "Referenced " + id.asDisplayString(false) + " doesn't exist!");
-	}
-
-	public static PowerHolder<?> getHolder(PowerIdentifier id) {
-		return getHolderAsResult(id).getOrThrow(IllegalArgumentException::new);
-	}
-
-	public static DataResult<Power> getAsResult(PowerIdentifier id) {
-		return getHolderAsResult(id).map(PowerHolder::value);
-	}
-
-	public static Power get(PowerIdentifier id) {
-		return getAsResult(id).getOrThrow(IllegalArgumentException::new);
-	}
-
-	public static DataResult<PowerIdentifier> getIdAsResult(Power power) {
-		return containsId(power)
-			? DataResult.success(BY_POWER.get(power))
-			: DataResult.error(() -> power + " doesn't correspond to any IDs!");
-	}
-
-	public static PowerIdentifier getId(Power power) {
-		return getIdAsResult(power).getOrThrow(IllegalArgumentException::new);
-	}
-
-	public static Set<ResourceLocation> tags() {
-		return TAGS.keySet();
-	}
-
-	public static Set<PowerIdentifier> ids() {
-		return new ObjectOpenHashSet<>(BY_ID.keySet());
-	}
-
-	public static Collection<PowerHolder<?>> holders() {
-		return new ObjectOpenHashSet<>(BY_ID.values());
-	}
-
-	public static boolean contains(PowerIdentifier id) {
-		return BY_ID.containsKey(id);
-	}
-
-	public static boolean containsId(Power power) {
-		return BY_POWER.containsKey(power);
-	}
-
-	private static <P extends Power> void register(PowerHolder<P> powerHolder) {
-
-		PowerIdentifier powerId = powerHolder.id();
-		Power power = powerHolder.value();
-
-		BY_ID.put(powerId, powerHolder);
-		BY_POWER.put(power, powerId);
-
-		if (power instanceof MultiplePower multiplePower) {
-
-			if (powerId.isSubPower()) {
-				throw new IllegalStateException("Tried to register \"" + powerId.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which is not allowed!");
+			if (!level.isClientSide()) {
+				return;
 			}
 
-			else {
-				multiplePower.getSubPowers().forEach(PowerManager::register);
-			}
+			startLoading();
+			powers().forEach(PowerManager::register);
+			endLoading();
 
 		}
 
 	}
 
-	private static void startLoading() {
-		BY_ID.clear();
-		BY_POWER.clear();
-	}
+	public record SynchronizeTagsS2CPacket(Map<ResourceLocation, List<PowerHolder<?>>> tags) implements CustomPacketPayload {
 
-	private static void endLoading() {
-		BY_ID.trim();
+		private static final StreamCodec<ByteBuf, PowerHolder<?>> ENTRY_CODEC = PowerIdentifier.STREAM_CODEC.map(PowerManager::get, PowerHolder::id);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<PowerHolder<?>>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.collection(ObjectArrayList::new, ENTRY_CODEC));
+
+		public static final Type<SynchronizeTagsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_power_tags"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeTagsS2CPacket> CODEC = TAGS_CODEC.map(SynchronizeTagsS2CPacket::new, SynchronizeTagsS2CPacket::tags);
+
+		@Override
+		public @NotNull Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+
+		public void handle(Level level) {
+
+			if (!level.isClientSide()) {
+				return;
+			}
+
+			TAGS.clear();
+			TAGS.putAll(tags());
+			TAGS.trim();
+
+		}
+
 	}
 
 }

@@ -66,7 +66,7 @@ public abstract class CraftingRecipePowerMixin {
 			ObjectCollection<RecipeHolder<?>> recipeEntries = new ObjectOpenHashSet<>(this.recipes.values());
 			Object2IntMap<ResourceKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
 
-			for (PowerHolder<?> powerHolder : PowerManager.holders()) {
+			for (PowerHolder<?> powerHolder : PowerManager.powers()) {
 
 				if (!(powerHolder.value() instanceof CraftingRecipePower craftingRecipePower)) {
 					continue;

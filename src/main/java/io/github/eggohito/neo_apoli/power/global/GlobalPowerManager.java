@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.power.global;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
@@ -12,8 +12,9 @@ import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
@@ -26,7 +27,6 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
@@ -38,28 +38,24 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.ApiStatus;
-import org.quiltmc.parsers.json.JsonFormat;
-import org.quiltmc.parsers.json.JsonReader;
-import org.quiltmc.parsers.json.gson.GsonReader;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GlobalPowerManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonObjectWithSource>>> implements JsonReloadListener {
+public class GlobalPowerManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonWithSource>>> implements JsonReloadListener {
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/global_powers");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build();
 
-	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.GLOBAL_POWER);
+	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerManager.class);
 
 	private static final Object2ObjectOpenHashMap<ResourceLocation, GlobalPower> BY_ID = new Object2ObjectOpenHashMap<>();
-	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -68,54 +64,12 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 	}
 
 	@Override
-	protected Map<ResourceLocation, List<JsonObjectWithSource>> prepare(ResourceManager manager, ProfilerFiller profiler) {
-
-		Map<ResourceLocation, List<JsonObjectWithSource>> prepared = new Object2ObjectOpenHashMap<>();
-		manager.listResourceStacks(DIRECTORY, this::supportsFormat).forEach((fileId, resources) -> {
-
-			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
-			JsonFormat jsonFormat = this.getFormat(fileId);
-
-			resources.forEach(resource -> {
-
-				String packName = resource.sourcePackId();
-				try (BufferedReader resourceReader = resource.openAsReader()) {
-
-					GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
-					JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
-
-					switch (jsonElement) {
-						case JsonObject jsonObject when MiscUtil.isResourceConditionFulfilled(resourceId, jsonObject, DIRECTORY, ops) -> {
-							var elementWithSource = new JsonObjectWithSource(packName, jsonObject, jsonFormat);
-							prepared
-								.computeIfAbsent(resourceId, k -> new ObjectArrayList<>())
-								.add(elementWithSource);
-						}
-						case JsonObject ignored -> {
-							//	No-op
-						}
-						case null ->
-							throw new JsonSyntaxException("JSON file cannot be empty!");
-						default ->
-							throw new JsonSyntaxException("Not a JSON object: " + jsonElement);
-					}
-
-				}
-
-				catch (Exception e) {
-					LOGGER.error("Error trying to prepare global power JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packName, e);
-				}
-
-			});
-
-		});
-
-		return prepared;
-
+	protected @NotNull Map<ResourceLocation, List<JsonWithSource>> prepare(ResourceManager manager, ProfilerFiller profiler) {
+		return MiscUtil.collectJsonStack(manager, LOADER, ops, LOGGER::error);
 	}
 
 	@Override
-	protected void apply(Map<ResourceLocation, List<JsonObjectWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<ResourceLocation, List<JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing global powers from data packs...");
 		BY_ID.clear();
@@ -124,7 +78,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		prepared.forEach((id, elementWithSources) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			elementWithSources.forEach(jsonObjectWithSource -> GlobalPower.CODEC.compressedDecode(ops, jsonObjectWithSource.element())
+			elementWithSources.forEach(jsonObjectWithSource -> GlobalPower.CODEC.compressedDecode(ops, jsonObjectWithSource.json())
 				.ifError(error -> LOGGER.error("Error trying to parse global power \"{}\" from data pack [{}] (skipping): {}", id, jsonObjectWithSource.source(), error.message()))
 				.ifSuccess(set -> parsed
 					.computeIfAbsent(id, k -> new ObjectArrayList<>())
@@ -225,7 +179,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		}
 
-		LOGGER.info("Finished validating {} global power(s). Global power set manager contains {} global power set(s)", size, BY_ID.size());
+		LOGGER.info("Finished validating {} global power(s). Global power manager contains {} global power set(s)", size, BY_ID.size());
 		BY_ID.trim();
 
 	}
@@ -234,7 +188,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		return new ObjectOpenHashSet<>(BY_ID.keySet());
 	}
 
-	public static List<GlobalPower> sets() {
+	public static List<GlobalPower> globalPowers() {
 		return new ObjectArrayList<>(BY_ID.values());
 	}
 
@@ -242,10 +196,10 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		List<GlobalPower> applicableSets = new ObjectArrayList<>();
 
-		for (var set : sets()) {
+		for (var globalPower : globalPowers()) {
 
-			if (set.doesApply(entity)) {
-				applicableSets.add(set);
+			if (globalPower.doesApply(entity)) {
+				applicableSets.add(globalPower);
 			}
 
 		}

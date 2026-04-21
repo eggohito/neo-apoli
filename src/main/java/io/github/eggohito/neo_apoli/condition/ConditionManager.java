@@ -1,18 +1,15 @@
 package io.github.eggohito.neo_apoli.condition;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeConditionsS2CPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.resource.json.JsonElementWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonReloadListener;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -21,7 +18,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,29 +29,20 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import org.jetbrains.annotations.ApiStatus;
-import org.quiltmc.parsers.json.JsonFormat;
-import org.quiltmc.parsers.json.JsonReader;
-import org.quiltmc.parsers.json.gson.GsonReader;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.IdentityHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElementWithSource>> implements JsonReloadListener {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonWithSource>> implements JsonReloadListener {
 
-	private static final String DIRECTORY = Registries.elementsDirPath(NeoApoliRegistryKeys.CONDITION);
+	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
-
-	private static final Gson GSON = new GsonBuilder()
-		.disableHtmlEscaping()
-		.setPrettyPrinting()
-		.create();
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/conditions");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
@@ -66,57 +57,12 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected Map<ResourceLocation, JsonElementWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
-
-		Map<ResourceLocation, JsonElementWithSource> prepared = new Object2ObjectOpenHashMap<>();
-		manager.listResources(DIRECTORY, this::supportsFormat).forEach((fileId, resource) -> {
-
-			String packId = resource.sourcePackId();
-			ResourceLocation resourceId = this.trimExtension(fileId, DIRECTORY);
-
-			try (BufferedReader resourceReader = resource.openAsReader()) {
-
-				JsonFormat jsonFormat = this.getFormat(fileId);
-				GsonReader gsonReader = new GsonReader(JsonReader.create(resourceReader, jsonFormat));
-
-				JsonElement jsonElement = GSON.fromJson(gsonReader, JsonElement.class);
-
-				switch (jsonElement) {
-					case JsonElement asIs when MiscUtil.isResourceConditionFulfilled(resourceId, asIs, DIRECTORY, ops) -> {
-
-						var newElement = JsonElementWithSource.of(packId, asIs, jsonFormat);
-						var oldElement = prepared.get(resourceId);
-
-						if (oldElement != null) {
-							throw new IllegalStateException("Duplicate of a condition JSON with the same name but a different file extension! (file extension: " + oldElement.format().name().toLowerCase(Locale.ROOT) + ")");
-						}
-
-						else {
-							prepared.put(resourceId, newElement);
-						}
-
-					}
-					case null ->
-						throw new JsonParseException("JSON file cannot be empty!");
-					default -> {
-						//	No-op since the resource conditions weren't fulfilled
-					}
-				}
-
-			}
-
-			catch (Exception e) {
-				LOGGER.error("Error trying to prepare condition JSON file \"{}\" from data pack [{}] (skipping): {}", fileId, packId, e);
-			}
-
-		});
-
-		return prepared;
-
+	protected @NotNull Map<ResourceLocation, JsonWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
+		return MiscUtil.collectJson(manager, LOADER, ops, LOGGER::error);
 	}
 
 	@Override
-	protected void apply(Map<ResourceLocation, JsonElementWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<ResourceLocation, JsonWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
@@ -124,7 +70,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 		prepared.forEach((id, entry) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			Condition.CODEC.parse(ops, entry.element())
+			Condition.CODEC.parse(ops, entry.json())
 				.ifSuccess(condition -> register(id, condition))
 				.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
 
@@ -144,36 +90,6 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
 		return DEPENDENCIES;
-	}
-
-	@ApiStatus.Internal
-	public static void sendSyncPayload(ServerPlayer receiver) {
-
-		if (!receiver.server.isPublished()) {
-			return;
-		}
-
-		LOGGER.info("Sent {} condition(s) to player {}!", BY_ID.size(), receiver.getName().getString());
-		ServerPlayNetworking.send(receiver, new SynchronizeConditionsS2CPacket(BY_ID));
-
-	}
-
-	@ApiStatus.Internal
-	public static void receiveSyncPayload(SynchronizeConditionsS2CPacket payload) {
-
-		BY_ID.clear();
-		BY_CONDITION.clear();
-
-		BY_ID.putAll(payload.conditions());
-		payload.conditions().forEach(ConditionManager::register);
-
-		BY_ID.trim();
-
-	}
-
-	private static void register(ResourceLocation id, Condition condition) {
-		BY_ID.put(id, condition);
-		BY_CONDITION.put(condition, id);
 	}
 
 	public static DataResult<Condition> getAsResult(ResourceLocation id) {
@@ -216,9 +132,54 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 
 	}
 
+	private static void register(ResourceLocation id, Condition condition) {
+		BY_ID.put(id, condition);
+		BY_CONDITION.put(condition, id);
+	}
+
+	private static void sync(ServerPlayer recipient) {
+
+		if (!recipient.server.isPublished()) {
+			return;
+		}
+
+		LOGGER.info("Sent {} condition(s) to player {}!", BY_ID.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new SynchronizeConditionsS2CPacket(BY_ID));
+
+	}
+
 	static {
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ConditionManager::new);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sendSyncPayload(player));
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sync(player));
+	}
+
+	public record SynchronizeConditionsS2CPacket(Map<ResourceLocation, Condition> conditions) implements CustomPacketPayload {
+
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, Condition>> CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, Condition.STREAM_CODEC);
+
+		public static final Type<SynchronizeConditionsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_conditions"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeConditionsS2CPacket> CODEC = CONDITIONS_CODEC.map(SynchronizeConditionsS2CPacket::new, SynchronizeConditionsS2CPacket::conditions);
+
+		@Override
+		public @NotNull Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+
+		public void handle(Level level) {
+
+			if (!level.isClientSide()) {
+				return;
+			}
+
+			BY_ID.clear();
+			BY_CONDITION.clear();
+
+			conditions().forEach(ConditionManager::register);
+
+			BY_ID.trim();
+
+		}
+
 	}
 
 }

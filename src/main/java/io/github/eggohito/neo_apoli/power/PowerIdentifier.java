@@ -91,6 +91,7 @@ public record PowerIdentifier(ResourceLocation id, @Nullable String subName) imp
 
 	public void validate(Context.Validator validator, Class<? extends Power> powerClass, Supplier<String> errorSupplier) {
 		PowerManager.getAsResult(this)
+			.map(PowerHolder::value)
 			.flatMap(MiscUtil.validateType(powerClass, errorSupplier))
 			.resultOrPartial(validator::reportProblem);
 	}

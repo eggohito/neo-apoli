@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.duck.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
-import io.github.eggohito.neo_apoli.network.packet.c2s.RequestActionTagsC2SPacket;
-import io.github.eggohito.neo_apoli.network.packet.c2s.RequestPowerTagsC2SPacket;
 import io.github.eggohito.neo_apoli.network.packet.s2c.*;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerManager;
@@ -31,14 +29,14 @@ public class NeoApoliS2CNetworkHandler {
 		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
 			ClientPlayNetworking.registerReceiver(DismountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityDismounted);
 			ClientPlayNetworking.registerReceiver(MountEntityS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onEntityMounted);
-			ClientPlayNetworking.registerReceiver(SynchronizeActionsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onActionsSynchronized);
-			ClientPlayNetworking.registerReceiver(SynchronizeActionTagsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onActionTagsSynchronized);
-			ClientPlayNetworking.registerReceiver(SynchronizeConditionsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onConditionsSynchronized);
+			ClientPlayNetworking.registerReceiver(ActionManager.SynchronizeS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
+			ClientPlayNetworking.registerReceiver(ActionManager.SynchronizeTagsS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
+			ClientPlayNetworking.registerReceiver(ConditionManager.SynchronizeConditionsS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
 			ClientPlayNetworking.registerReceiver(SynchronizeCommandStorageS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onDataCommandStorageSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerDataS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowerDataSynchronized);
 			ClientPlayNetworking.registerReceiver(SynchronizePowerRecipeDisplaysS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowerRecipeDisplaysSynchronized);
-			ClientPlayNetworking.registerReceiver(SynchronizePowersS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowersSynchronized);
-			ClientPlayNetworking.registerReceiver(SynchronizePowerTagsS2CPacket.TYPE, NeoApoliS2CNetworkHandler::onPowerTagsSynchronized);
+			ClientPlayNetworking.registerReceiver(PowerManager.SynchronizeS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
+			ClientPlayNetworking.registerReceiver(PowerManager.SynchronizeTagsS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
 			ClientPlayNetworking.registerReceiver(PowersImpl.GrantS2CPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
 			ClientPlayNetworking.registerReceiver(PowersImpl.RevokeS2CPacket.TYPE,  (payload, context) -> payload.handle(context.player().level()));
 		});
@@ -84,26 +82,6 @@ public class NeoApoliS2CNetworkHandler {
 			NeoApoli.LOGGER.warn("Entity {} failed to start riding entity {}!", getNameAndUuid(actor), getNameAndUuid(target));
 		}
 
-	}
-
-	private static void onActionsSynchronized(SynchronizeActionsS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		NeoApoli.LOGGER.info("Received {} action(s) from server!", payload.actions().size());
-		ActionManager.receiveSyncPayload(payload);
-
-		NeoApoli.LOGGER.info("Requesting action tags from server...");
-		context.responseSender().sendPacket(new RequestActionTagsC2SPacket());
-
-	}
-
-	private static void onActionTagsSynchronized(SynchronizeActionTagsS2CPacket payload, ClientPlayNetworking.Context context) {
-		NeoApoli.LOGGER.info("Received {} action tag(s) from server!", payload.tags().size());
-		ActionManager.receiveTagSyncPayload(payload);
-	}
-
-	private static void onConditionsSynchronized(SynchronizeConditionsS2CPacket payload, ClientPlayNetworking.Context context) {
-		NeoApoli.LOGGER.info("Received {} condition(s) from server!", payload.conditions().size());
-		ConditionManager.receiveSyncPayload(payload);
 	}
 
 	private static void onDataCommandStorageSynchronized(SynchronizeCommandStorageS2CPacket payload, ClientPlayNetworking.Context context) {
@@ -153,21 +131,6 @@ public class NeoApoliS2CNetworkHandler {
 
 	private static void onPowerRecipeDisplaysSynchronized(SynchronizePowerRecipeDisplaysS2CPacket payload, ClientPlayNetworking.Context context) {
 		((PowerRecipeDisplayHolder) context.client()).neo_apoli$setPowerIdsByIndex(payload.displays());
-	}
-
-	private static void onPowersSynchronized(SynchronizePowersS2CPacket payload, ClientPlayNetworking.Context context) {
-
-		NeoApoli.LOGGER.info("Received {} power(s) from server!", payload.powers().size());
-		PowerManager.receiveSyncPayload(payload);
-
-		NeoApoli.LOGGER.info("Requesting power tags from server...");
-		context.responseSender().sendPacket(new RequestPowerTagsC2SPacket());
-
-	}
-
-	private static void onPowerTagsSynchronized(SynchronizePowerTagsS2CPacket payload, ClientPlayNetworking.Context context) {
-		NeoApoli.LOGGER.info("Received {} power tag(s) from server!", payload.powerTags().size());
-		PowerManager.receiveSyncTagPayload(payload);
 	}
 
 	private static String getNameAndUuid(Entity entity) {

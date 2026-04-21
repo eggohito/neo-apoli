@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.resource.json.JsonObjectWithSource;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -205,12 +205,9 @@ public class MultiplePower extends Power {
 	 * 	</ul>
 	 */
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(ResourceLocation id, JsonObjectWithSource jsonObjectWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
+	public static void preProcessSubPowers(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
 
-		JsonObject powerJson = jsonObjectWithSource.element();
-		DataResult<PowerType<?>> powerTypeResult = PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY));
-
-		if (!powerTypeResult.mapOrElse(PowerTypes.MULTIPLE::equals, error -> false)) {
+		if (!(jsonWithSource.json() instanceof JsonObject powerJson) || !PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY)).mapOrElse(PowerTypes.MULTIPLE::equals, error -> false)) {
 			return;
 		}
 
