@@ -105,7 +105,7 @@ public abstract class CraftingRecipePowerMixin {
 			}
 
 			components.add(Component.empty());
-			components.add(Component.literal("Missing power: ").withStyle(ChatFormatting.RED).append(PowerManager.getEntry(powerId).name()));
+			components.add(Component.literal("Missing power: ").withStyle(ChatFormatting.RED).append(PowerManager.getHolder(powerId).name()));
 
 		}
 

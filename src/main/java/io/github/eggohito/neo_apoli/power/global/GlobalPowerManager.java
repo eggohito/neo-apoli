@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -163,7 +163,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 	private static GlobalPower.WithSource merge(GlobalPower.WithSource first, GlobalPower.WithSource second) {
 
 		LazyTagLike.Builder<EntityType<?>> entityTypes = new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE);
-		LazyTagLike.Builder<PowerEntry<?>> powers = new LazyTagLike.Builder<>(PowerManager.TAG_LOOKUP);
+		LazyTagLike.Builder<PowerHolder<?>> powers = new LazyTagLike.Builder<>(PowerManager.TAG_LOOKUP);
 
 		boolean replace = second.set().replace();
 		int order = first.set().order();
@@ -255,14 +255,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 	}
 
-	public static Set<PowerEntry<?>> flattenPowers(Collection<GlobalPower> sets) {
+	public static Set<PowerHolder<?>> flattenPowers(Collection<GlobalPower> sets) {
 
-		Set<PowerEntry<?>> entries = new ObjectOpenHashSet<>();
+		Set<PowerHolder<?>> holders = new ObjectOpenHashSet<>();
 		for (var set : sets) {
-			entries.addAll(set.powers().elements());
+			holders.addAll(set.powers().elements());
 		}
 
-		return entries;
+		return holders;
 
 	}
 
@@ -271,20 +271,20 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		Powers powers = Powers.getOrCreate(entity);
 
 		List<GlobalPower> applicableSets = getApplicableSets(entity);
-		Set<PowerEntry<?>> expectedEntries = flattenPowers(applicableSets);
+		Set<PowerHolder<?>> expectedHolders = flattenPowers(applicableSets);
 
 		//	Revoke all powers that are from the global power source, but not within the expected
 		//	set of powers collected from all global power sets
 		for (var entryFromSource : powers.getAllFromSource(GlobalPower.POWER_SOURCE)) {
 
-			if (!expectedEntries.contains(entryFromSource)) {
+			if (!expectedHolders.contains(entryFromSource)) {
 				powers.revokeWithCallback(entryFromSource.id(), GlobalPower.POWER_SOURCE);
 			}
 
 		}
 
 		//	Re-add all the expected powers collected from all global power sets
-		for (var expectedEntry : expectedEntries) {
+		for (var expectedEntry : expectedHolders) {
 			powers.grantWithCallback(expectedEntry.id(), GlobalPower.POWER_SOURCE);
 		}
 

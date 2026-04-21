@@ -7,14 +7,14 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerEntry<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPower> {
+public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerHolder<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPower> {
 
 	public static final ResourceLocation POWER_SOURCE = NeoApoli.id("global");
 

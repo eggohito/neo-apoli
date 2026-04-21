@@ -4,7 +4,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
@@ -32,14 +32,14 @@ public interface Powers {
 	Set<ResourceLocation> getAllSources();
 
 
-	List<PowerEntry<?>> getAll(boolean includeSubPowers);
+	List<PowerHolder<?>> getAll(boolean includeSubPowers);
 
-	default List<PowerEntry<?>> getAll() {
+	default List<PowerHolder<?>> getAll() {
 		return getAll(true);
 	}
 
 
-	List<PowerEntry<?>> getAllFromSource(ResourceLocation source);
+	List<PowerHolder<?>> getAllFromSource(ResourceLocation source);
 
 	Set<ResourceLocation> getSources(PowerIdentifier id);
 

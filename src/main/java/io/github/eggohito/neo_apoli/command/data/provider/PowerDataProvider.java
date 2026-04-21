@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.command.data.accessor.PowerDataAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.nbt.NbtOps;
@@ -29,19 +29,19 @@ public record PowerDataProvider(String target) implements DataCommands.DataProvi
     public @NotNull PowerDataAccessor access(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 
         Entity holder = EntityArgument.getEntity(context, "entity");
-        PowerEntry<?> entry = PowerArgument.getPower(context, target());
+        PowerHolder<?> powerHolder = PowerArgument.getPower(context, target());
 
         RegistryOps<Tag> ops = context.getSource().registryAccess().createSerializationContext(NbtOps.INSTANCE);
         Power.Instance<?> instance = Powers.getOptional(holder)
-            .flatMap(powers -> powers.getOptionalInstance(entry.id()))
+            .flatMap(powers -> powers.getOptionalInstance(powerHolder.id()))
             .orElse(null);
 
         if (instance != null) {
-            return new PowerDataAccessor(holder, instance, entry.id(), ops);
+            return new PowerDataAccessor(holder, instance, powerHolder.id(), ops);
         }
 
         else {
-            throw PowerDataAccessor.UNGRANTED_ERROR.create(holder.getName(), entry.id());
+            throw PowerDataAccessor.UNGRANTED_ERROR.create(holder.getName(), powerHolder.id());
         }
 
     }

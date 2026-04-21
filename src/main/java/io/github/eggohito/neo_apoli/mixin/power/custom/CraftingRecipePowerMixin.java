@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerRecipeDisplaysS2CPacket;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
@@ -66,9 +66,9 @@ public abstract class CraftingRecipePowerMixin {
 			ObjectCollection<RecipeHolder<?>> recipeEntries = new ObjectOpenHashSet<>(this.recipes.values());
 			Object2IntMap<ResourceKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
 
-			for (PowerEntry<?> powerEntry: PowerManager.entries()) {
+			for (PowerHolder<?> powerHolder : PowerManager.holders()) {
 
-				if (!(powerEntry.power() instanceof CraftingRecipePower craftingRecipePower)) {
+				if (!(powerHolder.value() instanceof CraftingRecipePower craftingRecipePower)) {
 					continue;
 				}
 
@@ -80,7 +80,7 @@ public abstract class CraftingRecipePowerMixin {
 
 				if (!replacedRecipes.containsKey(recipeKey) || priority > replacedRecipes.getInt(recipeKey)) {
 
-					var replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerEntry.id(), recipe));
+					var replacement = new RecipeHolder<>(recipeKey, new PowerCraftingRecipe(powerHolder.id(), recipe));
 
 					recipeEntries.remove(recipeEntry);
 					recipeEntries.add(replacement);

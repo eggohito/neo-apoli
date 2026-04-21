@@ -7,7 +7,7 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
@@ -40,7 +40,7 @@ public class MultiplePower extends Power {
 	//	TODO: This set of filters should be controllable via config
 	private static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
 
-		PowerEntry.MAP_CODEC.keys(JavaOps.INSTANCE)
+		PowerHolder.MAP_CODEC.keys(JavaOps.INSTANCE)
 			.map(Object::toString)
 			.filter(Predicate.not("value"::equals))
 			.distinct()
@@ -54,7 +54,7 @@ public class MultiplePower extends Power {
 
 	public static final ResourceLocation ID = NeoApoli.id("multiple");
 
-	public static final MapCodec<ImmutableSet<PowerEntry<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
+	public static final MapCodec<ImmutableSet<PowerHolder<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
 
 		@Override
 		public <T> Stream<T> keys(DynamicOps<T> ops) {
@@ -62,9 +62,9 @@ public class MultiplePower extends Power {
 		}
 
 		@Override
-		public <I> DataResult<ImmutableSet<PowerEntry<?>>> decode(DynamicOps<I> ops, MapLike<I> mapInput) {
+		public <I> DataResult<ImmutableSet<PowerHolder<?>>> decode(DynamicOps<I> ops, MapLike<I> mapInput) {
 
-			Set<PowerEntry<?>> succeeded = new ObjectOpenHashSet<>();
+			Set<PowerHolder<?>> succeeded = new ObjectOpenHashSet<>();
 			DataResult<Unit> result = mapInput.entries().reduce(
 				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
 				(identity, keyAndValue) -> {
@@ -97,7 +97,7 @@ public class MultiplePower extends Power {
 						return identity.apply2stable((unit, o) -> unit, typeResult);
 					}
 
-					DataResult<PowerEntry<?>> subPowerResult = PowerEntry.MAP_CODEC.decode(ops, valueResult.getOrThrow());
+					DataResult<PowerHolder<?>> subPowerResult = PowerHolder.MAP_CODEC.decode(ops, valueResult.getOrThrow());
 
 					if (subPowerResult.isSuccess() && !succeeded.add(subPowerResult.getOrThrow())) {
 						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate entry for key: \"" + keyResult.getOrThrow() + "\""));
@@ -111,16 +111,16 @@ public class MultiplePower extends Power {
 					r1.apply2stable((u1, u2) -> u1, r2)
 			);
 
-			ImmutableSet<PowerEntry<?>> elements = ImmutableSet.copyOf(succeeded);
+			ImmutableSet<PowerHolder<?>> elements = ImmutableSet.copyOf(succeeded);
 			return result.map(u -> elements).setPartial(elements);
 
 		}
 
 		@Override
-		public <O> RecordBuilder<O> encode(ImmutableSet<PowerEntry<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
+		public <O> RecordBuilder<O> encode(ImmutableSet<PowerHolder<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
 
 			for (var entry : entries) {
-				prefix.add(entry.id().toString(), PowerEntry.CODEC.encodeStart(ops, entry));
+				prefix.add(entry.id().toString(), PowerHolder.CODEC.encodeStart(ops, entry));
 			}
 
 			return prefix;
@@ -129,39 +129,39 @@ public class MultiplePower extends Power {
 
 	};
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerEntry<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
+	public static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerHolder<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
 
 		@Override
-		public @NotNull ImmutableSet<PowerEntry<?>> decode(RegistryFriendlyByteBuf buf) {
+		public @NotNull ImmutableSet<PowerHolder<?>> decode(RegistryFriendlyByteBuf buf) {
 
-			ImmutableSet.Builder<PowerEntry<?>> entries = ImmutableSet.builder();
+			ImmutableSet.Builder<PowerHolder<?>> holders = ImmutableSet.builder();
 			int size = buf.readVarInt();
 
 			for (int i = 0; i < size; i++) {
 
-				PowerEntry<?> entry = PowerEntry.STREAM_CODEC.decode(buf);
+				PowerHolder<?> powerHolder = PowerHolder.STREAM_CODEC.decode(buf);
 
-				if (entry.isSubPower()) {
-					entries.add(entry);
+				if (powerHolder.isSubPower()) {
+					holders.add(powerHolder);
 				}
 
 				else {
-					throw new IllegalArgumentException("Expected a sub-power, but got " + entry.id().asDisplayString(false) + "!");
+					throw new IllegalArgumentException("Expected a sub-power, but got " + powerHolder.id().asDisplayString(false) + "!");
 				}
 
 			}
 
-			return entries.build();
+			return holders.build();
 
 		}
 
 		@Override
-		public void encode(RegistryFriendlyByteBuf buf, ImmutableSet<PowerEntry<?>> entries) {
+		public void encode(RegistryFriendlyByteBuf buf, ImmutableSet<PowerHolder<?>> holders) {
 
-			buf.writeVarInt(entries.size());
+			buf.writeVarInt(holders.size());
 
-			for (var entry : entries) {
-				PowerEntry.STREAM_CODEC.encode(buf, entry);
+			for (var holder : holders) {
+				PowerHolder.STREAM_CODEC.encode(buf, holder);
 			}
 
 		}
@@ -178,9 +178,9 @@ public class MultiplePower extends Power {
 		MultiplePower::getSubPowers
 	);
 
-	private final ImmutableSet<PowerEntry<?>> subPowers;
+	private final ImmutableSet<PowerHolder<?>> subPowers;
 
-	public MultiplePower(ImmutableSet<PowerEntry<?>> subPowers) {
+	public MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) {
 		this.subPowers = subPowers;
 	}
 
@@ -230,7 +230,7 @@ public class MultiplePower extends Power {
 
 				//	Append the sub-power's ID into its value object for proper parsing later
 				if (value instanceof JsonObject jsonObject) {
-					jsonObject.addProperty(PowerEntry.ID_KEY, key);
+					jsonObject.addProperty(PowerHolder.ID_KEY, key);
 				}
 
 			}

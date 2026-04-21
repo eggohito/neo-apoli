@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.api.power.PowersAttachment;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
@@ -70,10 +70,10 @@ public final class PowersImpl implements Powers {
 	}
 
 	@Override
-	public List<PowerEntry<?>> getAll(boolean includeSubPowers) {
+	public List<PowerHolder<?>> getAll(boolean includeSubPowers) {
 
-		List<PowerEntry<?>> result = new ObjectArrayList<>();
-		mutableAttachment.instances().keySet().forEach(reference -> PowerManager.getEntryAsResult(reference)
+		List<PowerHolder<?>> result = new ObjectArrayList<>();
+		mutableAttachment.instances().keySet().forEach(reference -> PowerManager.getHolderAsResult(reference)
 			.result()
 			.filter(entry -> includeSubPowers || !entry.isSubPower())
 			.ifPresent(result::add));
@@ -83,10 +83,10 @@ public final class PowersImpl implements Powers {
 	}
 
 	@Override
-	public List<PowerEntry<?>> getAllFromSource(ResourceLocation source) {
+	public List<PowerHolder<?>> getAllFromSource(ResourceLocation source) {
 
-		List<PowerEntry<?>> result = new ObjectArrayList<>();
-		mutableAttachment.sources().asMap().forEach((reference, sources) -> PowerManager.getEntryAsResult(reference)
+		List<PowerHolder<?>> result = new ObjectArrayList<>();
+		mutableAttachment.sources().asMap().forEach((reference, sources) -> PowerManager.getHolderAsResult(reference)
 			.result()
 			.filter(entry -> sources.contains(source))
 			.ifPresent(result::add));

@@ -8,7 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -49,10 +49,10 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
 
 		if (allowTags()) {
-			SharedSuggestionProvider.suggestResource(PowerManager.getTags(), builder, "#");
+			SharedSuggestionProvider.suggestResource(PowerManager.tags(), builder, "#");
 		}
 
-		return SharedSuggestionProvider.suggest(PowerManager.streamIds().map(PowerIdentifier::toString), builder);
+		return SharedSuggestionProvider.suggest(PowerManager.ids().stream().map(PowerIdentifier::toString), builder);
 
 	}
 
@@ -68,7 +68,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 		return context.getArgument(name, Type.class);
 	}
 
-	public static PowerEntry<?> getPower(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+	public static PowerHolder<?> getPower(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return switch (getArgument(context, name)) {
 			case Type.Singleton singleton ->
 				singleton.get(context).getFirst();
@@ -77,7 +77,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 		};
 	}
 
-	public static List<PowerEntry<?>> getTag(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+	public static List<PowerHolder<?>> getTag(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return switch (getArgument(context, name)) {
 			case Type.Singleton singleton ->
 				throw MiscUtil.createCommandException(() -> "Expected a tag, but got power " + singleton.id() + "!");
@@ -97,22 +97,22 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 	public sealed interface Type permits Type.Singleton, Type.Collection {
 
-		List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException;
+		List<PowerHolder<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException;
 
 		record Singleton(PowerIdentifier id) implements Type {
 
 			@Override
-			public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-				return List.of(PowerManager.getEntryAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
+			public List<PowerHolder<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+				return List.of(PowerManager.getHolderAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
 			}
 
 		}
 
-		record Collection(TagKey<PowerEntry<?>> tag) implements Type {
+		record Collection(TagKey<PowerHolder<?>> tag) implements Type {
 
 			@Override
-			public List<PowerEntry<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-				return PowerManager.getEntriesFromTag(tag()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+			public List<PowerHolder<?>> get(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+				return PowerManager.getHoldersFromTag(tag()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
 			public ResourceLocation id() {

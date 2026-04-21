@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.network.packet.s2c;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.power.PowerEntry;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.netty.buffer.ByteBuf;
@@ -16,10 +16,10 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.List;
 import java.util.Map;
 
-public record SynchronizePowerTagsS2CPacket(Map<ResourceLocation, List<PowerEntry<?>>> powerTags) implements CustomPacketPayload {
+public record SynchronizePowerTagsS2CPacket(Map<ResourceLocation, List<PowerHolder<?>>> powerTags) implements CustomPacketPayload {
 
-	private static final StreamCodec<ByteBuf, PowerEntry<?>> ENTRY_CODEC = PowerIdentifier.STREAM_CODEC.map(PowerManager::getEntry, PowerEntry::id);
-	private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<PowerEntry<?>>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.collection(ObjectArrayList::new, ENTRY_CODEC));
+	private static final StreamCodec<ByteBuf, PowerHolder<?>> ENTRY_CODEC = PowerIdentifier.STREAM_CODEC.map(PowerManager::getHolder, PowerHolder::id);
+	private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<PowerHolder<?>>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.collection(ObjectArrayList::new, ENTRY_CODEC));
 
 	public static final Type<SynchronizePowerTagsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_power_tags"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizePowerTagsS2CPacket> CODEC = TAGS_CODEC.map(SynchronizePowerTagsS2CPacket::new, SynchronizePowerTagsS2CPacket::powerTags);
