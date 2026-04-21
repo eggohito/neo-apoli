@@ -22,12 +22,12 @@ public final class ComparisonTypes {
 
 	}
 
-	private static <C extends Comparison> ComparisonType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <C extends Comparison> ComparisonType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <C extends Comparison> ComparisonType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return Registry.register(NeoApoliRegistries.COMPARISON_TYPE, id, new ComparisonType<>(mapCodec, packetCodec));
+	public static <C extends Comparison> ComparisonType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return Registry.register(NeoApoliRegistries.COMPARISON_TYPE, id, new ComparisonType<>(mapCodec, streamCodec));
 	}
 
 }

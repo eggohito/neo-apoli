@@ -42,11 +42,11 @@ public final class NeoApoliParticleTypes {
 		return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, FabricParticleTypes.simple(alwaysShow));
 	}
 
-	private static <P extends ParticleOptions> ParticleType<P> registerInternal(String name, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> packetCodecGetter) {
-		return register(NeoApoli.id(name), alwaysShow, codecGetter, packetCodecGetter);
+	private static <P extends ParticleOptions> ParticleType<P> registerInternal(String name, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> streamCodecGetter) {
+		return register(NeoApoli.id(name), alwaysShow, codecGetter, streamCodecGetter);
 	}
 
-	public static <P extends ParticleOptions> ParticleType<P> register(ResourceLocation id, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> packetCodecGetter) {
+	public static <P extends ParticleOptions> ParticleType<P> register(ResourceLocation id, boolean alwaysShow, Function<ParticleType<P>, MapCodec<P>> codecGetter, Function<ParticleType<P>, StreamCodec<? super RegistryFriendlyByteBuf, P>> streamCodecGetter) {
 		return Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, new ParticleType<P>(alwaysShow) {
 
 			@Override
@@ -56,7 +56,7 @@ public final class NeoApoliParticleTypes {
 
 			@Override
 			public StreamCodec<? super RegistryFriendlyByteBuf, P> streamCodec() {
-				return packetCodecGetter.apply(this);
+				return streamCodecGetter.apply(this);
 			}
 
 		});

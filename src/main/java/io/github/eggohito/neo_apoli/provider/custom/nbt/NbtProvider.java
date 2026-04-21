@@ -14,7 +14,7 @@ public interface NbtProvider extends ValueProvider {
 
 	Codec<NbtProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(NbtProviderType.CODEC.dispatch(NbtProvider::getType, NbtProviderType::mapCodec), ConstantNbtProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, NbtProvider> STREAM_CODEC = NbtProviderType.STREAM_CODEC.dispatch(NbtProvider::getType, NbtProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, NbtProvider> STREAM_CODEC = NbtProviderType.STREAM_CODEC.dispatch(NbtProvider::getType, NbtProviderType::streamCodec);
 
 	@NotNull
 	NbtProviderType<?> getType();

@@ -15,7 +15,7 @@ public interface BoxProvider extends ValueProvider {
 
 	Codec<BoxProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BoxProviderType.CODEC.dispatch(BoxProvider::getType, BoxProviderType::mapCodec), ConstantBoxProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BoxProvider> STREAM_CODEC = BoxProviderType.STREAM_CODEC.dispatch(BoxProvider::getType, BoxProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BoxProvider> STREAM_CODEC = BoxProviderType.STREAM_CODEC.dispatch(BoxProvider::getType, BoxProviderType::streamCodec);
 
 	@NotNull
 	BoxProviderType<?> getType();

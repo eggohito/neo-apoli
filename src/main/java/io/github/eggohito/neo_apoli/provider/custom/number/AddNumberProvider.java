@@ -13,7 +13,7 @@ import java.util.List;
 public record AddNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
 	public static final MapCodec<AddNumberProvider> MAP_CODEC = MultiNumberProvider.codec(AddNumberProvider::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, AddNumberProvider> STREAM_CODEC = MultiNumberProvider.packetCodec(AddNumberProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, AddNumberProvider> STREAM_CODEC = MultiNumberProvider.streamCodec(AddNumberProvider::new);
 
 	@Override
 	public @NotNull NumberProviderType<?> getType() {

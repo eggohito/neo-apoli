@@ -13,7 +13,7 @@ public interface StringProvider extends ValueProvider {
 
 	Codec<StringProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(StringProviderType.CODEC.dispatch(StringProvider::getType, StringProviderType::mapCodec), ConstantStringProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, StringProvider> STREAM_CODEC = StringProviderType.STREAM_CODEC.dispatch(StringProvider::getType, StringProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, StringProvider> STREAM_CODEC = StringProviderType.STREAM_CODEC.dispatch(StringProvider::getType, StringProviderType::streamCodec);
 
 	@NotNull
 	StringProviderType<?> getType();

@@ -13,7 +13,7 @@ public interface BooleanProvider extends ValueProvider {
 
 	Codec<BooleanProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(BooleanProviderType.CODEC.dispatch(BooleanProvider::getType, BooleanProviderType::mapCodec), ConstantBooleanProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, BooleanProvider> STREAM_CODEC = BooleanProviderType.STREAM_CODEC.dispatch(BooleanProvider::getType, BooleanProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, BooleanProvider> STREAM_CODEC = BooleanProviderType.STREAM_CODEC.dispatch(BooleanProvider::getType, BooleanProviderType::streamCodec);
 
 	@NotNull
 	BooleanProviderType<?> getType();

@@ -14,7 +14,7 @@ public interface Vec3Provider extends ValueProvider {
 
 	Codec<Vec3Provider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Vec3ProviderType.CODEC.dispatch(Vec3Provider::getType, Vec3ProviderType::mapCodec), ConstantVec3Provider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, Vec3Provider> STREAM_CODEC = Vec3ProviderType.STREAM_CODEC.dispatch(Vec3Provider::getType, Vec3ProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Vec3Provider> STREAM_CODEC = Vec3ProviderType.STREAM_CODEC.dispatch(Vec3Provider::getType, Vec3ProviderType::streamCodec);
 
 	@NotNull
 	Vec3ProviderType<?> getType();

@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record Vec3ProviderType<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) implements ValueProviderType<P> {
+public record Vec3ProviderType<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProviderType<P> {
 
 	public static final FixedRegistryAlias<Vec3ProviderType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.VEC3_PROVIDER_TYPE);
 

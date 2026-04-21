@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record NbtProviderType<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) implements ValueProviderType<P> {
+public record NbtProviderType<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProviderType<P> {
 
 	public static final FixedRegistryAlias<NbtProviderType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.NBT_PROVIDER_TYPE);
 

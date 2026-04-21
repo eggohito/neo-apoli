@@ -23,12 +23,12 @@ public class StringProviderTypes {
 
 	}
 
-	private static <P extends StringProvider> StringProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <P extends StringProvider> StringProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <P extends StringProvider> StringProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.STRING_PROVIDER_TYPE, id, new StringProviderType<>(mapCodec, packetCodec));
+	public static <P extends StringProvider> StringProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return Registry.register(NeoApoliRegistries.STRING_PROVIDER_TYPE, id, new StringProviderType<>(mapCodec, streamCodec));
 	}
 
 }

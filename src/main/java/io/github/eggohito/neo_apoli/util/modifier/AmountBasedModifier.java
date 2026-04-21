@@ -37,7 +37,7 @@ public interface AmountBasedModifier extends Modifier {
 			.apply(instance, constructor));
 	}
 
-	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> createValueBasedPacketCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
+	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> createValueBasedStreamCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {
 		return StreamCodec.composite(
 			Phase.STREAM_CODEC, AmountBasedModifier::phase,
 			ByteBufCodecs.INT, AmountBasedModifier::order,

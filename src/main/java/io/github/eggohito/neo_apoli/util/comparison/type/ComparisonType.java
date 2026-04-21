@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ComparisonType<C extends Comparison>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
+public record ComparisonType<C extends Comparison>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 
 	public static final FixedRegistryAlias<ComparisonType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.COMPARISON_TYPE);
 

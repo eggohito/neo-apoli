@@ -42,8 +42,8 @@ public final class ConditionTypes {
 		WorldConditionTypes.registerAll();
 	}
 
-	private static <C extends Condition> ConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <C extends Condition> ConditionType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
 	public static <C extends Condition> ConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {

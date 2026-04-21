@@ -16,7 +16,7 @@ public interface NumberProvider extends ValueProvider {
 
 	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(NumberProviderType.CODEC.dispatch(NumberProvider::getType, NumberProviderType::mapCodec), ConstantNumberProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = NumberProviderType.STREAM_CODEC.dispatch(NumberProvider::getType, NumberProviderType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = NumberProviderType.STREAM_CODEC.dispatch(NumberProvider::getType, NumberProviderType::streamCodec);
 
 	@NotNull
 	NumberProviderType<?> getType();

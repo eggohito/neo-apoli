@@ -115,7 +115,7 @@ public final class StreamCodecUtil {
 
 			@Override
 			public String toString() {
-				return "LazyPacketCodec[" + name + "]";
+				return "LazyStreamCodec[" + name + "]";
 			}
 
 		};

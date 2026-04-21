@@ -25,12 +25,12 @@ public class BoxProviderTypes {
 
 	}
 
-	private static <P extends BoxProvider> BoxProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <P extends BoxProvider> BoxProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <P extends BoxProvider> BoxProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.BOX_PROVIDER_TYPE, id, new BoxProviderType<>(mapCodec, packetCodec));
+	public static <P extends BoxProvider> BoxProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return Registry.register(NeoApoliRegistries.BOX_PROVIDER_TYPE, id, new BoxProviderType<>(mapCodec, streamCodec));
 	}
 
 }

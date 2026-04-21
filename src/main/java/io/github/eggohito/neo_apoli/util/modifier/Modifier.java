@@ -21,7 +21,7 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	Codec<Modifier> CODEC = ModifierType.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
 
-	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierType.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierType.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::streamCodec);
 
 	@Override
 	default int compareTo(@NotNull Modifier that) {

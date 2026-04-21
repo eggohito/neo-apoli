@@ -20,12 +20,12 @@ public class BooleanProviderTypes {
 
 	}
 
-	private static <P extends BooleanProvider> BooleanProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <P extends BooleanProvider> BooleanProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <P extends BooleanProvider> BooleanProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.BOOLEAN_PROVIDER_TYPE, id, new BooleanProviderType<>(mapCodec, packetCodec));
+	public static <P extends BooleanProvider> BooleanProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return Registry.register(NeoApoliRegistries.BOOLEAN_PROVIDER_TYPE, id, new BooleanProviderType<>(mapCodec, streamCodec));
 	}
 
 }

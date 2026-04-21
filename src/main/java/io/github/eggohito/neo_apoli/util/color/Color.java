@@ -18,7 +18,7 @@ import net.minecraft.util.ARGB;
 public interface Color extends ContextUser {
 
 	Codec<Color> CODEC = new MultiAlternativeCodec<>(createCodec("type"), Rgba.STRING_CODEC);
-	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorType.STREAM_CODEC.dispatch(Color::getType, ColorType::packetCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorType.STREAM_CODEC.dispatch(Color::getType, ColorType::streamCodec);
 
 	ColorType<?> getType();
 

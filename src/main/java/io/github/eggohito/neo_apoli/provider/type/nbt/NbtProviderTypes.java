@@ -24,12 +24,12 @@ public class NbtProviderTypes {
 
 	}
 
-	private static <P extends NbtProvider> NbtProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <P extends NbtProvider> NbtProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <P extends NbtProvider> NbtProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.NBT_PROVIDER_TYPE, id, new NbtProviderType<>(mapCodec, packetCodec));
+	public static <P extends NbtProvider> NbtProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return Registry.register(NeoApoliRegistries.NBT_PROVIDER_TYPE, id, new NbtProviderType<>(mapCodec, streamCodec));
 	}
 
 }

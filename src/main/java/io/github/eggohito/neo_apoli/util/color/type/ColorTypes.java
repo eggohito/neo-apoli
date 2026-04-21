@@ -29,12 +29,12 @@ public final class ColorTypes {
 
 	}
 
-	private static <C extends Color> ColorType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <C extends Color> ColorType<C> registerInternal(String path, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <C extends Color> ColorType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
-		return Registry.register(NeoApoliRegistries.COLOR_TYPE, id, new ColorType<>(mapCodec, packetCodec));
+	public static <C extends Color> ColorType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
+		return Registry.register(NeoApoliRegistries.COLOR_TYPE, id, new ColorType<>(mapCodec, streamCodec));
 	}
 
 }

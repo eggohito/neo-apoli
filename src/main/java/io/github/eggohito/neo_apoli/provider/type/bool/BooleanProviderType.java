@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record BooleanProviderType<P extends BooleanProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) implements ValueProviderType<P> {
+public record BooleanProviderType<P extends BooleanProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProviderType<P> {
 
 	public static final FixedRegistryAlias<BooleanProviderType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.BOOLEAN_PROVIDER_TYPE);
 

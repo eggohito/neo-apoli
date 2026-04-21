@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ModifierType<M extends Modifier>(MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> packetCodec) {
+public record ModifierType<M extends Modifier>(MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
 
 	public static final FixedRegistryAlias<ModifierType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.MODIFIER_TYPE);
 

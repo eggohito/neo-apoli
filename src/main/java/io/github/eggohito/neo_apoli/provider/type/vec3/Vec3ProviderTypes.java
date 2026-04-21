@@ -22,12 +22,12 @@ public class Vec3ProviderTypes {
 
 	}
 
-	private static <P extends Vec3Provider> Vec3ProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <P extends Vec3Provider> Vec3ProviderType<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <P extends Vec3Provider> Vec3ProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> packetCodec) {
-		return Registry.register(NeoApoliRegistries.VEC3_PROVIDER_TYPE, id, new Vec3ProviderType<>(mapCodec, packetCodec));
+	public static <P extends Vec3Provider> Vec3ProviderType<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+		return Registry.register(NeoApoliRegistries.VEC3_PROVIDER_TYPE, id, new Vec3ProviderType<>(mapCodec, streamCodec));
 	}
 
 }

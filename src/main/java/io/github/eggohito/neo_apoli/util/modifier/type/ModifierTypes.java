@@ -27,12 +27,12 @@ public final class ModifierTypes {
 		ModifierType.ALIASES.addPathAlias("addition", ADD);
 	}
 
-	private static <M extends Modifier> ModifierType<M> registerInternal(String path, MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> packetCodec) {
-		return register(NeoApoli.id(path), mapCodec, packetCodec);
+	private static <M extends Modifier> ModifierType<M> registerInternal(String path, MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
+		return register(NeoApoli.id(path), mapCodec, streamCodec);
 	}
 
-	public static <M extends Modifier> ModifierType<M> register(ResourceLocation id, MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> packetCodec) {
-		return Registry.register(NeoApoliRegistries.MODIFIER_TYPE, id, new ModifierType<>(mapCodec, packetCodec));
+	public static <M extends Modifier> ModifierType<M> register(ResourceLocation id, MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
+		return Registry.register(NeoApoliRegistries.MODIFIER_TYPE, id, new ModifierType<>(mapCodec, streamCodec));
 	}
 
 }

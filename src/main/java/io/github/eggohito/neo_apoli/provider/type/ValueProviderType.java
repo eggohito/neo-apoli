@@ -9,6 +9,6 @@ public interface ValueProviderType<P extends ValueProvider> {
 
 	MapCodec<P> mapCodec();
 
-	StreamCodec<RegistryFriendlyByteBuf, P> packetCodec();
+	StreamCodec<RegistryFriendlyByteBuf, P> streamCodec();
 
 }

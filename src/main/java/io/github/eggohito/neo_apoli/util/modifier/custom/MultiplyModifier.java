@@ -11,7 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 public record MultiplyModifier(Phase phase, int order, NumberProvider amount) implements AmountBasedModifier {
 
 	public static final MapCodec<MultiplyModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyModifier::new, 0);
-	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedPacketCodec(MultiplyModifier::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MultiplyModifier::new);
 
 	@Override
 	public ModifierType<?> getType() {

@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ColorType<C extends Color>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> packetCodec) {
+public record ColorType<C extends Color>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 
 	public static final FixedRegistryAlias<ColorType<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.COLOR_TYPE);
 

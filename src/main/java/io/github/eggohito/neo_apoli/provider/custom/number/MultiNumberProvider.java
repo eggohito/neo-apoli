@@ -79,7 +79,7 @@ public interface MultiNumberProvider extends NumberProvider {
 		).apply(instance, constructor)));
 	}
 
-	static <M extends MultiNumberProvider> StreamCodec<RegistryFriendlyByteBuf, M> packetCodec(Function<List<NumberProvider>, M> constructor) {
+	static <M extends MultiNumberProvider> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function<List<NumberProvider>, M> constructor) {
 		return StreamCodecUtil.lazy(() -> StreamCodec.composite(
 			ByteBufCodecs.collection(ObjectArrayList::new, NumberProvider.STREAM_CODEC), MultiNumberProvider::numbers,
 			constructor
