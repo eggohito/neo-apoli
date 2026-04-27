@@ -167,4 +167,8 @@ public class CodecUtil {
 		return nonEmptyCollection(codec, () -> "Set must have contents");
 	}
 
+	public static Codec<Integer> nonNegativeInt() {
+		return Codec.intRange(0, Integer.MAX_VALUE);
+	}
+
 }

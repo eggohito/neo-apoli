@@ -1,29 +1,41 @@
 package io.github.eggohito.neo_apoli.client.config;
 
-import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.isxander.yacl3.config.v3.ConfigEntry;
+import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import net.fabricmc.loader.api.FabricLoader;
+import org.quiltmc.parsers.json.JsonFormat;
 
-public class NeoApoliClientConfig {
+@SuppressWarnings("UnstableApiUsage")
+public final class NeoApoliClientConfig extends AbstractJsonCodecConfig<NeoApoliClientConfig> {
 
-	public static final ConfigClassHandler<NeoApoliClientConfig> HANDLER = ConfigClassHandler.createBuilder(NeoApoliClientConfig.class)
-		.id(NeoApoli.id("config/client"))
-		.serializer(handler -> GsonConfigSerializerBuilder.create(handler)
-			.setPath(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/client.json5"))
-			.setJson5(true).build()).build();
+	public static final NeoApoliClientConfig INSTANCE = new NeoApoliClientConfig();
 
-	@SerialEntry
-	public final ResourceBars resourceBars = new ResourceBars();
+	public final ConfigEntry<ResourceBars> resourceBars = register("resource_bars", ResourceBars.DEFAULT, ResourceBars.CODEC);
 
-	public static class ResourceBars {
+	private NeoApoliClientConfig() {
+		super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/client.json5"), JsonFormat.JSON5);
+	}
 
-		@SerialEntry
-		public int offsetX = 0;
+	@AllArgsConstructor
+	@Accessors(fluent = true)
+	@Data
+	public static final class ResourceBars {
 
-		@SerialEntry
-		public int offsetY = 0;
+		public static final ResourceBars DEFAULT = new ResourceBars(0, 0);
+
+		public static final Codec<ResourceBars> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			CodecUtil.nonNegativeInt().fieldOf("offset_x").forGetter(ResourceBars::offsetX),
+			CodecUtil.nonNegativeInt().fieldOf("offset_y").forGetter(ResourceBars::offsetY)
+		).apply(instance, ResourceBars::new));
+
+		private int offsetX;
+		private int offsetY;
 
 	}
 

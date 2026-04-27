@@ -100,9 +100,9 @@ public class NeoApoli implements ModInitializer {
 		ActionManager.init();
 
 		NeoApoliPackets.registerAll();
-
 		PowerIntegrations.registerAll();
-		NeoApoliConfig.HANDLER.load();
+
+		getConfig().loadFromFile();
 
 		NeoApoliContextParams.registerAll();
 		NeoApoliContextParamSets.registerAll();
@@ -122,7 +122,7 @@ public class NeoApoli implements ModInitializer {
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
 
 			if (success) {
-				NeoApoliConfig.HANDLER.load();
+				getConfig().loadFromFile();
 			}
 
 		});
@@ -134,7 +134,7 @@ public class NeoApoli implements ModInitializer {
 	}
 
 	public static NeoApoliConfig getConfig() {
-		return NeoApoliConfig.HANDLER.instance();
+		return NeoApoliConfig.INSTANCE;
 	}
 
 	public static boolean serverSide() {
@@ -144,7 +144,7 @@ public class NeoApoli implements ModInitializer {
 
 	public static CommandSource validateCommandOutput(CommandSource commandOutput) {
 
-		if (getConfig().command.showOutput) {
+		if (getConfig().command.get().showOutput()) {
 			return commandOutput;
 		}
 

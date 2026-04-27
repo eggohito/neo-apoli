@@ -165,9 +165,9 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 
 			BlockPos spawnPos = dimension.getSharedSpawnPos();
 
-			int horizontalStep = NeoApoli.getConfig().modifyPlayerSpawn.horizontalStep;
-			int verticalStep = NeoApoli.getConfig().modifyPlayerSpawn.verticalStep;
-			int radius = NeoApoli.getConfig().modifyPlayerSpawn.radius;
+			int horizontalStep = NeoApoli.getConfig().modifyPlayerSpawn.get().horizontalStep();
+			int verticalStep = NeoApoli.getConfig().modifyPlayerSpawn.get().verticalStep();
+			int radius = NeoApoli.getConfig().modifyPlayerSpawn.get().radius();
 
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);

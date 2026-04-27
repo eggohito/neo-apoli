@@ -25,7 +25,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
-		NeoApoliClientConfig.HANDLER.load();
+		getConfig().loadFromFile();
 
 		KeyStateClientManagerImpl.init();
 		NeoApoliClientLoggerImpl.init();
@@ -39,7 +39,7 @@ public class NeoApoliClient implements ClientModInitializer {
 	}
 
 	public static NeoApoliClientConfig getConfig() {
-		return NeoApoliClientConfig.HANDLER.instance();
+		return NeoApoliClientConfig.INSTANCE;
 	}
 
 }

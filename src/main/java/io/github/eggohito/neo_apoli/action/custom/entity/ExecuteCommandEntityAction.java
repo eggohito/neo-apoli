@@ -56,7 +56,7 @@ public record ExecuteCommandEntityAction(StringProvider command) implements Enti
 			pos,
 			entity.getRotationVector(),
 			serverLevel,
-			NeoApoli.getConfig().command.permissionLevel,
+			NeoApoli.getConfig().command.get().permissionLevel(),
 			entity.getName().getString(),
 			entity.getName(),
 			server,

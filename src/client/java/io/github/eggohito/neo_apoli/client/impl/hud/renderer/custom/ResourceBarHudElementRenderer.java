@@ -44,8 +44,8 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 
 		}
 
-		ANCHOR.setX(((graphics.guiWidth() / 2) + 20) + NeoApoliClient.getConfig().resourceBars.offsetX);
-		ANCHOR.setY((graphics.guiHeight() - yOffset) + NeoApoliClient.getConfig().resourceBars.offsetY);
+		ANCHOR.setX(((graphics.guiWidth() / 2) + 20) + NeoApoliClient.getConfig().resourceBars.get().offsetX());
+		ANCHOR.setY((graphics.guiHeight() - yOffset) + NeoApoliClient.getConfig().resourceBars.get().offsetY());
 
 	}
 

@@ -57,7 +57,7 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 			blockPos.getCenter(),
 			Vec2.ZERO,
 			serverLevel,
-			NeoApoli.getConfig().command.permissionLevel,
+			NeoApoli.getConfig().command.get().permissionLevel(),
 			blockState.getBlock().getDescriptionId(),
 			Component.translatable(blockState.getBlock().getDescriptionId()),
 			server,

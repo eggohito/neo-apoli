@@ -39,7 +39,7 @@ public class ResourceLocationUtil {
 
 	public static String replaceWithCurrent(String input, Function<ResourceLocation, String> replacement) {
 
-		if (getCurrent() != null && NeoApoli.getConfig().placeholderIdentifier.enabled) {
+		if (getCurrent() != null && NeoApoli.getConfig().placeholderIdentifier.get().enabled()) {
 			return input.replace(String.valueOf(PLACEHOLDER), replacement.apply(getCurrent()));
 		}
 
@@ -96,7 +96,7 @@ public class ResourceLocationUtil {
 
 	public static boolean isEnabledAndPlaceholder(char ch) {
 		return getCurrent() != null
-			&& NeoApoli.getConfig().placeholderIdentifier.enabled
+			&& NeoApoli.getConfig().placeholderIdentifier.get().enabled()
 			&& ch == PLACEHOLDER;
 	}
 
