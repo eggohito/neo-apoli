@@ -28,6 +28,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
+import java.util.Objects;
+
 //	FIXME: Modifying fog color/distance with this method doesn't seem to work with shaders
 public abstract class PhasingPowerMixin {
 
@@ -48,18 +50,35 @@ public abstract class PhasingPowerMixin {
 		}
 
 		@WrapOperation(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FogRenderer;setupFog(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;Lorg/joml/Vector4f;FZF)Lnet/minecraft/client/renderer/FogParameters;"))
-		private FogParameters modifyDistance(Camera camera, FogRenderer.FogMode fogType, Vector4f color, float viewDistance, boolean thickenFog, float tickProgress, Operation<FogParameters> original) {
+		private FogParameters modifyFogParameters(Camera camera, FogRenderer.FogMode fogMode, Vector4f fogColor, float renderDistance, boolean isFoggy, float partialTick, Operation<FogParameters> original) {
+
+			if (!neo_apoli$shouldApplyBlindnessEffects(camera)) {
+				return original.call(camera, fogMode, fogColor, renderDistance, isFoggy, partialTick);
+			}
 
 			try {
 
 				Entity entity = camera.getEntity();
-				CachedBlock viewBlocking = MiscUtil.getViewBlocking(entity);
+				CachedBlock viewBlocking = Objects.requireNonNull(MiscUtil.getViewBlocking(entity));
 
-				if (viewBlocking != null) {
-					viewDistance = PhasingPower.modifyViewDistance(entity, viewBlocking, viewDistance);
+				FogParameters fogParameters = original.call(camera, fogMode, fogColor, renderDistance, isFoggy, partialTick);
+				renderDistance = PhasingPower.modifyRenderDistance(camera.getEntity(), viewBlocking, renderDistance);
+
+				float start = fogParameters.start();
+				float end = fogParameters.end();
+
+				switch (fogMode) {
+					case FOG_SKY -> {
+						start = 0.0F;
+						end = renderDistance * 0.8F;
+					}
+					case FOG_TERRAIN -> {
+						start = renderDistance * 0.25F;
+						end = renderDistance;
+					}
 				}
 
-				return original.call(camera, fogType, color, viewDistance, thickenFog, tickProgress);
+				return new FogParameters(start, end, fogParameters.shape(), fogParameters.red(), fogParameters.green(), fogParameters.blue(), fogParameters.alpha());
 
 			}
 
@@ -69,13 +88,8 @@ public abstract class PhasingPowerMixin {
 
 		}
 
-		@WrapWithCondition(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;addSkyPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/FogParameters;)V"))
-		private boolean skipRenderingSkyWhenBlindnessPhasing(LevelRenderer renderer, FrameGraphBuilder frameGraphBuilder, Camera camera, float tickProgress, FogParameters fog) {
-			return !neo_apoli$shouldApplyBlindnessEffects(camera);
-		}
-
 		@WrapWithCondition(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;FIF)V"))
-		private boolean skipRenderingCloudsWhenBlindessPhasing(LevelRenderer renderer, FrameGraphBuilder frameGraphBuilder, CloudStatus cloudStatus, Vec3 cameraPosition, float ticks, int cloudColor, float cloudHeight, @Local(argsOnly = true) Camera camera) {
+		private boolean skipRenderingCloudsWhenBlindnessPhasing(LevelRenderer renderer, FrameGraphBuilder frameGraphBuilder, CloudStatus cloudStatus, Vec3 cameraPosition, float ticks, int cloudColor, float cloudHeight, @Local(argsOnly = true) Camera camera) {
 			return !neo_apoli$shouldApplyBlindnessEffects(camera);
 		}
 

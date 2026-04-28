@@ -137,7 +137,7 @@ public class PhasingPower extends Power {
 
 	}
 
-	public static float modifyViewDistance(Entity entity, CachedBlock cachedBlock, float viewDistance) {
+	public static float modifyRenderDistance(Entity entity, CachedBlock cachedBlock, float renderDistance) {
 
 		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
@@ -146,7 +146,7 @@ public class PhasingPower extends Power {
 			try {
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
-					viewDistance = Math.min(viewDistance, instance.getViewDistance());
+					renderDistance = Math.min(renderDistance, instance.getViewDistance());
 				}
 
 			}
@@ -157,7 +157,7 @@ public class PhasingPower extends Power {
 
 		}
 
-		return viewDistance;
+		return renderDistance;
 
 	}
 
@@ -176,7 +176,7 @@ public class PhasingPower extends Power {
 		}
 
 		@Override
-		public String getSerializedName() {
+		public @NotNull String getSerializedName() {
 			return name;
 		}
 
