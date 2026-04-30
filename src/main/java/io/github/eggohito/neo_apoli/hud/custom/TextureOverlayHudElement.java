@@ -1,13 +1,13 @@
 package io.github.eggohito.neo_apoli.hud.custom;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.hud.OverlayHudElement;
 import io.github.eggohito.neo_apoli.hud.Sprite;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
-import io.github.eggohito.neo_apoli.util.color.Color;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 

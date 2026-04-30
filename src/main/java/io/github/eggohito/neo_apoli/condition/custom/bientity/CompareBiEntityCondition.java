@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
-import io.github.eggohito.neo_apoli.util.comparison.Comparison;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
