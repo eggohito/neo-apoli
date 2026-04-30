@@ -30,6 +30,13 @@ public record PowerIdentifier(ResourceLocation id, @Nullable String subName) imp
 
 	public static final char SEPARATOR = '@';
 
+	/**
+	 *  Deprecated in favor of using one of the following helper methods for clarity.
+	 *  <ul>
+	 *      <li>{@link #of(ResourceLocation)}</li> for normal powers.
+	 *      <li>{@link #subPower(ResourceLocation, String)}</li> for sub-powers (powers within a power that use the {@link io.github.eggohito.neo_apoli.power.type.PowerTypes#MULTIPLE multiple} power type.)
+	 *  </ul>
+	 */
 	@Deprecated
 	public PowerIdentifier {
 

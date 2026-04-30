@@ -1,0 +1,61 @@
+package io.github.eggohito.neo_apoli.mixin.impl.misc.moving;
+
+import io.github.eggohito.neo_apoli.impl.misc.MovingEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(Entity.class)
+public abstract class EntityMixin implements MovingEntity {
+
+	@Shadow
+	public abstract Vec3 position();
+
+	@Shadow
+	public abstract double getX();
+
+	@Shadow
+	public abstract double getY();
+
+	@Shadow
+	public abstract double getZ();
+
+	@Unique
+	private Vec3 neo_apoli$prevPos;
+
+	@Unique
+	private Vec3 neo_apoli$velocity = Vec3.ZERO;
+
+	@Override
+	public Vec3 neo_apoli$getVelocity() {
+		return neo_apoli$velocity;
+	}
+
+	@Override
+	public void neo_apoli$setVelocity(Vec3 velocity) {
+		this.neo_apoli$velocity = velocity;
+	}
+
+	@Inject(method = "baseTick", at = @At("TAIL"))
+	private void updateVelocity(CallbackInfo ci) {
+
+		if (neo_apoli$prevPos != null) {
+
+			double dx = this.getX() - this.neo_apoli$prevPos.x;
+			double dy = this.getY() - this.neo_apoli$prevPos.y;
+			double dz = this.getZ() - this.neo_apoli$prevPos.z;
+
+			this.neo_apoli$setVelocity(dx, dy, dz);
+
+		}
+
+		this.neo_apoli$prevPos = this.position();
+
+	}
+
+}

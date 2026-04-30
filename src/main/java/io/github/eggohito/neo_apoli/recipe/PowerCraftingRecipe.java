@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.duck.PowerCraftingInventory;
+import io.github.eggohito.neo_apoli.impl.misc.PowerCraftingInventory;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,27 +44,27 @@ public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput recipeInput, HolderLookup.Provider provider) {
+	public @NotNull ItemStack assemble(CraftingInput recipeInput, HolderLookup.Provider provider) {
 		return delegate().assemble(recipeInput, provider);
 	}
 
 	@Override
-	public RecipeSerializer<? extends CraftingRecipe> getSerializer() {
+	public @NotNull RecipeSerializer<? extends CraftingRecipe> getSerializer() {
 		return NeoApoliRecipeSerializers.POWER_CRAFTING;
 	}
 
 	@Override
-	public PlacementInfo placementInfo() {
+	public @NotNull PlacementInfo placementInfo() {
 		return delegate().placementInfo();
 	}
 
 	@Override
-	public CraftingBookCategory category() {
+	public @NotNull CraftingBookCategory category() {
 		return delegate().category();
 	}
 
 	@Override
-	public RecipeBookCategory recipeBookCategory() {
+	public @NotNull RecipeBookCategory recipeBookCategory() {
 		return NeoApoliRecipeBookCategories.POWER_CRAFTING_RECIPE;
 	}
 
@@ -78,7 +79,7 @@ public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate
 	}
 
 	@Override
-	public List<RecipeDisplay> display() {
+	public @NotNull List<RecipeDisplay> display() {
 		return delegate().display();
 	}
 
@@ -96,12 +97,12 @@ public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate
 		);
 
 		@Override
-		public MapCodec<PowerCraftingRecipe> codec() {
+		public @NotNull MapCodec<PowerCraftingRecipe> codec() {
 			return CODEC;
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> streamCodec() {
+		public @NotNull StreamCodec<RegistryFriendlyByteBuf, PowerCraftingRecipe> streamCodec() {
 			return STREAM_CODEC;
 		}
 

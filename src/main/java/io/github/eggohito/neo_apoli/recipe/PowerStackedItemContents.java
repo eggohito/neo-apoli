@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.recipe;
 
 import io.github.eggohito.neo_apoli.api.power.Powers;
-import io.github.eggohito.neo_apoli.duck.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import lombok.Getter;

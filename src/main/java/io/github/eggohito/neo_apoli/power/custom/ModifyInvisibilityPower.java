@@ -32,6 +32,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
+	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_OUTLINE = Instance::isActiveAndShouldRenderOutline;
+
+	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = Instance::isActiveAndShouldRenderArmor;
+
 	public static final MapCodec<ModifyInvisibilityPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))

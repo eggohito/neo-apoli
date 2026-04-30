@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.AttributeModifying;
+import io.github.eggohito.neo_apoli.power.misc.AttributeModifyingPower;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class ModifyAttributeLegacyPower extends AttributeModifying {
+public class ModifyAttributeLegacyPower extends AttributeModifyingPower {
 
 	public static final MapCodec<ModifyAttributeLegacyPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addConditionalAttributeModifyingAndFields(instance)
 		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeLegacyPower::getTickRate))
@@ -34,8 +34,8 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributeLegacyPower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		NeoApoliStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifying::getModifiers,
-		BooleanProvider.STREAM_CODEC, AttributeModifying::getSendUpdate,
+		NeoApoliStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifyingPower::getModifiers,
+		BooleanProvider.STREAM_CODEC, AttributeModifyingPower::getSendUpdate,
 		NumberProvider.STREAM_CODEC, ModifyAttributeLegacyPower::getTickRate,
 		ModifyAttributeLegacyPower::new
 	);
@@ -53,11 +53,11 @@ public class ModifyAttributeLegacyPower extends AttributeModifying {
 	}
 
 	@Override
-	public AttributeModifying.Instance<?> createInstance() {
+	public AttributeModifyingPower.Instance<?> createInstance() {
 		return new Instance(this);
 	}
 
-	public static class Instance extends AttributeModifying.Instance<ModifyAttributeLegacyPower> {
+	public static class Instance extends AttributeModifyingPower.Instance<ModifyAttributeLegacyPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;

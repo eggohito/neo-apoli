@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.util.atlas;
 
-import io.github.eggohito.neo_apoli.client.event.TextureAtlasRegistrationEvents;
+import io.github.eggohito.neo_apoli.client.api.event.TextureAtlasRegistrationEvents;
 import io.github.eggohito.neo_apoli.hud.OverlayHudElement;
 
 public interface NeoApoliAtlases {

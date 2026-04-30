@@ -119,9 +119,12 @@ public abstract class Power implements ContextUser {
 			}
 
 			else {
-				this.encodeData(ops)
-					.resultOrPartial(error -> NeoApoli.LOGGER.warn("Couldn't fully encode data of {} to sync to entity {}: {}", id.asDisplayString(false), holder.getName().getString(), error))
-					.ifPresent(tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, id, tag)));
+				MiscUtil.handleResult(
+					this.encodeData(ops),
+					tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, id, tag)),
+					warning -> NeoApoli.LOGGER.warn("Couldn't fully encode instance data of {} to send to entity {} (sending partially encoded data): {}", id.asDisplayString(false), holder.getName().getString(), warning),
+					error -> NeoApoli.LOGGER.error("Couldn't encode instance data of {} to send to entity {}! (skipping): {}", id.asDisplayString(false), holder.getName().getString(), error)
+				);
 			}
 
 		}

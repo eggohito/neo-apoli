@@ -38,7 +38,7 @@ public class NestedTagCacheImpl<T> implements NestedTagCache<T> {
 	public NestedTagCacheImpl(ResourceKey<? extends Registry<T>> registry) {
 		this(registry, new Object2ObjectOpenHashMap<>());
 
-		TagLoaderBuild.EVENT.register(new TagLoaderBuild() {
+		TagLoaderBuild.EVENT.register(registry.location(), new TagLoaderBuild() {
 
 			@Override
 			public <I> void onBuild(String directory, TagEntry.Lookup<I> lookup, DependencySorter<ResourceLocation, TagLoader.SortingEntry> sorter) {
