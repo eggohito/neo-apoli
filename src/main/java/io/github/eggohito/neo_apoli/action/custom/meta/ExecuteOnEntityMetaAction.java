@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,7 +18,7 @@ public interface ExecuteOnEntityMetaAction extends Action {
 
 	EntityAction action();
 
-	ContextParameter<Entity> entity();
+	Context.Parameter<Entity> entity();
 
 	@Override
 	default void execute(Context context) {
@@ -51,14 +50,14 @@ public interface ExecuteOnEntityMetaAction extends Action {
 			.forChild(".action"));
 	}
 
-	static <M extends ExecuteOnEntityMetaAction> MapCodec<M> mapCodec(BiFunction<EntityAction, ContextParameter<Entity>, M> constructor) {
+	static <M extends ExecuteOnEntityMetaAction> MapCodec<M> mapCodec(BiFunction<EntityAction, Context.Parameter<Entity>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			EntityAction.CODEC.fieldOf("action").forGetter(ExecuteOnEntityMetaAction::action),
 			NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(ExecuteOnEntityMetaAction::entity)
 		).apply(instance, constructor));
 	}
 
-	static <M extends ExecuteOnEntityMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityAction, ContextParameter<Entity>, M> constructor) {
+	static <M extends ExecuteOnEntityMetaAction> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityAction, Context.Parameter<Entity>, M> constructor) {
 		return StreamCodec.composite(
 			EntityAction.STREAM_CODEC, ExecuteOnEntityMetaAction::action,
 			NeoApoliContextParams.StreamCodecs.ENTITY, ExecuteOnEntityMetaAction::entity,

@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.action.kind.ActionKinds;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.color.type.ColorTypes;
@@ -11,6 +12,7 @@ import io.github.eggohito.neo_apoli.command.argument.NeoApoliArguments;
 import io.github.eggohito.neo_apoli.command.data.provider.NeoApoliDataProviders;
 import io.github.eggohito.neo_apoli.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import io.github.eggohito.neo_apoli.container_type.NeoApoliContainerTypes;
@@ -89,7 +91,11 @@ public class NeoApoli implements ModInitializer {
 		HudElementTypes.registerAll();
 
 		PowerTypes.registerAll();
+
+		ConditionKinds.registerAll();
 		ConditionTypes.registerAll();
+
+		ActionKinds.registerAll();
 		ActionTypes.registerAll();
 
 		PowerManager.init();

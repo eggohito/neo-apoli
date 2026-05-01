@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type<?>> extends ArgumentType<T> {
+public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type> extends ArgumentType<T> {
 
 	HolderLookup.Provider lookupProvider();
 
@@ -51,9 +51,7 @@ public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type<?>> exte
 
 	}
 
-	interface Type<E> {
-
-		E get() throws CommandSyntaxException;
+	interface Type {
 
 	}
 

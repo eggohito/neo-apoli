@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.action.custom.bientity.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.custom.block.BlockAction;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
 import io.github.eggohito.neo_apoli.action.custom.item.ItemAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
@@ -22,6 +23,7 @@ import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.fluid.FluidCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
@@ -32,7 +34,7 @@ import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.container_type.ContainerType;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
@@ -50,9 +52,12 @@ import net.minecraft.resources.ResourceKey;
 public class NeoApoliRegistryKeys {
 
 	public static final ResourceKey<Registry<PowerHolder<?>>> POWER = create("power");
+	public static final ResourceKey<Registry<GlobalPower>> GLOBAL_POWER = create("global_power");
+
 	public static final ResourceKey<Registry<PowerType<?>>> POWER_TYPE = create("power_type");
 
-	public static final ResourceKey<Registry<GlobalPower>> GLOBAL_POWER = create("global_power");
+	public static final ResourceKey<Registry<ActionKind<?>>> ACTION_KIND = create("action_kind");
+	public static final ResourceKey<Registry<ConditionKind<?>>> CONDITION_KIND = create("condition_kind");
 
 	public static final ResourceKey<Registry<Action>> ACTION = create("action");
 	public static final ResourceKey<Registry<BiEntityAction>> BIENTITY_ACTION = create("action/bientity");
@@ -99,7 +104,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
 	public static final ResourceKey<Registry<HudElementType<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");
 
-	public static final ResourceKey<Registry<ContextParameter<?>>> CONTEXT_PARAMETER = create("context/parameter");
+	public static final ResourceKey<Registry<Context.Parameter<?>>> CONTEXT_PARAMETER = create("context/parameter");
 
 	private static <T> ResourceKey<Registry<T>> create(String path) {
 		return ResourceKey.createRegistryKey(NeoApoli.id(path));

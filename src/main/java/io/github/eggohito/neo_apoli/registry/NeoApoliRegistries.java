@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.registry;
 
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
@@ -7,6 +8,7 @@ import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.color.type.ColorType;
 import io.github.eggohito.neo_apoli.comparison.type.ComparisonType;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
@@ -17,7 +19,7 @@ import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
 import io.github.eggohito.neo_apoli.container_type.ContainerType;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
@@ -34,6 +36,9 @@ import net.minecraft.resources.ResourceKey;
 public class NeoApoliRegistries {
 
 	public static final Registry<PowerType<?>> POWER_TYPE = create(NeoApoliRegistryKeys.POWER_TYPE);
+
+	public static final Registry<ActionKind<?>> ACTION_KIND = create(NeoApoliRegistryKeys.ACTION_KIND);
+	public static final Registry<ConditionKind<?>> CONDITION_KIND = create(NeoApoliRegistryKeys.CONDITION_KIND);
 
 	public static final Registry<ActionType<?>> ACTION_TYPE = create(NeoApoliRegistryKeys.ACTION_TYPE);
 	public static final Registry<BiEntityActionType<?>> BIENTITY_ACTION_TYPE = create(NeoApoliRegistryKeys.BIENTITY_ACTION_TYPE);
@@ -64,7 +69,7 @@ public class NeoApoliRegistries {
 	public static final Registry<ColorType<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
 	public static final Registry<HudElementType<?>> HUD_ELEMENT_TYPE = create(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
 
-	public static final Registry<ContextParameter<?>> CONTEXT_PARAMETER = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER);
+	public static final Registry<Context.Parameter<?>> CONTEXT_PARAMETER = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER);
 
 	private static <T> Registry<T> create(ResourceKey<Registry<T>> key) {
 		return FabricRegistryBuilder.createSimple(key).buildAndRegister();

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
 import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record UuidStringProvider(ContextParameter<Entity> entity) implements StringProvider {
+public record UuidStringProvider(Context.Parameter<Entity> entity) implements StringProvider {
 
 	public static final MapCodec<UuidStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(UuidStringProvider::entity)

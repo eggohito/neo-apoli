@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.condition.type.fluid;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.fluid.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -34,8 +33,7 @@ public final class FluidConditionTypes {
 	}
 
 	public static <C extends FluidCondition> FluidConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(FluidConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.FLUID_CONDITION_TYPE, prefixedId, new FluidConditionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.FLUID_CONDITION_TYPE, id, new FluidConditionType<>(mapCodec, streamCodec));
 	}
 
 }

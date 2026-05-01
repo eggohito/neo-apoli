@@ -1,0 +1,66 @@
+package io.github.eggohito.neo_apoli.action.kind.custom;
+
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import net.minecraft.Util;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+
+import java.util.function.Function;
+
+import static net.minecraft.commands.Commands.argument;
+
+public enum EntityActionKind implements ActionKind<EntityAction> {
+
+	INSTANCE;
+
+	@Override
+	public Function<String, CommandBuilder> commandBuilder() {
+		return actionKey -> new CommandBuilder() {
+
+			@Override
+			public ArgumentBuilder<CommandSourceStack, ?> addArguments(CommandBuildContext buildContext, ArgumentBuilder<CommandSourceStack, ?> builder) {
+				return builder
+					.then(argument("target", EntityArgument.entity())
+						.executes(this::execute));
+			}
+
+			int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+				return EntityActionKind.this.execute(
+					commandContext,
+					actionKey,
+					action -> Util.getRegisteredName(NeoApoliRegistries.ENTITY_ACTION_TYPE, action.getType()),
+					builder -> builder
+						.withRequired(NeoApoliContextParams.THIS_ENTITY, EntityArgument.getEntity(commandContext, "target"))
+				);
+			}
+
+		};
+	}
+
+	@Override
+	public ResourceKey<? extends Registry<EntityAction>> registryKey() {
+		return NeoApoliRegistryKeys.ENTITY_ACTION;
+	}
+
+	@Override
+	public Codec<EntityAction> codec() {
+		return EntityAction.CODEC;
+	}
+
+	@Override
+	public String asDisplayString() {
+		return "Entity action";
+	}
+
+}

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.action.type.bientity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.custom.bientity.*;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,8 +35,7 @@ public class BiEntityActionTypes {
 	}
 
 	public static <C extends BiEntityAction> BiEntityActionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(BiEntityActionType.PREFIX);
-		return ActionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.BIENTITY_ACTION_TYPE, prefixedId, new BiEntityActionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.BIENTITY_ACTION_TYPE, id, new BiEntityActionType<>(mapCodec, streamCodec));
 	}
 
 }

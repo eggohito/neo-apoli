@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -19,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityPositionVec3Provider(ContextParameter<Entity> entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
+public record EntityPositionVec3Provider(Context.Parameter<Entity> entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
 
 	public static final MapCodec<EntityPositionVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityPositionVec3Provider::entity),

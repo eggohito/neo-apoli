@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.action.type.item;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.custom.item.*;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -34,8 +33,7 @@ public class ItemActionTypes {
 	}
 
 	public static <C extends ItemAction> ItemActionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(ItemActionType.PREFIX);
-		return ActionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.ITEM_ACTION_TYPE, prefixedId, new ItemActionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.ITEM_ACTION_TYPE, id, new ItemActionType<>(mapCodec, streamCodec));
 	}
 
 }

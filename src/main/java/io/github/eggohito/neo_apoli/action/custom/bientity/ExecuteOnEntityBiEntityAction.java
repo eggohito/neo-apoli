@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
 import io.github.eggohito.neo_apoli.action.custom.meta.ExecuteOnEntityMetaAction;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.Set;
 
-public record ExecuteOnEntityBiEntityAction(EntityAction action, ContextParameter<Entity> entity) implements BiEntityAction, ExecuteOnEntityMetaAction {
+public record ExecuteOnEntityBiEntityAction(EntityAction action, Context.Parameter<Entity> entity) implements BiEntityAction, ExecuteOnEntityMetaAction {
 
 	public static final MapCodec<ExecuteOnEntityBiEntityAction> MAP_CODEC = ExecuteOnEntityMetaAction.mapCodec(ExecuteOnEntityBiEntityAction::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ExecuteOnEntityBiEntityAction> STREAM_CODEC = ExecuteOnEntityMetaAction.streamCodec(ExecuteOnEntityBiEntityAction::new);

@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.bientity;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.action.kind.custom.BiEntityActionKind;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntit
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceBiEntityAction::new);
 
 	@Override
-	public Pair<Class<BiEntityAction>, String> classAndName() {
-		return Pair.of(BiEntityAction.class, "Bi-entity action");
+	public ActionKind<BiEntityAction> targetCategory() {
+		return BiEntityActionKind.INSTANCE;
 	}
 
 	@Override

@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.ConstantVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -26,7 +25,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import java.util.Optional;
 
-public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, ContextParameter<Entity> entity, Vec3Provider pos) implements ItemAction {
+public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, Context.Parameter<Entity> entity, Vec3Provider pos) implements ItemAction {
 
 	public static final MapCodec<ModifyItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ResourceKey.codec(Registries.ITEM_MODIFIER).fieldOf("modifier").forGetter(ModifyItemAction::modifier),

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.condition.type.entity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.entity.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -49,8 +48,7 @@ public class EntityConditionTypes {
 	}
 
 	public static <C extends EntityCondition> EntityConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(EntityConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.ENTITY_CONDITION_TYPE, prefixedId, new EntityConditionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.ENTITY_CONDITION_TYPE, id, new EntityConditionType<>(mapCodec, streamCodec));
 	}
 
 }

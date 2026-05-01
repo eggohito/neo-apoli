@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.BiEntityConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEn
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceBiEntityCondition::new);
 
 	@Override
-	public Pair<Class<BiEntityCondition>, String> classAndName() {
-		return Pair.of(BiEntityCondition.class, "Bi-entity condition");
+	public ConditionKind<BiEntityCondition> targetCategory() {
+		return BiEntityConditionKind.INSTANCE;
 	}
 
 	@Override

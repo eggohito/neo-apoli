@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.effect;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.EffectConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
 import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -20,8 +21,8 @@ public record ReferenceEffectCondition(ResourceLocation value) implements Effect
 	}
 
 	@Override
-	public Pair<Class<EffectCondition>, String> classAndName() {
-		return Pair.of(EffectCondition.class, "Effect condition");
+	public ConditionKind<EffectCondition> targetCategory() {
+		return EffectConditionKind.INSTANCE;
 	}
 
 }

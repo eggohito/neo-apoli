@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.ConditionType;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +17,8 @@ public record ReferenceCondition(ResourceLocation value) implements ReferenceMet
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceCondition::new);
 
 	@Override
-	public Pair<Class<Condition>, String> classAndName() {
-		return Pair.of(Condition.class, "Condition");
+	public ConditionKind<Condition> targetCategory() {
+		return ConditionKind.INSTANCE;
 	}
 
 	@Override

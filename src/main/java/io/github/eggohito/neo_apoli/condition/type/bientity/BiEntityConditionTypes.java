@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.condition.type.bientity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,8 +35,7 @@ public class BiEntityConditionTypes {
 	}
 
 	public static <C extends BiEntityCondition> BiEntityConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(BiEntityConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, prefixedId, new BiEntityConditionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.BIENTITY_CONDITION_TYPE, id, new BiEntityConditionType<>(mapCodec, streamCodec));
 	}
 
 }

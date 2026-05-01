@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record PowerCooldownRemainingTicksNumberProvider(PowerIdentifier power, ContextParameter<Entity> entity) implements NumberProvider {
+public record PowerCooldownRemainingTicksNumberProvider(PowerIdentifier power, Context.Parameter<Entity> entity) implements NumberProvider {
 
 	public static final MapCodec<PowerCooldownRemainingTicksNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksNumberProvider::power),

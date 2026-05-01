@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,7 +24,7 @@ public interface TestEntityMetaCondition extends Condition {
 
 	EntityCondition condition();
 
-	ContextParameter<Entity> entity();
+	Context.Parameter<Entity> entity();
 
 	@Override
 	default boolean test(Context context) {
@@ -55,14 +54,14 @@ public interface TestEntityMetaCondition extends Condition {
 		condition().validate(validator.withAdditionalKeysFromSets(DEFAULT_PARAMS).forChild(".condition"));
 	}
 
-	static <M extends TestEntityMetaCondition> MapCodec<M> mapCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
+	static <M extends TestEntityMetaCondition> MapCodec<M> mapCodec(BiFunction<EntityCondition, Context.Parameter<Entity>, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			EntityCondition.CODEC.fieldOf("condition").forGetter(TestEntityMetaCondition::condition),
 			NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(TestEntityMetaCondition::entity)
 		).apply(instance, constructor));
 	}
 
-	static <M extends TestEntityMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityCondition, ContextParameter<Entity>, M> constructor) {
+	static <M extends TestEntityMetaCondition> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<EntityCondition, Context.Parameter<Entity>, M> constructor) {
 		return StreamCodec.composite(
 			EntityCondition.STREAM_CODEC, TestEntityMetaCondition::condition,
 			NeoApoliContextParams.StreamCodecs.ENTITY, TestEntityMetaCondition::entity,

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
-public record ContextNumberProvider(ContextParameter<Number> parameter) implements NumberProvider {
+public record ContextNumberProvider(Context.Parameter<Number> parameter) implements NumberProvider {
 
 	public static final MapCodec<ContextNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParams.Codecs.NUMBER.fieldOf("parameter").forGetter(ContextNumberProvider::parameter))

@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -23,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, ContextParameter<Entity> actor, Shape shape, NumberProvider radius) implements NumberProvider {
+public record EntitiesInRadiusFromEntityNumberProvider(BiEntityCondition biEntityCondition, Context.Parameter<Entity> actor, Shape shape, NumberProvider radius) implements NumberProvider {
 
 	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
 		.required(NeoApoliContextParams.ACTOR_ENTITY)

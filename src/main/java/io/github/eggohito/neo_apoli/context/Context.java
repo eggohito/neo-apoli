@@ -1,16 +1,19 @@
 package io.github.eggohito.neo_apoli.context;
 
 import com.google.common.collect.Sets;
-import com.mojang.brigadier.tree.CommandNode;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
+import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.Typed;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
+import lombok.experimental.Accessors;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.context.ContextKey;
@@ -20,8 +23,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class Context implements ContextParamsHolder {
@@ -114,31 +120,31 @@ public final class Context implements ContextParamsHolder {
 			return params.getNullable(parameter);
 		}
 
-		public <T> Builder withNullable(ContextParameter<T> key, @Nullable T value) {
+		public <T> Builder withNullable(Parameter<T> key, @Nullable T value) {
 			this.params.withNullable(key,value);
 			return this;
 		}
 
-		public <T> Builder withNullableIfAbsent(ContextParameter<T> key, Supplier<@Nullable T> value) {
+		public <T> Builder withNullableIfAbsent(Parameter<T> key, Supplier<@Nullable T> value) {
 			this.params.withNullableIfAbsent(key, value);
 			return this;
 		}
 
-		public <T> Builder withRequired(ContextParameter<T> key, @NotNull T value) {
+		public <T> Builder withRequired(Parameter<T> key, @NotNull T value) {
 			this.params.withRequired(key, value);
 			return this;
 		}
 
-		public <T> Builder withRequiredIfAbsent(ContextParameter<T> key, Supplier<@NotNull T> value) {
+		public <T> Builder withRequiredIfAbsent(Parameter<T> key, Supplier<@NotNull T> value) {
 			this.params.withRequiredIfAbsent(key, value);
 			return this;
 		}
 
-		public <T> Builder withOptional(ContextParameter<T> key, Optional<T> value) {
+		public <T> Builder withOptional(Parameter<T> key, Optional<T> value) {
 			return this.withNullable(key, value.orElse(null));
 		}
 
-		public <T> Builder withOptionalIfAbsent(ContextParameter<T> key, Supplier<Optional<T>> value) {
+		public <T> Builder withOptionalIfAbsent(Parameter<T> key, Supplier<Optional<T>> value) {
 			this.params.withOptionalIfAbsent(key, value);
 			return this;
 		}
@@ -258,20 +264,50 @@ public final class Context implements ContextParamsHolder {
 
 	}
 
-	public static <T> ContextParameter<T> parameter(ResourceLocation name, Class<T> typeClass) {
-		return new ContextParameter<>(name) {
+	public static <T> Parameter<T> parameter(ResourceLocation name, Class<T> typeClass) {
+		return new Parameter<>(name, typeClass);
+	}
 
-			@Override
-			public @NotNull Class<T> typeClass() {
-				return typeClass;
+	public static <T> Codec<Parameter<T>> parameterCodec(String name, Class<T> typeClass) {
+		return NeoApoliContextParams.CODEC.comapFlatMap(parameterValidator(name, typeClass), Function.identity());
+	}
+
+	public static <T> StreamCodec<RegistryFriendlyByteBuf, Parameter<T>> parameterStreamCodec(String name, Class<T> typeClass) {
+		return NeoApoliContextParams.STREAM_CODEC.map(parameterValidator(name, typeClass).andThen(DataResult::getOrThrow), Function.identity());
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> Function<Parameter<?>, DataResult<Parameter<T>>> parameterValidator(String name, Class<T> typeClass) {
+		return key -> {
+
+			if (key.checkTypeClass(typeClass::isAssignableFrom)) {
+				return DataResult.success((Parameter<T>) key);
 			}
 
-			@Override
-			public void addAsArgument(CommandBuildContext buildContext, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> parameterNode) {
-				// No-op; extend the Context$Key class to implement adding the key as a command argument
+			else {
+				return DataResult.error(() -> "Unknown " + name.toLowerCase(Locale.ROOT) + " parameter: \"" + key.name() + "\"");
 			}
 
 		};
+	}
+
+	@Accessors(fluent = true)
+	@Getter
+	public static final class Parameter<T> extends ContextKey<T> implements Typed<T> {
+
+		private final Class<T> typeClass;
+
+		private Parameter(ResourceLocation name, Class<T> typeClass) {
+			super(name);
+			this.typeClass = typeClass;
+		}
+
+		public boolean checkTypeClass(Predicate<Class<T>> tester) {
+			Class<T> typeClass = this.typeClass();
+			return typeClass != null
+				&& tester.test(typeClass);
+		}
+
 	}
 
 }

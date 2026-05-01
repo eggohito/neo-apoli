@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.impl.misc.MovingEntity;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
 import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
@@ -17,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record VelocityVec3Provider(ContextParameter<Entity> entity) implements Vec3Provider {
+public record VelocityVec3Provider(Context.Parameter<Entity> entity) implements Vec3Provider {
 
     public static final MapCodec<VelocityVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
         .group(NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(VelocityVec3Provider::entity))

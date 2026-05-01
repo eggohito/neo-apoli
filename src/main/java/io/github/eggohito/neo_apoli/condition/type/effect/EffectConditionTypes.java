@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.condition.type.effect;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.effect.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -34,8 +33,7 @@ public final class EffectConditionTypes {
 	}
 
 	public static <C extends EffectCondition> EffectConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(EffectConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.EFFECT_CONDITION_TYPE, prefixedId, new EffectConditionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.EFFECT_CONDITION_TYPE, id, new EffectConditionType<>(mapCodec, streamCodec));
 	}
 
 }

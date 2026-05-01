@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.item;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.ItemConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceItemCondition(ResourceLocation value) implements ItemCond
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceItemCondition::new);
 
 	@Override
-	public Pair<Class<ItemCondition>, String> classAndName() {
-		return Pair.of(ItemCondition.class, "Item condition");
+	public ConditionKind<ItemCondition> targetCategory() {
+		return ItemConditionKind.INSTANCE;
 	}
 
 	@Override

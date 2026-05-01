@@ -1,13 +1,11 @@
 package io.github.eggohito.neo_apoli.condition.custom.meta;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
@@ -19,37 +17,34 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 
 	ResourceLocation value();
 
-	Pair<Class<C>, String> classAndName();
+	ConditionKind<C> targetCategory();
 
 	@Override
 	default boolean test(Context context) {
-		return ConditionManager.getAsResult(this.value())
-			.flatMap(this::checkAndCast)
-			.mapOrElse(
-				condition -> {
+		return ConditionManager.getAsResult(this.targetCategory(), this.value()).mapOrElse(
+			condition -> {
 
-					try {
+				try {
 
-						if (context.visitor().push(condition)) {
-							return condition.test(context.forChild("{" + this.value() + "}"));
-						}
-
-						else {
-							context.forChild(".value").reportProblem(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was tested recursively!");
-						}
-
+					if (context.visitor().push(condition)) {
+						return condition.test(context.forChild(".{\"" + this.value() + "\"}"));
 					}
 
-					finally {
-						context.visitor().pop(condition);
+					else {
+						context.forChild(".value").reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was tested recursively!");
 					}
 
-					return false;
+				}
 
-				},
-				error -> false
-			);
+				finally {
+					context.visitor().pop(condition);
+				}
 
+				return false;
+
+			},
+			error -> false
+		);
 	}
 
 	@Override
@@ -57,33 +52,17 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 
 		Condition.super.validate(validator);
 
-		ResourceKey<Condition> key = ResourceKey.create(NeoApoliRegistryKeys.CONDITION, this.value());
+		ResourceKey<C> key = ResourceKey.create(this.targetCategory().registryKey(), this.value());
 		Context.Validator valueValidator = validator.forChild(".value");
 
 		if (validator.hasVisited(key)) {
-			valueValidator.reportProblem(this.classAndName().getSecond() + " with ID \"" + key.location() + "\" was referenced recursively!");
+			valueValidator.reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + " was referenced recursively!");
 		}
 
 		else {
-			ConditionManager.getAsResult(key.location())
-				.flatMap(this::checkAndCast)
-				.ifSuccess(condition -> condition.validate(validator.visitChild("{" + key.location() + "}", key)))
+			ConditionManager.getAsResult(this.targetCategory(), this.value())
+				.ifSuccess(condition -> condition.validate(validator.visitChild(".{\"" + this.value() + "\"}", key)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
-		}
-
-	}
-
-	default DataResult<C> checkAndCast(Condition condition) {
-
-		Class<C> clazz = this.classAndName().getFirst();
-		String name = this.classAndName().getSecond();
-
-		if (clazz.isInstance(condition)) {
-			return DataResult.success(clazz.cast(condition));
-		}
-
-		else {
-			return DataResult.error(() -> name + " with ID \"" + this.value() + "\" doesn't exist!");
 		}
 
 	}

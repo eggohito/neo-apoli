@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.block;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.BlockConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceBlockCondition(ResourceLocation value) implements BlockCo
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceBlockCondition::new);
 
 	@Override
-	public Pair<Class<BlockCondition>, String> classAndName() {
-		return Pair.of(BlockCondition.class, "Block condition");
+	public ConditionKind<BlockCondition> targetCategory() {
+		return BlockConditionKind.INSTANCE;
 	}
 
 	@Override

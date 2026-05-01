@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.FluidConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -20,8 +21,8 @@ public record ReferenceFluidCondition(ResourceLocation value) implements FluidCo
 	}
 
 	@Override
-	public Pair<Class<FluidCondition>, String> classAndName() {
-		return Pair.of(FluidCondition.class, "Fluid condition");
+	public ConditionKind<FluidCondition> targetCategory() {
+		return FluidConditionKind.INSTANCE;
 	}
 
 }

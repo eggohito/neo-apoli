@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.*;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
@@ -38,7 +39,8 @@ public final class ActionTypes {
 	}
 
 	public static <A extends Action> ActionType<A> register(ResourceLocation id, MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> streamCodec) {
-		return register(id, new ActionType<A>() {
+
+		var type = new ActionType<A>() {
 
 			@Override
 			public MapCodec<A> mapCodec() {
@@ -50,11 +52,15 @@ public final class ActionTypes {
 				return streamCodec;
 			}
 
-		});
-	}
+			@Override
+			public ActionKind<?> kind() {
+				return ActionKind.INSTANCE;
+			}
 
-	public static <A extends Action, T extends ActionType<A>> T register(ResourceLocation id, T type) {
+		};
+
 		return Registry.register(NeoApoliRegistries.ACTION_TYPE, id, type);
+
 	}
 
 }

@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -20,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityBoundsBoxProvider(ContextParameter<Entity> entity) implements BoxProvider {
+public record EntityBoundsBoxProvider(Context.Parameter<Entity> entity) implements BoxProvider {
 
 	public static final MapCodec<EntityBoundsBoxProvider> MAP_CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)

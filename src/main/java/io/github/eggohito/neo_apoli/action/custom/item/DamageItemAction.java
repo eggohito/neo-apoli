@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
 import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
@@ -19,7 +18,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
 
-public record DamageItemAction(ContextParameter<Entity> entity, NumberProvider amount, BooleanProvider ignoreEnchantments) implements ItemAction {
+public record DamageItemAction(Context.Parameter<Entity> entity, NumberProvider amount, BooleanProvider ignoreEnchantments) implements ItemAction {
 
 	public static final MapCodec<DamageItemAction> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity", NeoApoliContextParams.THIS_ENTITY).forGetter(DamageItemAction::entity),

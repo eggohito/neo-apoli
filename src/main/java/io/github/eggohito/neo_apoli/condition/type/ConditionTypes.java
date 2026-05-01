@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.*;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
@@ -47,7 +48,13 @@ public final class ConditionTypes {
 	}
 
 	public static <C extends Condition> ConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		return register(id, new ConditionType<>() {
+
+		var type = new ConditionType<C>() {
+
+			@Override
+			public ConditionKind<?> kind() {
+				return ConditionKind.INSTANCE;
+			}
 
 			@Override
 			public MapCodec<C> mapCodec() {
@@ -59,11 +66,10 @@ public final class ConditionTypes {
 				return streamCodec;
 			}
 
-		});
-	}
+		};
 
-	public static <C extends Condition, T extends ConditionType<C>> T register(ResourceLocation id, T type) {
 		return Registry.register(NeoApoliRegistries.CONDITION_TYPE, id, type);
+
 	}
 
 }

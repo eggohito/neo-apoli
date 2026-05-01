@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.custom.entity.EntityAction;
+import io.github.eggohito.neo_apoli.action.kind.custom.EntityActionKind;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -14,13 +15,15 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record EntityActionType<A extends EntityAction>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> streamCodec) implements ActionType<A> {
 
-	public static final String PREFIX = "entity/";
-
 	public static final FixedRegistryAlias<EntityActionType<?>> ALIASES = FixedRegistryAlias.extended(NeoApoliRegistries.ENTITY_ACTION_TYPE, ActionType.ALIASES);
 
 	public static final Codec<EntityActionType<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityActionType<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.ENTITY_ACTION_TYPE);
 
+	@Override
+	public EntityActionKind kind() {
+		return EntityActionKind.INSTANCE;
+	}
 
 }

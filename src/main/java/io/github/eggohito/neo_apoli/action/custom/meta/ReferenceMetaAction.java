@@ -1,13 +1,11 @@
 package io.github.eggohito.neo_apoli.action.custom.meta;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
@@ -17,69 +15,49 @@ import java.util.function.Function;
 
 public interface ReferenceMetaAction<A extends Action> extends Action {
 
-	Pair<Class<A>, String> classAndName();
+	ActionKind<A> targetCategory();
 
 	ResourceLocation value();
 
 	@Override
 	default void execute(Context context) {
+		ActionManager.getAsResult(this.targetCategory(), this.value()).ifSuccess(action -> {
 
-		ActionManager.getAsResult(this.value())
-			.flatMap(this::checkAndCast)
-			.ifSuccess(
-				action -> {
+			try {
 
-					try {
-
-						if (context.visitor().push(action)) {
-							action.execute(context.forChild(".{\"" + this.value() + "\"}"));
-						}
-
-						else {
-							context.forChild(".value").reportProblem(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was executed recursively!");
-						}
-
-					}
-
-					finally {
-						context.visitor().pop(action);
-					}
-
+				if (context.visitor().push(action)) {
+					action.execute(context.forChild(".{\"" + this.value() + "\"}"));
 				}
-			);
 
+				else {
+					context.forChild(".value").reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was executed recursively!");
+				}
+
+			}
+
+			finally {
+				context.visitor().pop(action);
+			}
+
+		});
 	}
 
 	@Override
 	default void validate(Context.Validator validator) {
 
-		ResourceKey<Action> key = ResourceKey.create(NeoApoliRegistryKeys.ACTION, this.value());
+		Action.super.validate(validator);
+
+		ResourceKey<A> key = ResourceKey.create(this.targetCategory().registryKey(), this.value());
 		Context.Validator valueValidator = validator.forChild(".value");
 
 		if (validator.hasVisited(key)) {
-			valueValidator.reportProblem(this.classAndName().getSecond() + " with ID \"" + this.value() + "\" was referenced recursively!");
+			valueValidator.reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was referenced recursively!");
 		}
 
 		else {
-			ActionManager.getAsResult(this.value())
-				.flatMap(this::checkAndCast)
-				.ifSuccess(condition -> condition.validate(validator.visitChild(".value", key)))
+			ActionManager.getAsResult(this.targetCategory(), this.value())
+				.ifSuccess(action -> action.validate(validator.visitChild(".{\"" + this.value() + "\"}", key)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
-		}
-
-	}
-
-	default DataResult<A> checkAndCast(Action action) {
-
-		Class<A> actionClass = this.classAndName().getFirst();
-		String name = this.classAndName().getSecond();
-
-		if (actionClass.isInstance(action)) {
-			return DataResult.success(actionClass.cast(action));
-		}
-
-		else {
-			return DataResult.error(() -> name + " with ID \"" + this.value() + "\" doesn't exist!");
 		}
 
 	}

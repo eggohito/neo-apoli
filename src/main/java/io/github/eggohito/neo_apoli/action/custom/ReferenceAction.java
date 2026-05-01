@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.action.type.ActionType;
 import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,8 +16,8 @@ public record ReferenceAction(ResourceLocation value) implements ReferenceMetaAc
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceAction::new);
 
 	@Override
-	public Pair<Class<Action>, String> classAndName() {
-		return Pair.of(Action.class, "Action");
+	public ActionKind<Action> targetCategory() {
+		return ActionKind.INSTANCE;
 	}
 
 	@Override

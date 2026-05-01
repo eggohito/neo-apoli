@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
 import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Set;
 
-public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, ContextParameter<Entity> entity) implements NumberProvider {
+public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, Context.Parameter<Entity> entity) implements NumberProvider {
 
 	public static final MapCodec<EquippedEnchantmentLevelNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Enchantment.CODEC.fieldOf("enchantment").forGetter(EquippedEnchantmentLevelNumberProvider::enchantment),

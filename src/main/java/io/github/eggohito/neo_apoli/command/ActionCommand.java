@@ -4,22 +4,21 @@ import com.google.gson.JsonElement;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.command.argument.ActionArgument;
-import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.action.kind.ActionKinds;
+import io.github.eggohito.neo_apoli.command.argument.action.ActionKindArgument;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.Reporter;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.resources.RegistryOps;
 
 import static net.minecraft.commands.Commands.argument;
@@ -33,7 +32,7 @@ public class ActionCommand {
 			.requires(source -> source.hasPermission(2))
 			.build();
 
-		baseNode.addChild(DumpSubCommand.node(registryAccess));
+		baseNode.addChild(DumpSubCommand.node());
 		baseNode.addChild(ExecuteSubCommand.node(registryAccess));
 
 		rootNode.addChild(baseNode);
@@ -42,13 +41,20 @@ public class ActionCommand {
 
 	static final class DumpSubCommand {
 
-		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
+		private static final SuggestionProvider<CommandSourceStack> ACTION_SUGGESTIONS = (context, builder) -> {
+			ActionKind<?> category = ActionKindArgument.getCategory(context, "category");
+			return SharedSuggestionProvider.suggestResource(ActionManager.ids(category), builder);
+		};
+
+		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("dump")
-				.then(argument("action", ActionArgument.action(registryAccess))
-					.executes(DumpSubCommand::withDefaultIndent)
-					.then(argument("indent", IntegerArgumentType.integer(0))
-						.executes(DumpSubCommand::withSpecificIndent)));
+				.then(argument("category", ActionKindArgument.category())
+					.then(argument("action", ResourceLocationArgument.id())
+						.suggests(ACTION_SUGGESTIONS)
+						.executes(DumpSubCommand::withDefaultIndent)
+						.then(argument("indent", IntegerArgumentType.integer(0))
+							.executes(DumpSubCommand::withSpecificIndent))));
 
 			return node.build();
 
@@ -67,7 +73,8 @@ public class ActionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			Action action = ActionArgument.getAction(commandContext, "action");
+			ActionKind<?> category = ActionKindArgument.getCategory(commandContext, "category");
+			Action action = ActionManager.getAsResult(category, ResourceLocationArgument.getId(commandContext, "action")).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 
 			return switch (Action.CODEC.encodeStart(ops, action)) {
 				case DataResult.Success<JsonElement> success -> {
@@ -89,58 +96,7 @@ public class ActionCommand {
 	static final class ExecuteSubCommand {
 
 		static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
-
-			var executeNode = literal("execute").build();
-			var withNode = literal("with").build();
-			var forNode = literal("for").build();
-			var actionNode = argument("action", ActionArgument.inlineAction(buildContext)).executes(ExecuteSubCommand::execute).build();
-
-			NeoApoliContextParams.addAllAsArguments(buildContext, executeNode, withNode);
-
-			forNode.addChild(actionNode);
-			executeNode.addChild(withNode);
-			executeNode.addChild(forNode);
-
-			return executeNode;
-
-		}
-
-		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-
-			CommandSourceStack source = commandContext.getSource();
-			Context.Builder builder = source.neo_apoli$getContextBuilder();
-
-			Action action = ActionArgument.getAction(commandContext, "action");
-			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
-
-			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter).withResolver(source.registryAccess());
-
-			action.validate(validator);
-			var validationException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validating action ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (validationException.isPresent()) {
-				throw validationException.get();
-			}
-
-			Context context = builder
-				.withReporter(reporter)
-				.build(source.getLevel());
-
-			action.execute(context);
-			var executionException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while executing action ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (executionException.isPresent()) {
-				throw executionException.get();
-			}
-
-			source.sendSuccess(() -> Component.nullToEmpty("Successfully executed action!"), true);
-			return 1;
-
+			return ActionKinds.addAsArguments(buildContext, literal("execute")).build();
 		}
 
 	}

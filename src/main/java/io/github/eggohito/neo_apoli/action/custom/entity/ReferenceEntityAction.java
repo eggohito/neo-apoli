@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.action.kind.custom.EntityActionKind;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
 import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceEntityAction(ResourceLocation value) implements EntityAct
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceEntityAction::new);
 
 	@Override
-	public Pair<Class<EntityAction>, String> classAndName() {
-		return Pair.of(EntityAction.class, "Entity action");
+	public ActionKind<EntityAction> targetCategory() {
+		return EntityActionKind.INSTANCE;
 	}
 
 	@Override

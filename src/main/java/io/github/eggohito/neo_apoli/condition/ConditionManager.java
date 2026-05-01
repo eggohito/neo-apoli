@@ -6,7 +6,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -39,15 +40,15 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ResourceLocation, JsonWithSource>> implements IdentifiableResourceReloadListener {
+@SuppressWarnings("unchecked")
+public final class ConditionManager extends SimplePreparableReloadListener<Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>>> implements IdentifiableResourceReloadListener {
 
-	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.CONDITION);
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/conditions");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
 
-	private static final Object2ObjectOpenHashMap<ResourceLocation, Condition> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Map<ConditionKind<?>, Map<ResourceLocation, Condition>> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final IdentityHashMap<Condition, ResourceLocation> BY_CONDITION = new IdentityHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
@@ -57,26 +58,33 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	@Override
-	protected @NotNull Map<ResourceLocation, JsonWithSource> prepare(ResourceManager manager, ProfilerFiller profiler) {
-		return MiscUtil.collectJson(manager, LOADER, ops, LOGGER::error);
+	protected @NotNull Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> prepare(ResourceManager manager, ProfilerFiller profiler) {
+
+		Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
+		NeoApoliRegistries.CONDITION_KIND.forEach(kind -> result
+			.computeIfAbsent(kind, k -> new Object2ObjectOpenHashMap<>())
+			.putAll(MiscUtil.collectJson(manager, JsonFileToIdConverter.registry(kind.registryKey()), ops, LOGGER::error)));
+
+		return result;
+
 	}
 
 	@Override
-	protected void apply(Map<ResourceLocation, JsonWithSource> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
 
-		prepared.forEach((id, entry) -> {
+		prepared.forEach((kind, conditions) -> conditions.forEach((id, jsonWithSource) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			Condition.CODEC.parse(ops, entry.json())
+			kind.codec().parse(ops, jsonWithSource.json())
 				.ifSuccess(condition -> register(id, condition))
-				.ifError(error -> LOGGER.error("Error trying to parse condition \"{}\" from data pack [{}] (skipping): {}", id, entry.source(), error.message()));
+				.ifError(error -> LOGGER.error("Error trying to parse {} \"{}\" from data pack [{}] (skipping): {}", kind.asDisplayString(false), id, jsonWithSource.source(), error.message()));
 
 			ResourceLocationUtil.setCurrent(null);
 
-		});
+		}));
 
 		LOGGER.info("Finished parsing conditions from data packs. Parsed {} condition(s)", BY_ID.size());
 
@@ -92,14 +100,23 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 		return DEPENDENCIES;
 	}
 
-	public static DataResult<Condition> getAsResult(ResourceLocation id) {
-		return contains(id)
-			? DataResult.success(BY_ID.get(id))
-			: DataResult.error(() -> "Condition with ID \"" + id + "\" does not exist!");
+	public static <C extends Condition> DataResult<C> getAsResult(ConditionKind<C> kind, ResourceLocation id) {
+
+		var entries = BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>());
+		var matching = entries.get(id);
+
+		if (matching != null) {
+			return DataResult.success((C) matching);
+		}
+
+		else {
+			return DataResult.error(() -> kind.asDisplayString() + " with ID \"" + id + "\" doesn't exist!");
+		}
+
 	}
 
-	public static Condition get(ResourceLocation id) {
-		return getAsResult(id).getOrThrow();
+	public static <C extends Condition> C get(ConditionKind<C> kind, ResourceLocation id) {
+		return getAsResult(kind, id).getOrThrow();
 	}
 
 	public static DataResult<ResourceLocation> getIdAsResult(Condition condition) {
@@ -112,16 +129,18 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 		return getIdAsResult(condition).getOrThrow();
 	}
 
-	public static Stream<Condition> conditions() {
-		return BY_ID.values().stream();
+	public static <C extends Condition> Stream<C> conditions(ConditionKind<C> kind) {
+		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).values()
+			.stream()
+			.map(condition -> (C) condition);
 	}
 
-	public static Stream<ResourceLocation> ids() {
-		return BY_ID.keySet().stream();
+	public static <C extends Condition> Stream<ResourceLocation> ids(ConditionKind<C> kind) {
+		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).keySet().stream();
 	}
 
-	public static boolean contains(ResourceLocation id) {
-		return BY_ID.containsKey(id);
+	public static boolean contains(ConditionKind<?> kind, ResourceLocation id) {
+		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).containsKey(id);
 	}
 
 	public static boolean containsId(Condition condition) {
@@ -133,7 +152,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 	}
 
 	private static void register(ResourceLocation id, Condition condition) {
-		BY_ID.put(id, condition);
+		BY_ID.computeIfAbsent(condition.getType().kind(), k -> new Object2ObjectOpenHashMap<>()).put(id, condition);
 		BY_CONDITION.put(condition, id);
 	}
 
@@ -153,12 +172,13 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sync(player));
 	}
 
-	public record SynchronizeConditionsS2CPacket(Map<ResourceLocation, Condition> conditions) implements CustomPacketPayload {
+	public record SynchronizeConditionsS2CPacket(Map<ConditionKind<?>, Map<ResourceLocation, Condition>> conditions) implements CustomPacketPayload {
 
 		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, Condition>> CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, Condition.STREAM_CODEC);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ConditionKind<?>, Map<ResourceLocation, Condition>>> KIND_CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ConditionKind.STREAM_CODEC, CONDITIONS_CODEC);
 
 		public static final Type<SynchronizeConditionsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_conditions"));
-		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeConditionsS2CPacket> CODEC = CONDITIONS_CODEC.map(SynchronizeConditionsS2CPacket::new, SynchronizeConditionsS2CPacket::conditions);
+		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeConditionsS2CPacket> CODEC = KIND_CONDITIONS_CODEC.map(SynchronizeConditionsS2CPacket::new, SynchronizeConditionsS2CPacket::conditions);
 
 		@Override
 		public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -174,9 +194,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<R
 			BY_ID.clear();
 			BY_CONDITION.clear();
 
-			conditions().forEach(ConditionManager::register);
-
-			BY_ID.trim();
+			conditions().forEach((kind, entries) -> entries.forEach(ConditionManager::register));
 
 		}
 

@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.block;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
+import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.action.kind.custom.BlockActionKind;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
 import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceBlockAction(ResourceLocation value) implements BlockActio
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceBlockAction::new);
 
 	@Override
-	public Pair<Class<BlockAction>, String> classAndName() {
-		return Pair.of(BlockAction.class, "Block action");
+	public ActionKind<BlockAction> targetCategory() {
+		return BlockActionKind.INSTANCE;
 	}
 
 	@Override

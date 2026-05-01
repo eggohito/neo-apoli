@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
 import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public record EntityNbtProvider(ContextParameter<Entity> entity) implements NbtProvider {
+public record EntityNbtProvider(Context.Parameter<Entity> entity) implements NbtProvider {
 
 	public static final MapCodec<EntityNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityNbtProvider::entity)

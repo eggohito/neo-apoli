@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.context;
 
 import com.google.common.collect.Sets;
-import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
@@ -64,7 +63,7 @@ public class ContextParams implements ContextParamsHolder {
 			return (T) params.get(parameter);
 		}
 
-		public <T> Builder withNullable(ContextParameter<T> key, @Nullable T value) {
+		public <T> Builder withNullable(Context.Parameter<T> key, @Nullable T value) {
 
 			this.params.put(key,value);
 
@@ -76,23 +75,23 @@ public class ContextParams implements ContextParamsHolder {
 
 		}
 
-		public <T> Builder withNullableIfAbsent(ContextParameter<T> key, Supplier<@Nullable T> value) {
+		public <T> Builder withNullableIfAbsent(Context.Parameter<T> key, Supplier<@Nullable T> value) {
 			return hasParameter(key) ? this : withNullable(key, value.get());
 		}
 
-		public <T> Builder withRequired(ContextParameter<T> key, @NotNull T value) {
+		public <T> Builder withRequired(Context.Parameter<T> key, @NotNull T value) {
 			return this.withNullable(key, value);
 		}
 
-		public <T> Builder withRequiredIfAbsent(ContextParameter<T> key, Supplier<@NotNull T> value) {
+		public <T> Builder withRequiredIfAbsent(Context.Parameter<T> key, Supplier<@NotNull T> value) {
 			return hasParameter(key) ? this : withRequired(key, value.get());
 		}
 
-		public <T> Builder withOptional(ContextParameter<T> key, Optional<T> value) {
+		public <T> Builder withOptional(Context.Parameter<T> key, Optional<T> value) {
 			return this.withNullable(key, value.orElse(null));
 		}
 
-		public <T> Builder withOptionalIfAbsent(ContextParameter<T> key, Supplier<Optional<T>> value) {
+		public <T> Builder withOptionalIfAbsent(Context.Parameter<T> key, Supplier<Optional<T>> value) {
 			return  hasParameter(key) ? this : withOptional(key, value.get());
 		}
 

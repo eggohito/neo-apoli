@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.damage;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.DamageConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
 import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceDamageCondition(ResourceLocation value) implements Damage
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceDamageCondition::new);
 
 	@Override
-	public Pair<Class<DamageCondition>, String> classAndName() {
-		return Pair.of(DamageCondition.class, "Damage condition");
+	public ConditionKind<DamageCondition> targetCategory() {
+		return DamageConditionKind.INSTANCE;
 	}
 
 	@Override

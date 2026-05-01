@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.condition.type.world;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.custom.world.*;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,8 +35,7 @@ public class WorldConditionTypes {
 	}
 
 	public static <C extends WorldCondition> WorldConditionType<C> register(ResourceLocation id, MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
-		ResourceLocation prefixedId = id.withPrefix(WorldConditionType.PREFIX);
-		return ConditionTypes.register(prefixedId, Registry.register(NeoApoliRegistries.WORLD_CONDITION_TYPE, prefixedId, new WorldConditionType<>(mapCodec, streamCodec)));
+		return Registry.register(NeoApoliRegistries.WORLD_CONDITION_TYPE, id, new WorldConditionType<>(mapCodec, streamCodec));
 	}
 
 }

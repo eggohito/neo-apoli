@@ -4,23 +4,24 @@ import com.google.gson.JsonElement;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import io.github.eggohito.neo_apoli.command.argument.ConditionArgument;
+import io.github.eggohito.neo_apoli.command.argument.condition.ConditionKindArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.Reporter;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.resources.RegistryOps;
+
+import java.util.Optional;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -33,7 +34,7 @@ public class ConditionCommand {
 			.requires(source -> source.hasPermission(2))
 			.build();
 
-		baseNode.addChild(DumpSubCommand.node(registryAccess));
+		baseNode.addChild(DumpSubCommand.node());
 		baseNode.addChild(TestSubCommand.node(registryAccess));
 
 		rootNode.addChild(baseNode);
@@ -42,13 +43,20 @@ public class ConditionCommand {
 
 	static final class DumpSubCommand {
 
-		static CommandNode<CommandSourceStack> node(CommandBuildContext registryAccess) {
+		private static final SuggestionProvider<CommandSourceStack> CONDITION_SUGGESTIONS = (context, builder) -> {
+			ConditionKind<?> category = ConditionKindArgument.getCategory(context, "category");
+			return SharedSuggestionProvider.suggestResource(ConditionManager.ids(category), builder);
+		};
+
+		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("dump")
-				.then(argument("condition", ConditionArgument.condition(registryAccess))
-					.executes(DumpSubCommand::withDefaultIndent)
-					.then(argument("indent", IntegerArgumentType.integer(0))
-						.executes(DumpSubCommand::withSpecificIndent)));
+				.then(argument("category", ConditionKindArgument.category())
+					.then(argument("condition", ResourceLocationArgument.id())
+						.suggests(CONDITION_SUGGESTIONS)
+						.executes(DumpSubCommand::withDefaultIndent)
+						.then(argument("indent", IntegerArgumentType.integer(0))
+							.executes(DumpSubCommand::withSpecificIndent))));
 
 			return node.build();
 
@@ -67,7 +75,8 @@ public class ConditionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
+			ConditionKind<?> category = ConditionKindArgument.getCategory(commandContext, "category");
+			Condition condition = ConditionManager.getAsResult(category, ResourceLocationArgument.getId(commandContext, "condition")).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 
 			return switch (Condition.CODEC.encodeStart(ops, condition)) {
 				case DataResult.Success<JsonElement> success -> {
@@ -89,71 +98,7 @@ public class ConditionCommand {
 	public static final class TestSubCommand {
 
 		 static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
-
-			 var testNode = literal("test").build();
-			 var withNode = literal("with").build();
-			 var forNode = literal("for").build();
-			 var conditionNode = argument("condition", ConditionArgument.inlineCondition(buildContext)).executes(TestSubCommand::testAsInt).build();
-
-			 NeoApoliContextParams.addAllAsArguments(buildContext, testNode, withNode);
-
-			 forNode.addChild(conditionNode);
-			 testNode.addChild(withNode);
-			 testNode.addChild(forNode);
-
-			 return testNode;
-
-		}
-
-		 static int testAsInt(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-
-			if (test(commandContext)) {
-				commandContext.getSource().sendSuccess(() -> Component.translatable("commands.execute.conditional.pass"), false);
-			}
-
-			else {
-				throw MiscUtil.createCommandException(Component.translatable("commands.execute.conditional.fail"));
-			}
-
-			return 1;
-
-		}
-
-		public static boolean test(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-
-			CommandSourceStack source = commandContext.getSource();
-			Context.Builder builder = source.neo_apoli$getContextBuilder();
-
-			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
-			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
-
-			Reporter reporter = new Reporter(path);
-			Context.Validator validator = new Context.Validator(builder.toKeySet(), reporter).withResolver(source.registryAccess());
-
-			condition.validate(validator);
-			var validationException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validating condition ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (validationException.isPresent()) {
-				throw validationException.get();
-			}
-
-			Context context = builder
-				.withReporter(reporter)
-				.build(source.getLevel());
-
-			boolean result = condition.test(context);
-			var executionException = reporter.getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while executing condition ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (executionException.isPresent()) {
-				throw executionException.get();
-			}
-
-			return result;
-
+			 return ConditionKinds.addAsArguments(Optional.empty(), buildContext, literal("test"), true).build();
 		}
 
 	}

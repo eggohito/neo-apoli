@@ -1,8 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.entity;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
+import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
+import io.github.eggohito.neo_apoli.condition.kind.custom.EntityConditionKind;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +16,8 @@ public record ReferenceEntityCondition(ResourceLocation value) implements Entity
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceEntityCondition::new);
 
 	@Override
-	public Pair<Class<EntityCondition>, String> classAndName() {
-		return Pair.of(EntityCondition.class, "Entity condition");
+	public ConditionKind<EntityCondition> targetCategory() {
+		return EntityConditionKind.INSTANCE;
 	}
 
 	@Override
