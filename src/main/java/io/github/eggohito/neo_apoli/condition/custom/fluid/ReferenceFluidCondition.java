@@ -21,7 +21,7 @@ public record ReferenceFluidCondition(ResourceLocation value) implements FluidCo
 	}
 
 	@Override
-	public ConditionKind<FluidCondition> targetCategory() {
+	public ConditionKind<FluidCondition> targetKind() {
 		return FluidConditionKind.INSTANCE;
 	}
 

@@ -16,7 +16,7 @@ public record ReferenceBiEntityCondition(ResourceLocation value) implements BiEn
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceBiEntityCondition::new);
 
 	@Override
-	public ConditionKind<BiEntityCondition> targetCategory() {
+	public ConditionKind<BiEntityCondition> targetKind() {
 		return BiEntityConditionKind.INSTANCE;
 	}
 

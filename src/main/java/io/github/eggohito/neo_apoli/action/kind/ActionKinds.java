@@ -27,8 +27,8 @@ public final class ActionKinds {
 		register(ActionKind.INSTANCE);
 	}
 
-	public static <A extends Action, C extends ActionKind<A>> C register(C category) {
-		return Registry.register(NeoApoliRegistries.ACTION_KIND, category.registryKey().location(), category);
+	public static <A extends Action, K extends ActionKind<A>> K register(K kind) {
+		return Registry.register(NeoApoliRegistries.ACTION_KIND, kind.registryKey().location(), kind);
 	}
 
 	public static ArgumentBuilder<CommandSourceStack, ?> addAsArguments(CommandBuildContext buildContext, ArgumentBuilder<CommandSourceStack, ?> builder) {

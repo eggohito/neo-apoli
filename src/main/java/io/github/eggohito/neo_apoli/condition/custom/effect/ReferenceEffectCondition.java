@@ -21,7 +21,7 @@ public record ReferenceEffectCondition(ResourceLocation value) implements Effect
 	}
 
 	@Override
-	public ConditionKind<EffectCondition> targetCategory() {
+	public ConditionKind<EffectCondition> targetKind() {
 		return EffectConditionKind.INSTANCE;
 	}
 

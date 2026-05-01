@@ -16,7 +16,7 @@ public record ReferenceItemCondition(ResourceLocation value) implements ItemCond
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceItemCondition::new);
 
 	@Override
-	public ConditionKind<ItemCondition> targetCategory() {
+	public ConditionKind<ItemCondition> targetKind() {
 		return ItemConditionKind.INSTANCE;
 	}
 

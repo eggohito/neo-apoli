@@ -16,7 +16,7 @@ public record ReferenceBlockAction(ResourceLocation value) implements BlockActio
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceBlockAction::new);
 
 	@Override
-	public ActionKind<BlockAction> targetCategory() {
+	public ActionKind<BlockAction> targetKind() {
 		return BlockActionKind.INSTANCE;
 	}
 

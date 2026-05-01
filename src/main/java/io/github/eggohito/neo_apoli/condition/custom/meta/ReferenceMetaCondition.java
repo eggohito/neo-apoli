@@ -17,11 +17,11 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 
 	ResourceLocation value();
 
-	ConditionKind<C> targetCategory();
+	ConditionKind<C> targetKind();
 
 	@Override
 	default boolean test(Context context) {
-		return ConditionManager.getAsResult(this.targetCategory(), this.value()).mapOrElse(
+		return ConditionManager.getAsResult(this.targetKind(), this.value()).mapOrElse(
 			condition -> {
 
 				try {
@@ -31,7 +31,7 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 					}
 
 					else {
-						context.forChild(".value").reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was tested recursively!");
+						context.forChild(".value").reportProblem(this.targetKind().asDisplayString() + " with ID \"" + this.value() + "\" was tested recursively!");
 					}
 
 				}
@@ -52,15 +52,15 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 
 		Condition.super.validate(validator);
 
-		ResourceKey<C> key = ResourceKey.create(this.targetCategory().registryKey(), this.value());
+		ResourceKey<C> key = ResourceKey.create(this.targetKind().registryKey(), this.value());
 		Context.Validator valueValidator = validator.forChild(".value");
 
 		if (validator.hasVisited(key)) {
-			valueValidator.reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + " was referenced recursively!");
+			valueValidator.reportProblem(this.targetKind().asDisplayString() + " with ID \"" + this.value() + " was referenced recursively!");
 		}
 
 		else {
-			ConditionManager.getAsResult(this.targetCategory(), this.value())
+			ConditionManager.getAsResult(this.targetKind(), this.value())
 				.ifSuccess(condition -> condition.validate(validator.visitChild(".{\"" + this.value() + "\"}", key)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 		}

@@ -16,7 +16,7 @@ public record ReferenceDamageCondition(ResourceLocation value) implements Damage
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceDamageCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceDamageCondition::new);
 
 	@Override
-	public ConditionKind<DamageCondition> targetCategory() {
+	public ConditionKind<DamageCondition> targetKind() {
 		return DamageConditionKind.INSTANCE;
 	}
 

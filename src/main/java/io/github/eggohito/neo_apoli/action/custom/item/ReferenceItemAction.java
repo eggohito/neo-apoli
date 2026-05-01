@@ -16,7 +16,7 @@ public record ReferenceItemAction(ResourceLocation value) implements ItemAction,
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceItemAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceItemAction::new);
 
 	@Override
-	public ActionKind<ItemAction> targetCategory() {
+	public ActionKind<ItemAction> targetKind() {
 		return ItemActionKind.INSTANCE;
 	}
 

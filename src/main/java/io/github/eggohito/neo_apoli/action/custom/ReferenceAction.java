@@ -16,7 +16,7 @@ public record ReferenceAction(ResourceLocation value) implements ReferenceMetaAc
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceAction::new);
 
 	@Override
-	public ActionKind<Action> targetCategory() {
+	public ActionKind<Action> targetKind() {
 		return ActionKind.INSTANCE;
 	}
 

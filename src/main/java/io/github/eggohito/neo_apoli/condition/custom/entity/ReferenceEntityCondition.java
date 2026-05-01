@@ -16,7 +16,7 @@ public record ReferenceEntityCondition(ResourceLocation value) implements Entity
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceEntityCondition::new);
 
 	@Override
-	public ConditionKind<EntityCondition> targetCategory() {
+	public ConditionKind<EntityCondition> targetKind() {
 		return EntityConditionKind.INSTANCE;
 	}
 

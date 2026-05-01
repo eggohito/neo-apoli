@@ -30,8 +30,8 @@ public final class ConditionKinds {
 		register(WorldConditionKind.INSTANCE);
 	}
 
-	public static <C extends Condition, CC extends ConditionKind<C>> CC register(CC category) {
-		return Registry.register(NeoApoliRegistries.CONDITION_KIND, category.registryKey().location(), category);
+	public static <C extends Condition, K extends ConditionKind<C>> K register(K kind) {
+		return Registry.register(NeoApoliRegistries.CONDITION_KIND, kind.registryKey().location(), kind);
 	}
 
 	public static ArgumentBuilder<CommandSourceStack, ?> addAsArguments(Optional<CommandNode<CommandSourceStack>> rootNode, CommandBuildContext buildContext, ArgumentBuilder<CommandSourceStack, ?> builder, boolean positive) {

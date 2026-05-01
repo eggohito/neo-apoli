@@ -16,7 +16,7 @@ public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntit
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceBiEntityAction::new);
 
 	@Override
-	public ActionKind<BiEntityAction> targetCategory() {
+	public ActionKind<BiEntityAction> targetKind() {
 		return BiEntityActionKind.INSTANCE;
 	}
 

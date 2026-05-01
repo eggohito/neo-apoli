@@ -16,7 +16,7 @@ public record ReferenceBlockCondition(ResourceLocation value) implements BlockCo
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBlockCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceBlockCondition::new);
 
 	@Override
-	public ConditionKind<BlockCondition> targetCategory() {
+	public ConditionKind<BlockCondition> targetKind() {
 		return BlockConditionKind.INSTANCE;
 	}
 

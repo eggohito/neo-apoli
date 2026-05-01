@@ -16,7 +16,7 @@ public record ReferenceEntityAction(ResourceLocation value) implements EntityAct
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceEntityAction::new);
 
 	@Override
-	public ActionKind<EntityAction> targetCategory() {
+	public ActionKind<EntityAction> targetKind() {
 		return EntityActionKind.INSTANCE;
 	}
 

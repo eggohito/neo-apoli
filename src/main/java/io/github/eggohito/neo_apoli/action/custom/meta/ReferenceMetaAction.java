@@ -15,13 +15,13 @@ import java.util.function.Function;
 
 public interface ReferenceMetaAction<A extends Action> extends Action {
 
-	ActionKind<A> targetCategory();
+	ActionKind<A> targetKind();
 
 	ResourceLocation value();
 
 	@Override
 	default void execute(Context context) {
-		ActionManager.getAsResult(this.targetCategory(), this.value()).ifSuccess(action -> {
+		ActionManager.getAsResult(this.targetKind(), this.value()).ifSuccess(action -> {
 
 			try {
 
@@ -30,7 +30,7 @@ public interface ReferenceMetaAction<A extends Action> extends Action {
 				}
 
 				else {
-					context.forChild(".value").reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was executed recursively!");
+					context.forChild(".value").reportProblem(this.targetKind().asDisplayString() + " with ID \"" + this.value() + "\" was executed recursively!");
 				}
 
 			}
@@ -47,15 +47,15 @@ public interface ReferenceMetaAction<A extends Action> extends Action {
 
 		Action.super.validate(validator);
 
-		ResourceKey<A> key = ResourceKey.create(this.targetCategory().registryKey(), this.value());
+		ResourceKey<A> key = ResourceKey.create(this.targetKind().registryKey(), this.value());
 		Context.Validator valueValidator = validator.forChild(".value");
 
 		if (validator.hasVisited(key)) {
-			valueValidator.reportProblem(this.targetCategory().asDisplayString() + " with ID \"" + this.value() + "\" was referenced recursively!");
+			valueValidator.reportProblem(this.targetKind().asDisplayString() + " with ID \"" + this.value() + "\" was referenced recursively!");
 		}
 
 		else {
-			ActionManager.getAsResult(this.targetCategory(), this.value())
+			ActionManager.getAsResult(this.targetKind(), this.value())
 				.ifSuccess(action -> action.validate(validator.visitChild(".{\"" + this.value() + "\"}", key)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 		}

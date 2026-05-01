@@ -16,7 +16,7 @@ public record ReferenceWorldCondition(ResourceLocation value) implements WorldCo
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceWorldCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceWorldCondition::new);
 
 	@Override
-	public ConditionKind<WorldCondition> targetCategory() {
+	public ConditionKind<WorldCondition> targetKind() {
 		return WorldConditionKind.INSTANCE;
 	}
 
