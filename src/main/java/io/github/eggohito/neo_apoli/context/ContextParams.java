@@ -30,14 +30,7 @@ public class ContextParams implements ContextParamsHolder {
 	}
 
 	public ContextKeySet toKeySet() {
-
-		ContextKeySet.Builder builder = new ContextKeySet.Builder();
-
-		params.keySet().forEach(builder::required);
-		optional.forEach(builder::optional);
-
-		return builder.build();
-
+		return toBuilder().toKeySet();
 	}
 
 	public Builder toBuilder() {
@@ -98,8 +91,9 @@ public class ContextParams implements ContextParamsHolder {
 		public ContextKeySet toKeySet() {
 
 			ContextKeySet.Builder builder = new ContextKeySet.Builder();
-
 			params.keySet().forEach(builder::required);
+
+			Set<ContextKey<?>> optional = Sets.difference(this.optional, params.keySet());
 			optional.forEach(builder::optional);
 
 			return builder.build();
