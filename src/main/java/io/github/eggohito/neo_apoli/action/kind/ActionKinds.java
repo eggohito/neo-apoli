@@ -33,19 +33,19 @@ public final class ActionKinds {
 
 	public static ArgumentBuilder<CommandSourceStack, ?> addAsArguments(CommandBuildContext buildContext, ArgumentBuilder<CommandSourceStack, ?> builder) {
 
-		for (var category : NeoApoliRegistries.ACTION_KIND) {
+		for (var kind : NeoApoliRegistries.ACTION_KIND) {
 
-			String categoryId = category.registryKey().toString();
-			var commandBuilder = category.commandBuilder();
+			String kindId = kind.registryKey().location().toString();
+			var commandBuilder = kind.commandBuilder();
 
 			if (commandBuilder == null) {
 				continue;
 			}
 
 			Consumer<String> finalizer = key -> builder
-				.then(literal(categoryId)
-					.then(literal("with")
-						.then(commandBuilder.apply(key).addArguments(buildContext, argument(key, ActionArgument.inlineAction(buildContext, category))))));
+				.then(literal(kindId)
+					.then(argument(key, ActionArgument.inlineAction(buildContext, kind))
+						.then(commandBuilder.apply(key).addArguments(buildContext, literal("with")))));
 
 			finalizer.accept("action");
 

@@ -36,19 +36,19 @@ public final class ConditionKinds {
 
 	public static ArgumentBuilder<CommandSourceStack, ?> addAsArguments(Optional<CommandNode<CommandSourceStack>> rootNode, CommandBuildContext buildContext, ArgumentBuilder<CommandSourceStack, ?> builder, boolean positive) {
 
-		for (var category : NeoApoliRegistries.CONDITION_KIND) {
+		for (var kind : NeoApoliRegistries.CONDITION_KIND) {
 
-			String categoryId = category.registryKey().toString();
-			Function<String, ConditionKind.CommandBuilder> commandBuilder = category.commandBuilder();
+			String kindId = kind.registryKey().location().toString();
+			Function<String, ConditionKind.CommandBuilder> commandBuilder = kind.commandBuilder();
 
 			if (commandBuilder == null) {
 				continue;
 			}
 
 			Consumer<String> finalizer = key -> builder
-				.then(literal(categoryId)
-					.then(literal("with")
-						.then(commandBuilder.apply(key).addArguments(rootNode, buildContext, argument(key, ConditionArgument.inlineCondition(buildContext, category)), positive))));
+				.then(literal(kindId)
+					.then(argument(key, ConditionArgument.inlineCondition(buildContext, kind))
+						.then(commandBuilder.apply(key).addArguments(rootNode, buildContext, literal("with"), positive))));
 
 			finalizer.accept("condition");
 
