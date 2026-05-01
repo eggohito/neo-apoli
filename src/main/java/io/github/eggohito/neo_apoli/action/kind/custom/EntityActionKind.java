@@ -15,6 +15,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Entity;
 
 import java.util.function.Function;
 
@@ -36,12 +37,14 @@ public enum EntityActionKind implements ActionKind<EntityAction> {
 			}
 
 			int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+				Entity entity = EntityArgument.getEntity(commandContext, "target");
 				return EntityActionKind.this.execute(
 					commandContext,
 					actionKey,
 					action -> Util.getRegisteredName(NeoApoliRegistries.ENTITY_ACTION_TYPE, action.getType()),
 					builder -> builder
-						.withRequired(NeoApoliContextParams.THIS_ENTITY, EntityArgument.getEntity(commandContext, "target"))
+						.withRequired(NeoApoliContextParams.THIS_ENTITY, entity)
+						.withRequired(NeoApoliContextParams.THIS_POS, entity.position())
 				);
 			}
 
