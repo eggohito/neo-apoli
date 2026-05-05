@@ -24,15 +24,20 @@ public enum Space {
 	public static final StreamCodec<ByteBuf, Space> STREAM_CODEC = StreamCodecUtil.enumType(Space.class);
 
 	/**
-	 *	<p>Provides the matrix transform from the base specified by the input vector to the cardinal base. The input
-	 * 	vector is the Z (forward) axis of the base, while the calculated X axis is orthogonal to the "left" of the Z.
-	 * 	Y is such as Z is the cross product of X and Y. If the input vector were to be vertical, the yaw is used to
-	 * 	infer the X and Y vectors of the base. After determining the vectors of the base, it builds the transformation
-	 * 	matrix by laying each into a column (if you consider vectors as being in columns for multiplications.</p>
+	 *
+	 * 	<p>Provides the matrix transforms from the base specified by the input vector to the cardinal base. The input
+	 * 	vector is the Z (forward) axis of the base, while the calculated X axis is orthogonal to the "left" of the Z.</p>
+	 *
+	 * 	<p>The Y is such as Z is the cross product of X and Y. If the input vector were to be vertical, the yaw is used
+	 * 	to infer the X and Y vectors of the base.</p>
+	 *
+	 * 	<p>After determining the vectors of the base, it builds the transformation matrix by laying each into a column
+	 * 	(if you consider vectors as being in columns for multiplications.)</p>
 	 *
 	 *  @param vector the input vector the base is inferred from (forward vector of local space)
 	 *  @param yaw the yaw of local space
 	 * 	@author Alluysl
+	 *  @author Apace
 	 *  @return the transformation matrix from local to global space
 	 */
 	private static Matrix3f getBaseTransformMatrixFromNormalizedDirectionVector(Vec3 vector, float yaw) {
