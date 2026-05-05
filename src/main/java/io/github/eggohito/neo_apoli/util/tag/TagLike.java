@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -26,8 +27,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Accessors(fluent = true)
+@Getter
 public class TagLike<E> {
 
 	private static final TagLike<?> EMPTY = new TagLike<>(ImmutableList.of(), ImmutableList.of());
@@ -36,11 +38,11 @@ public class TagLike<E> {
 	private final ImmutableList<E> elements;
 
 	public boolean contains(E e) {
-		return elements.contains(e);
+		return elements().contains(e);
 	}
 
 	public boolean isEmpty() {
-		return elements.isEmpty();
+		return elements().isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
