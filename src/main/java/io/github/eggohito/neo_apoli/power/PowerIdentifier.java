@@ -12,6 +12,8 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -23,29 +25,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public record PowerIdentifier(ResourceLocation id, @Nullable String subName) implements StringDisplayable, ContextUser {
+@Accessors(fluent = true)
+@Getter
+public final class PowerIdentifier implements StringDisplayable, ContextUser {
 
 	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::parseAsResult, PowerIdentifier::toString);
 	public static final StreamCodec<ByteBuf, PowerIdentifier> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerIdentifier::parse, PowerIdentifier::toString);
 
 	public static final char SEPARATOR = '@';
 
-	/**
-	 *  Deprecated in favor of using one of the following helper methods for clarity.
-	 *  <ul>
-	 *      <li>{@link #of(ResourceLocation)}</li> for normal powers.
-	 *      <li>{@link #subPower(ResourceLocation, String)}</li> for sub-powers (powers within a power that use the {@link io.github.eggohito.neo_apoli.power.type.PowerTypes#MULTIPLE multiple} power type.)
-	 *  </ul>
-	 */
-	@Deprecated
-	public PowerIdentifier {
+	private final ResourceLocation id;
+	private final @Nullable String subName;
 
-		ResourceLocationUtil.validateNonEmpty(id).getOrThrow();
-
-		if (subName != null) {
-			MultiplePower.validateSubPowerName(subName).getOrThrow();
-		}
-
+	PowerIdentifier(ResourceLocation id, @Nullable String subName) {
+		this.id = ResourceLocationUtil.validateNonEmpty(id).getOrThrow();
+		this.subName = subName != null
+			? MultiplePower.validateSubPowerName(subName).getOrThrow()
+			: null;
 	}
 
 	@Override
@@ -72,9 +68,9 @@ public record PowerIdentifier(ResourceLocation id, @Nullable String subName) imp
 			return true;
 		}
 
-		else if (obj instanceof PowerIdentifier(ResourceLocation thatId, String thatSubName)) {
-			return Objects.equals(this.id(), thatId)
-				&& Objects.equals(this.subName(), thatSubName);
+		else if (obj instanceof PowerIdentifier that) {
+			return Objects.equals(this.id(), that.id())
+				&& Objects.equals(this.subName(), that.subName());
 		}
 
 		else {
