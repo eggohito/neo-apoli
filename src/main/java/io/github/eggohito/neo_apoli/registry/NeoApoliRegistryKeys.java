@@ -38,7 +38,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
-import io.github.eggohito.neo_apoli.power.global.GlobalPower;
+import io.github.eggohito.neo_apoli.power.global.GlobalPowerSet;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
 import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
@@ -52,7 +52,7 @@ import net.minecraft.resources.ResourceKey;
 public class NeoApoliRegistryKeys {
 
 	public static final ResourceKey<Registry<PowerHolder<?>>> POWER = create("power");
-	public static final ResourceKey<Registry<GlobalPower>> GLOBAL_POWER = create("global_power");
+	public static final ResourceKey<Registry<GlobalPowerSet>> GLOBAL_POWER_SET = create("global_power_set");
 
 	public static final ResourceKey<Registry<PowerType<?>>> POWER_TYPE = create("power_type");
 

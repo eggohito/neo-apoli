@@ -14,16 +14,16 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerHolder<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPower> {
+public record GlobalPowerSet(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<PowerHolder<?>> powers, boolean replace, int order) implements ContextUser, Comparable<GlobalPowerSet> {
 
 	public static final ResourceLocation POWER_SOURCE = NeoApoli.id("global");
 
-	public static final MapCodec<GlobalPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.LAZY_ENTITY_TYPE_TAG_LIKE.optionalFieldOf("entity_types", LazyTagLike.empty()).forGetter(GlobalPower::entityTypes),
-		NeoApoliCodecs.LAZY_POWER_TAG_LIKE.fieldOf("powers").forGetter(GlobalPower::powers),
-		Codec.BOOL.optionalFieldOf("replace", false).forGetter(GlobalPower::replace),
-		Codec.INT.optionalFieldOf("order", 0).forGetter(GlobalPower::order)
-	).apply(instance, GlobalPower::new));
+	public static final MapCodec<GlobalPowerSet> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		NeoApoliCodecs.LAZY_ENTITY_TYPE_TAG_LIKE.optionalFieldOf("entity_types", LazyTagLike.empty()).forGetter(GlobalPowerSet::entityTypes),
+		NeoApoliCodecs.LAZY_POWER_TAG_LIKE.fieldOf("powers").forGetter(GlobalPowerSet::powers),
+		Codec.BOOL.optionalFieldOf("replace", false).forGetter(GlobalPowerSet::replace),
+		Codec.INT.optionalFieldOf("order", 0).forGetter(GlobalPowerSet::order)
+	).apply(instance, GlobalPowerSet::new));
 
 	@Override
 	public void validate(Context.Validator validator) {
@@ -32,7 +32,7 @@ public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<Po
 	}
 
 	@Override
-	public int compareTo(@NotNull GlobalPower that) {
+	public int compareTo(@NotNull GlobalPowerSet that) {
 		return Integer.compare(this.order(), that.order());
 	}
 
@@ -41,7 +41,7 @@ public record GlobalPower(LazyTagLike<EntityType<?>> entityTypes, LazyTagLike<Po
 			|| entityTypes().contains(entity.getType());
 	}
 
-	public record WithSource(GlobalPower set, ResourceLocation id, String source) {
+	public record WithSource(GlobalPowerSet set, String source) {
 
 	}
 

@@ -47,19 +47,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GlobalPowerManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonWithSource>>> implements IdentifiableResourceReloadListener {
+public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<ResourceLocation, List<JsonWithSource>>> implements IdentifiableResourceReloadListener {
 
-	public static final ResourceLocation ID = NeoApoli.id("manager/global_powers");
+	public static final ResourceLocation ID = NeoApoli.id("manager/global_power_set");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build();
 
-	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER);
-	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerManager.class);
+	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER_SET);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
-	private static final Object2ObjectOpenHashMap<ResourceLocation, GlobalPower> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<ResourceLocation, GlobalPowerSet> BY_ID = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
-	public GlobalPowerManager(HolderLookup.Provider lookupProvider) {
+	public GlobalPowerSetManager(HolderLookup.Provider lookupProvider) {
 		this.ops = lookupProvider.createSerializationContext(JsonOps.INSTANCE);
 	}
 
@@ -71,31 +71,31 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 	@Override
 	protected void apply(Map<ResourceLocation, List<JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
-		LOGGER.info("Parsing global powers from data packs...");
+		LOGGER.info("Parsing global power sets from data packs...");
 		BY_ID.clear();
 
-		Map<ResourceLocation, List<GlobalPower.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
+		Map<ResourceLocation, List<GlobalPowerSet.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
 		prepared.forEach((id, elementWithSources) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			elementWithSources.forEach(jsonObjectWithSource -> GlobalPower.CODEC.compressedDecode(ops, jsonObjectWithSource.json())
-				.ifError(error -> LOGGER.error("Error trying to parse global power \"{}\" from data pack [{}] (skipping): {}", id, jsonObjectWithSource.source(), error.message()))
+			elementWithSources.forEach(jsonWithSource -> GlobalPowerSet.CODEC.compressedDecode(ops, jsonWithSource.json())
+				.ifError(error -> LOGGER.error("Error trying to parse global power set \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error.message()))
 				.ifSuccess(set -> parsed
 					.computeIfAbsent(id, k -> new ObjectArrayList<>())
-					.add(new GlobalPower.WithSource(set, id, jsonObjectWithSource.source()))));
+					.add(new GlobalPowerSet.WithSource(set, jsonWithSource.source()))));
 
 			ResourceLocationUtil.setCurrent(null);
 
 		});
 
-		LOGGER.info("Finished parsing global powers. Merging similar global powers...");
+		LOGGER.info("Finished parsing global power sets. Merging similar global power sets...");
 
-		parsed.forEach((id, sets) -> sets
+		parsed.forEach((id, setWithSources) -> setWithSources
 			.stream()
-			.reduce(GlobalPowerManager::merge)
+			.reduce((first, second) -> merge(id, first, second))
 			.ifPresent(withSource -> BY_ID.put(id, withSource.set())));
 
-		LOGGER.info("Finished merging global powers. Merged {} global power(s)", parsed.values().stream().mapToInt(Collection::size).sum());
+		LOGGER.info("Finished merging global power sets. Merged {} global power set(s)", parsed.values().stream().mapToInt(Collection::size).sum());
 
 	}
 
@@ -114,7 +114,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 	}
 
-	private static GlobalPower.WithSource merge(GlobalPower.WithSource first, GlobalPower.WithSource second) {
+	private static GlobalPowerSet.WithSource merge(ResourceLocation id, GlobalPowerSet.WithSource first, GlobalPowerSet.WithSource second) {
 
 		LazyTagLike.Builder<EntityType<?>> entityTypes = new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE);
 		LazyTagLike.Builder<PowerHolder<?>> powers = new LazyTagLike.Builder<>(PowerManager.TAG_LOOKUP);
@@ -124,7 +124,7 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		if (replace) {
 
-			LOGGER.warn("Global power \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", second.id(), first.source(), second.source());
+			LOGGER.warn("Global power set \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", id, first.source(), second.source());
 
 			order = second.set().order();
 
@@ -138,14 +138,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		entityTypes.addAll(second.set().entityTypes().entries());
 		powers.addAll(second.set().powers().entries());
 
-		GlobalPower set = new GlobalPower(
+		GlobalPowerSet set = new GlobalPowerSet(
 			entityTypes.build().resultOrPartial().orElseThrow(),
 			powers.build().resultOrPartial().orElseThrow(),
 			replace,
 			order
 		);
 
-		return new GlobalPower.WithSource(set, second.id(), second.source());
+		return new GlobalPowerSet.WithSource(set, second.source());
 
 	}
 
@@ -158,14 +158,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		var iterator = BY_ID.object2ObjectEntrySet().fastIterator();
 		int size = BY_ID.size();
 
-		LOGGER.info("Validating {} global power(s)...", size);
+		LOGGER.info("Validating {} global power set(s)...", size);
 
 		while (iterator.hasNext()) {
 
 			var entry = iterator.next();
 
 			ResourceLocation id = entry.getKey();
-			GlobalPower set = entry.getValue();
+			GlobalPowerSet set = entry.getValue();
 
 			Reporter reporter = new Reporter("{\"" + id + "\"}");
 			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.any(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
@@ -173,13 +173,13 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 			set.validate(validator);
 
 			reporter.getErrorsFlattened().ifPresent(error -> {
-				LOGGER.warn("Found error(s) while validating global power \"{}\" {}", id, error);
+				LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error);
 				iterator.remove();
 			});
 
 		}
 
-		LOGGER.info("Finished validating {} global power(s). Global power manager contains {} global power set(s)", size, BY_ID.size());
+		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, BY_ID.size());
 		BY_ID.trim();
 
 	}
@@ -188,15 +188,15 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 		return new ObjectOpenHashSet<>(BY_ID.keySet());
 	}
 
-	public static List<GlobalPower> globalPowers() {
+	public static List<GlobalPowerSet> sets() {
 		return new ObjectArrayList<>(BY_ID.values());
 	}
 
-	public static List<GlobalPower> getApplicableSets(Entity entity) {
+	public static List<GlobalPowerSet> getApplicableSets(Entity entity) {
 
-		List<GlobalPower> applicableSets = new ObjectArrayList<>();
+		List<GlobalPowerSet> applicableSets = new ObjectArrayList<>();
 
-		for (var globalPower : globalPowers()) {
+		for (var globalPower : sets()) {
 
 			if (globalPower.doesApply(entity)) {
 				applicableSets.add(globalPower);
@@ -204,12 +204,12 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		}
 
-		applicableSets.sort(GlobalPower::compareTo);
+		applicableSets.sort(GlobalPowerSet::compareTo);
 		return applicableSets;
 
 	}
 
-	public static Set<PowerHolder<?>> flattenPowers(Collection<GlobalPower> sets) {
+	public static Set<PowerHolder<?>> flattenPowers(Collection<GlobalPowerSet> sets) {
 
 		Set<PowerHolder<?>> holders = new ObjectOpenHashSet<>();
 		for (var set : sets) {
@@ -224,22 +224,22 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 		Powers powers = Powers.getOrCreate(entity);
 
-		List<GlobalPower> applicableSets = getApplicableSets(entity);
+		List<GlobalPowerSet> applicableSets = getApplicableSets(entity);
 		Set<PowerHolder<?>> expectedHolders = flattenPowers(applicableSets);
 
 		//	Revoke all powers that are from the global power source, but not within the expected
 		//	set of powers collected from all global power sets
-		for (var entryFromSource : powers.getAllFromSource(GlobalPower.POWER_SOURCE)) {
+		for (var entryFromSource : powers.getAllFromSource(GlobalPowerSet.POWER_SOURCE)) {
 
 			if (!expectedHolders.contains(entryFromSource)) {
-				powers.revokeWithCallback(entryFromSource.id(), GlobalPower.POWER_SOURCE);
+				powers.revokeWithCallback(entryFromSource.id(), GlobalPowerSet.POWER_SOURCE);
 			}
 
 		}
 
 		//	Re-add all the expected powers collected from all global power sets
 		for (var expectedEntry : expectedHolders) {
-			powers.grantWithCallback(expectedEntry.id(), GlobalPower.POWER_SOURCE);
+			powers.grantWithCallback(expectedEntry.id(), GlobalPowerSet.POWER_SOURCE);
 		}
 
 		powers.update();
@@ -248,14 +248,14 @@ public class GlobalPowerManager extends SimplePreparableReloadListener<Map<Resou
 
 	static {
 
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, GlobalPowerManager::new);
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, GlobalPowerSetManager::new);
 		DependencyManager.GLOBAL_POWER_SETS.register(ID, dependencies -> dependencies.add(PowerManager.ID));
 
 		ReloadableServerResourcesEvents.AFTER_LOAD.addPhaseOrdering(PowerManager.ID, ID);
-		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, GlobalPowerManager::validate);
+		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, GlobalPowerSetManager::validate);
 
 		ServerEntityEvents.ENTITY_LOAD.addPhaseOrdering(PowerManager.ID, ID);
-		ServerEntityEvents.ENTITY_LOAD.register(ID, GlobalPowerManager::applyAll);
+		ServerEntityEvents.ENTITY_LOAD.register(ID, GlobalPowerSetManager::applyAll);
 
 	}
 

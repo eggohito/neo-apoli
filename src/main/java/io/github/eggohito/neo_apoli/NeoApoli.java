@@ -26,7 +26,7 @@ import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.modifier.type.ModifierTypes;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.global.GlobalPowerManager;
+import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
@@ -99,7 +99,7 @@ public class NeoApoli implements ModInitializer {
 		ActionTypes.registerAll();
 
 		PowerManager.init();
-		GlobalPowerManager.init();
+		GlobalPowerSetManager.init();
 		ConditionManager.init();
 		ActionManager.init();
 
