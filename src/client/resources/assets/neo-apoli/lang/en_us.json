@@ -53,5 +53,8 @@
 	"config.neo-apoli.category.resource_bars.option.offset_x.description": "Determines the horizontal offset to the anchor position for resource bars. Positive values move the resource bars to the right, while negative values move the resource bars to the left.",
 	"config.neo-apoli.category.resource_bars.option.offset_x.name": "Offset X",
 	"config.neo-apoli.category.resource_bars.option.offset_y.description": "Determines the vertical offset to the anchor position for resource bars. Positive values move the resource bars downwards, while negative values moves the resource bars upwards.",
-	"config.neo-apoli.category.resource_bars.option.offset_y.name": "Offset Y"
+	"config.neo-apoli.category.resource_bars.option.offset_y.name": "Offset Y",
+	"config.neo-apoli.category.multiples.name": "Multiples",
+	"config.neo-apoli.category.multiples.option.ignored_fields.name": "Ignored fields",
+	"config.neo-apoli.category.multiples.option.ignored_fields.description": "A list of fields to ignore when parsing powers that use the 'multiple' power type."
 }

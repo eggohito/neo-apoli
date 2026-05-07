@@ -7,9 +7,12 @@ import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import io.github.eggohito.neo_apoli.client.config.NeoApoliClientConfig;
+import io.github.eggohito.neo_apoli.client.config.controller.PatternController;
 import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+
+import java.util.regex.Pattern;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ModMenuIntegration implements ModMenuApi {
@@ -23,6 +26,7 @@ public class ModMenuIntegration implements ModMenuApi {
 				.category(createCommandsCategory(NeoApoliConfig.INSTANCE.command.asBinding()))
 				.category(createIdentifierCategory(NeoApoliConfig.INSTANCE.placeholderIdentifier.asBinding()))
 				.category(createModifyPlayerSpawnCategory(NeoApoliConfig.INSTANCE.modifyPlayerSpawn.asBinding()))
+				.category(createMultiplesCategory(NeoApoliConfig.INSTANCE.multiples.asBinding()))
 				.category(createResourceBarsCategory(NeoApoliClientConfig.INSTANCE.resourceBars.asBinding()))
 				.save(NeoApoliConfig.INSTANCE::saveToFile)
 				.build();
@@ -147,6 +151,23 @@ public class ModMenuIntegration implements ModMenuApi {
 			.name(Component.translatable("config.neo-apoli.category.resource_bars.name"))
 			.option(offsetX.build())
 			.option(offsetY.build())
+			.build();
+
+	}
+
+	private static ConfigCategory createMultiplesCategory(Binding<NeoApoliConfig.Multiples> binding) {
+
+		var ignoredFields = ListOption.<Pattern>createBuilder()
+			.name(Component.translatable("config.neo-apoli.category.multiples.option.ignored_fields.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.multiples.option.ignored_fields.description")))
+			.binding(binding.xmap(NeoApoliConfig.Multiples::ignoredFields, binding.getValue()::ignoredFields))
+			.customController(PatternController::new)
+			.initial(Pattern.compile(""))
+			.build();
+
+		return ConfigCategory.createBuilder()
+			.name(Component.translatable("config.neo-apoli.category.multiples.name"))
+			.option(ignoredFields)
 			.build();
 
 	}

@@ -18,8 +18,6 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
@@ -29,28 +27,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @EqualsAndHashCode
 @Getter
 public class MultiplePower extends Power {
-
-	//	TODO: This set of filters should be controllable via config
-	private static final Set<Pattern> SUB_POWER_KEY_FILTERS = Util.make(new ObjectOpenHashSet<>(), filters -> {
-
-		PowerHolder.MAP_CODEC.keys(JavaOps.INSTANCE)
-			.map(Object::toString)
-			.filter(Predicate.not("value"::equals))
-			.distinct()
-			.map(Pattern::compile)
-			.forEach(filters::add);
-
-		filters.add(Pattern.compile("^\\$"));
-		filters.add(Pattern.compile(ResourceConditions.CONDITIONS_KEY));
-
-	});
 
 	public static final ResourceLocation ID = NeoApoli.id("multiple");
 
@@ -70,7 +51,7 @@ public class MultiplePower extends Power {
 				(identity, keyAndValue) -> {
 
 					DataResult<String> keyResult = ops.getStringValue(keyAndValue.getFirst());
-					if (keyResult.mapOrElse(MultiplePower::isKeyIgnored, error -> false)) {
+					if (keyResult.mapOrElse(MultiplePower::isFieldIgnored, error -> false)) {
 						return identity;
 					}
 
@@ -79,10 +60,11 @@ public class MultiplePower extends Power {
 						return identity.apply2stable((unit, o) -> unit, valueResult);
 					}
 
-					DataResult<PowerIdentifier> powerIdResult = PowerIdentifier.parseAsResult(keyResult.getOrThrow())
+					String subPowerKey = keyResult.getOrThrow();
+					DataResult<PowerIdentifier> powerIdResult = PowerIdentifier.parseAsResult(subPowerKey)
 						.flatMap(powerId -> powerId.isSubPower()
 							? DataResult.success(powerId)
-							: DataResult.error(() -> "A sub-power must have a sub-power ID!"));
+							: DataResult.error(() -> "The key for sub-power \"" + subPowerKey + "\" wasn't pre-processed!"));
 
 					if (powerIdResult.isError()) {
 						return identity.apply2stable((unit, o) -> unit, powerIdResult);
@@ -90,7 +72,7 @@ public class MultiplePower extends Power {
 
 					DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
 						.flatMap(type -> type == PowerTypes.MULTIPLE
-							? DataResult.error(() -> "Sub-power \"" + keyResult.getOrThrow() + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
+							? DataResult.error(() -> "Sub-power \"" + subPowerKey + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
 							: DataResult.success(type));
 
 					if (typeResult.isError()) {
@@ -100,7 +82,7 @@ public class MultiplePower extends Power {
 					DataResult<PowerHolder<?>> subPowerResult = PowerHolder.MAP_CODEC.decode(ops, valueResult.getOrThrow());
 
 					if (subPowerResult.isSuccess() && !succeeded.add(subPowerResult.getOrThrow())) {
-						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate entry for key: \"" + keyResult.getOrThrow() + "\""));
+						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate entry for key: \"" + subPowerKey + "\""));
 					}
 
 					return identity.apply2stable((unit, o) -> unit, subPowerResult);
@@ -214,18 +196,19 @@ public class MultiplePower extends Power {
 		Map<String, JsonElement> powerJsonMap = powerJson.asMap();
 		String separator = Character.toString(PowerIdentifier.SEPARATOR);
 
-		powerJsonMap.entrySet().removeIf(entry -> !isKeyIgnored(entry.getKey()) && !MiscUtil.isResourceConditionFulfilled(id, entry.getValue(), directoryPath, ops));
-
 		JsonObject copy = powerJson.deepCopy();
 		powerJsonMap.clear();
 
 		copy.asMap().forEach((key, value) -> {
 
-			if (!isKeyIgnored(key)) {
+			if (!isFieldIgnored(key)) {
+
+				if (!MiscUtil.isResourceConditionFulfilled(id, value, directoryPath, ops)) {
+					return;
+				}
 
 				key = id + separator + key;
 
-				//	Append the sub-power's ID into its value object for proper parsing later
 				if (value instanceof JsonObject jsonObject) {
 					jsonObject.addProperty(PowerHolder.ID_KEY, key);
 				}
@@ -254,11 +237,11 @@ public class MultiplePower extends Power {
 
 	}
 
-	public static boolean isKeyIgnored(String key) {
+	public static boolean isFieldIgnored(String key) {
 
-		for (var filter : SUB_POWER_KEY_FILTERS) {
+		for (var ignoredField : NeoApoli.getConfig().multiples.get().ignoredFields()) {
 
-			if (filter.matcher(key).find()) {
+			if (ignoredField.matcher(key).find()) {
 				return true;
 			}
 

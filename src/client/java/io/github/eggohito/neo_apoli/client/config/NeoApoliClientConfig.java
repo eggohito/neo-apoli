@@ -15,7 +15,9 @@ import org.quiltmc.parsers.json.JsonFormat;
 public final class NeoApoliClientConfig extends AbstractJsonCodecConfig<NeoApoliClientConfig> {
 
 	public static final NeoApoliClientConfig INSTANCE = new NeoApoliClientConfig();
+	public static final int VERSION = 1;
 
+	public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
 	public final ConfigEntry<ResourceBars> resourceBars = register("resource_bars", ResourceBars.DEFAULT, ResourceBars.CODEC);
 
 	private NeoApoliClientConfig() {
