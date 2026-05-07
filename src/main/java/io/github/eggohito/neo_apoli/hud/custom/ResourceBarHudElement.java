@@ -3,7 +3,14 @@ package io.github.eggohito.neo_apoli.hud.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.isxander.yacl3.api.Option;
+import dev.isxander.yacl3.api.OptionDescription;
+import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
+import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
@@ -14,14 +21,19 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.quiltmc.parsers.json.JsonFormat;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public record ResourceBarHudElement(Properties properties, NumberProvider x, NumberProvider y, BooleanProvider shouldRender, Optional<NumberProvider> value, Optional<NumberProvider> min, Optional<NumberProvider> max, int order) implements NumberBoundHudElement {
 
@@ -152,6 +164,57 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			ResourceLocation.STREAM_CODEC, SpriteLocation::icon,
 			SpriteLocation::new
 		);
+
+	}
+
+	@SuppressWarnings("UnstableApiUsage")
+	public static final class Config extends AbstractJsonCodecConfig<Config> implements ConfigCategoryRegistrant.Entry {
+
+		public static final Config INSTANCE = new Config();
+		public static final int VERSION = 1;
+
+		public final ConfigEntry<Integer> offsetX = register("offset_x", 0, CodecUtil.nonNegativeInt());
+		public final ConfigEntry<Integer> offsetY = register("offset_y", 0, CodecUtil.nonNegativeInt());
+		public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
+
+		Config() {
+			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/hud_element/resource_bar.json5"), JsonFormat.JSON5);
+		}
+
+		@Override
+		public void addGroup(Consumer<OptionGroup> adder) {
+
+			var offsetX = Option.<Integer>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.option.offset_x.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.option.offset_x.description")))
+				.binding(this.offsetX.asBinding())
+				.controller(option -> IntegerFieldControllerBuilder.create(option)
+					.min(0));
+			var offsetY = Option.<Integer>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.option.offset_y.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.option.offset_y.description")))
+				.binding(this.offsetY.asBinding())
+				.controller(option -> IntegerFieldControllerBuilder.create(option)
+					.min(0));
+
+			adder.accept(OptionGroup.createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.hud_element.resource_bar.description")))
+				.option(offsetX.build())
+				.option(offsetY.build())
+				.build());
+
+		}
+
+		@Override
+		public boolean load() {
+			return this.loadFromFile();
+		}
+
+		@Override
+		public void save() {
+			this.saveToFile();
+		}
 
 	}
 

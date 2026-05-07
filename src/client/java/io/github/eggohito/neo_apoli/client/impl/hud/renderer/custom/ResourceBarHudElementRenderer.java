@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
 
-import io.github.eggohito.neo_apoli.client.NeoApoliClient;
 import io.github.eggohito.neo_apoli.client.api.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
@@ -16,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Objects;
 
+@SuppressWarnings("UnstableApiUsage")
 public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 
 	INSTANCE;
@@ -44,8 +44,8 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 
 		}
 
-		ANCHOR.setX(((graphics.guiWidth() / 2) + 20) + NeoApoliClient.getConfig().resourceBars.get().offsetX());
-		ANCHOR.setY((graphics.guiHeight() - yOffset) + NeoApoliClient.getConfig().resourceBars.get().offsetY());
+		ANCHOR.setX(((graphics.guiWidth() / 2) + 20) + ResourceBarHudElement.Config.INSTANCE.offsetX.get());
+		ANCHOR.setY((graphics.guiHeight() - yOffset) + ResourceBarHudElement.Config.INSTANCE.offsetY.get());
 
 	}
 

@@ -14,7 +14,7 @@ import io.github.eggohito.neo_apoli.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
-import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
+import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.container_type.NeoApoliContainerTypes;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
@@ -107,6 +107,7 @@ public class NeoApoli implements ModInitializer {
 		PowerIntegrations.registerAll();
 
 		getConfig().loadFromFile();
+		NeoApoliConfigs.registerAll();
 
 		NeoApoliContextParams.registerAll();
 		NeoApoliContextParamSets.registerAll();
@@ -137,8 +138,8 @@ public class NeoApoli implements ModInitializer {
 		return ResourceLocation.fromNamespaceAndPath(MOD_NAMESPACE, path);
 	}
 
-	public static NeoApoliConfig getConfig() {
-		return NeoApoliConfig.INSTANCE;
+	public static NeoApoliCommonConfig getConfig() {
+		return NeoApoliCommonConfig.INSTANCE;
 	}
 
 	public static boolean serverSide() {

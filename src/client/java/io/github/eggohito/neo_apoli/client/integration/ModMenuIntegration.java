@@ -4,15 +4,11 @@ import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
-import io.github.eggohito.neo_apoli.client.config.NeoApoliClientConfig;
-import io.github.eggohito.neo_apoli.client.config.controller.PatternController;
-import io.github.eggohito.neo_apoli.config.NeoApoliConfig;
+import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-
-import java.util.regex.Pattern;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ModMenuIntegration implements ModMenuApi {
@@ -23,17 +19,92 @@ public class ModMenuIntegration implements ModMenuApi {
 
 			var yacl = YetAnotherConfigLib.createBuilder()
 				.title(Component.literal("neo-apoli"))
-				.category(createCommandsCategory(NeoApoliConfig.INSTANCE.command.asBinding()))
-				.category(createIdentifierCategory(NeoApoliConfig.INSTANCE.placeholderIdentifier.asBinding()))
-				.category(createModifyPlayerSpawnCategory(NeoApoliConfig.INSTANCE.modifyPlayerSpawn.asBinding()))
-				.category(createMultiplesCategory(NeoApoliConfig.INSTANCE.multiples.asBinding()))
-				.category(createResourceBarsCategory(NeoApoliClientConfig.INSTANCE.resourceBars.asBinding()))
-				.save(NeoApoliConfig.INSTANCE::saveToFile)
+				.category(this.createCommonCategory())
+				.category(this.createHudElementTypesCategory())
+				.category(this.createPowerTypesCategory())
+				.save(NeoApoliCommonConfig.INSTANCE::saveToFile)
 				.build();
 
 			return yacl.generateScreen(screen);
 
 		};
+	}
+
+	private ConfigCategory createCommonCategory() {
+
+		var commandsGroup = this.createCommandGroup(NeoApoliCommonConfig.INSTANCE.command.asBinding());
+		var placeholderIdentifierGroup = this.createPlaceholderIdentifierGroup(NeoApoliCommonConfig.INSTANCE.placeholderIdentifier.asBinding());
+
+		return ConfigCategory.createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.name"))
+			.group(commandsGroup)
+			.group(placeholderIdentifierGroup)
+			.build();
+
+	}
+
+	private ConfigCategory createHudElementTypesCategory() {
+
+		var category = ConfigCategory.createBuilder().name(Component.translatable("config.neo-apoli.type.hud_element.name"));
+		ConfigCategoryRegistrant.HUD_ELEMENT_TYPE.invoker().addGroup(category::group);
+
+		return category.build();
+
+	}
+
+	private ConfigCategory createPowerTypesCategory() {
+
+		var category = ConfigCategory.createBuilder().name(Component.translatable("config.neo-apoli.type.power.name"));
+		ConfigCategoryRegistrant.POWER_TYPE.invoker().addGroup(category::group);
+
+		return category.build();
+
+	}
+
+	private OptionGroup createCommandGroup(Binding<NeoApoliCommonConfig.Command> binding) {
+
+		var showOutput = Option.<Boolean>createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.command.option.show_output.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.common.command.option.show_output.description")))
+			.binding(binding.xmap(NeoApoliCommonConfig.Command::showOutput, binding.getValue()::showOutput))
+			.controller(option -> BooleanControllerBuilder.create(option)
+				.onOffFormatter()
+				.coloured(true));
+
+		var permissionLevel = Option.<Integer>createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.command.option.permission_level.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.common.command.option.permission_level.description")))
+			.binding(binding.xmap(NeoApoliCommonConfig.Command::permissionLevel, binding.getValue()::permissionLevel))
+			.controller(option -> IntegerSliderControllerBuilder.create(option)
+				.formatValue(ModMenuIntegration::formatPermissionLevel)
+				.range(0, 4)
+				.step(1));
+
+		return OptionGroup.createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.command.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.common.command.description")))
+			.option(showOutput.build())
+			.option(permissionLevel.build())
+			.build();
+
+	}
+
+	private OptionGroup createPlaceholderIdentifierGroup(Binding<NeoApoliCommonConfig.PlaceholderIdentifier> binding) {
+
+		var enabled = Option.<Boolean>createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.placeholder_identifier.option.enabled.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.common.placeholder_identifier.option.enabled.description")))
+			.binding(binding.xmap(NeoApoliCommonConfig.PlaceholderIdentifier::enabled, binding.getValue()::enabled))
+			.controller(option -> BooleanControllerBuilder.create(option)
+				.onOffFormatter()
+				.coloured(true));
+
+		return OptionGroup.createBuilder()
+			.name(Component.translatable("config.neo-apoli.common.placeholder_identifier.name"))
+			.description(OptionDescription.of(Component.translatable("config.neo-apoli.common.placeholder_identifier.description")))
+			.option(enabled.build())
+			.build();
+
 	}
 
 	private static Component formatPermissionLevel(int value) {
@@ -53,122 +124,6 @@ public class ModMenuIntegration implements ModMenuApi {
 		};
 
 		return Component.literal(valueString).withStyle(formatting);
-
-	}
-
-	private static ConfigCategory createCommandsCategory(Binding<NeoApoliConfig.Command> binding) {
-
-		var showOutput = Option.<Boolean>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.commands.option.show_output.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.commands.option.show_output.description")))
-			.binding(binding.xmap(NeoApoliConfig.Command::showOutput, binding.getValue()::showOutput))
-			.controller(option -> BooleanControllerBuilder.create(option)
-				.onOffFormatter()
-				.coloured(true));
-
-		var permissionLevel = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.commands.option.permission_level.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.commands.option.permission_level.description")))
-			.binding(binding.xmap(NeoApoliConfig.Command::permissionLevel, binding.getValue()::permissionLevel))
-			.controller(option -> IntegerSliderControllerBuilder.create(option)
-				.formatValue(ModMenuIntegration::formatPermissionLevel)
-				.range(0, 4)
-				.step(1));
-
-		return ConfigCategory.createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.commands.name"))
-			.option(showOutput.build())
-			.option(permissionLevel.build())
-			.build();
-
-	}
-
-	private static ConfigCategory createIdentifierCategory(Binding<NeoApoliConfig.PlaceholderIdentifier> binding) {
-
-		var enabled = Option.<Boolean>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.placeholder_identifier.option.enabled.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.placeholder_identifier.option.enabled.description")))
-			.binding(binding.xmap(NeoApoliConfig.PlaceholderIdentifier::enabled, binding.getValue()::enabled))
-			.controller(option -> BooleanControllerBuilder.create(option)
-				.onOffFormatter()
-				.coloured(true));
-
-		return ConfigCategory.createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.placeholder_identifier.name"))
-			.option(enabled.build())
-			.build();
-
-	}
-
-	private static ConfigCategory createModifyPlayerSpawnCategory(Binding<NeoApoliConfig.ModifyPlayerSpawn> binding) {
-
-		var horizontalSteps = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.horizontal_step.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.horizontal_step.description")))
-			.binding(binding.xmap(NeoApoliConfig.ModifyPlayerSpawn::horizontalStep, binding.getValue()::horizontalStep))
-			.controller(option -> IntegerFieldControllerBuilder.create(option)
-				.min(0));
-
-		var verticalSteps = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.vertical_step.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.vertical_step.description")))
-			.binding(binding.xmap(NeoApoliConfig.ModifyPlayerSpawn::verticalStep, binding.getValue()::verticalStep))
-			.controller(option -> IntegerFieldControllerBuilder.create(option)
-				.min(0));
-
-		var radius = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.radius.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.modify_player_spawn.option.radius.description")))
-			.binding(binding.xmap(NeoApoliConfig.ModifyPlayerSpawn::radius, binding.getValue()::radius))
-			.controller(option -> IntegerFieldControllerBuilder.create(option)
-				.min(0));
-
-		return ConfigCategory.createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.modify_player_spawn.name"))
-			.option(horizontalSteps.build())
-			.option(verticalSteps.build())
-			.option(radius.build())
-			.build();
-
-	}
-
-	private static ConfigCategory createResourceBarsCategory(Binding<NeoApoliClientConfig.ResourceBars> binding) {
-
-		var offsetX = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.resource_bars.option.offset_x.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.resource_bars.option.offset_x.description")))
-			.binding(binding.xmap(NeoApoliClientConfig.ResourceBars::offsetX, binding.getValue()::offsetX))
-			.controller(option -> IntegerFieldControllerBuilder.create(option)
-				.min(0));
-
-		var offsetY = Option.<Integer>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.resource_bars.option.offset_y.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.resource_bars.option.offset_y.description")))
-			.binding(binding.xmap(NeoApoliClientConfig.ResourceBars::offsetY, binding.getValue()::offsetY)).controller(option -> IntegerFieldControllerBuilder.create(option)
-				.min(0));
-
-		return ConfigCategory.createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.resource_bars.name"))
-			.option(offsetX.build())
-			.option(offsetY.build())
-			.build();
-
-	}
-
-	private static ConfigCategory createMultiplesCategory(Binding<NeoApoliConfig.Multiples> binding) {
-
-		var ignoredFields = ListOption.<Pattern>createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.multiples.option.ignored_fields.name"))
-			.description(OptionDescription.of(Component.translatable("config.neo-apoli.category.multiples.option.ignored_fields.description")))
-			.binding(binding.xmap(NeoApoliConfig.Multiples::ignoredFields, binding.getValue()::ignoredFields))
-			.customController(PatternController::new)
-			.initial(Pattern.compile(""))
-			.build();
-
-		return ConfigCategory.createBuilder()
-			.name(Component.translatable("config.neo-apoli.category.multiples.name"))
-			.option(ignoredFields)
-			.build();
 
 	}
 

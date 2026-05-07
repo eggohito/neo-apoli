@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.config.controller;
+package io.github.eggohito.neo_apoli.config.controller;
 
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.gui.controllers.string.IStringController;

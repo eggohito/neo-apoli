@@ -1,11 +1,16 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
+import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
@@ -18,17 +23,26 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.quiltmc.parsers.json.JsonFormat;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@SuppressWarnings("UnstableApiUsage")
 @EqualsAndHashCode
 @Getter
 public class MultiplePower extends Power {
@@ -239,7 +253,7 @@ public class MultiplePower extends Power {
 
 	public static boolean isFieldIgnored(String key) {
 
-		for (var ignoredField : NeoApoli.getConfig().multiples.get().ignoredFields()) {
+		for (var ignoredField : Config.INSTANCE.ignoredFields.get()) {
 
 			if (ignoredField.matcher(key).find()) {
 				return true;
@@ -248,6 +262,55 @@ public class MultiplePower extends Power {
 		}
 
 		return false;
+
+	}
+
+	public static final class Config extends AbstractJsonCodecConfig<Config> implements ConfigCategoryRegistrant.Entry {
+
+		public static final Config INSTANCE = new Config();
+		public static final int VERSION = 1;
+
+		public final ConfigEntry<List<Pattern>> ignoredFields = register("ignored_fields", makeDefaultIgnoredFields(), ExtraCodecs.PATTERN.listOf());
+		public final ConfigEntry<Boolean> enabled = register("enabled", true, Codec.BOOL);
+		public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
+
+		Config() {
+			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/power/multiple.json5"), JsonFormat.JSON5);
+		}
+
+		private static List<Pattern> makeDefaultIgnoredFields() {
+
+			ImmutableList.Builder<Pattern> builder = ImmutableList.builder();
+			PowerHolder.MAP_CODEC.keys(JavaOps.INSTANCE)
+				.map(Object::toString)
+				.filter(Predicate.not("value"::equals))
+				.distinct()
+				.map(Pattern::compile)
+				.forEach(builder::add);
+
+			builder.add(Pattern.compile("^\\$"));
+			builder.add(Pattern.compile(ResourceConditions.CONDITIONS_KEY));
+
+			return builder.build();
+
+		}
+
+		//  TODO: Re-add the option for being able to modify the list of ignored fields
+		//        (currently removed due to how list options are implemented in YACL's API)
+		@Override
+		public void addGroup(Consumer<OptionGroup> adder) {
+
+		}
+
+		@Override
+		public boolean load() {
+			return this.loadFromFile();
+		}
+
+		@Override
+		public void save() {
+			this.saveToFile();
+		}
 
 	}
 

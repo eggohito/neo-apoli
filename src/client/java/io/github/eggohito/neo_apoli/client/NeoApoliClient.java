@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.client;
 
-import io.github.eggohito.neo_apoli.client.config.NeoApoliClientConfig;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
 import io.github.eggohito.neo_apoli.client.impl.log.NeoApoliClientLoggerImpl;
@@ -25,8 +24,6 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
-		getConfig().loadFromFile();
-
 		KeyStateClientManagerImpl.init();
 		NeoApoliClientLoggerImpl.init();
 		NestedTagCacheClientImpl.init();
@@ -36,10 +33,6 @@ public class NeoApoliClient implements ClientModInitializer {
 			((PowerRecipeDisplayHolder) client).neo_apoli$setPowerIdsByIndex(new Int2ObjectOpenHashMap<>());
 		});
 
-	}
-
-	public static NeoApoliClientConfig getConfig() {
-		return NeoApoliClientConfig.INSTANCE;
 	}
 
 }

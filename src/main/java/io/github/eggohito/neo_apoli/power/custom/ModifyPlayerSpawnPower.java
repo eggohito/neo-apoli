@@ -3,23 +3,33 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
+import dev.isxander.yacl3.api.Option;
+import dev.isxander.yacl3.api.OptionDescription;
+import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
+import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
+import dev.isxander.yacl3.config.v3.ConfigEntry;
+import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.misc.Prioritized;
 import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
@@ -35,10 +45,13 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.quiltmc.parsers.json.JsonFormat;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
+@SuppressWarnings("UnstableApiUsage")
 @EqualsAndHashCode
 @Getter
 public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyPlayerSpawnPower> {
@@ -165,9 +178,9 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 
 			BlockPos spawnPos = dimension.getSharedSpawnPos();
 
-			int horizontalStep = NeoApoli.getConfig().modifyPlayerSpawn.get().horizontalStep();
-			int verticalStep = NeoApoli.getConfig().modifyPlayerSpawn.get().verticalStep();
-			int radius = NeoApoli.getConfig().modifyPlayerSpawn.get().radius();
+			int horizontalStep = Config.INSTANCE.horizontalStep.get();
+			int verticalStep = Config.INSTANCE.verticalStep.get();
+			int radius = Config.INSTANCE.radius.get();
 
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);
@@ -230,6 +243,74 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 				return pos;
 			}
 
+		}
+
+	}
+
+	public static final class Config extends AbstractJsonCodecConfig<Config> implements ConfigCategoryRegistrant.Entry {
+
+		public static final Config INSTANCE = new Config();
+		public static final int VERSION = 1;
+
+		public final ConfigEntry<Integer> horizontalStep = register("horizontal_step", 64, CodecUtil.nonNegativeInt());
+		public final ConfigEntry<Integer> verticalStep = register("vertical_step", 64, CodecUtil.nonNegativeInt());
+		public final ConfigEntry<Integer> radius = register("radius", 6400, CodecUtil.nonNegativeInt());
+
+		public final ConfigEntry<Boolean> enabled = register("enabled", true, Codec.BOOL);
+		public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
+
+		Config() {
+			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/power/modify_player_spawn.json5"), JsonFormat.JSON5);
+		}
+
+		@Override
+		public void addGroup(Consumer<OptionGroup> adder) {
+
+			var horizontalStep = Option.<Integer>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.horizontal_step.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.horizontal_step.description")))
+				.binding(this.horizontalStep.asBinding())
+				.controller(option -> IntegerFieldControllerBuilder.create(option)
+					.min(0));
+			var verticalStep = Option.<Integer>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.vertical_step.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.vertical_step.description")))
+				.binding(this.verticalStep.asBinding())
+				.controller(option -> IntegerFieldControllerBuilder.create(option)
+					.min(0));
+			var radius = Option.<Integer>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.radius.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.radius.description")))
+				.binding(this.radius.asBinding())
+				.controller(option -> IntegerFieldControllerBuilder.create(option)
+					.min(0));
+			var enabled = Option.<Boolean>createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.description")))
+				.binding(this.enabled.asBinding())
+				.controller(option -> BooleanControllerBuilder.create(option)
+					.onOffFormatter()
+					.coloured(true));
+
+			adder.accept(OptionGroup.createBuilder()
+				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.name"))
+				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.description")))
+				.option(horizontalStep.build())
+				.option(verticalStep.build())
+				.option(radius.build())
+				.option(enabled.build())
+				.build());
+
+		}
+
+		@Override
+		public boolean load() {
+			return this.loadFromFile();
+		}
+
+		@Override
+		public void save() {
+			this.saveToFile();
 		}
 
 	}
