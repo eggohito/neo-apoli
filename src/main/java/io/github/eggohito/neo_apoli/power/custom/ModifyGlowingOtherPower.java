@@ -3,17 +3,16 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
-import io.github.eggohito.neo_apoli.color.Argb;
 import io.github.eggohito.neo_apoli.color.Color;
+import io.github.eggohito.neo_apoli.color.custom.Argb;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -52,8 +51,8 @@ public class ModifyGlowingOtherPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_GLOWING_OTHER;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_GLOWING_OTHER;
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class ModifyGlowingOtherPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, rendered)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_GLOWING_OTHER.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_GLOWING_OTHER.keySet());
 		}
 
 		public boolean doesApply(Context context, boolean hasTeamColor) {

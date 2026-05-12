@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.world;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,8 +22,8 @@ public record IsOfWorldCondition(ResourceKey<Level> dimension) implements WorldC
 	);
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.IS_OF;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.IS_OF;
 	}
 
 	@Override

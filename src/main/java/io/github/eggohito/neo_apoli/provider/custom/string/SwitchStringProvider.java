@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -21,8 +20,8 @@ public record SwitchStringProvider(List<Case<Condition, StringProvider>> cases, 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchStringProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchStringProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(StringProvider.STREAM_CODEC, SwitchStringProvider::new));
 
 	@Override
-	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.SWITCH;
+	public @NotNull StringProvider.Type<?> getType() {
+		return NeoApoliStringProviderTypes.SWITCH;
 	}
 
 	@Override

@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.effect;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.TestWorldMetaCondition;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEffectConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record TestWorldEffectCondition(WorldCondition condition) implements Effe
 	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldEffectCondition> STREAM_CODEC = TestWorldMetaCondition.streamCodec(TestWorldEffectCondition::new);
 
 	@Override
-	public EffectConditionType<?> getType() {
-		return EffectConditionTypes.TEST_WORLD;
+	public EffectCondition.Type<?> getType() {
+		return NeoApoliEffectConditionTypes.TEST_WORLD;
 	}
 
 }

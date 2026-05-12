@@ -2,11 +2,16 @@ package io.github.eggohito.neo_apoli.color;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
-import io.github.eggohito.neo_apoli.color.type.ColorType;
+import io.github.eggohito.neo_apoli.color.custom.Rgba;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
 
@@ -17,10 +22,11 @@ import net.minecraft.util.ARGB;
  */
 public interface Color extends ContextUser {
 
-	Codec<Color> CODEC = new MultiAlternativeCodec<>(createCodec("type"), Rgba.STRING_CODEC);
-	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = ColorType.STREAM_CODEC.dispatch(Color::getType, ColorType::streamCodec);
+	Codec<Color> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(Color::getType, Type::mapCodec), Rgba.STRING_CODEC));
 
-	ColorType<?> getType();
+	StreamCodec<RegistryFriendlyByteBuf, Color> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Color::getType, Type::streamCodec);
+
+	Type<?> getType();
 
 	int intValue(Context context);
 
@@ -29,12 +35,14 @@ public interface Color extends ContextUser {
 		return ARGB.multiply(first, second);
 	}
 
-	static Codec<Color> createCodec(String typeKey) {
-		return createMapCodec(typeKey).codec();
-	}
+	record Type<C extends Color>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 
-	static MapCodec<Color> createMapCodec(String typeKey) {
-		return ColorType.CODEC.dispatchMap(typeKey, Color::getType, ColorType::mapCodec);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.COLOR_TYPE);
+
+		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.COLOR_TYPE);
+
 	}
 
 }

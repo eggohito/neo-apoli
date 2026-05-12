@@ -5,8 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,8 +26,8 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.VECTOR_COMPONENT;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.VECTOR_COMPONENT;
 	}
 
 	@Override

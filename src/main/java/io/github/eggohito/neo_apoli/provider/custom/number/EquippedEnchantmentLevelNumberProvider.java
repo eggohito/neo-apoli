@@ -4,9 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
@@ -47,8 +46,8 @@ public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchant
 	);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.EQUIPPED_ENCHANTMENT_LEVEL;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.EQUIPPED_ENCHANTMENT_LEVEL;
 	}
 
 	@Override

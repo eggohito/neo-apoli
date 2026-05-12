@@ -2,13 +2,12 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.network.packet.s2c.MountEntityS2CPacket;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -26,8 +25,8 @@ public record MountBiEntityAction(BooleanProvider force) implements BiEntityActi
 	);
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.MOUNT;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.MOUNT;
 	}
 
 	@Override

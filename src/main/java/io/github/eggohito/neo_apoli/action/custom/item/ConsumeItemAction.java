@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.action.custom.item;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliItemActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
@@ -23,8 +22,8 @@ public record ConsumeItemAction(NumberProvider amount) implements ItemAction {
 	);
 
 	@Override
-	public ItemActionType<?> getType() {
-		return ItemActionTypes.CONSUME;
+	public ItemAction.Type<?> getType() {
+		return NeoApoliItemActionTypes.CONSUME;
 	}
 
 	@Override

@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.effect;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEffectConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record AllOfEffectCondition(List<EffectCondition> conditions) implements 
 	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfEffectCondition.class.getSimpleName(), () -> AllOfMetaCondition.streamCodec(EffectCondition.STREAM_CODEC, AllOfEffectCondition::new));
 
 	@Override
-	public EffectConditionType<?> getType() {
-		return EffectConditionTypes.ALL_OF;
+	public EffectCondition.Type<?> getType() {
+		return NeoApoliEffectConditionTypes.ALL_OF;
 	}
 
 }

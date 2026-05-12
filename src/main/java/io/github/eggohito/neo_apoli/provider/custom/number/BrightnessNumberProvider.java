@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,8 +23,8 @@ public record BrightnessNumberProvider(Vec3Provider position) implements NumberP
 	);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.BRIGHTNESS;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.BRIGHTNESS;
 	}
 
 	@Override

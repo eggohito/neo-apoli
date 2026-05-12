@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.SwitchValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.Case;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -22,8 +21,8 @@ public record SwitchNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtPro
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchNbtProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(NbtProvider.STREAM_CODEC, SwitchNbtProvider::new));
 
 	@Override
-	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.SWITCH;
+	public @NotNull NbtProvider.Type<?> getType() {
+		return NeoApoliNbtProviderTypes.SWITCH;
 	}
 
 	@Override

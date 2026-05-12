@@ -8,11 +8,10 @@ import io.github.eggohito.neo_apoli.condition.custom.ConstantCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -62,8 +61,8 @@ public class ModifyInvisibilityPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_INVISIBILITY;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_INVISIBILITY;
 	}
 
 	@Override
@@ -89,7 +88,7 @@ public class ModifyInvisibilityPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_INVISIBILITY.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_INVISIBILITY.keySet());
 		}
 
 		public boolean isInvisibleTo(Context context) {

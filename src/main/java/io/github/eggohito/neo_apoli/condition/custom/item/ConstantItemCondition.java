@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.item;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliItemConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -17,8 +16,8 @@ public record ConstantItemCondition(boolean value) implements ItemCondition, Con
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantItemCondition> STREAM_CODEC = ConstantMetaCondition.streamCodec(ConstantItemCondition::new);
 
 	@Override
-	public ItemConditionType<?> getType() {
-		return ItemConditionTypes.CONSTANT;
+	public ItemCondition.Type<?> getType() {
+		return NeoApoliItemConditionTypes.CONSTANT;
 	}
 
 }

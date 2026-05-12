@@ -9,7 +9,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.command.argument.ObjectEntryArgument;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public record ActionArgument(HolderLookup.Provider lookupProvider, ActionKind<?> kind, boolean allowInlineDefinitions) implements ObjectEntryArgument<ActionArgument.Type> {
+public record ActionArgument(HolderLookup.Provider lookupProvider, Action.Kind<?> kind, boolean allowInlineDefinitions) implements ObjectEntryArgument<ActionArgument.Type> {
 
 	@Override
 	public Type mapType(Either<Dynamic<Tag>, ResourceLocation> either) {
@@ -38,26 +37,26 @@ public record ActionArgument(HolderLookup.Provider lookupProvider, ActionKind<?>
 		return SharedSuggestionProvider.suggestResource(ActionManager.ids(kind()), builder);
 	}
 
-	public static ActionArgument action(HolderLookup.Provider lookupProvider, ActionKind<?> category) {
+	public static ActionArgument action(HolderLookup.Provider lookupProvider, Action.Kind<?> category) {
 		return new ActionArgument(lookupProvider, category, false);
 	}
 
-	public static ActionArgument inlineAction(HolderLookup.Provider lookupProvider, ActionKind<?> category) {
+	public static ActionArgument inlineAction(HolderLookup.Provider lookupProvider, Action.Kind<?> category) {
 		return new ActionArgument(lookupProvider, category, true);
 	}
 
-	public static <A extends Action> A getAction(CommandContext<CommandSourceStack> context, ActionKind<A> category, String argument) throws CommandSyntaxException {
+	public static <A extends Action> A getAction(CommandContext<CommandSourceStack> context, Action.Kind<A> category, String argument) throws CommandSyntaxException {
 		return context.getArgument(argument, Type.class).get(category);
 	}
 
 	public sealed interface Type extends ObjectEntryArgument.Type {
 
-		<A extends Action> A get(ActionKind<A> category) throws CommandSyntaxException;
+		<A extends Action> A get(Action.Kind<A> category) throws CommandSyntaxException;
 
 		record Reference(ResourceLocation id) implements Type {
 
 			@Override
-			public <A extends Action> A get(ActionKind<A> category) throws CommandSyntaxException {
+			public <A extends Action> A get(Action.Kind<A> category) throws CommandSyntaxException {
 				return ActionManager.getAsResult(category, id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
@@ -66,7 +65,7 @@ public record ActionArgument(HolderLookup.Provider lookupProvider, ActionKind<?>
 		record Inline(Dynamic<Tag> packed) implements Type {
 
 			@Override
-			public <A extends Action> A get(ActionKind<A> category) throws CommandSyntaxException {
+			public <A extends Action> A get(Action.Kind<A> category) throws CommandSyntaxException {
 				return category.codec().parse(packed).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
@@ -104,7 +103,7 @@ public record ActionArgument(HolderLookup.Provider lookupProvider, ActionKind<?>
 			return new Template(this, argument.kind(), argument.allowInlineDefinitions());
 		}
 
-		public record Template(Info type, ActionKind<?> kind, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ActionArgument> {
+		public record Template(Info type, Action.Kind<?> kind, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ActionArgument> {
 
 			@Override
 			public @NotNull ActionArgument instantiate(CommandBuildContext context) {

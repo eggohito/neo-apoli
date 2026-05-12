@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.world;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AnyOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record AnyOfWorldCondition(List<WorldCondition> conditions) implements Wo
 	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfWorldCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfWorldCondition.class.getSimpleName(), () -> AnyOfMetaCondition.streamCodec(WorldCondition.STREAM_CODEC, AnyOfWorldCondition::new));
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.ANY_OF;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.ANY_OF;
 	}
 
 }

@@ -7,10 +7,9 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,7 +23,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackDamageDealtPower extends Power implements Prioritized<CallbackDamageDealtPower> {
+public class CallbackDamageDealtPower extends Power implements PrioritizedPower<CallbackDamageDealtPower> {
 
 	public static final MapCodec<CallbackDamageDealtPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::getOnHitAction))
@@ -48,8 +47,8 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_DAMAGE_DEALT;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_DAMAGE_DEALT;
 	}
 
 	@Override
@@ -77,7 +76,7 @@ public class CallbackDamageDealtPower extends Power implements Prioritized<Callb
 				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
-				.buildWithRequirements(holder.level(), PowerTypes.CALLBACK_DAMAGE_DEALT.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_DAMAGE_DEALT.keySet());
 		}
 
 		public void execute(Context context) {

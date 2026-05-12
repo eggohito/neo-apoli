@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
@@ -25,8 +24,8 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.DISTANCE_BETWEEN_POSITIONS;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.DISTANCE_BETWEEN_POSITIONS;
 	}
 
 	@Override

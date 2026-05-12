@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import io.github.eggohito.neo_apoli.util.PrimitiveNumberType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,8 +24,8 @@ public record NumberStringProvider(NumberProvider number, PrimitiveNumberType as
 	);
 
 	@Override
-	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.NUMBER;
+	public @NotNull StringProvider.Type<?> getType() {
+		return NeoApoliStringProviderTypes.NUMBER;
 	}
 
 	@Override

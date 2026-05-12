@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.damage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliDamageConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -17,8 +16,8 @@ public record ConstantDamageCondition(boolean value) implements DamageCondition,
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantDamageCondition> STREAM_CODEC = ConstantMetaCondition.streamCodec(ConstantDamageCondition::new);
 
 	@Override
-	public DamageConditionType<?> getType() {
-		return DamageConditionTypes.CONSTANT;
+	public DamageCondition.Type<?> getType() {
+		return NeoApoliDamageConditionTypes.CONSTANT;
 	}
 
 }

@@ -7,9 +7,8 @@ import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -44,8 +43,8 @@ public class ModifyModelColorSelfPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_MODEL_COLOR_SELF;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_MODEL_COLOR_SELF;
 	}
 
 	@Override
@@ -69,7 +68,7 @@ public class ModifyModelColorSelfPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_MODEL_COLOR_OTHER.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_MODEL_COLOR_OTHER.keySet());
 		}
 
 		public int getColor(Context context) {

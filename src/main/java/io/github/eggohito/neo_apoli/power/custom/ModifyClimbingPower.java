@@ -9,11 +9,10 @@ import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCond
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -55,8 +54,8 @@ public class ModifyClimbingPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_CLIMBING;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_CLIMBING;
 	}
 
 	@Override

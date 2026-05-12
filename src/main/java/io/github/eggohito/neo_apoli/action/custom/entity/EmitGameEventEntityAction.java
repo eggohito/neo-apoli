@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,8 +24,8 @@ public record EmitGameEventEntityAction(Holder<GameEvent> gameEvent) implements 
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.EMIT_GAME_EVENT;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.EMIT_GAME_EVENT;
 	}
 
 	@Override

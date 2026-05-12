@@ -9,10 +9,9 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
@@ -42,7 +41,7 @@ import java.util.function.Supplier;
 
 @EqualsAndHashCode
 @Getter
-public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemUsePower> {
+public class ModifyItemUsePower extends Power implements PrioritizedPower<ModifyItemUsePower> {
 
 	public static final MapCodec<ModifyItemUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
@@ -80,8 +79,8 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ITEM_USE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ITEM_USE;
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class ModifyItemUsePower extends Power implements Prioritized<ModifyItemU
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
 				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_USE.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_USE.keySet());
 		}
 
 		public InteractionResult execute(Context context) {

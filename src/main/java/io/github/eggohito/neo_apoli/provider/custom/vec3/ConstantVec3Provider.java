@@ -4,8 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,7 +19,7 @@ public record ConstantVec3Provider(double x, double y, double z) implements Vec3
 		Codec.DOUBLE.fieldOf("z").forGetter(ConstantVec3Provider::z)
 	).apply(instance, ConstantVec3Provider::new));
 
-	public static final Codec<ConstantVec3Provider> INLINE_CODEC = Vec3.CODEC.xmap(
+	public static final Codec<ConstantVec3Provider> INLINE_CODEC = net.minecraft.world.phys.Vec3.CODEC.xmap(
 		ConstantVec3Provider::new,
 		ConstantVec3Provider::get
 	);
@@ -37,8 +36,8 @@ public record ConstantVec3Provider(double x, double y, double z) implements Vec3
 	}
 
 	@Override
-	public @NotNull Vec3ProviderType<?> getType() {
-		return Vec3ProviderTypes.CONSTANT;
+	public @NotNull Vec3Provider.Type<?> getType() {
+		return NeoApoliVec3ProviderTypes.CONSTANT;
 	}
 
 	@Override

@@ -1,10 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -17,8 +16,8 @@ public enum ExtinguishEntityAction implements EntityAction {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ExtinguishEntityAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.EXTINGUISH;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.EXTINGUISH;
 	}
 
 	@Override

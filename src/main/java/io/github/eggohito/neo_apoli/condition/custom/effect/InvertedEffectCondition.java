@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.effect;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.InvertedMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEffectConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +14,8 @@ public record InvertedEffectCondition(EffectCondition condition) implements Effe
 	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedEffectCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedEffectCondition.class.getSimpleName(), () -> InvertedMetaCondition.streamCodec(EffectCondition.STREAM_CODEC, InvertedEffectCondition::new));
 
 	@Override
-	public EffectConditionType<?> getType() {
-		return EffectConditionTypes.INVERTED;
+	public EffectCondition.Type<?> getType() {
+		return NeoApoliEffectConditionTypes.INVERTED;
 	}
 
 }

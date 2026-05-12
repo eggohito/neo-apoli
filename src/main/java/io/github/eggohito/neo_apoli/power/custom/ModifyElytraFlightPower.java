@@ -7,10 +7,9 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,7 +23,7 @@ import java.util.function.BooleanSupplier;
 
 @EqualsAndHashCode
 @Getter
-public class ModifyElytraFlightPower extends Power implements Prioritized<ModifyElytraFlightPower> {
+public class ModifyElytraFlightPower extends Power implements PrioritizedPower<ModifyElytraFlightPower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
@@ -50,8 +49,8 @@ public class ModifyElytraFlightPower extends Power implements Prioritized<Modify
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ELYTRA_FLIGHT;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ELYTRA_FLIGHT;
 	}
 
 	@Override

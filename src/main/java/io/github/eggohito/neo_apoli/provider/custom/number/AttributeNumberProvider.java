@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -34,8 +33,8 @@ public record AttributeNumberProvider(Holder<Attribute> attribute, Context.Param
 	);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.ATTRIBUTE;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.ATTRIBUTE;
 	}
 
 	@Override

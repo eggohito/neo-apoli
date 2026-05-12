@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
@@ -56,11 +55,11 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
 
-	private static final Map<ActionKind<?>, Map<ResourceLocation, Action>> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Map<Action.Kind<?>, Map<ResourceLocation, Action>> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final IdentityHashMap<Action, ResourceLocation> BY_ACTION = new IdentityHashMap<>();
 
-	private static final Map<ActionKind<?>, Map<ResourceLocation, List<TagLoader.EntryWithSource>>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
-	private static final Map<ActionKind<?>, Map<ResourceLocation, List<Action>>> TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Map<Action.Kind<?>, Map<ResourceLocation, List<TagLoader.EntryWithSource>>> PREPARED_TAGS = new Object2ObjectOpenHashMap<>();
+	private static final Map<Action.Kind<?>, Map<ResourceLocation, List<Action>>> TAGS = new Object2ObjectOpenHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
 
@@ -71,7 +70,7 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 	@Override
 	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
 
-		CompletableFuture<Map<ActionKind<?>, Map<ResourceLocation, JsonWithSource>>> preparedElementsFuture = CompletableFuture
+		CompletableFuture<Map<Action.Kind<?>, Map<ResourceLocation, JsonWithSource>>> preparedElementsFuture = CompletableFuture
 			.supplyAsync(() -> prepareElements(manager, Profiler.get()), backgroundExecutor);
 		CompletableFuture<Void> preparedTagsFuture = CompletableFuture
 			.runAsync(() -> prepareTags(manager, Profiler.get()), backgroundExecutor);
@@ -92,9 +91,9 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 		return DEPENDENCIES;
 	}
 
-	private Map<ActionKind<?>, Map<ResourceLocation, JsonWithSource>> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
+	private Map<Action.Kind<?>, Map<ResourceLocation, JsonWithSource>> prepareElements(ResourceManager manager, ProfilerFiller ignoredProfiler) {
 
-		Map<ActionKind<?>, Map<ResourceLocation, JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
+		Map<Action.Kind<?>, Map<ResourceLocation, JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
 		NeoApoliRegistries.ACTION_KIND.forEach(kind -> result
 			.computeIfAbsent(kind, k -> new Object2ObjectOpenHashMap<>())
 			.putAll(MiscUtil.collectJson(manager, JsonFileToIdConverter.registry(kind.registryKey()), ops, LOGGER::error)));
@@ -103,7 +102,7 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	private void applyElements(Map<ActionKind<?>, Map<ResourceLocation, JsonWithSource>> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
+	private void applyElements(Map<Action.Kind<?>, Map<ResourceLocation, JsonWithSource>> prepared, ResourceManager ignoredManager, ProfilerFiller ignoredProfiler) {
 
 		LOGGER.info("Parsing actions from data packs...");
 		BY_ID.clear();
@@ -126,7 +125,7 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	public static <A extends Action> DataResult<A> getAsResult(ActionKind<A> kind, ResourceLocation id) {
+	public static <A extends Action> DataResult<A> getAsResult(Action.Kind<A> kind, ResourceLocation id) {
 
 		var actions = BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>());
 		var matching = actions.get(id);
@@ -141,7 +140,7 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	public static <A extends Action> A get(ActionKind<A> kind, ResourceLocation id) {
+	public static <A extends Action> A get(Action.Kind<A> kind, ResourceLocation id) {
 		return getAsResult(kind, id).getOrThrow();
 	}
 
@@ -155,11 +154,11 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 		return getIdAsResult(action).getOrThrow();
 	}
 
-	public static <A extends Action> DataResult<List<A>> getAllFromTag(ActionKind<A> kind, TagKey<A> tag) {
+	public static <A extends Action> DataResult<List<A>> getAllFromTag(Action.Kind<A> kind, TagKey<A> tag) {
 		return getAllFromTag(kind, tag.location());
 	}
 
-	public static <A extends Action> DataResult<List<A>> getAllFromTag(ActionKind<A> kind, ResourceLocation tagId) {
+	public static <A extends Action> DataResult<List<A>> getAllFromTag(Action.Kind<A> kind, ResourceLocation tagId) {
 
 		var entries = TAGS.getOrDefault(kind, new Object2ObjectOpenHashMap<>());
 		var matching = entries.get(tagId);
@@ -174,17 +173,17 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	public static <A extends Action> Stream<A> actions(ActionKind<A> kind) {
+	public static <A extends Action> Stream<A> actions(Action.Kind<A> kind) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).values()
 			.stream()
 			.map(action -> (A) action);
 	}
 
-	public static <A extends Action> Stream<ResourceLocation> ids(ActionKind<A> kind) {
+	public static <A extends Action> Stream<ResourceLocation> ids(Action.Kind<A> kind) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).keySet().stream();
 	}
 
-	public static <A extends Action> boolean contains(ActionKind<A> kind, ResourceLocation id) {
+	public static <A extends Action> boolean contains(Action.Kind<A> kind, ResourceLocation id) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).containsKey(id);
 	}
 
@@ -275,10 +274,10 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	public record SynchronizeS2CPacket(Map<ActionKind<?>, Map<ResourceLocation, Action>> actions) implements CustomPacketPayload {
+	public record SynchronizeS2CPacket(Map<Action.Kind<?>, Map<ResourceLocation, Action>> actions) implements CustomPacketPayload {
 
 		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, Action>> ACTIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, Action.STREAM_CODEC);
-		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ActionKind<?>, Map<ResourceLocation, Action>>> KIND_ACTIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ActionKind.STREAM_CODEC, ACTIONS_CODEC);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<Action.Kind<?>, Map<ResourceLocation, Action>>> KIND_ACTIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, Action.Kind.STREAM_CODEC, ACTIONS_CODEC);
 
 		public static final Type<SynchronizeS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_actions"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeS2CPacket> CODEC = KIND_ACTIONS_CODEC.map(SynchronizeS2CPacket::new, SynchronizeS2CPacket::actions);
@@ -303,10 +302,10 @@ public final class ActionManager implements IdentifiableResourceReloadListener {
 
 	}
 
-	public record SynchronizeTagsS2CPacket(Map<ActionKind<?>, Map<ResourceLocation, List<Action>>> tags) implements CustomPacketPayload {
+	public record SynchronizeTagsS2CPacket(Map<Action.Kind<?>, Map<ResourceLocation, List<Action>>> tags) implements CustomPacketPayload {
 
 		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<Action>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.collection(ObjectArrayList::new, Action.STREAM_CODEC));
-		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ActionKind<?>, Map<ResourceLocation, List<Action>>>> KIND_TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ActionKind.STREAM_CODEC, TAGS_CODEC);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<Action.Kind<?>, Map<ResourceLocation, List<Action>>>> KIND_TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, Action.Kind.STREAM_CODEC, TAGS_CODEC);
 
 		public static final Type<SynchronizeTagsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_action_tags"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeTagsS2CPacket> CODEC = KIND_TAGS_CODEC.map(SynchronizeTagsS2CPacket::new, SynchronizeTagsS2CPacket::tags);

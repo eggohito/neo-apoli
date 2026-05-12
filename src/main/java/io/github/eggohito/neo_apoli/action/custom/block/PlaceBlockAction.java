@@ -3,12 +3,11 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
@@ -34,8 +33,8 @@ public record PlaceBlockAction(BlockInput block, Mode mode) implements BlockActi
 	);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.PLACE;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.PLACE;
 	}
 
 	@Override

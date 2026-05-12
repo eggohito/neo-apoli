@@ -9,18 +9,22 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -38,11 +42,11 @@ public abstract class Power implements ContextUser {
 
 	public static final String TYPE_KEY = "type";
 
-	public static final MapCodec<Power> MAP_CODEC = PowerType.CODEC.dispatchMap(TYPE_KEY, Power::getType, PowerType::mapCodec);
+	public static final MapCodec<Power> MAP_CODEC = Type.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
 
 	public static final Codec<Power> CODEC = MAP_CODEC.codec();
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = PowerType.STREAM_CODEC.dispatch(Power::getType, PowerType::streamCodec);
+	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Power::getType, Type::streamCodec);
 
 	private final Optional<Condition> activeCondition;
 
@@ -54,7 +58,7 @@ public abstract class Power implements ContextUser {
 		this(Optional.empty());
 	}
 
-	public abstract PowerType<?> getType();
+	public abstract Type<?> getType();
 
 	public abstract Instance<?> createInstance();
 
@@ -182,6 +186,16 @@ public abstract class Power implements ContextUser {
 				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
 				.orElse(true);
 		}
+
+	}
+
+	public record Type<P extends Power>(ContextKeySet keySet, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.POWER_TYPE);
+
+		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.POWER_TYPE);
 
 	}
 

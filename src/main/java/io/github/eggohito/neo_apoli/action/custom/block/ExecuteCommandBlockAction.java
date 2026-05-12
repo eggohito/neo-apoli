@@ -3,11 +3,10 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -31,8 +30,8 @@ public record ExecuteCommandBlockAction(StringProvider command) implements Block
 	);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.EXECUTE_COMMAND;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.EXECUTE_COMMAND;
 	}
 
 	@Override

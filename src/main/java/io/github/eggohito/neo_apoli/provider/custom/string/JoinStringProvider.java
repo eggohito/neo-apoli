@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -30,8 +29,8 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	);
 
 	@Override
-	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.JOIN;
+	public @NotNull StringProvider.Type<?> getType() {
+		return NeoApoliStringProviderTypes.JOIN;
 	}
 
 	@Override

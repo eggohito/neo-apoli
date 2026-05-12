@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.item;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.TestWorldMetaCondition;
 import io.github.eggohito.neo_apoli.condition.custom.world.WorldCondition;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliItemConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record TestWorldItemCondition(WorldCondition condition) implements ItemCo
 	public static final StreamCodec<RegistryFriendlyByteBuf, TestWorldItemCondition> STREAM_CODEC = TestWorldMetaCondition.streamCodec(TestWorldItemCondition::new);
 
 	@Override
-	public ItemConditionType<?> getType() {
-		return ItemConditionTypes.TEST_WORLD;
+	public ItemCondition.Type<?> getType() {
+		return NeoApoliItemConditionTypes.TEST_WORLD;
 	}
 
 }

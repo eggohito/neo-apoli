@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,8 +25,8 @@ public record IsInTagEntityCondition(TagKey<EntityType<?>> tag) implements Entit
 	);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.IS_IN_TAG;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.IS_IN_TAG;
 	}
 
 	@Override

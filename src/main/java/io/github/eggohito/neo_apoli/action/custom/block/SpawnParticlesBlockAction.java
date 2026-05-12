@@ -2,13 +2,12 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.SpawnParticlesMetaAction;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.BlockPositionVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,8 +18,8 @@ public record SpawnParticlesBlockAction(ParticleOptions particle, BiEntityCondit
 	public static final StreamCodec<RegistryFriendlyByteBuf, SpawnParticlesBlockAction> STREAM_CODEC = SpawnParticlesMetaAction.streamCodec(SpawnParticlesBlockAction::new);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.SPAWN_PARTICLES;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.SPAWN_PARTICLES;
 	}
 
 }

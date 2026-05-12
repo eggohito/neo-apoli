@@ -2,12 +2,11 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.google.common.collect.Streams;
 import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -72,8 +71,8 @@ public record ModifyBlockStatePropertyBlockAction(StringProvider property, Optio
 	);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.MODIFY_BLOCK_STATE_PROPERTY;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.MODIFY_BLOCK_STATE_PROPERTY;
 	}
 
 	@Override

@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -26,8 +25,8 @@ public record UuidStringProvider(Context.Parameter<Entity> entity) implements St
 	);
 
 	@Override
-	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.UUID;
+	public @NotNull StringProvider.Type<?> getType() {
+		return NeoApoliStringProviderTypes.UUID;
 	}
 
 	@Override

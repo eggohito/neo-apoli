@@ -2,10 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.effect;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
-import io.github.eggohito.neo_apoli.condition.kind.custom.EffectConditionKind;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEffectConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +13,13 @@ public record ReferenceEffectCondition(ResourceLocation value) implements Effect
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEffectCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceEffectCondition::new);
 
 	@Override
-	public EffectConditionType<?> getType() {
-		return EffectConditionTypes.REFERENCE;
+	public EffectCondition.Type<?> getType() {
+		return NeoApoliEffectConditionTypes.REFERENCE;
 	}
 
 	@Override
-	public ConditionKind<EffectCondition> targetKind() {
-		return EffectConditionKind.INSTANCE;
+	public EffectCondition.Kind targetKind() {
+		return EffectCondition.Kind.INSTANCE;
 	}
 
 }

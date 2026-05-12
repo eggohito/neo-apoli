@@ -4,14 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -35,8 +34,8 @@ public record HasPressedKeysSimultaneouslyEntityCondition(List<StringProvider> k
 	);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.HAS_PRESSED_KEYS_SIMULTANEOUSLY;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.HAS_PRESSED_KEYS_SIMULTANEOUSLY;
 	}
 
 	@Override

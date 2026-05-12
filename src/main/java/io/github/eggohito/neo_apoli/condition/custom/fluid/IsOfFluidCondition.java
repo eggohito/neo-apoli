@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliFluidConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,8 +24,8 @@ public record IsOfFluidCondition(Fluid fluid) implements FluidCondition {
 	);
 
 	@Override
-	public FluidConditionType<?> getType() {
-		return FluidConditionTypes.IS_OF;
+	public FluidCondition.Type<?> getType() {
+		return NeoApoliFluidConditionTypes.IS_OF;
 	}
 
 	@Override

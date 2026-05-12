@@ -6,9 +6,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -22,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @EqualsAndHashCode
 @Getter
-public class CraftingRecipePower extends Power implements Prioritized<CraftingRecipePower> {
+public class CraftingRecipePower extends Power implements PrioritizedPower<CraftingRecipePower> {
 
 	public static final MapCodec<CraftingRecipePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::getRecipeEntry),
@@ -39,8 +38,8 @@ public class CraftingRecipePower extends Power implements Prioritized<CraftingRe
 	private final int priority;
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CRAFTING_RECIPE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CRAFTING_RECIPE;
 	}
 
 	@Override

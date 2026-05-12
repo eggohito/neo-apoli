@@ -10,10 +10,9 @@ import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,8 +55,8 @@ public class ModifyFallingPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_FALLING;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_FALLING;
 	}
 
 	@Override
@@ -118,7 +117,7 @@ public class ModifyFallingPower extends Power {
 
 	public static double modify(Entity entity, double effectiveGravity) {
 
-		List<Modifier.Entry> modifiers = new ObjectArrayList<>();
+		List<Modifier.Operation> modifiers = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
@@ -137,7 +136,7 @@ public class ModifyFallingPower extends Power {
 					Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
 					Modifier modifier = listIterator.next();
 
-					modifiers.add(Modifier.entry(modifier, modifierContext));
+					modifiers.add(Modifier.operation(modifier, modifierContext));
 
 				}
 
@@ -149,7 +148,7 @@ public class ModifyFallingPower extends Power {
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_FALLING, modifiers, effectiveGravity);
+		ModifyValue.EVENT.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_FALLING, modifiers, effectiveGravity);
 		return Modifier.applyAll(modifiers, effectiveGravity);
 
 	}

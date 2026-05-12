@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -33,8 +32,8 @@ public record BlockStatePropertyBlockCondition(StringProvider property, StringPr
 	);
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.BLOCK_STATE_PROPERTY;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.BLOCK_STATE_PROPERTY;
 	}
 
 	@Override

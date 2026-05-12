@@ -14,13 +14,12 @@ import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
-import io.github.eggohito.neo_apoli.hud.type.HudElementType;
-import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliHudElementTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.fabricmc.loader.api.FabricLoader;
@@ -61,8 +60,8 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	);
 
 	@Override
-	public HudElementType<?> getType() {
-		return HudElementTypes.RESOURCE_BAR;
+	public Type<?> getType() {
+		return NeoApoliHudElementTypes.RESOURCE_BAR;
 	}
 
 	@Override

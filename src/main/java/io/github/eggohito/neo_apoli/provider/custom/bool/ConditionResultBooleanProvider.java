@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBooleanProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +21,8 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 	);
 
 	@Override
-	public @NotNull BooleanProviderType<?> getType() {
-		return BooleanProviderTypes.CONDITION_RESULT;
+	public @NotNull BooleanProvider.Type<?> getType() {
+		return NeoApoliBooleanProviderTypes.CONDITION_RESULT;
 	}
 
 	@Override

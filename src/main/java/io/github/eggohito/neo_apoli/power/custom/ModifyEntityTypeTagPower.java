@@ -7,9 +7,8 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -50,8 +49,8 @@ public class ModifyEntityTypeTagPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ENTITY_TYPE_TAG;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ENTITY_TYPE_TAG;
 	}
 
 	@Override

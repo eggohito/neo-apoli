@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.damage;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliDamageConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record CompareDamageCondition(Comparison comparison) implements DamageCon
 	public static final StreamCodec<RegistryFriendlyByteBuf, CompareDamageCondition> STREAM_CODEC = CompareMetaCondition.streamCodec(CompareDamageCondition::new);
 
 	@Override
-	public DamageConditionType<?> getType() {
-		return DamageConditionTypes.COMPARE;
+	public DamageCondition.Type<?> getType() {
+		return NeoApoliDamageConditionTypes.COMPARE;
 	}
 
 }

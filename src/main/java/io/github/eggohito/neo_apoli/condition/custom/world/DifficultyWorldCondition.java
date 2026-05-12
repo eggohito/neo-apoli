@@ -4,9 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.Difficulty;
@@ -23,8 +22,8 @@ public record DifficultyWorldCondition(Difficulty difficulty) implements WorldCo
 	);
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.DIFFICULTY;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.DIFFICULTY;
 	}
 
 	@Override

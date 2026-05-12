@@ -2,10 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.world;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ReferenceMetaCondition;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
-import io.github.eggohito.neo_apoli.condition.kind.custom.WorldConditionKind;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +13,13 @@ public record ReferenceWorldCondition(ResourceLocation value) implements WorldCo
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceWorldCondition> STREAM_CODEC = ReferenceMetaCondition.streamCodec(ReferenceWorldCondition::new);
 
 	@Override
-	public ConditionKind<WorldCondition> targetKind() {
-		return WorldConditionKind.INSTANCE;
+	public WorldCondition.Kind targetKind() {
+		return WorldCondition.Kind.INSTANCE;
 	}
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.REFERENCE;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.REFERENCE;
 	}
 
 }

@@ -10,7 +10,6 @@ import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.command.argument.ObjectEntryArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public record ConditionArgument(HolderLookup.Provider lookupProvider, ConditionKind<?> kind, boolean allowInlineDefinitions) implements ObjectEntryArgument<ConditionArgument.Type> {
+public record ConditionArgument(HolderLookup.Provider lookupProvider, Condition.Kind<?> kind, boolean allowInlineDefinitions) implements ObjectEntryArgument<ConditionArgument.Type> {
 
 	@Override
 	public Type mapType(Either<Dynamic<Tag>, ResourceLocation> either) {
@@ -38,26 +37,26 @@ public record ConditionArgument(HolderLookup.Provider lookupProvider, ConditionK
 		return SharedSuggestionProvider.suggestResource(ConditionManager.ids(kind()), builder);
 	}
 
-	public static ConditionArgument condition(HolderLookup.Provider lookupProvider, ConditionKind<?> category) {
+	public static ConditionArgument condition(HolderLookup.Provider lookupProvider, Condition.Kind<?> category) {
 		return new ConditionArgument(lookupProvider, category, false);
 	}
 
-	public static ConditionArgument inlineCondition(HolderLookup.Provider lookupProvider, ConditionKind<?> category) {
+	public static ConditionArgument inlineCondition(HolderLookup.Provider lookupProvider, Condition.Kind<?> category) {
 		return new ConditionArgument(lookupProvider, category, true);
 	}
 
-	public static <C extends Condition> C getCondition(CommandContext<CommandSourceStack> context, ConditionKind<C> category, String argument) throws CommandSyntaxException {
+	public static <C extends Condition> C getCondition(CommandContext<CommandSourceStack> context, Condition.Kind<C> category, String argument) throws CommandSyntaxException {
 		return context.getArgument(argument, Type.class).get(category);
 	}
 
 	public sealed interface Type extends ObjectEntryArgument.Type {
 
-		<C extends Condition> C get(ConditionKind<C> category) throws CommandSyntaxException;
+		<C extends Condition> C get(Condition.Kind<C> category) throws CommandSyntaxException;
 
 		record Reference(ResourceLocation id) implements Type {
 
 			@Override
-			public <C extends Condition> C get(ConditionKind<C> category) throws CommandSyntaxException {
+			public <C extends Condition> C get(Condition.Kind<C> category) throws CommandSyntaxException {
 				return ConditionManager.getAsResult(category, id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
@@ -66,7 +65,7 @@ public record ConditionArgument(HolderLookup.Provider lookupProvider, ConditionK
 		record Inline(Dynamic<Tag> packed) implements Type {
 
 			@Override
-			public <C extends Condition> C get(ConditionKind<C> category) throws CommandSyntaxException {
+			public <C extends Condition> C get(Condition.Kind<C> category) throws CommandSyntaxException {
 				return category.codec().parse(packed()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
@@ -104,7 +103,7 @@ public record ConditionArgument(HolderLookup.Provider lookupProvider, ConditionK
 			return new Template(this, argument.kind(), argument.allowInlineDefinitions());
 		}
 
-		public record Template(Info type, ConditionKind<?> kind, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ConditionArgument> {
+		public record Template(Info type, Condition.Kind<?> kind, boolean allowInlineDefinitions) implements ArgumentTypeInfo.Template<ConditionArgument> {
 
 			@Override
 			public @NotNull ConditionArgument instantiate(CommandBuildContext context) {

@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.InvertedMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,8 +14,8 @@ public record InvertedBiEntityCondition(BiEntityCondition condition) implements 
 	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedBiEntityCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedBiEntityCondition.class.getSimpleName(), () -> InvertedMetaCondition.streamCodec(BiEntityCondition.STREAM_CODEC, InvertedBiEntityCondition::new));
 
 	@Override
-	public BiEntityConditionType<?> getType() {
-		return BiEntityConditionTypes.INVERTED;
+	public BiEntityCondition.Type<?> getType() {
+		return NeoApoliBiEntityConditionTypes.INVERTED;
 	}
 
 }

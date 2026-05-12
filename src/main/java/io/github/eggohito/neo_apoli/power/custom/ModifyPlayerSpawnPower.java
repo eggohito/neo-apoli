@@ -15,9 +15,8 @@ import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -54,7 +53,7 @@ import java.util.function.Consumer;
 @SuppressWarnings("UnstableApiUsage")
 @EqualsAndHashCode
 @Getter
-public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyPlayerSpawnPower> {
+public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<ModifyPlayerSpawnPower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
@@ -88,8 +87,8 @@ public class ModifyPlayerSpawnPower extends Power implements Prioritized<ModifyP
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_PLAYER_SPAWN;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_PLAYER_SPAWN;
 	}
 
 	@Override

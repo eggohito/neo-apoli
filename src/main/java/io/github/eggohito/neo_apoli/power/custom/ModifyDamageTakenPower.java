@@ -6,10 +6,9 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.DamageModifyingPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.DamageModifyingPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -34,8 +33,8 @@ public class ModifyDamageTakenPower extends DamageModifyingPower {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_DAMAGE_TAKEN;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_DAMAGE_TAKEN;
 	}
 
 	@Override
@@ -58,13 +57,13 @@ public class ModifyDamageTakenPower extends DamageModifyingPower {
 				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
-				.buildWithRequirements(target.level(), PowerTypes.MODIFY_DAMAGE_TAKEN.keySet());
+				.buildWithRequirements(target.level(), NeoApoliPowerTypes.MODIFY_DAMAGE_TAKEN.keySet());
 		}
 
 	}
 
 	public static float modify(@NotNull Entity target, DamageSource source, float amount) {
-		return DamageModifyingPower.modify(PowerTypes.MODIFY_DAMAGE_TAKEN, Instance.class, target, source.getEntity(), target, source, amount);
+		return DamageModifyingPower.modify(NeoApoliPowerTypes.MODIFY_DAMAGE_TAKEN, Instance.class, target, source.getEntity(), target, source, amount);
 	}
 
 }

@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -29,8 +28,8 @@ public record EntityNbtProvider(Context.Parameter<Entity> entity) implements Nbt
 	);
 
 	@Override
-	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.ENTITY;
+	public @NotNull NbtProvider.Type<?> getType() {
+		return NeoApoliNbtProviderTypes.ENTITY;
 	}
 
 	@Override

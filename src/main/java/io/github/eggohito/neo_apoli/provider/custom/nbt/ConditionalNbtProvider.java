@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -20,8 +19,8 @@ public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, N
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(NbtProvider.STREAM_CODEC, ConditionalNbtProvider::new));
 
 	@Override
-	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.CONDITIONAL;
+	public @NotNull NbtProvider.Type<?> getType() {
+		return NeoApoliNbtProviderTypes.CONDITIONAL;
 	}
 
 	@Override

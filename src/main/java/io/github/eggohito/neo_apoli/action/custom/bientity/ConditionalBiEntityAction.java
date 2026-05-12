@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.ConditionalMetaAction;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,8 +17,8 @@ public record ConditionalBiEntityAction(BiEntityCondition condition, BiEntityAct
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBiEntityAction.class.getSimpleName(), () -> ConditionalMetaAction.streamCodec(BiEntityCondition.STREAM_CODEC, BiEntityAction.STREAM_CODEC, ConditionalBiEntityAction::new));
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.CONDITIONAL;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.CONDITIONAL;
 	}
 
 }

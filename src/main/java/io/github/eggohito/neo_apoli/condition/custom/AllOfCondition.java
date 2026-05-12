@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,8 +18,8 @@ public record AllOfCondition(List<Condition> conditions) implements AllOfMetaCon
 	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfCondition.class.getSimpleName(), () -> AllOfMetaCondition.streamCodec(Condition.STREAM_CODEC, AllOfCondition::new));
 
 	@Override
-	public ConditionType<?> getType() {
-		return ConditionTypes.ALL_OF;
+	public Type<?> getType() {
+		return NeoApoliConditionTypes.ALL_OF;
 	}
 
 }

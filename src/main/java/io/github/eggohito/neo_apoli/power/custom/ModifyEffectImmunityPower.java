@@ -6,9 +6,8 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -33,8 +32,8 @@ public class ModifyEffectImmunityPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_EFFECT_IMMUNITY;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_EFFECT_IMMUNITY;
 	}
 
 	@Override
@@ -53,7 +52,7 @@ public class ModifyEffectImmunityPower extends Power {
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_EFFECT_DURATION.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.keySet());
 		}
 
 	}

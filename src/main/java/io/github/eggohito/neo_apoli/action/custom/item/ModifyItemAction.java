@@ -2,12 +2,11 @@ package io.github.eggohito.neo_apoli.action.custom.item;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.ConstantVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliItemActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -41,8 +40,8 @@ public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, Context.P
 	);
 
 	@Override
-	public ItemActionType<?> getType() {
-		return ItemActionTypes.MODIFY;
+	public ItemAction.Type<?> getType() {
+		return NeoApoliItemActionTypes.MODIFY;
 	}
 
 	@Override

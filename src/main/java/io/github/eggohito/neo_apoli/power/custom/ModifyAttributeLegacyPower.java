@@ -6,12 +6,11 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.AttributeModifyingPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.AttributeModifyingPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -48,8 +47,8 @@ public class ModifyAttributeLegacyPower extends AttributeModifyingPower {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ATTRIBUTE_LEGACY;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ATTRIBUTE_LEGACY;
 	}
 
 	@Override

@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.google.common.collect.Streams;
 import com.mojang.serialization.*;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -62,8 +61,8 @@ public record AddExperienceEntityAction(Optional<NumberProvider> points, Optiona
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.ADD_EXPERIENCE;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.ADD_EXPERIENCE;
 	}
 
 	@Override

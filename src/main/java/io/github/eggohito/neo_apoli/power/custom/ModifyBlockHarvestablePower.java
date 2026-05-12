@@ -7,11 +7,10 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -30,7 +29,7 @@ import java.util.function.BooleanSupplier;
 
 @EqualsAndHashCode
 @Getter
-public class ModifyBlockHarvestablePower extends Power implements Prioritized<ModifyBlockHarvestablePower> {
+public class ModifyBlockHarvestablePower extends Power implements PrioritizedPower<ModifyBlockHarvestablePower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
@@ -56,8 +55,8 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_BLOCK_HARVESTABLE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_BLOCK_HARVESTABLE;
 	}
 
 	@Override
@@ -82,7 +81,7 @@ public class ModifyBlockHarvestablePower extends Power implements Prioritized<Mo
 				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_BLOCK_HARVESTABLE.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_BLOCK_HARVESTABLE.keySet());
 		}
 
 		public boolean isAllowed(Context context) {

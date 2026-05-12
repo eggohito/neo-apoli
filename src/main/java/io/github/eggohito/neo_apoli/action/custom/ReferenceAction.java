@@ -3,9 +3,7 @@ package io.github.eggohito.neo_apoli.action.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +14,13 @@ public record ReferenceAction(ResourceLocation value) implements ReferenceMetaAc
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceAction::new);
 
 	@Override
-	public ActionKind<Action> targetKind() {
-		return ActionKind.INSTANCE;
+	public Kind<Action> targetKind() {
+		return Kind.INSTANCE;
 	}
 
 	@Override
-	public ActionType<?> getType() {
-		return ActionTypes.REFERENCE;
+	public Type<?> getType() {
+		return NeoApoliActionTypes.REFERENCE;
 	}
 
 }

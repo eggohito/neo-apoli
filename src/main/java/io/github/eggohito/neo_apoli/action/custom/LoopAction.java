@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.action.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.LoopMetaAction;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,8 +18,8 @@ public record LoopAction(Optional<Action> beforeAction, Optional<Action> afterAc
 	public static final StreamCodec<RegistryFriendlyByteBuf, LoopAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopAction.class.getSimpleName(), () -> LoopMetaAction.streamCodec(Action.STREAM_CODEC, LoopAction::new));
 
 	@Override
-	public ActionType<?> getType() {
-		return ActionTypes.LOOP;
+	public Type<?> getType() {
+		return NeoApoliActionTypes.LOOP;
 	}
 
 }

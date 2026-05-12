@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,8 +25,8 @@ public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements 
 	));
 
 	@Override
-	public @NotNull BoxProviderType<?> getType() {
-		return BoxProviderTypes.OFFSET;
+	public @NotNull BoxProvider.Type<?> getType() {
+		return NeoApoliBoxProviderTypes.OFFSET;
 	}
 
 	@Override

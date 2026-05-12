@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,8 +24,8 @@ public record IsInTagBlockCondition(TagKey<Block> tag) implements BlockCondition
 	);
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.IS_IN_TAG;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.IS_IN_TAG;
 	}
 
 	@Override

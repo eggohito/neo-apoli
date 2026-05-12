@@ -3,15 +3,14 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.SpawnParticlesMetaAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.EntityPositionVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -35,8 +34,8 @@ public record SpawnParticlesEntityAction(ParticleOptions particle, BiEntityCondi
 	public static final StreamCodec<RegistryFriendlyByteBuf, SpawnParticlesEntityAction> STREAM_CODEC = SpawnParticlesMetaAction.streamCodec(SpawnParticlesEntityAction::new);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.SPAWN_PARTICLES;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.SPAWN_PARTICLES;
 	}
 
 	@Override

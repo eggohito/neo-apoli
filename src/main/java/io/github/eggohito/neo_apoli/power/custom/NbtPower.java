@@ -4,8 +4,7 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,8 +22,8 @@ public class NbtPower extends Power {
 	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodecUtil.unit(NbtPower::new);
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.NBT;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.NBT;
 	}
 
 	@Override

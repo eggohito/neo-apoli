@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.hud;
 
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.util.context.ContextKey;
 
 import java.util.Optional;

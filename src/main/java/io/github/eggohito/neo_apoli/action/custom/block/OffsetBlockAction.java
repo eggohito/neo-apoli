@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -28,8 +27,8 @@ public record OffsetBlockAction(BlockAction action, Vec3Provider offset) impleme
 	);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.OFFSET;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.OFFSET;
 	}
 
 	@Override

@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.custom.meta.CompareMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record CompareEntityCondition(Comparison comparison) implements EntityCon
 	public static final StreamCodec<RegistryFriendlyByteBuf, CompareEntityCondition> STREAM_CODEC = CompareMetaCondition.streamCodec(CompareEntityCondition::new);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.COMPARE;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.COMPARE;
 	}
 
 }

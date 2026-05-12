@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.damage;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliDamageConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record AllOfDamageCondition(List<DamageCondition> conditions) implements 
 	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfDamageCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfDamageCondition.class.getSimpleName(), () -> AllOfMetaCondition.streamCodec(DamageCondition.STREAM_CODEC, AllOfDamageCondition::new));
 
 	@Override
-	public DamageConditionType<?> getType() {
-		return DamageConditionTypes.ALL_OF;
+	public DamageCondition.Type<?> getType() {
+		return NeoApoliDamageConditionTypes.ALL_OF;
 	}
 
 }

@@ -5,10 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.item.InvertedItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.IsEmptyItemCondition;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKeySet;
@@ -34,8 +33,8 @@ public record HasEquippedItemEntityCondition(ItemCondition itemCondition, Equipm
 	);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.HAS_EQUIPPED_ITEM;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.HAS_EQUIPPED_ITEM;
 	}
 
 	@Override

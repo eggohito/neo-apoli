@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.condition.custom.bientity;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.entity.EntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.TestEntityMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBiEntityConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
@@ -19,8 +18,8 @@ public record TestEntityBiEntityCondition(EntityCondition condition, Context.Par
 	public static final StreamCodec<RegistryFriendlyByteBuf, TestEntityBiEntityCondition> STREAM_CODEC = TestEntityMetaCondition.streamCodec(TestEntityBiEntityCondition::new);
 
 	@Override
-	public BiEntityConditionType<?> getType() {
-		return BiEntityConditionTypes.TEST_ENTITY;
+	public BiEntityCondition.Type<?> getType() {
+		return NeoApoliBiEntityConditionTypes.TEST_ENTITY;
 	}
 
 	@Override

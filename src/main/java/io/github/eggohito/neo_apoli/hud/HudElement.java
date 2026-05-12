@@ -1,22 +1,27 @@
 package io.github.eggohito.neo_apoli.hud;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
-import io.github.eggohito.neo_apoli.hud.type.HudElementType;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public interface HudElement extends ContextUser {
 
-	Codec<HudElement> CODEC = HudElementType.CODEC.dispatch(HudElement::getType, HudElementType::mapCodec);
+	Codec<HudElement> CODEC = Type.CODEC.dispatch(HudElement::getType, Type::mapCodec);
 
-	StreamCodec<RegistryFriendlyByteBuf, HudElement> STREAM_CODEC = HudElementType.STREAM_CODEC.dispatch(HudElement::getType, HudElementType::streamCodec);
+	StreamCodec<RegistryFriendlyByteBuf, HudElement> STREAM_CODEC = Type.STREAM_CODEC.dispatch(HudElement::getType, Type::streamCodec);
 
-	HudElementType<?> getType();
+	Type<?> getType();
 
 	int order();
 
@@ -33,6 +38,16 @@ public interface HudElement extends ContextUser {
 	class Position {
 		int x;
 		int y;
+	}
+
+	record Type<G extends HudElement>(MapCodec<G> mapCodec, StreamCodec<RegistryFriendlyByteBuf, G> streamCodec) {
+
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.HUD_ELEMENT_TYPE);
+
+		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
+
 	}
 
 }

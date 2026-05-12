@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
@@ -27,8 +26,8 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	);
 
 	@Override
-	public @NotNull Vec3ProviderType<?> getType() {
-		return Vec3ProviderTypes.DYNAMIC;
+	public @NotNull Vec3Provider.Type<?> getType() {
+		return NeoApoliVec3ProviderTypes.DYNAMIC;
 	}
 
 	@Override

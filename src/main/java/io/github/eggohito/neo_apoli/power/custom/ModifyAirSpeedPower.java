@@ -9,8 +9,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -49,8 +48,8 @@ public class ModifyAirSpeedPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_AIR_SPEED;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_AIR_SPEED;
 	}
 
 	@Override
@@ -78,7 +77,7 @@ public class ModifyAirSpeedPower extends Power {
 
 	public static float modify(Entity entity, float airSpeed) {
 
-		List<Modifier.Entry> entries = new ObjectArrayList<>();
+		List<Modifier.Operation> entries = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
@@ -87,7 +86,7 @@ public class ModifyAirSpeedPower extends Power {
 			try {
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
-					MiscUtil.iterateList(instance.getModifiers(), (index, modifier) -> entries.add(Modifier.entry(modifier, context.forChild(".modifiers[" + index + "]"))));
+					MiscUtil.iterateList(instance.getModifiers(), (index, modifier) -> entries.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 				}
 
 			}
@@ -98,7 +97,7 @@ public class ModifyAirSpeedPower extends Power {
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_AIR_SPEED, entries, airSpeed);
+		ModifyValue.EVENT.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_AIR_SPEED, entries, airSpeed);
 		return (float) Modifier.applyAll(entries, airSpeed);
 
 	}

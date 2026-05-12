@@ -6,8 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderType;
-import io.github.eggohito.neo_apoli.provider.type.string.StringProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -30,8 +29,8 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	);
 
 	@Override
-	public @NotNull StringProviderType<?> getType() {
-		return StringProviderTypes.NBT;
+	public @NotNull StringProvider.Type<?> getType() {
+		return NeoApoliStringProviderTypes.NBT;
 	}
 
 	@Override

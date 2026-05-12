@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.effect;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionType;
-import io.github.eggohito.neo_apoli.condition.type.effect.EffectConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEffectConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,8 +25,8 @@ public record IsInTagEffectCondition(TagKey<MobEffect> tag) implements EffectCon
 	);
 
 	@Override
-	public EffectConditionType<?> getType() {
-		return EffectConditionTypes.IS_IN_TAG;
+	public EffectCondition.Type<?> getType() {
+		return NeoApoliEffectConditionTypes.IS_IN_TAG;
 	}
 
 	@Override

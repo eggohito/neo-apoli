@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -25,8 +24,8 @@ public enum BlockEntityNbtProvider implements NbtProvider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockEntityNbtProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.BLOCK_ENTITY;
+	public @NotNull NbtProvider.Type<?> getType() {
+		return NeoApoliNbtProviderTypes.BLOCK_ENTITY;
 	}
 
 	@Override

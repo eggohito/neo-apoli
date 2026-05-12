@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -31,8 +30,8 @@ public record EntityBoundsBoxProvider(Context.Parameter<Entity> entity) implemen
 	));
 
 	@Override
-	public @NotNull BoxProviderType<?> getType() {
-		return BoxProviderTypes.ENTITY_BOUNDS;
+	public @NotNull BoxProvider.Type<?> getType() {
+		return NeoApoliBoxProviderTypes.ENTITY_BOUNDS;
 	}
 
 	@Override

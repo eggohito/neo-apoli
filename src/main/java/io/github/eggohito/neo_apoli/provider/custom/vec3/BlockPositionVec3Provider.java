@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -22,15 +21,15 @@ public enum BlockPositionVec3Provider implements Vec3Provider {
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockPositionVec3Provider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public @NotNull Vec3ProviderType<?> getType() {
-		return Vec3ProviderTypes.BLOCK_POSITION;
+	public @NotNull Vec3Provider.Type<?> getType() {
+		return NeoApoliVec3ProviderTypes.BLOCK_POSITION;
 	}
 
 	@Override
 	public @NotNull Vec3 nextVec3(Context context) {
 		return context.getOptional(NeoApoliContextParams.BLOCK_POS)
 			.map(BlockPos::getCenter)
-			.orElse(Vec3.ZERO);
+			.orElse(net.minecraft.world.phys.Vec3.ZERO);
 	}
 
 	@Override

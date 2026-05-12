@@ -6,10 +6,9 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -30,18 +29,18 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackProjectileLandPower extends SimpleCallbackPower {
+public class CallbackProjectileLandPower extends CallbackPower {
 
-	public static final MapCodec<CallbackProjectileLandPower> MAP_CODEC = SimpleCallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = SimpleCallbackPower.createSimpleCallbackStreamCodec(CallbackProjectileLandPower::new);
+	public static final MapCodec<CallbackProjectileLandPower> MAP_CODEC = CallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackProjectileLandPower::new);
 
 	public CallbackProjectileLandPower(Optional<Condition> activeCondition, Action action) {
 		super(activeCondition, action);
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_PROJECTILE_LAND;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_PROJECTILE_LAND;
 	}
 
 	@Override
@@ -90,7 +89,7 @@ public class CallbackProjectileLandPower extends SimpleCallbackPower {
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 				.withNullable(NeoApoliContextParams.DIRECTION, side)
 				.withRequired(NeoApoliContextParams.PROJECTILE_ENTITY, projectile)
-				.buildWithRequirements(holder.level(), PowerTypes.CALLBACK_PROJECTILE_LAND.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_PROJECTILE_LAND.keySet());
 
 		}
 

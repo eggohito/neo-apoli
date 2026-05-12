@@ -8,10 +8,9 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -56,8 +55,8 @@ public class ModifyItemWearablePower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ITEM_WEARABLE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ITEM_WEARABLE;
 	}
 
 	@Override
@@ -87,7 +86,7 @@ public class ModifyItemWearablePower extends Power {
 		public Context createContext(Entity holder, ItemStack stack) {
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ITEM_STACK, stack)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_ITEM_WEARABLE.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_WEARABLE.keySet());
 		}
 
 		public EnumMap<EquipmentSlot, Condition> getSlots() {

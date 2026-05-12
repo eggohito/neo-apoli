@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.item;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.CompareToRangeMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliItemConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -16,8 +15,8 @@ public record CompareToRangeItemCondition(NumberProvider value, Optional<NumberP
 	public static final StreamCodec<RegistryFriendlyByteBuf, CompareToRangeItemCondition> STREAM_CODEC = CompareToRangeMetaCondition.streamCodec(CompareToRangeItemCondition::new);
 
 	@Override
-	public ItemConditionType<?> getType() {
-		return ItemConditionTypes.COMPARE_TO_RANGE;
+	public ItemCondition.Type<?> getType() {
+		return NeoApoliItemConditionTypes.COMPARE_TO_RANGE;
 	}
 
 }

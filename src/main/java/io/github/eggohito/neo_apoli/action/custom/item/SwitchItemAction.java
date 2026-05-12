@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.action.custom.item;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.SwitchMetaAction;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionType;
-import io.github.eggohito.neo_apoli.action.type.item.ItemActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.item.ItemCondition;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliItemActionTypes;
 import io.github.eggohito.neo_apoli.util.Case;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -19,8 +18,8 @@ public record SwitchItemAction(List<Case<ItemCondition, ItemAction>> cases, Item
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchItemAction> STREAM_CODEC = StreamCodecUtil.lazy(SwitchItemAction.class.getSimpleName(), () -> SwitchMetaAction.streamCodec(ItemCondition.STREAM_CODEC, ItemAction.STREAM_CODEC, SwitchItemAction::new));
 
 	@Override
-	public ItemActionType<?> getType() {
-		return ItemActionTypes.SWITCH;
+	public ItemAction.Type<?> getType() {
+		return NeoApoliItemActionTypes.SWITCH;
 	}
 
 }

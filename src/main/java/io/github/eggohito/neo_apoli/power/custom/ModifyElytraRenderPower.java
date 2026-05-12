@@ -7,9 +7,8 @@ import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,7 +25,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class ModifyElytraRenderPower extends Power implements Prioritized<ModifyElytraRenderPower> {
+public class ModifyElytraRenderPower extends Power implements PrioritizedPower<ModifyElytraRenderPower> {
 
 	public static final MapCodec<ModifyElytraRenderPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ResourceKey.codec(EquipmentAssets.ROOT_ID).fieldOf("asset_id").forGetter(ModifyElytraRenderPower::getAssetId))
@@ -58,8 +57,8 @@ public class ModifyElytraRenderPower extends Power implements Prioritized<Modify
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_ELYTRA_RENDER;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_ELYTRA_RENDER;
 	}
 
 	@Override

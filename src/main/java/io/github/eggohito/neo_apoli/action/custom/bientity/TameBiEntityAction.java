@@ -1,10 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,8 +18,8 @@ public enum TameBiEntityAction implements BiEntityAction {
 	public static final StreamCodec<RegistryFriendlyByteBuf, TameBiEntityAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.TAME;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.TAME;
 	}
 
 	@Override

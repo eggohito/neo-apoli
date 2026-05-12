@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AllOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliFluidConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record AllOfFluidCondition(List<FluidCondition> conditions) implements Fl
 	public static final StreamCodec<RegistryFriendlyByteBuf, AllOfFluidCondition> STREAM_CODEC = StreamCodecUtil.lazy(AllOfFluidCondition.class.getSimpleName(), () -> AllOfMetaCondition.streamCodec(FluidCondition.STREAM_CODEC, AllOfFluidCondition::new));
 
 	@Override
-	public FluidConditionType<?> getType() {
-		return FluidConditionTypes.ALL_OF;
+	public FluidCondition.Type<?> getType() {
+		return NeoApoliFluidConditionTypes.ALL_OF;
 	}
 
 }

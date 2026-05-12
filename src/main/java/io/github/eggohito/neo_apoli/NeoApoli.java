@@ -1,36 +1,30 @@
 package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.kind.ActionKinds;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
-import io.github.eggohito.neo_apoli.color.type.ColorTypes;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.argument.NeoApoliArguments;
-import io.github.eggohito.neo_apoli.command.data.provider.NeoApoliDataProviders;
-import io.github.eggohito.neo_apoli.comparison.type.ComparisonTypes;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
-import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.modifier.type.ModifierTypes;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.provider.type.ValueProviderTypes;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.*;
+import io.github.eggohito.neo_apoli.registry.action.*;
+import io.github.eggohito.neo_apoli.registry.condition.*;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -71,9 +65,14 @@ public class NeoApoli implements ModInitializer {
 
 		});
 
-		NeoApoliArguments.registerAll();
-		ValueProviderTypes.registerAll();
+		NeoApoliBooleanProviderTypes.registerAll();
+		NeoApoliBoxProviderTypes.registerAll();
+		NeoApoliNbtProviderTypes.registerAll();
+		NeoApoliNumberProviderTypes.registerAll();
+		NeoApoliStringProviderTypes.registerAll();
+		NeoApoliVec3ProviderTypes.registerAll();
 
+		NeoApoliArguments.registerAll();
 		NeoApoliComponentContents.registerAll();
 		NeoApoliContainerMenuTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();
@@ -84,18 +83,30 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliEntityAttachments.registerAll();
 
-		ComparisonTypes.registerAll();
-		ColorTypes.registerAll();
-		ModifierTypes.registerAll();
-		HudElementTypes.registerAll();
+		NeoApoliComparisonTypes.registerAll();
+		NeoApoliColorTypes.registerAll();
+		NeoApoliModifierTypes.registerAll();
+		NeoApoliHudElementTypes.registerAll();
 
-		PowerTypes.registerAll();
+		NeoApoliPowerTypes.registerAll();
 
-		ConditionKinds.registerAll();
-		ConditionTypes.registerAll();
+		NeoApoliConditionKinds.registerAll();
+		NeoApoliConditionTypes.registerAll();
+		NeoApoliBiEntityConditionTypes.registerAll();
+		NeoApoliBlockConditionTypes.registerAll();
+		NeoApoliDamageConditionTypes.registerAll();
+		NeoApoliEffectConditionTypes.registerAll();
+		NeoApoliEntityConditionTypes.registerAll();
+		NeoApoliFluidConditionTypes.registerAll();
+		NeoApoliItemConditionTypes.registerAll();
+		NeoApoliWorldConditionTypes.registerAll();
 
-		ActionKinds.registerAll();
-		ActionTypes.registerAll();
+		NeoApoliActionKinds.registerAll();
+		NeoApoliActionTypes.registerAll();
+		NeoApoliBiEntityActionTypes.registerAll();
+		NeoApoliBlockActionTypes.registerAll();
+		NeoApoliEntityActionTypes.registerAll();
+		NeoApoliItemActionTypes.registerAll();
 
 		PowerManager.init();
 		GlobalPowerSetManager.init();

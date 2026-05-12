@@ -1,11 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
-import io.github.eggohito.neo_apoli.action.kind.custom.EntityActionKind;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +14,13 @@ public record ReferenceEntityAction(ResourceLocation value) implements EntityAct
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceEntityAction::new);
 
 	@Override
-	public ActionKind<EntityAction> targetKind() {
-		return EntityActionKind.INSTANCE;
+	public Action.Kind<EntityAction> targetKind() {
+		return EntityAction.Kind.INSTANCE;
 	}
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.REFERENCE;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.REFERENCE;
 	}
 
 }

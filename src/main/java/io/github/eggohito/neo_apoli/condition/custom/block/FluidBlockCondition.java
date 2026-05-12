@@ -3,10 +3,9 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.fluid.FluidCondition;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKeySet;
@@ -29,8 +28,8 @@ public record FluidBlockCondition(FluidCondition fluidCondition) implements Bloc
 	);
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.FLUID;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.FLUID;
 	}
 
 	@Override

@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.AnyOfMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record AnyOfBlockCondition(List<BlockCondition> conditions) implements Bl
 	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfBlockCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfBlockCondition.class.getSimpleName(), () -> AnyOfMetaCondition.streamCodec(BlockCondition.STREAM_CODEC, AnyOfBlockCondition::new));
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.ANY_OF;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.ANY_OF;
 	}
 
 }

@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.*;
@@ -320,7 +319,7 @@ public final class PowersImpl implements Powers {
 		RegistryOps<Tag> ops = entity.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 		Map<PowerIdentifier, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
-		Map<PowerIdentifier, PowerType<?>> oldTypes = new Object2ObjectOpenHashMap<>();
+		Map<PowerIdentifier, Power.Type<?>> oldTypes = new Object2ObjectOpenHashMap<>();
 
 		//  Revoke all unregistered powers, and cache the old data of those that are on the entity
 		for (var reference : powers.getAllIds()) {
@@ -338,7 +337,7 @@ public final class PowersImpl implements Powers {
 			else {
 
 				Power.Instance<?> oldInstance = powers.getInstance(reference);
-				PowerType<?> oldType = oldInstance.getPower().getType();
+				Power.Type<?> oldType = oldInstance.getPower().getType();
 
 				oldTypes.put(reference, oldType);
 				MiscUtil.handleResult(

@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,7 +16,7 @@ public interface ReferenceMetaCondition<C extends Condition> extends Condition {
 
 	ResourceLocation value();
 
-	ConditionKind<C> targetKind();
+	Kind<C> targetKind();
 
 	@Override
 	default boolean test(Context context) {

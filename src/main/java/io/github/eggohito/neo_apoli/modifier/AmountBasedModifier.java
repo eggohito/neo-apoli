@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -13,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 public interface AmountBasedModifier extends Modifier {
 
 	@Override
-	ModifierType<?> getType();
+	Type<?> getType();
 
 	@Override
 	default double apply(Context context, double base, double total) {

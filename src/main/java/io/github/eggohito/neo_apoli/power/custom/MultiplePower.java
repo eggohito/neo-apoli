@@ -14,8 +14,7 @@ import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -84,9 +83,9 @@ public class MultiplePower extends Power {
 						return identity.apply2stable((unit, o) -> unit, powerIdResult);
 					}
 
-					DataResult<PowerType<?>> typeResult = PowerType.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
-						.flatMap(type -> type == PowerTypes.MULTIPLE
-							? DataResult.error(() -> "Sub-power \"" + subPowerKey + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
+					DataResult<Type<?>> typeResult = Type.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
+						.flatMap(type -> type == NeoApoliPowerTypes.MULTIPLE
+							? DataResult.error(() -> "Sub-power \"" + subPowerKey + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, NeoApoliPowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
 							: DataResult.success(type));
 
 					if (typeResult.isError()) {
@@ -181,8 +180,8 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MULTIPLE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MULTIPLE;
 	}
 
 	@Override
@@ -203,7 +202,7 @@ public class MultiplePower extends Power {
 	@ApiStatus.Internal
 	public static void preProcessSubPowers(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
 
-		if (!(jsonWithSource.json() instanceof JsonObject powerJson) || !PowerType.CODEC.parse(ops, powerJson.get(TYPE_KEY)).mapOrElse(PowerTypes.MULTIPLE::equals, error -> false)) {
+		if (!(jsonWithSource.json() instanceof JsonObject powerJson) || !Type.CODEC.parse(ops, powerJson.get(TYPE_KEY)).mapOrElse(NeoApoliPowerTypes.MULTIPLE::equals, error -> false)) {
 			return;
 		}
 

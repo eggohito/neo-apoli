@@ -16,7 +16,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -588,7 +587,7 @@ public class PowerCommand {
 				}
 
 				Power power = powerHolder.value();
-				PowerType<?> type = power.getType();
+				Power.Type<?> type = power.getType();
 
 				List<Component> sourceTooltips = powers.getSources(powerHolder.id())
 					.stream()

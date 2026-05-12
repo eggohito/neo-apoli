@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -20,8 +19,8 @@ public record ConditionalBoxProvider(Condition condition, BoxProvider ifValue, B
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBoxProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BoxProvider.STREAM_CODEC, ConditionalBoxProvider::new));
 
 	@Override
-	public @NotNull BoxProviderType<?> getType() {
-		return BoxProviderTypes.CONDITIONAL;
+	public @NotNull BoxProvider.Type<?> getType() {
+		return NeoApoliBoxProviderTypes.CONDITIONAL;
 	}
 
 	@Override

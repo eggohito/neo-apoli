@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.meta.InvertedMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.ConditionType;
-import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record InvertedCondition(Condition condition) implements InvertedMetaCond
 	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.streamCodec(Condition.STREAM_CODEC, InvertedCondition::new));
 
 	@Override
-	public ConditionType<?> getType() {
-		return ConditionTypes.INVERTED;
+	public Type<?> getType() {
+		return NeoApoliConditionTypes.INVERTED;
 	}
 
 }

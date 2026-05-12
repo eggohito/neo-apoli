@@ -6,7 +6,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,7 +13,7 @@ import net.minecraft.network.codec.StreamCodec;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-public interface ConditionalValueProvider<P extends ContextUser> extends ValueProvider {
+public interface ConditionalValueProvider<P extends ValueProvider> extends ValueProvider {
 
 	Condition condition();
 

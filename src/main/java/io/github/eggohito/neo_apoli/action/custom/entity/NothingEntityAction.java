@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -16,8 +15,8 @@ public enum NothingEntityAction implements EntityAction, NothingMetaAction {
 	public static final StreamCodec<RegistryFriendlyByteBuf, NothingEntityAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.NOTHING;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.NOTHING;
 	}
 
 }

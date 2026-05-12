@@ -5,9 +5,8 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,7 +18,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackPowerRevokedPower extends SimpleCallbackPower {
+public class CallbackPowerRevokedPower extends CallbackPower {
 
 	public static final MapCodec<CallbackPowerRevokedPower> MAP_CODEC = createSimpleCallbackCodec(CallbackPowerRevokedPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerRevokedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPowerRevokedPower::new);
@@ -29,8 +28,8 @@ public class CallbackPowerRevokedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_POWER_REVOKED;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_POWER_REVOKED;
 	}
 
 	@Override

@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.fluid;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.DynamicMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliFluidConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record DynamicFluidCondition(BooleanProvider value) implements FluidCondi
 	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicFluidCondition> STREAM_CODEC = DynamicMetaCondition.streamCodec(DynamicFluidCondition::new);
 
 	@Override
-	public FluidConditionType<?> getType() {
-		return FluidConditionTypes.DYNAMIC;
+	public FluidCondition.Type<?> getType() {
+		return NeoApoliFluidConditionTypes.DYNAMIC;
 	}
 
 }

@@ -5,9 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderType;
-import io.github.eggohito.neo_apoli.provider.type.nbt.NbtProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -35,8 +34,8 @@ public record PowerNbtProvider(PowerIdentifier power, Context.Parameter<Entity> 
 	);
 
 	@Override
-	public @NotNull NbtProviderType<?> getType() {
-		return NbtProviderTypes.POWER;
+	public @NotNull NbtProvider.Type<?> getType() {
+		return NeoApoliNbtProviderTypes.POWER;
 	}
 
 	@Override

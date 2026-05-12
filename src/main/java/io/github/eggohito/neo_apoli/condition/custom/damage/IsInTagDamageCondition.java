@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.damage;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionType;
-import io.github.eggohito.neo_apoli.condition.type.damage.DamageConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliDamageConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,8 +24,8 @@ public record IsInTagDamageCondition(TagKey<DamageType> tag) implements DamageCo
 	);
 
 	@Override
-	public DamageConditionType<?> getType() {
-		return DamageConditionTypes.IS_IN_TAG;
+	public DamageCondition.Type<?> getType() {
+		return NeoApoliDamageConditionTypes.IS_IN_TAG;
 	}
 
 	@Override

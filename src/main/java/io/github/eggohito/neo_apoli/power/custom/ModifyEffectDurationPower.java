@@ -8,9 +8,8 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -49,8 +48,8 @@ public class ModifyEffectDurationPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_EFFECT_DURATION;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_EFFECT_DURATION;
 	}
 
 	@Override
@@ -69,7 +68,7 @@ public class ModifyEffectDurationPower extends Power {
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
-				.buildWithRequirements(holder.level(), PowerTypes.MODIFY_EFFECT_DURATION.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.keySet());
 		}
 
 		public List<Modifier> getModifiers() {
@@ -80,7 +79,7 @@ public class ModifyEffectDurationPower extends Power {
 
 	public static int modify(Entity holder, MobEffectInstance effectInstance, @Nullable Entity source, int duration) {
 
-		List<Modifier.Entry> entries = new ObjectArrayList<>();
+		List<Modifier.Operation> entries = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(holder, Instance.class)) {
 
@@ -97,13 +96,13 @@ public class ModifyEffectDurationPower extends Power {
 				Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
 				Modifier modifier = listIterator.next();
 
-				entries.add(Modifier.entry(modifier, modifierContext));
+				entries.add(Modifier.operation(modifier, modifierContext));
 
 			}
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
+		ModifyValue.EVENT.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
 		return (int) Math.round(Modifier.applyAll(entries, duration));
 
 	}

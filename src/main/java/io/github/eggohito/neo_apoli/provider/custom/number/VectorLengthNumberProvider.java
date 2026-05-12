@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
@@ -23,8 +22,8 @@ public record VectorLengthNumberProvider(Vec3Provider vector) implements NumberP
     );
 
     @Override
-    public @NotNull NumberProviderType<?> getType() {
-        return NumberProviderTypes.VECTOR_LENGTH;
+    public @NotNull NumberProvider.Type<?> getType() {
+        return NeoApoliNumberProviderTypes.VECTOR_LENGTH;
     }
 
     @Override

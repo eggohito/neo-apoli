@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.api.event;
 
 import io.github.eggohito.neo_apoli.modifier.Modifier;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
+import io.github.eggohito.neo_apoli.power.Power;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
@@ -20,6 +20,6 @@ public interface ModifyValue {
 		}
 	);
 
-	void beforeModified(PowerType<?> type, List<Modifier.Entry> modifiers, double original);
+	void beforeModified(Power.Type<?> type, List<Modifier.Operation> modifiers, double original);
 
 }

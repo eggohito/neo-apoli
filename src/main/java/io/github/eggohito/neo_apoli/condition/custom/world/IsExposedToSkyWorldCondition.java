@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.world;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,8 +28,8 @@ public record IsExposedToSkyWorldCondition(List<Vec3Provider> positions) impleme
 	);
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.IS_EXPOSED_TO_SKY;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.IS_EXPOSED_TO_SKY;
 	}
 
 	@Override

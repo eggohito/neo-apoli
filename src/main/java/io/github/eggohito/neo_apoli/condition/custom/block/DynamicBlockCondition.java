@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.DynamicMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -14,8 +13,8 @@ public record DynamicBlockCondition(BooleanProvider value) implements BlockCondi
 	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicBlockCondition> STREAM_CODEC = DynamicMetaCondition.streamCodec(DynamicBlockCondition::new);
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.DYNAMIC;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.DYNAMIC;
 	}
 
 }

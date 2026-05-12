@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.condition.custom.world;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliWorldConditionTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -25,8 +24,8 @@ public record IsInTagWorldCondition(TagKey<Level> tag) implements WorldCondition
 	);
 
 	@Override
-	public WorldConditionType<?> getType() {
-		return WorldConditionTypes.IS_IN_TAG;
+	public WorldCondition.Type<?> getType() {
+		return NeoApoliWorldConditionTypes.IS_IN_TAG;
 	}
 
 	@Override

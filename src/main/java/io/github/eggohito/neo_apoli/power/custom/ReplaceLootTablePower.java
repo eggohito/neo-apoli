@@ -9,10 +9,9 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.ResourceLocationException;
@@ -40,7 +39,7 @@ import java.util.regex.Pattern;
 
 @EqualsAndHashCode
 @Getter
-public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceLootTablePower> {
+public class ReplaceLootTablePower extends Power implements PrioritizedPower<ReplaceLootTablePower> {
 
 	public static final MapCodec<ReplaceLootTablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(NeoApoliCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::getReplacements))
@@ -69,8 +68,8 @@ public class ReplaceLootTablePower extends Power implements Prioritized<ReplaceL
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.REPLACE_LOOT_TABLE;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.REPLACE_LOOT_TABLE;
 	}
 
 	@Override

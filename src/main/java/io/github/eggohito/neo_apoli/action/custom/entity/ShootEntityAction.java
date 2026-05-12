@@ -4,14 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.bientity.BiEntityAction;
 import io.github.eggohito.neo_apoli.action.custom.bientity.NothingBiEntityAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.ConstantNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.FloatSupplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -58,8 +57,8 @@ public record ShootEntityAction(EntityType<?> entityType, BiEntityAction biEntit
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.SHOOT;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.SHOOT;
 	}
 
 	@Override

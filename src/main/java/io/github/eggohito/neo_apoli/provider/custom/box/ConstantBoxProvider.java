@@ -5,8 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderType;
-import io.github.eggohito.neo_apoli.provider.type.box.BoxProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
 import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -39,8 +38,8 @@ public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 	}
 
 	@Override
-	public @NotNull BoxProviderType<?> getType() {
-		return BoxProviderTypes.CONSTANT;
+	public @NotNull BoxProvider.Type<?> getType() {
+		return NeoApoliBoxProviderTypes.CONSTANT;
 	}
 
 	@Override

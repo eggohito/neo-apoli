@@ -1,10 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.bientity.BiEntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBiEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -19,8 +18,8 @@ public enum EqualsBiEntityCondition implements BiEntityCondition {
 	public static final StreamCodec<RegistryFriendlyByteBuf, EqualsBiEntityCondition> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public BiEntityConditionType<?> getType() {
-		return BiEntityConditionTypes.EQUALS;
+	public BiEntityCondition.Type<?> getType() {
+		return NeoApoliBiEntityConditionTypes.EQUALS;
 	}
 
 	@Override

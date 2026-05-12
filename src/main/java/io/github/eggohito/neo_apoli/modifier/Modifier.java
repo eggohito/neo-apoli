@@ -2,26 +2,30 @@ package io.github.eggohito.neo_apoli.modifier;
 
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
-import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public interface Modifier extends ContextUser, Comparable<Modifier> {
 
-	Codec<Modifier> CODEC = ModifierType.CODEC.dispatch(Modifier::getType, ModifierType::mapCodec);
+	Codec<Modifier> CODEC = Type.CODEC.dispatch(Modifier::getType, Type::mapCodec);
 
-	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = ModifierType.STREAM_CODEC.dispatch(Modifier::getType, ModifierType::streamCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Modifier> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Modifier::getType, Type::streamCodec);
 
 	@Override
 	default int compareTo(@NotNull Modifier that) {
@@ -36,7 +40,7 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	}
 
-	ModifierType<?> getType();
+	Type<?> getType();
 
 	Phase phase();
 
@@ -51,24 +55,23 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 		);
 	}
 
-	static double applyAll(List<Entry> entries, double baseValue) {
+	static double applyAll(List<Operation> operations, double baseValue) {
 
-		if (entries.isEmpty()) {
+		if (operations.isEmpty()) {
 			return baseValue;
 		}
 
-		List<Entry> sorted = new ObjectArrayList<>(entries);
-		sorted.sort(Entry::compareTo);
+		List<Operation> sorted = new ObjectArrayList<>(operations);
+		sorted.sort(Operation::compareTo);
 
 		double currentBase = baseValue;
 		double currentTotal = baseValue;
 
 		Phase previousPhase = null;
+		for (var operation : sorted) {
 
-		for (var entry : sorted) {
-
-			Modifier modifier = entry.modifier();
-			Context context = entry.context();
+			Modifier modifier = operation.modifier();
+			Context context = operation.context();
 
 			Phase currentPhase = modifier.phase();
 
@@ -101,42 +104,36 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	}
 
-	static Entry entry(Modifier modifier, Context context) {
-		return new Entry(modifier, context);
+	static Operation operation(Modifier modifier, Context context) {
+		return new Operation(modifier, context);
 	}
 
-	record Entry(Modifier modifier, Context context) implements Comparable<Entry> {
+	record Operation(Modifier modifier, Context context) implements Comparable<Operation> {
 
 		@Override
-		public int compareTo(@NotNull Modifier.Entry that) {
+		public int compareTo(@NotNull Modifier.Operation that) {
 			return this.modifier().compareTo(that.modifier());
 		}
 
 	}
 
-	enum Phase implements StringRepresentable {
+	enum Phase {
 
-		BASE {
-
-			@Override
-			public @NotNull String getSerializedName() {
-				return "base";
-			}
-
-		},
-
-		TOTAL {
-
-			@Override
-			public @NotNull String getSerializedName() {
-				return "total";
-			}
-
-		};
+		BASE,
+		TOTAL;
 
 		public static final Codec<Phase> CODEC = CodecUtil.enumType(Phase.class);
-
 		public static final StreamCodec<ByteBuf, Phase> STREAM_CODEC = StreamCodecUtil.enumType(Phase.class);
+
+	}
+
+	record Type<M extends Modifier>(MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
+
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.MODIFIER_TYPE);
+
+		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.MODIFIER_TYPE);
 
 	}
 

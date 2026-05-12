@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.SequenceMetaAction;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,8 +16,8 @@ public record SequenceBiEntityAction(List<BiEntityAction> actions) implements Bi
 	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceBiEntityAction.class.getSimpleName(), () -> SequenceMetaAction.streamCodec(BiEntityAction.STREAM_CODEC, SequenceBiEntityAction::new));
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.SEQUENCE;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.SEQUENCE;
 	}
 
 }

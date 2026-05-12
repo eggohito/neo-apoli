@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +15,8 @@ public record MultiplyNumberProvider(List<NumberProvider> numbers) implements Mu
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyNumberProvider> STREAM_CODEC = MultiNumberProvider.streamCodec(MultiplyNumberProvider::new);
 
 	@Override
-	public @NotNull NumberProviderType<?> getType() {
-		return NumberProviderTypes.MULTIPLY;
+	public @NotNull NumberProvider.Type<?> getType() {
+		return NeoApoliNumberProviderTypes.MULTIPLY;
 	}
 
 	@Override

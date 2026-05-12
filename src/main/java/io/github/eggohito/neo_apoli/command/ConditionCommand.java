@@ -11,8 +11,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.command.argument.condition.ConditionKindArgument;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.ConditionManager;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliConditionKinds;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
@@ -44,7 +43,7 @@ public class ConditionCommand {
 	static final class DumpSubCommand {
 
 		private static final SuggestionProvider<CommandSourceStack> CONDITION_SUGGESTIONS = (context, builder) -> {
-			ConditionKind<?> category = ConditionKindArgument.getCategory(context, "category");
+			Condition.Kind<?> category = ConditionKindArgument.getCategory(context, "category");
 			return SharedSuggestionProvider.suggestResource(ConditionManager.ids(category), builder);
 		};
 
@@ -75,7 +74,7 @@ public class ConditionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			ConditionKind<?> category = ConditionKindArgument.getCategory(commandContext, "category");
+			Condition.Kind<?> category = ConditionKindArgument.getCategory(commandContext, "category");
 			Condition condition = ConditionManager.getAsResult(category, ResourceLocationArgument.getId(commandContext, "condition")).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 
 			return switch (Condition.CODEC.encodeStart(ops, condition)) {
@@ -98,7 +97,7 @@ public class ConditionCommand {
 	public static final class TestSubCommand {
 
 		 static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
-			 return ConditionKinds.addAsArguments(Optional.empty(), buildContext, literal("test"), true).build();
+			 return NeoApoliConditionKinds.addAsArguments(Optional.empty(), buildContext, literal("test"), true).build();
 		}
 
 	}

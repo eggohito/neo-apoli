@@ -3,10 +3,9 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,8 +33,8 @@ public record IsInBlockEntityCondition(BlockCondition condition) implements Enti
 	);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.IS_IN_BLOCK;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.IS_IN_BLOCK;
 	}
 
 	@Override

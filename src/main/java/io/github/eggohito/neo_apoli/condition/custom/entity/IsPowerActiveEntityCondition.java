@@ -3,11 +3,10 @@ package io.github.eggohito.neo_apoli.condition.custom.entity;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -24,8 +23,8 @@ public record IsPowerActiveEntityCondition(PowerIdentifier power) implements Ent
 	);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.IS_POWER_ACTIVE;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.IS_POWER_ACTIVE;
 	}
 
 	@Override

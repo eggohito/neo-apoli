@@ -6,7 +6,6 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
-import io.github.eggohito.neo_apoli.condition.kind.ConditionKind;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
@@ -41,14 +40,14 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
-public final class ConditionManager extends SimplePreparableReloadListener<Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>>> implements IdentifiableResourceReloadListener {
+public final class ConditionManager extends SimplePreparableReloadListener<Map<Condition.Kind<?>, Map<ResourceLocation, JsonWithSource>>> implements IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConditionManager.class);
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/conditions");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
 
-	private static final Map<ConditionKind<?>, Map<ResourceLocation, Condition>> BY_ID = new Object2ObjectOpenHashMap<>();
+	private static final Map<Condition.Kind<?>, Map<ResourceLocation, Condition>> BY_ID = new Object2ObjectOpenHashMap<>();
 	private static final IdentityHashMap<Condition, ResourceLocation> BY_CONDITION = new IdentityHashMap<>();
 
 	private final RegistryOps<JsonElement> ops;
@@ -58,9 +57,9 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 	}
 
 	@Override
-	protected @NotNull Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> prepare(ResourceManager manager, ProfilerFiller profiler) {
+	protected @NotNull Map<Condition.Kind<?>, Map<ResourceLocation, JsonWithSource>> prepare(ResourceManager manager, ProfilerFiller profiler) {
 
-		Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
+		Map<Condition.Kind<?>, Map<ResourceLocation, JsonWithSource>> result = new Object2ObjectOpenHashMap<>();
 		NeoApoliRegistries.CONDITION_KIND.forEach(kind -> result
 			.computeIfAbsent(kind, k -> new Object2ObjectOpenHashMap<>())
 			.putAll(MiscUtil.collectJson(manager, JsonFileToIdConverter.registry(kind.registryKey()), ops, LOGGER::error)));
@@ -70,7 +69,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 	}
 
 	@Override
-	protected void apply(Map<ConditionKind<?>, Map<ResourceLocation, JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
+	protected void apply(Map<Condition.Kind<?>, Map<ResourceLocation, JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing conditions from data packs...");
 		BY_ID.clear();
@@ -100,7 +99,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 		return DEPENDENCIES;
 	}
 
-	public static <C extends Condition> DataResult<C> getAsResult(ConditionKind<C> kind, ResourceLocation id) {
+	public static <C extends Condition> DataResult<C> getAsResult(Condition.Kind<C> kind, ResourceLocation id) {
 
 		var entries = BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>());
 		var matching = entries.get(id);
@@ -115,7 +114,7 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 
 	}
 
-	public static <C extends Condition> C get(ConditionKind<C> kind, ResourceLocation id) {
+	public static <C extends Condition> C get(Condition.Kind<C> kind, ResourceLocation id) {
 		return getAsResult(kind, id).getOrThrow();
 	}
 
@@ -129,17 +128,17 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 		return getIdAsResult(condition).getOrThrow();
 	}
 
-	public static <C extends Condition> Stream<C> conditions(ConditionKind<C> kind) {
+	public static <C extends Condition> Stream<C> conditions(Condition.Kind<C> kind) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).values()
 			.stream()
 			.map(condition -> (C) condition);
 	}
 
-	public static <C extends Condition> Stream<ResourceLocation> ids(ConditionKind<C> kind) {
+	public static <C extends Condition> Stream<ResourceLocation> ids(Condition.Kind<C> kind) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).keySet().stream();
 	}
 
-	public static boolean contains(ConditionKind<?> kind, ResourceLocation id) {
+	public static boolean contains(Condition.Kind<?> kind, ResourceLocation id) {
 		return BY_ID.getOrDefault(kind, new Object2ObjectOpenHashMap<>()).containsKey(id);
 	}
 
@@ -172,10 +171,10 @@ public final class ConditionManager extends SimplePreparableReloadListener<Map<C
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> sync(player));
 	}
 
-	public record SynchronizeConditionsS2CPacket(Map<ConditionKind<?>, Map<ResourceLocation, Condition>> conditions) implements CustomPacketPayload {
+	public record SynchronizeConditionsS2CPacket(Map<Condition.Kind<?>, Map<ResourceLocation, Condition>> conditions) implements CustomPacketPayload {
 
 		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, Condition>> CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, Condition.STREAM_CODEC);
-		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ConditionKind<?>, Map<ResourceLocation, Condition>>> KIND_CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ConditionKind.STREAM_CODEC, CONDITIONS_CODEC);
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<Condition.Kind<?>, Map<ResourceLocation, Condition>>> KIND_CONDITIONS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, Condition.Kind.STREAM_CODEC, CONDITIONS_CODEC);
 
 		public static final Type<SynchronizeConditionsS2CPacket> TYPE = new Type<>(NeoApoli.id("s2c/synchronize_conditions"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, SynchronizeConditionsS2CPacket> CODEC = KIND_CONDITIONS_CODEC.map(SynchronizeConditionsS2CPacket::new, SynchronizeConditionsS2CPacket::conditions);

@@ -3,9 +3,8 @@ package io.github.eggohito.neo_apoli.action.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.RandomChanceMetaAction;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,8 +18,8 @@ public record RandomChanceAction(Action successAction, Optional<Action> failActi
 	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceAction.class.getSimpleName(), () -> RandomChanceMetaAction.streamCodec(Action.STREAM_CODEC, RandomChanceAction::new));
 
 	@Override
-	public ActionType<?> getType() {
-		return ActionTypes.RANDOM;
+	public Type<?> getType() {
+		return NeoApoliActionTypes.RANDOM;
 	}
 
 }

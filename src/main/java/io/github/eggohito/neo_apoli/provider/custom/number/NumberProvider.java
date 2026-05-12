@@ -1,12 +1,17 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.number.NumberProviderType;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.PrimitiveNumberType;
+import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,12 +19,12 @@ import java.util.function.Function;
 
 public interface NumberProvider extends ValueProvider {
 
-	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(NumberProviderType.CODEC.dispatch(NumberProvider::getType, NumberProviderType::mapCodec), ConstantNumberProvider.INLINE_CODEC));
+	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NumberProvider::getType, Type::mapCodec), ConstantNumberProvider.INLINE_CODEC));
 
-	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = NumberProviderType.STREAM_CODEC.dispatch(NumberProvider::getType, NumberProviderType::streamCodec);
+	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(NumberProvider::getType, Type::streamCodec);
 
 	@NotNull
-	NumberProviderType<?> getType();
+	NumberProvider.Type<?> getType();
 
 	double nextDouble(Context context);
 
@@ -66,6 +71,16 @@ public interface NumberProvider extends ValueProvider {
 
 	static Codec<NumberProvider> clamped(double min, double max) {
 		return clamped(new ConstantNumberProvider(min), new ConstantNumberProvider(max));
+	}
+
+	record Type<P extends NumberProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
+
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.NUMBER_PROVIDER_TYPE);
+
+		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.NUMBER_PROVIDER_TYPE);
+
 	}
 
 }

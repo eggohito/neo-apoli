@@ -5,9 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderType;
-import io.github.eggohito.neo_apoli.provider.type.vec3.Vec3ProviderTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -32,8 +31,8 @@ public record EntityPositionVec3Provider(Context.Parameter<Entity> entity, Entit
 	);
 
 	@Override
-	public @NotNull Vec3ProviderType<?> getType() {
-		return Vec3ProviderTypes.ENTITY_POSITION;
+	public @NotNull Vec3Provider.Type<?> getType() {
+		return NeoApoliVec3ProviderTypes.ENTITY_POSITION;
 	}
 
 	@Override

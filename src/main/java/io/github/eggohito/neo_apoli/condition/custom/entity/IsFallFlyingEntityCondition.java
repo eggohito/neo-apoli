@@ -1,10 +1,9 @@
 package io.github.eggohito.neo_apoli.condition.custom.entity;
 
 import com.mojang.serialization.MapCodec;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
-import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliEntityConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,8 +16,8 @@ public enum IsFallFlyingEntityCondition implements EntityCondition {
 	public static final StreamCodec<RegistryFriendlyByteBuf, IsFallFlyingEntityCondition> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public EntityConditionType<?> getType() {
-		return EntityConditionTypes.IS_FALL_FLYING;
+	public EntityCondition.Type<?> getType() {
+		return NeoApoliEntityConditionTypes.IS_FALL_FLYING;
 	}
 
 	@Override

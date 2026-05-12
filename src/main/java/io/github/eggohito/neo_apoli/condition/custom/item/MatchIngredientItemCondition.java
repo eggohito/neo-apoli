@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.item;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
-import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliItemConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -22,8 +21,8 @@ public record MatchIngredientItemCondition(Ingredient ingredient) implements Ite
 	);
 
 	@Override
-	public ItemConditionType<?> getType() {
-		return ItemConditionTypes.MATCH_INGREDIENT;
+	public ItemCondition.Type<?> getType() {
+		return NeoApoliItemConditionTypes.MATCH_INGREDIENT;
 	}
 
 	@Override

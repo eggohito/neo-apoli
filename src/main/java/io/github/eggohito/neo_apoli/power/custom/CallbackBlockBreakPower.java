@@ -7,12 +7,11 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -31,7 +30,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackBlockBreakPower extends Power implements Prioritized<CallbackBlockBreakPower> {
+public class CallbackBlockBreakPower extends Power implements PrioritizedPower<CallbackBlockBreakPower> {
 
 	public static final MapCodec<CallbackBlockBreakPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
@@ -59,8 +58,8 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_BLOCK_BREAK;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_BLOCK_BREAK;
 	}
 
 	@Override
@@ -90,7 +89,7 @@ public class CallbackBlockBreakPower extends Power implements Prioritized<Callba
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
 				.withNullable(NeoApoliContextParams.DIRECTION, side)
-				.buildWithRequirements(holder.level(), PowerTypes.CALLBACK_BLOCK_BREAK.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_BLOCK_BREAK.keySet());
 		}
 
 		public boolean doesApply(Context context, boolean harvested) {

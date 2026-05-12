@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -28,8 +27,8 @@ public record ApplyEffectsEntityAction(List<MobEffectInstance> effects) implemen
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.APPLY_EFFECTS;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.APPLY_EFFECTS;
 	}
 
 	@Override

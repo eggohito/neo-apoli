@@ -14,7 +14,7 @@ import io.github.eggohito.neo_apoli.api.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
@@ -269,7 +269,7 @@ public final class PowerManager implements IdentifiableResourceReloadListener {
 		if (power instanceof MultiplePower multiplePower) {
 
 			if (powerId.isSubPower()) {
-				throw new IllegalStateException("Tried to register \"" + powerId.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, PowerTypes.MULTIPLE) + "\" power type, which is not allowed!");
+				throw new IllegalStateException("Tried to register \"" + powerId.asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, NeoApoliPowerTypes.MULTIPLE) + "\" power type, which is not allowed!");
 			}
 
 			else {

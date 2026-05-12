@@ -10,9 +10,8 @@ import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCond
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -65,8 +64,8 @@ public class PhasingPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.PHASING;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.PHASING;
 	}
 
 	@Override
@@ -91,7 +90,7 @@ public class PhasingPower extends Power {
 				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.pos())
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.state())
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.entity())
-				.buildWithRequirements(holder.level(), PowerTypes.PHASING.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.PHASING.keySet());
 		}
 
 		public RenderEffect getRenderEffect() {

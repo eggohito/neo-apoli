@@ -10,8 +10,7 @@ import io.github.eggohito.neo_apoli.context.ContextHelper;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
@@ -50,8 +49,8 @@ public class ModifyJumpPower extends Power {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.MODIFY_JUMP;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.MODIFY_JUMP;
 	}
 
 	@Override
@@ -71,10 +70,10 @@ public class ModifyJumpPower extends Power {
 			super(power);
 		}
 
-		public List<Modifier.Entry> getModifiers(Context context) {
+		public List<Modifier.Operation> getModifiers(Context context) {
 
-			List<Modifier.Entry> result = new ObjectArrayList<>();
-			MiscUtil.iterateList(power.getModifiers(), (index, modifier) -> result.add(Modifier.entry(modifier, context.forChild(".modifiers[" + index + "]"))));
+			List<Modifier.Operation> result = new ObjectArrayList<>();
+			MiscUtil.iterateList(power.getModifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 
 			return result;
 
@@ -84,7 +83,7 @@ public class ModifyJumpPower extends Power {
 
 	public static float modify(LivingEntity entity, float jumpPower) {
 
-		List<Modifier.Entry> entries = new ObjectArrayList<>();
+		List<Modifier.Operation> entries = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
@@ -104,7 +103,7 @@ public class ModifyJumpPower extends Power {
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(PowerTypes.MODIFY_JUMP, entries, jumpPower);
+		ModifyValue.EVENT.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_JUMP, entries, jumpPower);
 		return (float) Modifier.applyAll(entries, jumpPower);
 
 	}

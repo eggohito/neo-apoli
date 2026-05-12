@@ -7,7 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.serialization.DynamicOps;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandSourceStack;
@@ -18,15 +18,15 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.concurrent.CompletableFuture;
 
-public record ActionKindArgument() implements ArgumentType<ActionKind<?>> {
+public record ActionKindArgument() implements ArgumentType<Action.Kind<?>> {
 
 	@Override
-	public ActionKind<?> parse(StringReader reader) throws CommandSyntaxException {
+	public Action.Kind<?> parse(StringReader reader) throws CommandSyntaxException {
 
 		String id = ResourceLocation.readNonEmpty(reader).toString();
 		DynamicOps<Tag> ops = NbtOps.INSTANCE;
 
-		return ActionKind.CODEC.parse(ops, ops.createString(id)).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+		return Action.Kind.CODEC.parse(ops, ops.createString(id)).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 
 	}
 
@@ -39,8 +39,8 @@ public record ActionKindArgument() implements ArgumentType<ActionKind<?>> {
 		return new ActionKindArgument();
 	}
 
-	public static ActionKind<?> getCategory(CommandContext<CommandSourceStack> context, String argumentName) {
-		return context.getArgument(argumentName, ActionKind.class);
+	public static Action.Kind<?> getCategory(CommandContext<CommandSourceStack> context, String argumentName) {
+		return context.getArgument(argumentName, Action.Kind.class);
 	}
 
 }

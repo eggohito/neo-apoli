@@ -4,8 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBooleanProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -28,8 +27,8 @@ public record ConstantBooleanProvider(boolean value) implements BooleanProvider 
 	);
 
 	@Override
-	public @NotNull BooleanProviderType<?> getType() {
-		return BooleanProviderTypes.CONSTANT;
+	public @NotNull BooleanProvider.Type<?> getType() {
+		return NeoApoliBooleanProviderTypes.CONSTANT;
 	}
 
 	@Override

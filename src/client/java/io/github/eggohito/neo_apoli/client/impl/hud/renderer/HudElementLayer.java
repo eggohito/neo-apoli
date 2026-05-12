@@ -5,7 +5,6 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
@@ -52,7 +51,7 @@ public enum HudElementLayer implements IdentifiedLayer {
 			return;
 		}
 
-		Map<HudElementType<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
+		Map<HudElement.Type<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
 
 		for (var instance : powers.getAllInstances()) {
 			HudElementRendererEvents.PREPARE.invoker().prepare(

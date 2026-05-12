@@ -5,9 +5,8 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
+import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,7 +18,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackPlayerRespawnedPower extends SimpleCallbackPower {
+public class CallbackPlayerRespawnedPower extends CallbackPower {
 
 	public static final MapCodec<CallbackPlayerRespawnedPower> MAP_CODEC = createSimpleCallbackCodec(CallbackPlayerRespawnedPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerRespawnedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPlayerRespawnedPower::new);
@@ -29,8 +28,8 @@ public class CallbackPlayerRespawnedPower extends SimpleCallbackPower {
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_PLAYER_RESPAWNED;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_PLAYER_RESPAWNED;
 	}
 
 	@Override

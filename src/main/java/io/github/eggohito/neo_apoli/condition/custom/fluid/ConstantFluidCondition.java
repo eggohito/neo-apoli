@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom.fluid;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.custom.meta.ConstantMetaCondition;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
-import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionTypes;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliFluidConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -17,8 +16,8 @@ public record ConstantFluidCondition(boolean value) implements FluidCondition, C
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConstantFluidCondition> STREAM_CODEC = ConstantMetaCondition.streamCodec(ConstantFluidCondition::new);
 
 	@Override
-	public FluidConditionType<?> getType() {
-		return FluidConditionTypes.CONSTANT;
+	public FluidCondition.Type<?> getType() {
+		return NeoApoliFluidConditionTypes.CONSTANT;
 	}
 
 }

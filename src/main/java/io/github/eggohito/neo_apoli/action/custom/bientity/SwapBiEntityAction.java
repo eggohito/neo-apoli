@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -23,8 +22,8 @@ public record SwapBiEntityAction(BiEntityAction biEntityAction) implements BiEnt
 	));
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.SWAP;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.SWAP;
 	}
 
 	@Override

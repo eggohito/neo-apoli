@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.LoopMetaAction;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,8 +17,8 @@ public record LoopBiEntityAction(Optional<BiEntityAction> beforeAction, Optional
 	public static final StreamCodec<RegistryFriendlyByteBuf, LoopBiEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(LoopBiEntityAction.class.getSimpleName(), () -> LoopMetaAction.streamCodec(BiEntityAction.STREAM_CODEC, LoopBiEntityAction::new));
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.LOOP;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.LOOP;
 	}
 
 }

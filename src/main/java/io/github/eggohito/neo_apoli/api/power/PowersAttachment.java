@@ -14,7 +14,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.PowerManager;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
@@ -165,11 +164,11 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 
 	}
 
-	record Entry(PowerIdentifier id, PowerType<?> type, Set<ResourceLocation> sources, Dynamic<?> data) {
+	record Entry(PowerIdentifier id, Power.Type<?> type, Set<ResourceLocation> sources, Dynamic<?> data) {
 
 		public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			PowerIdentifier.CODEC.fieldOf("id").forGetter(Entry::id),
-			PowerType.CODEC.fieldOf("type").forGetter(Entry::type),
+			Power.Type.CODEC.fieldOf("type").forGetter(Entry::type),
 			NeoApoliCodecs.NON_EMPTY_IDENTIFIER_SET.fieldOf("sources").forGetter(Entry::sources),
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));
@@ -178,7 +177,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
 			PowerIdentifier.STREAM_CODEC, Entry::id,
-			PowerType.STREAM_CODEC, Entry::type,
+			Power.Type.STREAM_CODEC, Entry::type,
 			NeoApoliStreamCodecs.NON_EMPTY_IDENTIFIER_SET, Entry::sources,
 			NeoApoliStreamCodecs.REGISTRY_PASSTHROUGH, Entry::data,
 			Entry::new

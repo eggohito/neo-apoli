@@ -1,11 +1,9 @@
 package io.github.eggohito.neo_apoli.action.custom.bientity;
 
 import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.ReferenceMetaAction;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
-import io.github.eggohito.neo_apoli.action.kind.custom.BiEntityActionKind;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionType;
-import io.github.eggohito.neo_apoli.action.type.bientity.BiEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBiEntityActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +14,13 @@ public record ReferenceBiEntityAction(ResourceLocation value) implements BiEntit
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceBiEntityAction> STREAM_CODEC = ReferenceMetaAction.streamCodec(ReferenceBiEntityAction::new);
 
 	@Override
-	public ActionKind<BiEntityAction> targetKind() {
-		return BiEntityActionKind.INSTANCE;
+	public Action.Kind<BiEntityAction> targetKind() {
+		return BiEntityAction.Kind.INSTANCE;
 	}
 
 	@Override
-	public BiEntityActionType<?> getType() {
-		return BiEntityActionTypes.REFERENCE;
+	public BiEntityAction.Type<?> getType() {
+		return NeoApoliBiEntityActionTypes.REFERENCE;
 	}
 
 }

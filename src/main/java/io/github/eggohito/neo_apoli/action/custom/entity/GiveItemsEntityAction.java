@@ -4,10 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.item.ItemAction;
 import io.github.eggohito.neo_apoli.action.custom.item.NothingItemAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.IndexedStack;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -42,8 +41,8 @@ public record GiveItemsEntityAction(ItemAction itemAction, List<IndexedStack> st
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.GIVE_ITEMS;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.GIVE_ITEMS;
 	}
 
 	@Override

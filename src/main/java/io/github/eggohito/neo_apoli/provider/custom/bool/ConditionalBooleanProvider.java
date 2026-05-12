@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderType;
-import io.github.eggohito.neo_apoli.provider.type.bool.BooleanProviderTypes;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBooleanProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,8 +17,8 @@ public record ConditionalBooleanProvider(Condition condition, BooleanProvider if
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBooleanProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBooleanProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BooleanProvider.STREAM_CODEC, ConditionalBooleanProvider::new));
 
 	@Override
-	public @NotNull BooleanProviderType<?> getType() {
-		return BooleanProviderTypes.CONDITIONAL;
+	public @NotNull BooleanProvider.Type<?> getType() {
+		return NeoApoliBooleanProviderTypes.CONDITIONAL;
 	}
 
 	@Override

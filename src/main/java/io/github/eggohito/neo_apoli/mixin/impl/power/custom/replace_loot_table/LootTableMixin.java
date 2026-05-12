@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.impl.misc.KeyableLootTable;
 import io.github.eggohito.neo_apoli.impl.misc.ReplacingLootContext;
 import io.github.eggohito.neo_apoli.power.custom.ReplaceLootTablePower;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.ReloadableServerRegistries;
@@ -91,7 +91,7 @@ public abstract class LootTableMixin implements KeyableLootTable {
 
 		ReplaceLootTablePower.push((LootTable) (Object) this);
 
-		Prioritized.InstanceCollection<ReplaceLootTablePower.Instance> instances = new Prioritized.InstanceCollection<>(holder, ReplaceLootTablePower.Instance.class);
+		PrioritizedPower.InstanceCollection<ReplaceLootTablePower.Instance> instances = new PrioritizedPower.InstanceCollection<>(holder, ReplaceLootTablePower.Instance.class);
 		Optional<LootTable> replacementTable = Optional.empty();
 
 		for (var instance : instances) {

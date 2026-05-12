@@ -2,11 +2,10 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.core.BlockPos;
@@ -39,8 +38,8 @@ public record OffsetBlockCondition(BlockCondition condition, Vec3Provider offset
 	));
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.OFFSET;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.OFFSET;
 	}
 
 	@Override

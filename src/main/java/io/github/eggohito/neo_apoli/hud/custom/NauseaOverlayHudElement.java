@@ -4,9 +4,8 @@ import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.hud.OverlayHudElement;
 import io.github.eggohito.neo_apoli.hud.Sprite;
-import io.github.eggohito.neo_apoli.hud.type.HudElementType;
-import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliHudElementTypes;
 import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,8 +16,8 @@ public record NauseaOverlayHudElement(Sprite sprite, Color color, HudRenderPhase
 	public static final StreamCodec<RegistryFriendlyByteBuf, NauseaOverlayHudElement> STREAM_CODEC = OverlayHudElement.createCommonOverlayStreamCodec(NauseaOverlayHudElement::new);
 
 	@Override
-	public HudElementType<?> getType() {
-		return HudElementTypes.NAUSEA_OVERLAY;
+	public Type<?> getType() {
+		return NeoApoliHudElementTypes.NAUSEA_OVERLAY;
 	}
 
 }

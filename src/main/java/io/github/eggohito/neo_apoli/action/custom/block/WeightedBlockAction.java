@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.WeightedMetaAction;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,8 +15,8 @@ public record WeightedBlockAction(WeightedList<BlockAction> entries) implements 
 	public static final StreamCodec<RegistryFriendlyByteBuf, WeightedBlockAction> STREAM_CODEC = StreamCodecUtil.lazy(WeightedBlockAction.class.getSimpleName(), () -> WeightedMetaAction.streamCodec(BlockAction.STREAM_CODEC, WeightedBlockAction::new));
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.WEIGHTED;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.WEIGHTED;
 	}
 
 }

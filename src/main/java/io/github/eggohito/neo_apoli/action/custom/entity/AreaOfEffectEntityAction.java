@@ -3,13 +3,12 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.custom.bientity.BiEntityAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.BiEntityCondition;
 import io.github.eggohito.neo_apoli.condition.custom.bientity.ConstantBiEntityCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.Shape;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -41,8 +40,8 @@ public record AreaOfEffectEntityAction(BiEntityAction biEntityAction, BiEntityCo
 	);
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.AREA_OF_EFFECT;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.AREA_OF_EFFECT;
 	}
 
 	@Override

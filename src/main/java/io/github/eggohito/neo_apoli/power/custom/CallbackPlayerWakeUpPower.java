@@ -6,10 +6,9 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.misc.SimpleCallbackPower;
-import io.github.eggohito.neo_apoli.power.type.PowerType;
-import io.github.eggohito.neo_apoli.power.type.PowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -24,18 +23,18 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
+public class CallbackPlayerWakeUpPower extends CallbackPower {
 
-	public static final MapCodec<CallbackPlayerWakeUpPower> MAP_CODEC = SimpleCallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = SimpleCallbackPower.createSimpleCallbackStreamCodec(CallbackPlayerWakeUpPower::new);
+	public static final MapCodec<CallbackPlayerWakeUpPower> MAP_CODEC = CallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackPlayerWakeUpPower::new);
 
 	public CallbackPlayerWakeUpPower(Optional<Condition> activeCondition, Action action) {
 		super(activeCondition, action);
 	}
 
 	@Override
-	public PowerType<?> getType() {
-		return PowerTypes.CALLBACK_PLAYER_WAKE_UP;
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.CALLBACK_PLAYER_WAKE_UP;
 	}
 
 	@Override
@@ -55,7 +54,7 @@ public class CallbackPlayerWakeUpPower extends SimpleCallbackPower {
 				.withRequired(NeoApoliContextParams.BLOCK_POS, sleepingPos)
 				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(sleepingPos))
 				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(sleepingPos))
-				.buildWithRequirements(level, PowerTypes.CALLBACK_PLAYER_WAKE_UP.keySet());
+				.buildWithRequirements(level, NeoApoliPowerTypes.CALLBACK_PLAYER_WAKE_UP.keySet());
 		}
 
 		public void execute(Context context) {

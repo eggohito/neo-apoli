@@ -3,8 +3,7 @@ package io.github.eggohito.neo_apoli.action.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.custom.meta.SequenceMetaAction;
-import io.github.eggohito.neo_apoli.action.type.ActionType;
-import io.github.eggohito.neo_apoli.action.type.ActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,8 +17,8 @@ public record SequenceAction(List<Action> actions) implements SequenceMetaAction
 	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.streamCodec(Action.STREAM_CODEC, SequenceAction::new));
 
 	@Override
-	public ActionType<?> getType() {
-		return ActionTypes.SEQUENCE;
+	public Type<?> getType() {
+		return NeoApoliActionTypes.SEQUENCE;
 	}
 
 }

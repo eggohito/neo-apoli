@@ -2,10 +2,9 @@ package io.github.eggohito.neo_apoli.condition.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionType;
-import io.github.eggohito.neo_apoli.condition.type.block.BlockConditionTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.condition.NeoApoliBlockConditionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -26,8 +25,8 @@ public record IsOfBlockCondition(Holder<Block> block) implements BlockCondition 
 	);
 
 	@Override
-	public BlockConditionType<?> getType() {
-		return BlockConditionTypes.IS_OF;
+	public BlockCondition.Type<?> getType() {
+		return NeoApoliBlockConditionTypes.IS_OF;
 	}
 
 	@Override

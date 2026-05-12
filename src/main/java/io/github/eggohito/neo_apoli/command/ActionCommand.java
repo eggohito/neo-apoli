@@ -10,9 +10,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionManager;
-import io.github.eggohito.neo_apoli.action.kind.ActionKind;
-import io.github.eggohito.neo_apoli.action.kind.ActionKinds;
 import io.github.eggohito.neo_apoli.command.argument.action.ActionKindArgument;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionKinds;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
@@ -42,7 +41,7 @@ public class ActionCommand {
 	static final class DumpSubCommand {
 
 		private static final SuggestionProvider<CommandSourceStack> ACTION_SUGGESTIONS = (context, builder) -> {
-			ActionKind<?> category = ActionKindArgument.getCategory(context, "category");
+			Action.Kind<?> category = ActionKindArgument.getCategory(context, "category");
 			return SharedSuggestionProvider.suggestResource(ActionManager.ids(category), builder);
 		};
 
@@ -73,7 +72,7 @@ public class ActionCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			RegistryOps<JsonElement> ops = commandSource.registryAccess().createSerializationContext(JsonOps.INSTANCE);
 
-			ActionKind<?> category = ActionKindArgument.getCategory(commandContext, "category");
+			Action.Kind<?> category = ActionKindArgument.getCategory(commandContext, "category");
 			Action action = ActionManager.getAsResult(category, ResourceLocationArgument.getId(commandContext, "action")).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 
 			return switch (Action.CODEC.encodeStart(ops, action)) {
@@ -96,7 +95,7 @@ public class ActionCommand {
 	static final class ExecuteSubCommand {
 
 		static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
-			return ActionKinds.addAsArguments(buildContext, literal("execute")).build();
+			return NeoApoliActionKinds.addAsArguments(buildContext, literal("execute")).build();
 		}
 
 	}

@@ -2,8 +2,7 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.NothingMetaAction;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -16,8 +15,8 @@ public enum NothingBlockAction implements BlockAction, NothingMetaAction {
 	public static final StreamCodec<RegistryFriendlyByteBuf, NothingBlockAction> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.NOTHING;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.NOTHING;
 	}
 
 }

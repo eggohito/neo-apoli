@@ -2,9 +2,8 @@ package io.github.eggohito.neo_apoli.action.custom.entity;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.action.custom.meta.RandomChanceMetaAction;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionType;
-import io.github.eggohito.neo_apoli.action.type.entity.EntityActionTypes;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliEntityActionTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,8 +17,8 @@ public record RandomChanceEntityAction(EntityAction successAction, Optional<Enti
 	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceEntityAction> STREAM_CODEC = StreamCodecUtil.lazy(RandomChanceEntityAction.class.getSimpleName(), () -> RandomChanceMetaAction.streamCodec(EntityAction.STREAM_CODEC, RandomChanceEntityAction::new));
 
 	@Override
-	public EntityActionType<?> getType() {
-		return EntityActionTypes.RANDOM_CHANCE;
+	public EntityAction.Type<?> getType() {
+		return NeoApoliEntityActionTypes.RANDOM_CHANCE;
 	}
 
 }

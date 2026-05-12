@@ -2,13 +2,12 @@ package io.github.eggohito.neo_apoli.action.custom.block;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionType;
-import io.github.eggohito.neo_apoli.action.type.block.BlockActionTypes;
 import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
 import io.github.eggohito.neo_apoli.condition.custom.block.ConstantBlockCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
-import io.github.eggohito.neo_apoli.registry.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.action.NeoApoliBlockActionTypes;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Shape;
 import net.minecraft.core.BlockPos;
@@ -34,8 +33,8 @@ public record AreaOfEffectBlockAction(BlockAction blockAction, BlockCondition bl
 	);
 
 	@Override
-	public BlockActionType<?> getType() {
-		return BlockActionTypes.AREA_OF_EFFECT;
+	public BlockAction.Type<?> getType() {
+		return NeoApoliBlockActionTypes.AREA_OF_EFFECT;
 	}
 
 	@Override

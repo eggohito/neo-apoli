@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_player_spawn
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.custom.ModifyPlayerSpawnPower;
-import io.github.eggohito.neo_apoli.power.misc.Prioritized;
+import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.portal.TeleportTransition;
@@ -24,7 +24,7 @@ public abstract class PlayerListMixin {
 				return original;
 			}
 
-			for (var instance : new Prioritized.InstanceCollection<>(player, ModifyPlayerSpawnPower.Instance.class)) {
+			for (var instance : new PrioritizedPower.InstanceCollection<>(player, ModifyPlayerSpawnPower.Instance.class)) {
 
 				Context context = instance.createHolderContext(player);
 				Optional<TeleportTransition> destination = instance.getSpawnTeleport();
