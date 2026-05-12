@@ -33,7 +33,7 @@ import io.github.eggohito.neo_apoli.condition.type.entity.EntityConditionType;
 import io.github.eggohito.neo_apoli.condition.type.fluid.FluidConditionType;
 import io.github.eggohito.neo_apoli.condition.type.item.ItemConditionType;
 import io.github.eggohito.neo_apoli.condition.type.world.WorldConditionType;
-import io.github.eggohito.neo_apoli.container_type.ContainerType;
+import io.github.eggohito.neo_apoli.container_menu.ContainerMenu;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.type.HudElementType;
 import io.github.eggohito.neo_apoli.modifier.type.ModifierType;
@@ -99,7 +99,7 @@ public class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<Vec3ProviderType<?>>> VEC3_PROVIDER_TYPE = create("provider_type/vec3");
 
 	public static final ResourceKey<Registry<ComparisonType<?>>> COMPARISON_TYPE = create("comparison_type");
-	public static final ResourceKey<Registry<ContainerType>> CONTAINER_TYPE = create("container_type");
+	public static final ResourceKey<Registry<ContainerMenu.Type<?>>> CONTAINER_MENU_TYPE = create("container_menu_type");
 	public static final ResourceKey<Registry<ModifierType<?>>> MODIFIER_TYPE = create("modifier_type");
 	public static final ResourceKey<Registry<ColorType<?>>> COLOR_TYPE = create("color_type");
 	public static final ResourceKey<Registry<HudElementType<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");

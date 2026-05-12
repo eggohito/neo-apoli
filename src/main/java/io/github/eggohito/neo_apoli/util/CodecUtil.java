@@ -171,4 +171,8 @@ public class CodecUtil {
 		return Codec.intRange(0, Integer.MAX_VALUE);
 	}
 
+	public static Codec<Integer> positiveInt() {
+		return Codec.intRange(1, Integer.MAX_VALUE);
+	}
+
 }

@@ -15,7 +15,6 @@ import io.github.eggohito.neo_apoli.condition.ConditionManager;
 import io.github.eggohito.neo_apoli.condition.kind.ConditionKinds;
 import io.github.eggohito.neo_apoli.condition.type.ConditionTypes;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
-import io.github.eggohito.neo_apoli.container_type.NeoApoliContainerTypes;
 import io.github.eggohito.neo_apoli.hud.type.HudElementTypes;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
@@ -76,7 +75,7 @@ public class NeoApoli implements ModInitializer {
 		ValueProviderTypes.registerAll();
 
 		NeoApoliComponentContents.registerAll();
-		NeoApoliContainerTypes.registerAll();
+		NeoApoliContainerMenuTypes.registerAll();
 		NeoApoliParticleTypes.registerAll();
 		NeoApoliDataProviders.registerAll();
 
