@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.replace_loot_table;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.google.common.base.Predicates;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.impl.misc.KeyableLootTable;
@@ -9,6 +8,7 @@ import io.github.eggohito.neo_apoli.impl.misc.ReplacingLootContext;
 import io.github.eggohito.neo_apoli.power.custom.ReplaceLootTablePower;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.util.Reporter;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.ReloadableServerRegistries;
 import net.minecraft.util.context.ContextKeySet;
@@ -28,9 +28,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 @Mixin(LootTable.class)
 public abstract class LootTableMixin implements KeyableLootTable {
@@ -83,6 +82,10 @@ public abstract class LootTableMixin implements KeyableLootTable {
 				holder = lootContext.getParameter(LootContextParams.ATTACKING_ENTITY);
 			}
 
+			else if (lootContext.hasParameter(LootContextParams.DIRECT_ATTACKING_ENTITY)) {
+				holder = lootContext.getParameter(LootContextParams.DIRECT_ATTACKING_ENTITY);
+			}
+
 		}
 
 		else if (keySet == LootContextParamSets.PIGLIN_BARTER) {
@@ -93,10 +96,8 @@ public abstract class LootTableMixin implements KeyableLootTable {
 
 		}
 
-		ReplaceLootTablePower.push((LootTable) (Object) this);
-
-		PrioritizedPower.InstanceCollection<ReplaceLootTablePower.Instance> instances = new PrioritizedPower.InstanceCollection<>(holder, ReplaceLootTablePower.Instance.class);
-		Optional<LootTable> replacementTable = Optional.empty();
+		PrioritizedPower.InstanceCollection<ReplaceLootTablePower.Instance> instances = new PrioritizedPower.InstanceCollection<>(holder, ReplaceLootTablePower.Instance.class, Predicates.alwaysTrue());
+		List<LootTable> replacements = new ObjectArrayList<>();
 
 		for (var instance : instances) {
 
@@ -105,50 +106,44 @@ public abstract class LootTableMixin implements KeyableLootTable {
 
 			if (instance.isActive(context)) {
 
-				replacementTable = instance.getReplacement(context.forChild(".replacements"), key)
+				LootTable replacementTable = instance.getReplacement(context.forChild(".replacements"), key)
 					.map(this.neo_apoli$holder::getLootTable)
-					.filter(Predicate.not(LootTable.EMPTY::equals));
+					.orElse(null);
 
-				replacementTable.ifPresent(ReplaceLootTablePower::push);
+				if (replacementTable != null && replacementTable != LootTable.EMPTY) {
+					replacements.add(replacementTable);
+				}
 
 			}
 
-			reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.logOnce(Level.WARN, "Found error(s) while trying to replace loot table \"" + key.location() + "\" " + errors));
+			reporter
+				.getErrorsFlattened()
+				.ifPresent(errors -> NeoApoli.logOnce(Level.WARN, "Found error(s) while trying to replace loot table \"" + key.location() + "\" " + errors));
 
 		}
 
-		if (replacementTable.isEmpty()) {
+		if (replacements.isEmpty()) {
 			return;
 		}
 
-		LootTable table = replacementTable.get();
-		replacingLootContext.neo_apoli$setReplaced(key);
+		ReplaceLootTablePower.push((LootTable) (Object) this);
+		replacements.forEach(ReplaceLootTablePower::push);
 
-		table.getRandomItemsRaw(lootContext, output);
+		replacingLootContext.neo_apoli$setReplaced(key);
+		ReplaceLootTablePower.peek().getRandomItemsRaw(lootContext, output);
+
+		ReplaceLootTablePower.clear();
 		ci.cancel();
 
 	}
 
-	@WrapMethod(method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V")
-	void wrapGetForReplacing(LootContext context, Consumer<ItemStack> output, Operation<Void> original) {
-
-		try {
-			original.call(context, output);
-		}
-
-		finally {
-			ReplaceLootTablePower.clear();
-		}
-
-	}
-
 	@Inject(method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/LootContext;pushVisitedElement(Lnet/minecraft/world/level/storage/loot/LootContext$VisitedEntry;)Z"))
-	void popReplaced(LootContext context, Consumer<ItemStack> output, CallbackInfo ci) {
+	void popOnEntryPush(LootContext context, Consumer<ItemStack> output, CallbackInfo ci) {
 		ReplaceLootTablePower.pop();
 	}
 
 	@Inject(method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/LootContext;popVisitedElement(Lnet/minecraft/world/level/storage/loot/LootContext$VisitedEntry;)V"))
-	void restoreReplaced(LootContext context, Consumer<ItemStack> output, CallbackInfo ci) {
+	void restoreOnEntryPop(LootContext context, Consumer<ItemStack> output, CallbackInfo ci) {
 		ReplaceLootTablePower.restore();
 	}
 
