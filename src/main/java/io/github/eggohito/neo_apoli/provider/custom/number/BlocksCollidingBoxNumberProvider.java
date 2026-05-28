@@ -72,8 +72,8 @@ public record BlocksCollidingBoxNumberProvider(Condition condition, BoxProvider 
 
 			}
 
-			catch (PosUnloadedException | PosOutOfBoundsException e) {
-				context.reportProblem(e.getMessage());
+			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+				//  No-op
 			}
 
 		}

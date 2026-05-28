@@ -4,6 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
@@ -54,12 +56,20 @@ public record IsEntitySteppingOnBlockCondition(Condition steppedOnCondition, Ent
 
 			else {
 
-				BlockPos steppingPos = entity.getOnPos();
-				Context steppedOnContext = new Context.Builder(context)
-					.withRequired(STEPPED_ON_BLOCK, CachedBlock.fromLoadedPos(level, steppingPos))
-					.build(level);
+				try {
 
-				return steppedOnCondition().test(steppedOnContext.forChild(".stepped_on_condition"));
+					BlockPos steppingPos = entity.getOnPos();
+					Context steppedOnContext = new Context.Builder(context)
+						.withRequired(STEPPED_ON_BLOCK, CachedBlock.fromLoadedPos(level, steppingPos))
+						.build(level);
+
+					return steppedOnCondition().test(steppedOnContext.forChild(".stepped_on_condition"));
+
+				}
+
+				catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+					return false;
+				}
 
 			}
 

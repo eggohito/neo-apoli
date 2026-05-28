@@ -81,8 +81,8 @@ public record BlocksInRadiusNumberProvider(Condition condition, Vec3Provider pos
 
 			}
 
-			catch (PosUnloadedException | PosOutOfBoundsException e) {
-				context.reportProblem(e.getMessage());
+			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+				//  No-op
 			}
 
 		}

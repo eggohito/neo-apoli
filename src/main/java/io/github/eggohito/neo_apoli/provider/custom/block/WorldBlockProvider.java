@@ -46,8 +46,8 @@ public record WorldBlockProvider(Vec3Provider position) implements BlockProvider
 
 		}
 
-		catch (PosUnloadedException | PosOutOfBoundsException e) {
-			context.reportProblem(e.getMessage());
+		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+			//  No-op
 		}
 
 		return Optional.empty();

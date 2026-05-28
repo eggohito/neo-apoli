@@ -67,8 +67,8 @@ public record BlocksIntersectingBoxNumberProvider(Condition condition, BoxProvid
 
 			}
 
-			catch (PosUnloadedException | PosOutOfBoundsException e) {
-				context.reportProblem(e.getMessage());
+			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+				//  No-op
 			}
 
 		}

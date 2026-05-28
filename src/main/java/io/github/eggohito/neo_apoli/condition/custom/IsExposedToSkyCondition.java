@@ -34,8 +34,7 @@ public record IsExposedToSkyCondition(Vec3Provider position) implements Conditio
 	@Override
 	public boolean test(Context context) {
 
-		exposureCheck:
-		try {
+		exposureCheck: try {
 
 			Context positionContext = context.forChild(".position");
 			BlockPos position = BlockPos.containing(position().getVec3(positionContext));
@@ -51,8 +50,8 @@ public record IsExposedToSkyCondition(Vec3Provider position) implements Conditio
 
 		}
 
-		catch (PosUnloadedException | PosOutOfBoundsException e) {
-			context.reportProblem(e.getMessage());
+		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+			//  No-op
 		}
 
 		return false;

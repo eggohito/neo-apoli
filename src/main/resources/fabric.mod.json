@@ -3,14 +3,14 @@
 	"id": "neo-apoli",
 	"version": "${version}",
 	"name": "Neo-Apoli",
-	"description": "A rewrite proof-of-concept of https://github.com/apace100/apoli",
+	"description": "A rewrite of https://github.com/apace100/apoli that provides more functionality and flexibility ",
 	"authors": [
 		"eggohito"
 	],
 	"contact": {
 		"sources": "https://github.com/eggohito/neo-apoli"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/neo-apoli/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -31,11 +31,6 @@
 			"config": "neo-apoli.mixins.client.json"
 		}
 	],
-	"custom": {
-		"cardinal-components": [
-			"neo-apoli:powers"
-		]
-	},
 	"depends": {
 		"fabricloader": ">=${loader}",
 		"minecraft": "${minecraft}",

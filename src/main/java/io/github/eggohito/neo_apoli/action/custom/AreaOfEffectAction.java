@@ -128,8 +128,8 @@ public record AreaOfEffectAction(AreaTarget areaTarget, Action areaAction, Condi
 
 					}
 
-					catch (PosUnloadedException | PosOutOfBoundsException e) {
-						context.reportProblem(e.getMessage());
+					catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+						//  No-op
 					}
 
 				}

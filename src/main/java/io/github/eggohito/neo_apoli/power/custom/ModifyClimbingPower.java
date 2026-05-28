@@ -7,6 +7,8 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.IsEntitySneakingCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
@@ -101,14 +103,18 @@ public class ModifyClimbingPower extends Power {
 
 		for (var instance : Powers.getInstances(entity, Instance.class)) {
 
-			Context context = instance.createHolderContext(entity);
-
 			try {
+
+				Context context = instance.createHolderContext(entity);
 
 				if (VISITOR.push(instance) && tester.test(instance, context)) {
 					return true;
 				}
 
+			}
+
+			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+				//  No-op; just need to soft error
 			}
 
 			finally {

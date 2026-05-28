@@ -5,6 +5,8 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
@@ -70,10 +72,18 @@ public class CallbackPlayerWakeUpPower extends CallbackPower {
 
 		for (var instance : Powers.getInstances(sleeper, Instance.class)) {
 
-			Context context = instance.createContext(sleeper, sleepingPos);
+			try {
 
-			if (instance.isActive(context)) {
-				instance.execute(context);
+				Context context = instance.createContext(sleeper, sleepingPos);
+
+				if (instance.isActive(context)) {
+					instance.execute(context);
+				}
+
+			}
+
+			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+				//  No-op; just need to soft error
 			}
 
 		}
