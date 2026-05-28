@@ -5,7 +5,6 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import lombok.AccessLevel;
@@ -25,13 +24,13 @@ import java.util.Map;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum HudElementLayer implements IdentifiedLayer {
 
-	ABOVE_HUD("hud_element/above_hud", HudRenderPhase.ABOVE_HUD),
-	BELOW_HUD("hud_element/below_hud", HudRenderPhase.BELOW_HUD);
+	ABOVE_HUD("hud_element/above_hud", HudElement.RenderPhase.ABOVE_HUD),
+	BELOW_HUD("hud_element/below_hud", HudElement.RenderPhase.BELOW_HUD);
 
 	private final ResourceLocation id;
-	private final HudRenderPhase renderPhase;
+	private final HudElement.RenderPhase renderPhase;
 
-	HudElementLayer(String path, HudRenderPhase renderPhase) {
+	HudElementLayer(String path, HudElement.RenderPhase renderPhase) {
 		this.id = NeoApoli.id(path);
 		this.renderPhase = renderPhase;
 	}

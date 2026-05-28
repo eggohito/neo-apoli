@@ -1,0 +1,256 @@
+package io.github.eggohito.neo_apoli.power.manager;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
+import io.github.eggohito.neo_apoli.action.manager.ActionManager;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.PowerPreparation;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagLoader;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public final class ServerPowerManager extends PowerManager implements IdentifiableResourceReloadListener {
+
+	private static final TagLoader<PowerHolder<?>> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(PowerIdentifier.of(id)).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.POWER));
+	private static final JsonFileToIdConverter JSON_LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.POWER);
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPowerManager.class);
+	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build();
+
+	private static volatile ImmutableMap<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = ImmutableMap.of();
+	private final DynamicOps<JsonElement> ops;
+
+	ServerPowerManager(HolderLookup.Provider provider) {
+		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
+	}
+
+	@Override
+	public ResourceLocation getFabricId() {
+		return ID;
+	}
+
+	@Override
+	public Collection<ResourceLocation> getFabricDependencies() {
+		return DEPENDENCIES;
+	}
+
+	@Override
+	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
+
+		CompletableFuture<Map<ResourceLocation, JsonWithSource>> powersFuture = CompletableFuture
+			.supplyAsync(() -> this.preparePowers(manager), backgroundExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> tagsFuture = CompletableFuture
+			.supplyAsync(() -> TAG_LOADER.load(manager), backgroundExecutor);
+
+		return powersFuture.thenCombine(tagsFuture, Pair::of)
+			.thenCompose(barrier::wait)
+			.thenAcceptAsync(pair -> this.applyAll(pair.getFirst(), pair.getSecond()), gameExecutor);
+
+	}
+
+	private Map<ResourceLocation, JsonWithSource> preparePowers(ResourceManager manager) {
+
+		Map<ResourceLocation, JsonWithSource> prepared = MiscUtil.collectJson(manager, JSON_LOADER, ops, LOGGER::error);
+		prepared.forEach((id, jsonWithSource) -> PowerPreparation.EVENT.invoker().prepare(id, jsonWithSource, JSON_LOADER.directory(), ops));
+
+		return prepared;
+
+	}
+
+	private void applyAll(Map<ResourceLocation, JsonWithSource> unparsedPowers, Map<ResourceLocation, List<TagLoader.EntryWithSource>> unparsedTags) {
+
+		LOGGER.info("Parsing powers from data packs...");
+		ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> powersBuilder = ImmutableMap.builder();
+
+		unparsedPowers.forEach((id, jsonWithSource) -> {
+
+			PowerIdentifier powerId = PowerIdentifier.of(id);
+			ResourceLocationUtil.setCurrent(id);
+
+			MiscUtil.handleResult(
+				wrappedParse(PowerHolder.CODEC.parse(ops, jsonWithSource.json())),
+				powerHolder -> register(powersBuilder::put, powerHolder),
+				warning -> LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerId.asDisplayString(false), jsonWithSource.source(), warning),
+				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerId.asDisplayString(false), jsonWithSource.source(), error)
+			);
+
+			ResourceLocationUtil.setCurrent(null);
+
+		});
+
+		powers = powersBuilder.build();
+		LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s)", powers.size());
+
+		pendingTags = ImmutableMap.copyOf(unparsedTags);
+
+	}
+
+	public static void send(ServerPlayer recipient) {
+
+		if (!recipient.server.isPublished()) {
+			return;
+		}
+
+		Set<PowerHolder<?>> filtered = powers.values()
+			.stream()
+			.filter(Predicate.not(PowerHolder::isSubPower))
+			.collect(Collectors.toSet());
+
+		LOGGER.info("Sent {} power(s) to player {}!", filtered.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new ClientboundPowersUpdatePacket(filtered));
+
+		LOGGER.info("Sent {} power tag(s) to player {}!", tags.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new ClientboundTagsUpdatePacket(tags));
+
+	}
+
+	public static void init() {
+
+	}
+
+	private static void register(BiConsumer<PowerIdentifier, PowerHolder<?>> builder, PowerHolder<?> powerHolder) {
+
+		builder.accept(powerHolder.id(), powerHolder);
+
+		if (powerHolder.value() instanceof MultiplePower multiplePower) {
+
+			if (powerHolder.id().isSubPower()) {
+				throw new IllegalStateException("Tried to register " + powerHolder.id().asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, multiplePower.getType()) + "\" power type, which is not allowed!");
+			}
+
+			else {
+				multiplePower.getSubPowers().forEach(subPowerHolder -> register(builder, subPowerHolder));
+			}
+
+		}
+
+	}
+
+	private static void validate(ReloadableServerResources resources) {
+
+		if (!powers.isEmpty()) {
+
+			ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> builder = ImmutableMap.builder();
+			int size = powers.size();
+
+			LOGGER.info("Validating {} power(s)...", size);
+
+			for (var powerHolder : powers.values()) {
+
+				Power power = powerHolder.value();
+				Reporter reporter = new Reporter("{\"" + powerHolder.id() + "\"}");
+
+				Context.Validator validator = new Context.Validator(power.getType().keySet(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+				power.validate(validator);
+
+				reporter.getErrorsFlattened().ifPresentOrElse(
+					error -> LOGGER.error("Found errors while validating {} {}", powerHolder.id().asDisplayString(false), error),
+					() -> builder.put(powerHolder.id(), powerHolder)
+				);
+
+			}
+
+			powers = builder.build();
+			LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", size, powers.size());
+
+		}
+
+		if (!pendingTags.isEmpty()) {
+
+			LOGGER.info("Parsing power tags from data packs...");
+			tags = ImmutableMap.copyOf(TAG_LOADER.build(pendingTags));
+
+			LOGGER.info("Finished parsing power tags from data packs. Power manager contains {} power tag(s)", tags.size());
+			pendingTags = ImmutableMap.of();
+
+		}
+
+	}
+
+	private static DataResult<PowerHolder<?>> wrappedParse(DataResult<PowerHolder<?>> result) {
+		return result.mapOrElse(
+			DataResult::success,
+			error -> {
+
+				if (error.partialValue().isPresent()) {
+
+					var partial = error.partialValue().get();
+
+					if (partial.canBePartiallyParsed()) {
+						return error;
+					}
+
+				}
+
+				return DataResult.error(error.messageSupplier());
+
+			}
+		);
+	}
+
+	static {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ServerPowerManager::new);
+		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> send(player));
+
+		PowerPreparation.EVENT.addPhaseOrdering(ID, MultiplePower.ID);
+		PowerPreparation.EVENT.register(ID, (id, jsonWithSource, directoryPath, ops) -> {
+
+			if (jsonWithSource.json() instanceof JsonObject jsonObject) {
+				jsonObject.addProperty(PowerHolder.ID_KEY, id.toString());
+			}
+
+		});
+
+		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, ServerPowerManager::validate);
+
+	}
+
+}

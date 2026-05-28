@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BinomialNumberProvider(NumberProvider attempts, NumberProvider probability) implements NumberProvider {
 
-	public static final MapCodec<BinomialNumberProvider> MAP_CODEC = MapCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BinomialNumberProvider> CODEC = MapCodecUtil.lazy(BinomialNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("attempts").forGetter(BinomialNumberProvider::attempts),
 		NumberProvider.CODEC.fieldOf("probability").forGetter(BinomialNumberProvider::probability)
 	).apply(instance, BinomialNumberProvider::new)));
@@ -30,21 +30,21 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.nextLong(context);
+	public double getDouble(Context context) {
+		return this.getLong(context);
 	}
 
 	@Override
-	public long nextLong(Context context) {
+	public long getLong(Context context) {
 
 		RandomSource random = context.level().getRandom();
 		long result = 0;
 
 		Context attemptsContext = context.forChild(".attempts");
-		long attempts = attempts().nextLong(attemptsContext);
+		long attempts = attempts().getLong(attemptsContext);
 
 		Context probabilityContext = context.forChild(".probability");
-		double probability = probability().nextDouble(probabilityContext);
+		double probability = probability().getDouble(probabilityContext);
 
 		for (int i = 0; !attemptsContext.hasErrors() && !probabilityContext.hasErrors() && i < attempts; i++) {
 

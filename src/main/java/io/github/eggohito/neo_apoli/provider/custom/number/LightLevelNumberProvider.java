@@ -20,7 +20,7 @@ import java.util.Optional;
 
 public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provider position) implements NumberProvider {
 
-	public static final MapCodec<LightLevelNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<LightLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.LIGHT_TYPE.optionalFieldOf("light_type").forGetter(LightLevelNumberProvider::lightType),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(LightLevelNumberProvider::position)
 	).apply(instance, LightLevelNumberProvider::new));
@@ -37,10 +37,10 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().nextVec3(positionContext);
+		Vec3 position = position().getVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return 0;

@@ -11,7 +11,7 @@ import java.util.List;
 
 public record MinNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
-	public static final MapCodec<MinNumberProvider> MAP_CODEC = MultiNumberProvider.codec(MinNumberProvider::new);
+	public static final MapCodec<MinNumberProvider> CODEC = MultiNumberProvider.codec(MinNumberProvider::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MinNumberProvider> STREAM_CODEC = MultiNumberProvider.streamCodec(MinNumberProvider::new);
 
 	@Override
@@ -20,8 +20,8 @@ public record MinNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::min, 0.0d);
+	public double getDouble(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::getDouble, Math::min, 0.0d);
 	}
 
 }

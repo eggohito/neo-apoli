@@ -21,7 +21,7 @@ import java.util.Locale;
 
 public record RoundNumberProvider(NumberProvider number, NumberProvider places, RoundingMode mode) implements NumberProvider {
 
-	public static final MapCodec<RoundNumberProvider> MAP_CODEC = MapCodecUtil.lazy(RoundNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<RoundNumberProvider> CODEC = MapCodecUtil.lazy(RoundNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(RoundNumberProvider::number),
 		NumberProvider.CODEC.fieldOf("places").forGetter(RoundNumberProvider::places),
 		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode", RoundingMode.HALF_UP).forGetter(RoundNumberProvider::mode)
@@ -40,10 +40,10 @@ public record RoundNumberProvider(NumberProvider number, NumberProvider places, 
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
-		double number = number().nextDouble(context.forChild(".number"));
-		int places = places().nextInt(context.forChild(".places"));
+		double number = number().getDouble(context.forChild(".number"));
+		int places = places().getInt(context.forChild(".places"));
 
 		try {
 

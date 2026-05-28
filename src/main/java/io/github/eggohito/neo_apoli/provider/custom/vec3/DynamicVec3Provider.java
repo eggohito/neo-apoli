@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProvider z) implements Vec3Provider {
 
-	public static final MapCodec<DynamicVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DynamicVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("x").forGetter(DynamicVec3Provider::x),
 		NumberProvider.CODEC.fieldOf("y").forGetter(DynamicVec3Provider::y),
 		NumberProvider.CODEC.fieldOf("z").forGetter(DynamicVec3Provider::z)
@@ -31,11 +31,11 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	}
 
 	@Override
-	public @NotNull Vec3 nextVec3(Context context) {
+	public @NotNull Vec3 getVec3(Context context) {
 		return new Vec3(
-			x().nextDouble(context.forChild(".x")),
-			y().nextDouble(context.forChild(".y")),
-			z().nextDouble(context.forChild(".z"))
+			x().getDouble(context.forChild(".x")),
+			y().getDouble(context.forChild(".y")),
+			z().getDouble(context.forChild(".z"))
 		);
 	}
 

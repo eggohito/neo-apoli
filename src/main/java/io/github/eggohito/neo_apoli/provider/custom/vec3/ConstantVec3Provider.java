@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConstantVec3Provider(double x, double y, double z) implements Vec3Provider {
 
-	public static final MapCodec<ConstantVec3Provider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConstantVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.DOUBLE.fieldOf("x").forGetter(ConstantVec3Provider::x),
 		Codec.DOUBLE.fieldOf("y").forGetter(ConstantVec3Provider::y),
 		Codec.DOUBLE.fieldOf("z").forGetter(ConstantVec3Provider::z)
@@ -41,7 +41,7 @@ public record ConstantVec3Provider(double x, double y, double z) implements Vec3
 	}
 
 	@Override
-	public @NotNull Vec3 nextVec3(Context context) {
+	public @NotNull Vec3 getVec3(Context context) {
 		return get();
 	}
 

@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 
 public record ClampedNumberProvider(NumberProvider value, NumberProvider min, NumberProvider max) implements NumberProvider {
 
-	public static final MapCodec<ClampedNumberProvider> MAP_CODEC = MapCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ClampedNumberProvider> CODEC = MapCodecUtil.lazy(ClampedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("value").forGetter(ClampedNumberProvider::value),
 		NumberProvider.CODEC.fieldOf("min").forGetter(ClampedNumberProvider::min),
 		NumberProvider.CODEC.fieldOf("max").forGetter(ClampedNumberProvider::max)
@@ -35,13 +35,13 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.nextOrElse(context, NumberProvider::nextDouble, Mth::clamp);
+	public double getDouble(Context context) {
+		return this.nextOrElse(context, NumberProvider::getDouble, Mth::clamp);
 	}
 
 	@Override
-	public long nextLong(Context context) {
-		return this.nextOrElse(context, NumberProvider::nextLong, Mth::clamp);
+	public long getLong(Context context) {
+		return this.nextOrElse(context, NumberProvider::getLong, Mth::clamp);
 	}
 
 	@Override

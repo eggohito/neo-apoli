@@ -30,7 +30,7 @@ import java.util.Optional;
 @Getter
 public class ModifyEffectDurationPower extends Power {
 
-	public static final MapCodec<ModifyEffectDurationPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::getModifiers))
 		.apply(instance, ModifyEffectDurationPower::new));
 
@@ -67,8 +67,8 @@ public class ModifyEffectDurationPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.keySet());
+				.withRequired(NeoApoliContextParams.EFFECT, effectInstance)
+				.build(holder.level());
 		}
 
 		public List<Modifier> getModifiers() {

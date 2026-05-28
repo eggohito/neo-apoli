@@ -33,14 +33,14 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 	public boolean compare(Context context) {
 
 		Context firstContext = context.forChild(".first");
-		Tag first = first().nextTag(firstContext);
+		Tag first = first().getTag(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return false;
 		}
 
 		Context secondContext = context.forChild(".second");
-		Tag second = second().nextTag(secondContext);
+		Tag second = second().getTag(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return false;

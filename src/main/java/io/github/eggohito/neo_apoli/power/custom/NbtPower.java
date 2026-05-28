@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class NbtPower extends Power {
 
-	public static final MapCodec<NbtPower> MAP_CODEC = MapCodec.unit(NbtPower::new);
+	public static final MapCodec<NbtPower> CODEC = MapCodec.unit(NbtPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodecUtil.unit(NbtPower::new);
 
 	@Override

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Provider second) implements NumberProvider {
 
-	public static final MapCodec<DistanceBetweenPositionsNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<DistanceBetweenPositionsNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("first").forGetter(DistanceBetweenPositionsNumberProvider::first),
 		Vec3Provider.CODEC.fieldOf("second").forGetter(DistanceBetweenPositionsNumberProvider::second)
 	).apply(instance, DistanceBetweenPositionsNumberProvider::new));
@@ -29,17 +29,17 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context firstContext = context.forChild(".first");
-		Vec3 first = first().nextVec3(firstContext);
+		Vec3 first = first().getVec3(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return 0.0d;
 		}
 
 		Context secondContext = context.forChild(".second");
-		Vec3 second = second().nextVec3(secondContext);
+		Vec3 second = second().getVec3(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return 0.0d;

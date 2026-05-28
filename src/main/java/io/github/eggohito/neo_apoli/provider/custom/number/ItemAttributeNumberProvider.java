@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
+import io.github.eggohito.neo_apoli.provider.custom.item.ItemProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Holder;
@@ -12,26 +12,30 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<Context.Parameter<Entity>> entity) implements NumberProvider {
+public record ItemAttributeNumberProvider(Holder<Attribute> attribute, ItemProvider item, Optional<EntityProvider> entity) implements NumberProvider {
 
-	public static final MapCodec<ItemAttributeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ItemAttributeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Attribute.CODEC.fieldOf("attribute").forGetter(ItemAttributeNumberProvider::attribute),
-		NeoApoliContextParams.Codecs.ENTITY.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
+		ItemProvider.CODEC.fieldOf("item").forGetter(ItemAttributeNumberProvider::item),
+		EntityProvider.CODEC.optionalFieldOf("entity").forGetter(ItemAttributeNumberProvider::entity)
 	).apply(instance, ItemAttributeNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ItemAttributeNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		Attribute.STREAM_CODEC, ItemAttributeNumberProvider::attribute,
-		ByteBufCodecs.optional(NeoApoliContextParams.StreamCodecs.ENTITY), ItemAttributeNumberProvider::entity,
+		ItemProvider.STREAM_CODEC, ItemAttributeNumberProvider::item,
+		ByteBufCodecs.optional(EntityProvider.STREAM_CODEC), ItemAttributeNumberProvider::entity,
 		ItemAttributeNumberProvider::new
 	);
 
@@ -41,23 +45,26 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
-			.map(stack -> stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY))
-			.map(modifiers -> this.compute(context, modifiers))
-			.orElse(0.0D);
+	public double getDouble(Context context) {
+
+		Context itemContext = context.forChild(".item");
+		ItemStack item = item().nextItem(itemContext);
+
+		if (itemContext.hasErrors()) {
+			return 0.0D;
+		}
+
+		else {
+			return this.compute(context, item.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY));
+		}
+
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-
-		ImmutableSet.Builder<ContextKey<?>> requirements = ImmutableSet.builder();
-
-		requirements.add(NeoApoliContextParams.ITEM_STACK);
-		entity().ifPresent(requirements::add);
-
-		return requirements.build();
-
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		item().validate(validator.forChild(".item"));
+		entity().ifPresent(entity -> entity.validate(validator.forChild(".entity")));
 	}
 
 	private double compute(Context context, ItemAttributeModifiers modifiersComponent) {
@@ -95,7 +102,7 @@ public record ItemAttributeNumberProvider(Holder<Attribute> attribute, Optional<
 
 	private double getAttributeBaseValue(Context context) {
 		return entity()
-			.flatMap(context::getOptional)
+			.flatMap(entity -> entity.getEntity(context.forChild(".entity")))
 			.filter(LivingEntity.class::isInstance)
 			.map(LivingEntity.class::cast)
 			.filter(entity -> entity.getAttributes().hasAttribute(this.attribute()))

@@ -1,16 +1,19 @@
 package io.github.eggohito.neo_apoli.context;
 
 import com.google.common.collect.Sets;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CommandParameter;
 import io.github.eggohito.neo_apoli.util.Reporter;
-import io.github.eggohito.neo_apoli.util.Typed;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import lombok.experimental.Accessors;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,6 +23,7 @@ import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -264,8 +268,25 @@ public final class Context implements ContextParamsHolder {
 
 	}
 
-	public static <T> Parameter<T> parameter(ResourceLocation name, Class<T> typeClass) {
-		return new Parameter<>(name, typeClass);
+	public static <T> Parameter<T> simpleParameter(ResourceLocation name, Class<T> typeClass) {
+		return new Parameter<>(name) {
+
+			@Override
+			public boolean checkType(Predicate<Class<T>> tester) {
+				return tester.test(typeClass);
+			}
+
+			@Override
+			public void addAsArgument(CommandBuildContext buildContext, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> parameterNode) {
+
+			}
+
+		};
+	}
+
+	@ApiStatus.Internal
+	public static <T> Parameter<T> simpleParameterInternal(String name, Class<T> typeClass) {
+		return simpleParameter(NeoApoli.id(name), typeClass);
 	}
 
 	public static <T> Codec<Parameter<T>> parameterCodec(String name, Class<T> typeClass) {
@@ -280,7 +301,7 @@ public final class Context implements ContextParamsHolder {
 	public static <T> Function<Parameter<?>, DataResult<Parameter<T>>> parameterValidator(String name, Class<T> typeClass) {
 		return key -> {
 
-			if (key.checkTypeClass(typeClass::isAssignableFrom)) {
+			if (key.checkType(typeClass::isAssignableFrom)) {
 				return DataResult.success((Parameter<T>) key);
 			}
 
@@ -291,23 +312,13 @@ public final class Context implements ContextParamsHolder {
 		};
 	}
 
-	@Accessors(fluent = true)
-	@Getter
-	public static final class Parameter<T> extends ContextKey<T> implements Typed<T> {
+	public abstract static class Parameter<T> extends ContextKey<T> implements CommandParameter {
 
-		private final Class<T> typeClass;
-
-		private Parameter(ResourceLocation name, Class<T> typeClass) {
+		protected Parameter(ResourceLocation name) {
 			super(name);
-			this.typeClass = typeClass;
 		}
 
-		public boolean checkTypeClass(Predicate<Class<T>> tester) {
-			Class<T> typeClass = this.typeClass();
-			return typeClass != null
-				&& tester.test(typeClass);
-		}
+		public abstract boolean checkType(Predicate<Class<T>> tester);
 
 	}
-
 }

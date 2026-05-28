@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.*;
 
 public final class StreamCodecUtil {
@@ -161,6 +163,10 @@ public final class StreamCodecUtil {
 			}
 
 		};
+	}
+
+	public static <B extends ByteBuf, E> StreamCodec.CodecOperation<B, E, Set<E>> set() {
+		return streamCodec -> ByteBufCodecs.collection(ObjectOpenHashSet::new, streamCodec);
 	}
 
 }

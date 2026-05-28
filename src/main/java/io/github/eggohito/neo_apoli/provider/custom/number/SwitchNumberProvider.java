@@ -16,7 +16,7 @@ import java.util.List;
 
 public record SwitchNumberProvider(List<Case<Condition, NumberProvider>> cases, NumberProvider defaultValue) implements NumberProvider, SwitchValueProvider<NumberProvider> {
 
-	public static final MapCodec<SwitchNumberProvider> MAP_CODEC = MapCodecUtil.lazy(SwitchNumberProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(NumberProvider.CODEC, SwitchNumberProvider::new));
+	public static final MapCodec<SwitchNumberProvider> CODEC = MapCodecUtil.lazy(SwitchNumberProvider.class.getSimpleName(), () -> SwitchValueProvider.mapCodec(NumberProvider.CODEC, SwitchNumberProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchNumberProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(NumberProvider.STREAM_CODEC, SwitchNumberProvider::new));
 
 	@Override
@@ -25,8 +25,8 @@ public record SwitchNumberProvider(List<Case<Condition, NumberProvider>> cases, 
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.nextOrDefault(context, NumberProvider::nextDouble);
+	public double getDouble(Context context) {
+		return this.nextOrDefault(context, NumberProvider::getDouble);
 	}
 
 }

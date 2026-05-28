@@ -27,7 +27,7 @@ public class ModifyElytraFlightPower extends Power implements PrioritizedPower<M
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyElytraFlightPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyElytraFlightPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyElytraFlightPower::getAllow))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraFlightPower::getPriority))
 		.apply(instance, ModifyElytraFlightPower::new));
@@ -71,7 +71,7 @@ public class ModifyElytraFlightPower extends Power implements PrioritizedPower<M
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().nextBoolean(context.forChild(".allow"));
+			return power.getAllow().getBoolean(context.forChild(".allow"));
 		}
 
 	}

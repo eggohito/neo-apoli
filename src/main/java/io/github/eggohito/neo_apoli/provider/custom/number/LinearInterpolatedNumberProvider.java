@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 
 public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvider start, NumberProvider end) implements NumberProvider {
 
-	public static final MapCodec<LinearInterpolatedNumberProvider> MAP_CODEC = MapCodecUtil.lazy(LinearInterpolatedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<LinearInterpolatedNumberProvider> CODEC = MapCodecUtil.lazy(LinearInterpolatedNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("delta").forGetter(LinearInterpolatedNumberProvider::delta),
 		NumberProvider.CODEC.fieldOf("start").forGetter(LinearInterpolatedNumberProvider::start),
 		NumberProvider.CODEC.fieldOf("end").forGetter(LinearInterpolatedNumberProvider::end)
@@ -35,13 +35,13 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.lerp(context, NumberProvider::nextDouble, Mth::lerp);
+	public double getDouble(Context context) {
+		return this.lerp(context, NumberProvider::getDouble, Mth::lerp);
 	}
 
 	@Override
-	public long nextLong(Context context) {
-		return this.lerp(context, NumberProvider::nextInt, Mth::lerpInt);
+	public long getLong(Context context) {
+		return this.lerp(context, NumberProvider::getInt, Mth::lerpInt);
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 		N start = getter.apply(start(), startContext);
 
 		Context deltaContext = context.forChild(".delta");
-		float delta = delta().nextFloat(deltaContext);
+		float delta = delta().getFloat(deltaContext);
 
 		if (deltaContext.hasErrors()) {
 			return start;

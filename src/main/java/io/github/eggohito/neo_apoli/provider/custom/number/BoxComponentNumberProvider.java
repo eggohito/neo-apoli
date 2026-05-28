@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BoxComponentNumberProvider(BoxProvider box, Direction side) implements NumberProvider {
 
-	public static final MapCodec<BoxComponentNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<BoxComponentNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BoxProvider.CODEC.fieldOf("box").forGetter(BoxComponentNumberProvider::box),
 		Direction.CODEC.fieldOf("side").forGetter(BoxComponentNumberProvider::side)
 	).apply(instance, BoxComponentNumberProvider::new));
@@ -30,7 +30,7 @@ public record BoxComponentNumberProvider(BoxProvider box, Direction side) implem
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context boxContext = context.forChild(".box");
 		AABB box = box().nextBox(boxContext);

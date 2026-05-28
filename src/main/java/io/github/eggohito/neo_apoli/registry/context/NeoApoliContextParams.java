@@ -1,12 +1,16 @@
 package io.github.eggohito.neo_apoli.registry.context;
 
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
-import net.minecraft.core.BlockPos;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,10 +22,11 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.util.function.Function;
+
+import static net.minecraft.commands.Commands.literal;
 
 public class NeoApoliContextParams {
 
@@ -30,60 +35,88 @@ public class NeoApoliContextParams {
 	public static final Codec<Context.Parameter<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 	public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.CONTEXT_PARAMETER);
 
-	public static final Context.Parameter<Entity> ACTOR_ENTITY = registerInternal("actor_entity", Entity.class);
-	public static final Context.Parameter<Entity> TARGET_ENTITY = registerInternal("target_entity", Entity.class);
+	public static final Context.Parameter<Entity> ACTOR_ENTITY = registerInternal("actor_entity", EntityContextParameter::new);
+	public static final Context.Parameter<Entity> DAMAGING_ENTITY = registerInternal("damaging_entity", EntityContextParameter::new);
+	public static final Context.Parameter<Entity> DIRECT_DAMAGING_ENTITY = registerInternal("direct_damaging_entity", EntityContextParameter::new);
+	public static final Context.Parameter<Entity> PROJECTILE_ENTITY = registerInternal("projectile_entity", EntityContextParameter::new);
+	public static final Context.Parameter<Entity> TARGET_ENTITY = registerInternal("target_entity", EntityContextParameter::new);
+	public static final Context.Parameter<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextParameter::new);
 
-	public static final Context.Parameter<BlockPos> BLOCK_POS = registerInternal("block_pos", BlockPos.class);
-	public static final Context.Parameter<BlockState> BLOCK_STATE = registerInternal("block_state", BlockState.class);
-	public static final Context.Parameter<BlockEntity> BLOCK_ENTITY = registerInternal("block_entity", BlockEntity.class);
-	public static final Context.Parameter<Direction> DIRECTION = registerInternal("direction", Direction.class);
+	public static final Context.Parameter<CachedBlock> BLOCK = registerInternal("block", BlockContextParameter::new);
+	public static final Context.Parameter<Direction> DIRECTION = registerInternal("direction", id -> new EnumContextParameter<>(id, Direction.class));
+	public static final Context.Parameter<ItemStack> ITEM = registerInternal("item", ItemContextParameter::new);
+	public static final Context.Parameter<SlotAccess> SLOT = registerInternal("slot", SlotAccessContextParameter::new);
 
-	public static final Context.Parameter<DamageSource> DAMAGE_SOURCE = registerInternal("damage_source", DamageSource.class);
-	public static final Context.Parameter<Float> DAMAGE_AMOUNT = registerInternal("damage_amount", Float.class);
-	public static final Context.Parameter<Entity> DAMAGING_ENTITY = registerInternal("damaging_entity", Entity.class);
-	public static final Context.Parameter<Entity> DIRECT_DAMAGING_ENTITY = registerInternal("direct_damaging_entity", Entity.class);
-
-	public static final Context.Parameter<Entity> PROJECTILE_ENTITY = registerInternal("projectile_entity", Entity.class);
-	public static final Context.Parameter<Entity> THIS_ENTITY = registerInternal("this_entity", Entity.class);
-	public static final Context.Parameter<Vec3> THIS_POS = registerInternal("this_pos", Vec3.class);
-
-	public static final Context.Parameter<FluidState> FLUID_STATE = registerInternal("fluid_state", FluidState.class);
-
-	public static final Context.Parameter<SlotAccess> SLOT_ACCESS = registerInternal("slot_access", SlotAccess.class);
-	public static final Context.Parameter<ItemStack> ITEM_STACK = registerInternal("item_stack", ItemStack.class);
-
-	public static final Context.Parameter<MobEffectInstance> EFFECT_INSTANCE = registerInternal("effect_instance", MobEffectInstance.class);
-
-	public static final Context.Parameter<Double> CURRENT_VALUE = registerInternal("value/current", Double.class);
-	public static final Context.Parameter<Double> MAX_VALUE = registerInternal("value/max", Double.class);
-	public static final Context.Parameter<Double> MIN_VALUE = registerInternal("value/min", Double.class);
+	public static final Context.Parameter<DamageSource> DAMAGE_SOURCE = registerSimpleInternal("damage_source", DamageSource.class);
+	public static final Context.Parameter<Float> DAMAGE_AMOUNT = registerSimpleInternal("damage_amount", Float.class);
+	public static final Context.Parameter<MobEffectInstance> EFFECT = registerSimpleInternal("effect", MobEffectInstance.class);
 
 	public static void registerAll() {
-		ALIASES.addPathAlias("this", THIS_ENTITY);
 		ALIASES.addPathAlias("actor", ACTOR_ENTITY);
 		ALIASES.addPathAlias("target", TARGET_ENTITY);
 		ALIASES.addPathAlias("projectile", PROJECTILE_ENTITY);
+		ALIASES.addPathAlias("this", THIS_ENTITY);
 	}
 
-	private static <T> Context.Parameter<T> registerInternal(String path, Class<T> typeClass) {
-		return register(NeoApoli.id(path), typeClass);
+
+	public static void addAsArguments(CommandBuildContext buildContext, CommandNode<CommandSourceStack> baseNode, CommandNode<CommandSourceStack> addendNode) {
+
+		for (var parameter : NeoApoliRegistries.CONTEXT_PARAMETER) {
+
+			String id = parameter.name().toString();
+			var parameterNode = literal(id).build();
+
+			parameter.addAsArgument(buildContext, baseNode, parameterNode);
+
+			if (!parameterNode.getChildren().isEmpty()) {
+				addendNode.addChild(parameterNode);
+			}
+
+		}
+
 	}
 
-	public static <T> Context.Parameter<T> register(ResourceLocation id, Class<T> typeClass) {
-		return Registry.register(NeoApoliRegistries.CONTEXT_PARAMETER, id, Context.parameter(id, typeClass));
+	public static <T, C extends Context.Parameter<T>> C register(ResourceLocation id, Function<ResourceLocation, C> constructor) {
+		return Registry.register(NeoApoliRegistries.CONTEXT_PARAMETER, id, constructor.apply(id));
+	}
+
+	@ApiStatus.Internal
+	public static <T, C extends Context.Parameter<T>> C registerInternal(String path, Function<ResourceLocation, C> constructor) {
+		return register(NeoApoli.id(path), constructor);
+	}
+
+	public static <T> Context.Parameter<T> registerSimple(ResourceLocation id, Class<T> typeClass) {
+		return register(id, _id -> Context.simpleParameter(_id, typeClass));
+	}
+
+	@ApiStatus.Internal
+	public static <T> Context.Parameter<T> registerSimpleInternal(String path, Class<T> typeClass) {
+		return registerSimple(NeoApoli.id(path), typeClass);
 	}
 
 	public static final class Codecs {
 
-		public static final Codec<Context.Parameter<Number>> NUMBER = Context.parameterCodec("number", Number.class);
+		public static final Codec<Context.Parameter<CachedBlock>> BLOCK = Context.parameterCodec("block", CachedBlock.class);
+		public static final Codec<Context.Parameter<DamageSource>> DAMAGE_SOURCE = Context.parameterCodec("damage source", DamageSource.class);
+		public static final Codec<Context.Parameter<Direction>> DIRECTION = Context.parameterCodec("direction", Direction.class);
 		public static final Codec<Context.Parameter<Entity>> ENTITY = Context.parameterCodec("entity", Entity.class);
+		public static final Codec<Context.Parameter<ItemStack>> ITEM = Context.parameterCodec("item", ItemStack.class);
+		public static final Codec<Context.Parameter<MobEffectInstance>> EFFECT = Context.parameterCodec("effect", MobEffectInstance.class);
+		public static final Codec<Context.Parameter<Number>> NUMBER = Context.parameterCodec("number", Number.class);
+		public static final Codec<Context.Parameter<SlotAccess>> SLOT = Context.parameterCodec("slot", SlotAccess.class);
 
 	}
 
 	public static final class StreamCodecs {
 
-		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Number>> NUMBER = Context.parameterStreamCodec("number", Number.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<CachedBlock>> BLOCK = Context.parameterStreamCodec("block", CachedBlock.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<DamageSource>> DAMAGE_SOURCE = Context.parameterStreamCodec("damage source", DamageSource.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Direction>> DIRECTION = Context.parameterStreamCodec("direction", Direction.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Entity>> ENTITY = Context.parameterStreamCodec("entity", Entity.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<ItemStack>> ITEM = Context.parameterStreamCodec("item", ItemStack.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<MobEffectInstance>> EFFECT = Context.parameterStreamCodec("effect", MobEffectInstance.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Number>> NUMBER = Context.parameterStreamCodec("number", Number.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<SlotAccess>> SLOT = Context.parameterStreamCodec("slot", SlotAccess.class);
 
 	}
 

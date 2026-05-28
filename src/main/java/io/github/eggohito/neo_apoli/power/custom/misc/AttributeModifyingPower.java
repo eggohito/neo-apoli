@@ -50,7 +50,7 @@ public abstract class AttributeModifyingPower extends Power {
 			}
 
 			Context sendUpdateContext = context.forChild(".send_update");
-			boolean sendUpdate = power.getSendUpdate().nextBoolean(sendUpdateContext);
+			boolean sendUpdate = power.getSendUpdate().getBoolean(sendUpdateContext);
 
 			if (!sendUpdateContext.hasErrors()) {
 

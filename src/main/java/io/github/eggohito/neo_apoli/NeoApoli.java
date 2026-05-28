@@ -1,12 +1,9 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.action.ActionManager;
+import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
-import io.github.eggohito.neo_apoli.command.ActionCommand;
-import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
-import io.github.eggohito.neo_apoli.command.argument.NeoApoliArguments;
-import io.github.eggohito.neo_apoli.condition.ConditionManager;
+import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
@@ -14,14 +11,13 @@ import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
+import io.github.eggohito.neo_apoli.network.NeoApoliServerboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
+import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
 import io.github.eggohito.neo_apoli.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.*;
-import io.github.eggohito.neo_apoli.registry.action.*;
-import io.github.eggohito.neo_apoli.registry.condition.*;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.*;
@@ -52,12 +48,6 @@ public class NeoApoli implements ModInitializer {
 			var rootNode = dispatcher.getRoot();
 			var baseNode = Commands.literal("neo-apoli").build();
 
-			ActionCommand.register(registryAccess, rootNode);
-			ActionCommand.register(registryAccess, baseNode);
-
-			ConditionCommand.register(registryAccess, rootNode);
-			ConditionCommand.register(registryAccess, baseNode);
-
 			PowerCommand.register(rootNode);
 			PowerCommand.register(baseNode);
 
@@ -65,10 +55,17 @@ public class NeoApoli implements ModInitializer {
 
 		});
 
+		NeoApoliBlockProviderTypes.registerAll();
 		NeoApoliBooleanProviderTypes.registerAll();
 		NeoApoliBoxProviderTypes.registerAll();
+		NeoApoliCommandSourceProviderTypes.registerAll();
+		NeoApoliDirectionProviderTypes.registerAll();
+		NeoApoliEffectProviderTypes.registerAll();
+		NeoApoliEntityProviderTypes.registerAll();
+		NeoApoliItemProviderTypes.registerAll();
 		NeoApoliNbtProviderTypes.registerAll();
 		NeoApoliNumberProviderTypes.registerAll();
+		NeoApoliSlotProviderTypes.registerAll();
 		NeoApoliStringProviderTypes.registerAll();
 		NeoApoliVec3ProviderTypes.registerAll();
 
@@ -88,32 +85,18 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliModifierTypes.registerAll();
 		NeoApoliHudElementTypes.registerAll();
 
+		NeoApoliActionTypes.registerAll();
+		NeoApoliConditionTypes.registerAll();
 		NeoApoliPowerTypes.registerAll();
 
-		NeoApoliConditionKinds.registerAll();
-		NeoApoliConditionTypes.registerAll();
-		NeoApoliBiEntityConditionTypes.registerAll();
-		NeoApoliBlockConditionTypes.registerAll();
-		NeoApoliDamageConditionTypes.registerAll();
-		NeoApoliEffectConditionTypes.registerAll();
-		NeoApoliEntityConditionTypes.registerAll();
-		NeoApoliFluidConditionTypes.registerAll();
-		NeoApoliItemConditionTypes.registerAll();
-		NeoApoliWorldConditionTypes.registerAll();
-
-		NeoApoliActionKinds.registerAll();
-		NeoApoliActionTypes.registerAll();
-		NeoApoliBiEntityActionTypes.registerAll();
-		NeoApoliBlockActionTypes.registerAll();
-		NeoApoliEntityActionTypes.registerAll();
-		NeoApoliItemActionTypes.registerAll();
-
-		PowerManager.init();
+		ServerActionManager.init();
+		ServerConditionManager.init();
+		ServerPowerManager.init();
 		GlobalPowerSetManager.init();
-		ConditionManager.init();
-		ActionManager.init();
 
+		NeoApoliServerboundPacketListener.init();
 		NeoApoliPackets.registerAll();
+
 		PowerIntegrations.registerAll();
 
 		getConfig().loadFromFile();

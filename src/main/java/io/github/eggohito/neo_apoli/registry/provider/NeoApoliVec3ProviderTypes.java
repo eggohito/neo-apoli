@@ -11,12 +11,15 @@ import net.minecraft.resources.ResourceLocation;
 
 public class NeoApoliVec3ProviderTypes {
 
-	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("position/block", BlockPositionVec3Provider.MAP_CODEC, BlockPositionVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.MAP_CODEC, ConstantVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.MAP_CODEC, DynamicVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<EntityPositionVec3Provider> ENTITY_POSITION = registerInternal("position/entity", EntityPositionVec3Provider.MAP_CODEC, EntityPositionVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.MAP_CODEC, OffsetVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<VelocityVec3Provider> VELOCITY = registerInternal("entity/velocity", VelocityVec3Provider.MAP_CODEC, VelocityVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<ConditionalVec3Provider> CONDITIONAL = registerInternal("conditional", ConditionalVec3Provider.CODEC, ConditionalVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.CODEC, DynamicVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<EntityPositionVec3Provider> ENTITY_POSITION = registerInternal("entity/position", EntityPositionVec3Provider.CODEC, EntityPositionVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<EntityVelocityVec3Provider> ENTITY_VELOCITY = registerInternal("entity/velocity", EntityVelocityVec3Provider.CODEC, EntityVelocityVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<EntityViewVec3Provider> ENTITY_VIEW = registerInternal("entity/view", EntityViewVec3Provider.CODEC, EntityViewVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<SwitchVec3Provider> SWITCH = registerInternal("switch", SwitchVec3Provider.CODEC, SwitchVec3Provider.STREAM_CODEC);
 
 	public static void registerAll() {
 

@@ -22,7 +22,7 @@ import java.util.List;
 @Getter
 public class HudRenderPower extends Power {
 
-	public static final MapCodec<HudRenderPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::getHudElements))
 		.apply(instance, HudRenderPower::new));
 

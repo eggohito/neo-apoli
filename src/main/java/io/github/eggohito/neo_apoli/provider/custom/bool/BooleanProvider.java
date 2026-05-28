@@ -23,7 +23,7 @@ public interface BooleanProvider extends ValueProvider {
 	@NotNull
 	BooleanProvider.Type<?> getType();
 
-	boolean nextBoolean(Context context);
+	boolean getBoolean(Context context);
 
 	record Type<P extends BooleanProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

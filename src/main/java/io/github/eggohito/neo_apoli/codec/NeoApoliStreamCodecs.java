@@ -3,17 +3,17 @@ package io.github.eggohito.neo_apoli.codec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
-import io.github.eggohito.neo_apoli.util.AttributedModifier;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.RecipeUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.util.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.commands.arguments.blocks.BlockInput;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,22 +24,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.SlotRange;
+import net.minecraft.world.inventory.SlotRanges;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
 
 import java.math.RoundingMode;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -65,7 +66,7 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Direction.Axis> AXIS = StreamCodecUtil.enumType(Direction.Axis.class);
 
-	public static final StreamCodec<ByteBuf, Explosion.BlockInteraction> DESTRUCTION_TYPE = StreamCodecUtil.enumType(Explosion.BlockInteraction.class);
+	public static final StreamCodec<ByteBuf, Explosion.BlockInteraction> BLOCK_INTERACTION = StreamCodecUtil.enumType(Explosion.BlockInteraction.class);
 
 	public static final StreamCodec<FriendlyByteBuf, InteractionResult> INTERACTION_RESULT = StreamCodecUtil.mapped(MiscUtil.INTERACTION_RESULTS);
 
@@ -119,5 +120,13 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<ByteBuf, Pattern> PATTERN = ByteBufCodecs.STRING_UTF8.map(Pattern::compile, Pattern::pattern);
 
 	public static final StreamCodec<ByteBuf, Map<Pattern, String>> REPLACEMENT_MAP = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, PATTERN, ByteBufCodecs.STRING_UTF8);
+
+	public static final StreamCodec<ByteBuf, ParsedArgument<EntitySelector>> ENTITY_SELECTOR = ParsedArgument.streamCodec(EntityArgument.entity());
+
+	public static final StreamCodec<ByteBuf, Biome.Precipitation> PRECIPITATION = StreamCodecUtil.enumType(Biome.Precipitation.class);
+
+	public static final StreamCodec<ByteBuf, SlotRange> SLOT_RANGE = ByteBufCodecs.STRING_UTF8.map(name -> Objects.requireNonNull(SlotRanges.nameToIds(name), "Unknown slot range: \"" + name + "\""), StringRepresentable::getSerializedName);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.streamCodecWithSimpleContext(ItemPredicateArgument::itemPredicate);
 
 }

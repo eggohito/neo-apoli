@@ -34,14 +34,14 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 	public boolean compare(Context context) {
 
 		Context firstContext = context.forChild(".first");
-		double firstValue = first().nextDouble(firstContext);
+		double firstValue = first().getDouble(firstContext);
 
 		if (firstContext.hasErrors()) {
 			return false;
 		}
 
 		Context secondContext = context.forChild(".second");
-		double secondValue = second().nextDouble(secondContext);
+		double secondValue = second().getDouble(secondContext);
 
 		if (secondContext.hasErrors()) {
 			return false;

@@ -60,6 +60,10 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 
 	}
 
+	public boolean canBePartiallyParsed() {
+		return value().canBePartiallyParsed();
+	}
+
 	public boolean isSubPower() {
 		return id().isSubPower();
 	}

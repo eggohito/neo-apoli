@@ -32,7 +32,7 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	}
 
 	@Override
-	public @NotNull String nextString(Context context) {
+	public @NotNull String getString(Context context) {
 		return value();
 	}
 

@@ -24,7 +24,7 @@ public interface StringProvider extends ValueProvider {
 	StringProvider.Type<?> getType();
 
 	@NotNull
-	String nextString(Context context);
+	String getString(Context context);
 
 	record Type<P extends StringProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

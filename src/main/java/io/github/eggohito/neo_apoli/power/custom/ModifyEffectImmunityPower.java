@@ -24,7 +24,7 @@ import java.util.Optional;
 @Getter
 public class ModifyEffectImmunityPower extends Power {
 
-	public static final MapCodec<ModifyEffectImmunityPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyEffectImmunityPower::new));
+	public static final MapCodec<ModifyEffectImmunityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyEffectImmunityPower::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectImmunityPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, ModifyEffectImmunityPower::new);
 
 	public ModifyEffectImmunityPower(Optional<Condition> activeCondition) {
@@ -51,7 +51,7 @@ public class ModifyEffectImmunityPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.withRequired(NeoApoliContextParams.EFFECT_INSTANCE, effectInstance)
+				.withRequired(NeoApoliContextParams.EFFECT, effectInstance)
 				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.keySet());
 		}
 

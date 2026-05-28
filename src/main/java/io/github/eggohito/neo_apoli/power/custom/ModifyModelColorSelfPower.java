@@ -25,7 +25,7 @@ import java.util.Optional;
 @Getter
 public class ModifyModelColorSelfPower extends Power {
 
-	public static final MapCodec<ModifyModelColorSelfPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::getColor))
 		.apply(instance, ModifyModelColorSelfPower::new));
 

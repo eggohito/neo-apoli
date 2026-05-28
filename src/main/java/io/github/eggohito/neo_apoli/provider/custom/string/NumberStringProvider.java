@@ -5,21 +5,21 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
-import io.github.eggohito.neo_apoli.util.PrimitiveNumberType;
+import io.github.eggohito.neo_apoli.util.NumberType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record NumberStringProvider(NumberProvider number, PrimitiveNumberType as) implements StringProvider {
+public record NumberStringProvider(NumberProvider number, NumberType as) implements StringProvider {
 
 	public static final MapCodec<NumberStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(NumberStringProvider::number),
-		PrimitiveNumberType.CODEC.fieldOf("as").forGetter(NumberStringProvider::as)
+		NumberType.CODEC.fieldOf("as").forGetter(NumberStringProvider::as)
 	).apply(instance, NumberStringProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, NumberStringProvider> STREAM_CODEC = StreamCodec.composite(
 		NumberProvider.STREAM_CODEC, NumberStringProvider::number,
-		PrimitiveNumberType.STREAM_CODEC, NumberStringProvider::as,
+		NumberType.STREAM_CODEC, NumberStringProvider::as,
 		NumberStringProvider::new
 	);
 
@@ -29,7 +29,7 @@ public record NumberStringProvider(NumberProvider number, PrimitiveNumberType as
 	}
 
 	@Override
-	public @NotNull String nextString(Context context) {
+	public @NotNull String getString(Context context) {
 		return number().next(as(), context.forChild(".number")).toString();
 	}
 

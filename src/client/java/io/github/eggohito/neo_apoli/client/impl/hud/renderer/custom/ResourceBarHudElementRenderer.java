@@ -59,8 +59,8 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 		ResourceBarHudElement.Properties properties = resourceBar.properties();
 		ResourceBarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
 
-		int x = ANCHOR.getX() + resourceBar.x().nextInt(context.forChild(".x"));
-		int y = ANCHOR.getY() + resourceBar.y().nextInt(context.forChild(".y"));
+		int x = ANCHOR.getX() + resourceBar.x().getInt(context.forChild(".x"));
+		int y = ANCHOR.getY() + resourceBar.y().getInt(context.forChild(".y"));
 
 		//	Draw the background texture of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);

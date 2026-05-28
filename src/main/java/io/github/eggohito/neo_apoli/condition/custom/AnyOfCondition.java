@@ -2,24 +2,57 @@ package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.meta.AnyOfMetaCondition;
-import io.github.eggohito.neo_apoli.registry.condition.NeoApoliConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
+import java.util.ListIterator;
 
-public record AnyOfCondition(List<Condition> conditions) implements AnyOfMetaCondition<Condition> {
+public record AnyOfCondition(List<Condition> conditions) implements Condition {
 
-	public static final MapCodec<AnyOfCondition> MAP_CODEC = MapCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.mapCodec(Condition.CODEC, AnyOfCondition::new));
+	public static final MapCodec<AnyOfCondition> CODEC = Condition.CODEC.listOf().fieldOf("conditions").xmap(
+		AnyOfCondition::new,
+		AnyOfCondition::conditions
+	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfCondition> STREAM_CODEC = StreamCodecUtil.lazy(AnyOfCondition.class.getSimpleName(), () -> AnyOfMetaCondition.streamCodec(Condition.STREAM_CODEC, AnyOfCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfCondition> STREAM_CODEC = Condition.STREAM_CODEC.apply(ByteBufCodecs.list()).map(
+		AnyOfCondition::new,
+		AnyOfCondition::conditions
+	);
 
 	@Override
 	public Type<?> getType() {
 		return NeoApoliConditionTypes.ANY_OF;
+	}
+
+	@Override
+	public boolean test(Context context) {
+
+		ListIterator<Condition> listIterator = conditions().listIterator();
+
+		while (listIterator.hasNext()) {
+
+			Context conditionContext = context.forChild(".conditions[" + listIterator.nextIndex() + "]");
+			Condition condition = listIterator.next();
+
+			if (condition.test(conditionContext)) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		Condition.super.validate(validator);
+		ContextHelper.validateAll(conditions(), validator, index -> ".conditions[" + index + "]");
 	}
 
 }

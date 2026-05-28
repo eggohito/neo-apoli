@@ -33,7 +33,7 @@ public class ModifyFallingPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyFallingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyFallingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyFallingPower::getModifiers))
 		.and(BooleanProvider.CODEC.optionalFieldOf("take_fall_damage", new ConstantBooleanProvider(true)).forGetter(ModifyFallingPower::getTakeFallDamage))
 		.apply(instance, ModifyFallingPower::new));
@@ -86,7 +86,7 @@ public class ModifyFallingPower extends Power {
 
 		public boolean shouldNegateFallDamage(Context context) {
 			return this.isActive(context)
-				&& power.getTakeFallDamage().nextBoolean(context.forChild(".take_fall_damage"));
+				&& !power.getTakeFallDamage().getBoolean(context.forChild(".take_fall_damage"));
 		}
 
 	}

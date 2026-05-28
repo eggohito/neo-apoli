@@ -5,8 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
-import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.IsEntitySneakingCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -37,8 +36,8 @@ public class PhasingPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<PhasingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new TestEntityCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
+	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
 		.and(RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::getRenderEffect))
 		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
 		.apply(instance, PhasingPower::new));
@@ -87,10 +86,8 @@ public class PhasingPower extends Power {
 
 		public Context createContext(Entity holder, CachedBlock cachedBlock) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, cachedBlock.pos())
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, cachedBlock.state())
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, cachedBlock.entity())
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.PHASING.keySet());
+				.withRequired(NeoApoliContextParams.BLOCK, cachedBlock)
+				.build(holder.level());
 		}
 
 		public RenderEffect getRenderEffect() {

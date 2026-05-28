@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BrightnessNumberProvider(Vec3Provider position) implements NumberProvider {
 
-	public static final MapCodec<BrightnessNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<BrightnessNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(Vec3Provider.CODEC.fieldOf("position").forGetter(BrightnessNumberProvider::position))
 		.apply(instance, BrightnessNumberProvider::new));
 
@@ -28,10 +28,10 @@ public record BrightnessNumberProvider(Vec3Provider position) implements NumberP
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context positionContext = context.forChild(".position");
-		Vec3 position = position().nextVec3(positionContext);
+		Vec3 position = position().getVec3(positionContext);
 
 		if (positionContext.hasErrors()) {
 			return 0.0D;

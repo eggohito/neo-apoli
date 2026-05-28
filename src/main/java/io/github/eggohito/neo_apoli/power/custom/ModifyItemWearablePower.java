@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.Case;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -30,28 +31,25 @@ import java.util.function.Function;
 @Getter
 public class ModifyItemWearablePower extends Power {
 
-	private static final Codec<EnumMap<EquipmentSlot, Condition>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, Condition.CODEC)).xmap(EnumMap::new, Function.identity());
-	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Condition>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Condition.STREAM_CODEC);
+	private static final Codec<EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, Case.codec(Condition.CODEC.fieldOf("condition"), BooleanProvider.CODEC.fieldOf("allow")))).xmap(EnumMap::new, Function.identity());
+	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Case.streamCodec(Condition.STREAM_CODEC, BooleanProvider.STREAM_CODEC));
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyItemWearablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::getSlots),
-		BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyItemWearablePower::getAllow)
-	).apply(instance, ModifyItemWearablePower::new));
+	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::getSlots))
+		.apply(instance, ModifyItemWearablePower::new)
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemWearablePower> STREAM_CODEC = StreamCodec.composite(
 		SLOTS_STREAM_CODEC, ModifyItemWearablePower::getSlots,
-		BooleanProvider.STREAM_CODEC, ModifyItemWearablePower::getAllow,
 		ModifyItemWearablePower::new
 	);
 
-	private final EnumMap<EquipmentSlot, Condition> slots;
-	private final BooleanProvider allow;
+	private final EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots;
 
-	public ModifyItemWearablePower(EnumMap<EquipmentSlot, Condition> slots, BooleanProvider allow) {
+	public ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots) {
 		this.slots = slots;
-		this.allow = allow;
 	}
 
 	@Override
@@ -68,10 +66,16 @@ public class ModifyItemWearablePower extends Power {
 	public void validate(Context.Validator validator) {
 
 		super.validate(validator);
-
 		Context.Validator slotsValidator = validator.forChild(".slots");
+
 		for (var entry : this.getSlots().entrySet()) {
-			entry.getValue().validate(slotsValidator.forChild("." + entry.getKey().getSerializedName()));
+
+			Context.Validator caseValidator = slotsValidator.forChild("." + entry.getKey().getSerializedName());
+			Case<Condition, BooleanProvider> aCase = entry.getValue();
+
+			aCase.condition().validate(caseValidator.forChild(".condition"));
+			aCase.value().validate(caseValidator.forChild(".allow"));
+
 		}
 
 	}
@@ -85,16 +89,12 @@ public class ModifyItemWearablePower extends Power {
 
 		public Context createContext(Entity holder, ItemStack stack) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.ITEM_STACK, stack)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_WEARABLE.keySet());
+				.withRequired(NeoApoliContextParams.ITEM, stack)
+				.build(holder.level());
 		}
 
-		public EnumMap<EquipmentSlot, Condition> getSlots() {
+		public EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> getSlots() {
 			return power.getSlots();
-		}
-
-		public boolean isAllowed(Context context) {
-			return power.getAllow().nextBoolean(context.forChild(".allow"));
 		}
 
 	}
@@ -115,17 +115,17 @@ public class ModifyItemWearablePower extends Power {
 				for (var entry : instance.getSlots().entrySet()) {
 
 					EquipmentSlot slot = entry.getKey();
-					Condition condition = entry.getValue();
+					Case<Condition, BooleanProvider> aCase = entry.getValue();
 
 					if (slot != targetSlot) {
 						continue;
 					}
 
-					Context slotsContext = instanceContext.forChild(".slots");
+					Context caseContext = instanceContext.forChild(".slots").forChild("." + slot.getSerializedName());
 
-					if (condition.test(slotsContext.forChild("." + slot.getSerializedName()))) {
+					if (aCase.condition().test(caseContext.forChild(".condition"))) {
 
-						if (instance.isAllowed(instanceContext)) {
+						if (aCase.value().getBoolean(caseContext.forChild(".allow"))) {
 							allowed = true;
 						}
 

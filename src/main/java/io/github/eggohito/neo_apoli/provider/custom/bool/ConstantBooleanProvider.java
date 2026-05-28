@@ -32,7 +32,7 @@ public record ConstantBooleanProvider(boolean value) implements BooleanProvider 
 	}
 
 	@Override
-	public boolean nextBoolean(Context context) {
+	public boolean getBoolean(Context context) {
 		return value();
 	}
 

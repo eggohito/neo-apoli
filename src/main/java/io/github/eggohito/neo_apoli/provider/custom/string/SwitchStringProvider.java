@@ -25,8 +25,8 @@ public record SwitchStringProvider(List<Case<Condition, StringProvider>> cases, 
 	}
 
 	@Override
-	public @NotNull String nextString(Context context) {
-		return nextOrDefault(context, StringProvider::nextString);
+	public @NotNull String getString(Context context) {
+		return nextOrDefault(context, StringProvider::getString);
 	}
 
 }

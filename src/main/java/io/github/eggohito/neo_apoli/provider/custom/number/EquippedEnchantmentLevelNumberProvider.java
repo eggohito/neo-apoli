@@ -4,19 +4,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -26,22 +21,22 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
-public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, Context.Parameter<Entity> entity) implements NumberProvider {
+public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, EntityProvider entity) implements NumberProvider {
 
-	public static final MapCodec<EquippedEnchantmentLevelNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<EquippedEnchantmentLevelNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Enchantment.CODEC.fieldOf("enchantment").forGetter(EquippedEnchantmentLevelNumberProvider::enchantment),
 		EquipmentSlotGroup.CODEC.optionalFieldOf("slot_group", EquipmentSlotGroup.ANY).forGetter(EquippedEnchantmentLevelNumberProvider::slotGroup),
 		Calculation.CODEC.optionalFieldOf("calculation", Calculation.MAX).forGetter(EquippedEnchantmentLevelNumberProvider::calculation),
-		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
+		EntityProvider.CODEC.fieldOf("entity").forGetter(EquippedEnchantmentLevelNumberProvider::entity)
 	).apply(instance, EquippedEnchantmentLevelNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EquippedEnchantmentLevelNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		Enchantment.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::enchantment,
 		EquipmentSlotGroup.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::slotGroup,
 		Calculation.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::calculation,
-		NeoApoliContextParams.StreamCodecs.ENTITY, EquippedEnchantmentLevelNumberProvider::entity,
+		EntityProvider.STREAM_CODEC, EquippedEnchantmentLevelNumberProvider::entity,
 		EquippedEnchantmentLevelNumberProvider::new
 	);
 
@@ -51,28 +46,25 @@ public record EquippedEnchantmentLevelNumberProvider(Holder<Enchantment> enchant
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
-		Registry<Enchantment> enchantmentRegistry = context.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-		ResourceLocation enchantmentId = enchantment().unwrap().map(ResourceKey::location, enchantmentRegistry::getKey);
+		Context entityContext = context.forChild(".entity");
+		Optional<Entity> entity = entity().getEntity(entityContext);
 
-		switch (context.getNullable(entity())) {
-			case LivingEntity livingEntity -> {
-				return calculation().getValue(livingEntity, enchantment(), slotGroup());
-			}
-			case null ->
-				context.reportProblem("Couldn't get enchantment levels of enchantment \"" + enchantmentId + "\" from entity from parameter \"" + entity().name() + "\", which didn't exist!");
-			default ->
-				context.reportProblem("Couldn't get enchantment levels of enchantment \"" + enchantmentId + "\" from entity from parameter \"" + entity().name() + "\", which cannot equip items!");
+		if (entity.isPresent() && entity.get() instanceof LivingEntity livingEntity) {
+			return calculation().getValue(livingEntity, enchantment(), slotGroup());
 		}
 
-		return 0;
+		else {
+			return 0;
+		}
 
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity());
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		entity().validate(validator.forChild(".entity"));
 	}
 
 	public enum Calculation {

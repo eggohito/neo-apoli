@@ -5,11 +5,10 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class CooldownPower extends Power {
 
-	public static final MapCodec<CooldownPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<CooldownPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		HudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::getHudElement),
 		NumberProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::getCooldown)
 	).apply(instance, CooldownPower::new));
@@ -89,17 +88,17 @@ public class CooldownPower extends Power {
 			Context holderContext = this.createHolderContext(holder);
 
 			return new Context.Builder(holderContext)
-				.withRequired(NeoApoliContextParams.CURRENT_VALUE, (double) this.getRemainingTicks(holderContext))
-				.withRequired(NeoApoliContextParams.MIN_VALUE, 0.0D)
-				.withRequired(NeoApoliContextParams.MAX_VALUE, power.getCooldown().nextDouble(holderContext))
+				.withRequired(NumberBoundHudElement.CURRENT_VALUE, (double) this.getRemainingTicks(holderContext))
+				.withRequired(NumberBoundHudElement.MIN_VALUE, 0.0D)
+				.withRequired(NumberBoundHudElement.MAX_VALUE, power.getCooldown().getDouble(holderContext))
 				.build(holderContext.level());
 
 		}
 
-		public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+		public boolean shouldRender(Context context, HudElement.RenderPhase renderPhase) {
 
 			long timePassed = context.level().getGameTime() - lastUseTime;
-			int cooldown = power.getCooldown().nextInt(context.forChild(".cooldown"));
+			int cooldown = power.getCooldown().getInt(context.forChild(".cooldown"));
 
 			return timePassed <= cooldown
 				&& getHudElement().shouldRender(context, renderPhase);
@@ -109,7 +108,7 @@ public class CooldownPower extends Power {
 		public double getProgress(Context context) {
 
 			double diff = context.level().getGameTime() - lastUseTime;
-			double progress = diff / getCooldown().nextDouble(context.forChild(".cooldown"));
+			double progress = diff / getCooldown().getDouble(context.forChild(".cooldown"));
 
 			return Mth.clamp(progress, 0D, 1D);
 
@@ -118,7 +117,7 @@ public class CooldownPower extends Power {
 		public int getRemainingTicks(Context context) {
 
 			long diff = context.level().getGameTime() - lastUseTime;
-			long remainingTicks = getCooldown().nextLong(context.forChild(".cooldown")) - diff;
+			long remainingTicks = getCooldown().getLong(context.forChild(".cooldown")) - diff;
 
 			return (int) Math.max(0, remainingTicks);
 

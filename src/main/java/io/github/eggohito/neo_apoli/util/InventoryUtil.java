@@ -7,6 +7,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public final class InventoryUtil {
 
@@ -16,7 +17,7 @@ public final class InventoryUtil {
 			ItemStack cachedStack = stack.copy();
 
 			@Override
-			public ItemStack get() {
+			public @NotNull ItemStack get() {
 				return cachedStack;
 			}
 

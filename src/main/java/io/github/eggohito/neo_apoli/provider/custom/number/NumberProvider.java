@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.PrimitiveNumberType;
+import io.github.eggohito.neo_apoli.util.NumberType;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -19,45 +19,45 @@ import java.util.function.Function;
 
 public interface NumberProvider extends ValueProvider {
 
-	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NumberProvider::getType, Type::mapCodec), ConstantNumberProvider.INLINE_CODEC));
+	Codec<NumberProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NumberProvider::getType, Type::mapCodec), ContextNumberProvider.INLINE_CODEC, ConstantNumberProvider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, NumberProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(NumberProvider::getType, Type::streamCodec);
 
 	@NotNull
 	NumberProvider.Type<?> getType();
 
-	double nextDouble(Context context);
+	double getDouble(Context context);
 
-	default float nextFloat(Context context) {
-		return (float) this.nextDouble(context);
+	default float getFloat(Context context) {
+		return (float) this.getDouble(context);
 	}
 
-	default long nextLong(Context context) {
-		return Math.round(this.nextDouble(context));
+	default long getLong(Context context) {
+		return Math.round(this.getDouble(context));
 	}
 
-	default int nextInt(Context context) {
-		return (int) this.nextLong(context);
+	default int getInt(Context context) {
+		return (int) this.getLong(context);
 	}
 
 	default short nextShort(Context context) {
-		return (short) this.nextInt(context);
+		return (short) this.getInt(context);
 	}
 
 	default byte nextByte(Context context) {
-		return (byte) this.nextInt(context);
+		return (byte) this.getInt(context);
 	}
 
-	default Number next(PrimitiveNumberType type, Context context) {
+	default Number next(NumberType type, Context context) {
 		return switch (type) {
 			case DOUBLE ->
-				this.nextDouble(context);
+				this.getDouble(context);
 			case FLOAT ->
-				this.nextFloat(context);
+				this.getFloat(context);
 			case LONG ->
-				this.nextLong(context);
+				this.getLong(context);
 			case INT ->
-				this.nextInt(context);
+				this.getInt(context);
 			case SHORT ->
 				this.nextShort(context);
 			case BYTE ->

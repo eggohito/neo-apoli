@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public record TimeNumberProvider(Optional<NumberProvider> period) implements NumberProvider {
 
-	public static final MapCodec<TimeNumberProvider> MAP_CODEC = MapCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<TimeNumberProvider> CODEC = MapCodecUtil.lazy(TimeNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("period").forGetter(TimeNumberProvider::period)
 	).apply(instance, TimeNumberProvider::new)));
 
@@ -31,7 +31,7 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Level world = context.level();
 		long time = world.getGameTime();
@@ -39,7 +39,7 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 		if (period().isPresent()) {
 
 			Context periodContext = context.forChild(".period");
-			long period = period().get().nextLong(periodContext);
+			long period = period().get().getLong(periodContext);
 
 			if (!periodContext.hasErrors()) {
 				time %= period;

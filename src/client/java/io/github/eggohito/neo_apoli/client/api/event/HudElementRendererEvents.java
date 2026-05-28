@@ -4,7 +4,6 @@ import io.github.eggohito.neo_apoli.client.api.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.DeltaTracker;
@@ -52,7 +51,7 @@ public class HudElementRendererEvents {
 	);
 
 	public interface Prepare {
-		void prepare(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
+		void prepare(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder);
 	}
 
 }

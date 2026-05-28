@@ -32,8 +32,8 @@ public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements 
 	@Override
 	public @NotNull AABB nextBox(Context context) {
 
-		Vec3 min = min().nextVec3(context.forChild(".min"));
-		Vec3 max = max().nextVec3(context.forChild(".max"));
+		Vec3 min = min().getVec3(context.forChild(".min"));
+		Vec3 max = max().getVec3(context.forChild(".max"));
 
 		return new AABB(min, max);
 

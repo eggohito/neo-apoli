@@ -41,11 +41,11 @@ public record KeyReference(StringProvider id, BooleanProvider continuous) implem
 	}
 
 	public String id(Context context) {
-		return id().nextString(context.forChild(".id"));
+		return id().getString(context.forChild(".id"));
 	}
 
 	public boolean continuous(Context context) {
-		return continuous().nextBoolean(context.forChild(".continuous"));
+		return continuous().getBoolean(context.forChild(".continuous"));
 	}
 
 }

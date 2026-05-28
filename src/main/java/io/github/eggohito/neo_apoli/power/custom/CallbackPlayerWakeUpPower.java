@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,7 @@ import java.util.Optional;
 @Getter
 public class CallbackPlayerWakeUpPower extends CallbackPower {
 
-	public static final MapCodec<CallbackPlayerWakeUpPower> MAP_CODEC = CallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
+	public static final MapCodec<CallbackPlayerWakeUpPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackPlayerWakeUpPower::new);
 
 	public CallbackPlayerWakeUpPower(Optional<Condition> activeCondition, Action action) {
@@ -49,12 +50,14 @@ public class CallbackPlayerWakeUpPower extends CallbackPower {
 		}
 
 		public Context createContext(Entity holder, BlockPos sleepingPos) {
+
 			Level level = holder.level();
+			CachedBlock sleptOnBlock = CachedBlock.fromLoadedPos(level, sleepingPos);
+
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, sleepingPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(sleepingPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(sleepingPos))
-				.buildWithRequirements(level, NeoApoliPowerTypes.CALLBACK_PLAYER_WAKE_UP.keySet());
+				.withRequired(NeoApoliContextParams.BLOCK, sleptOnBlock)
+				.build(level);
+
 		}
 
 		public void execute(Context context) {

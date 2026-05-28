@@ -8,17 +8,17 @@ import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
-import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
-import io.github.eggohito.neo_apoli.util.AttributedModifier;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import io.github.eggohito.neo_apoli.util.*;
 import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -36,10 +36,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.Vec3;
 
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -60,9 +64,11 @@ public class NeoApoliCodecs {
 
 	public static final Codec<LightLayer> LIGHT_TYPE = CodecUtil.enumType(LightLayer.class);
 
-	public static final Codec<Explosion.BlockInteraction> DESTRUCTION_TYPE = CodecUtil.enumType(Explosion.BlockInteraction.class);
+	public static final Codec<Explosion.BlockInteraction> BLOCK_INTERACTION = CodecUtil.enumType(Explosion.BlockInteraction.class);
 
-	public static final Codec<List<Direction>> DIRECTIONS = Direction.CODEC.listOf();
+	public static final Codec<Direction> DIRECTION = CodecUtil.enumType(Direction.class);
+
+	public static final Codec<List<Direction>> DIRECTIONS = DIRECTION.listOf();
 
 	public static final Codec<EnumSet<Direction>> DIRECTION_SET = DIRECTIONS.xmap(EnumSet::copyOf, ObjectArrayList::new);
 
@@ -130,12 +136,14 @@ public class NeoApoliCodecs {
 		},
 		blockInput -> {
 
-			String blockStateString = BlockStateParser.serialize(blockInput.getState());
-			String tagString = Optional.ofNullable(((BlockInputAccessor) blockInput).getTag())
-				.map(CompoundTag::toString)
-				.orElse("");
+			StringBuilder result = new StringBuilder(BlockStateParser.serialize(blockInput.getState()));
+			CompoundTag tag = ((BlockInputAccessor) blockInput).getTag();
 
-			return blockStateString + tagString;
+			if (tag != null) {
+				result.append(tag);
+			}
+
+			return result.toString();
 
 		}
 	);
@@ -170,5 +178,17 @@ public class NeoApoliCodecs {
 	public static final Codec<RoundingMode> ROUNDING_MODE = CodecUtil.enumType(RoundingMode.class);
 
 	public static final Codec<Map<Pattern, String>> REPLACEMENT_MAP = ExtraCodecs.strictUnboundedMap(ExtraCodecs.PATTERN, Codec.STRING);
+
+	public static final Codec<ParsedArgument<EntitySelector>> ENTITY_SELECTOR = ParsedArgument.codec(EntityArgument.entity());
+
+	private static final Codec<Biome.Precipitation> UNVALIDATED_PRECIPITATION = CodecUtil.enumType(Biome.Precipitation.class);
+
+	public static final Codec<Biome.Precipitation> PRECIPITATION = UNVALIDATED_PRECIPITATION.validate(
+		precipitation -> precipitation == Biome.Precipitation.NONE
+			? DataResult.error(() -> "Precipitation \"" + precipitation.getSerializedName() + "\" is not allowed!")
+			: DataResult.success(precipitation)
+	);
+
+	public static final Codec<ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.codecWithSimpleContext(ItemPredicateArgument::itemPredicate);
 
 }

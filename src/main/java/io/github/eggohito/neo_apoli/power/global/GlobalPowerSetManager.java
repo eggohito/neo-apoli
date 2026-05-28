@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power.global;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
@@ -9,7 +10,7 @@ import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
-import io.github.eggohito.neo_apoli.power.PowerManager;
+import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
@@ -55,8 +56,7 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
-	private static final Object2ObjectOpenHashMap<ResourceLocation, GlobalPowerSet> BY_ID = new Object2ObjectOpenHashMap<>();
-
+	private static volatile ImmutableMap<ResourceLocation, GlobalPowerSet> sets = ImmutableMap.of();
 	private final RegistryOps<JsonElement> ops;
 
 	public GlobalPowerSetManager(HolderLookup.Provider lookupProvider) {
@@ -72,7 +72,7 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 	protected void apply(Map<ResourceLocation, List<JsonWithSource>> prepared, ResourceManager manager, ProfilerFiller profiler) {
 
 		LOGGER.info("Parsing global power sets from data packs...");
-		BY_ID.clear();
+		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
 
 		Map<ResourceLocation, List<GlobalPowerSet.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
 		prepared.forEach((id, elementWithSources) -> {
@@ -88,14 +88,15 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 
 		});
 
-		LOGGER.info("Finished parsing global power sets. Merging similar global power sets...");
+		LOGGER.info("Finished parsing global power sets. Merging {} similar global power sets...", parsed.values().stream().mapToInt(Collection::size).sum());
 
 		parsed.forEach((id, setWithSources) -> setWithSources
 			.stream()
 			.reduce((first, second) -> merge(id, first, second))
-			.ifPresent(withSource -> BY_ID.put(id, withSource.set())));
+			.ifPresent(withSource -> builder.put(id, withSource.set())));
 
-		LOGGER.info("Finished merging global power sets. Merged {} global power set(s)", parsed.values().stream().mapToInt(Collection::size).sum());
+		sets = builder.build();
+		LOGGER.info("Finished merging global power sets");
 
 	}
 
@@ -151,13 +152,14 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 
 	private static void validate(ReloadableServerResources resources) {
 
-		if (BY_ID.isEmpty()) {
+		if (sets.isEmpty()) {
 			return;
 		}
 
-		var iterator = BY_ID.object2ObjectEntrySet().fastIterator();
-		int size = BY_ID.size();
+		var iterator = sets.entrySet().stream().iterator();
+		int size = sets.size();
 
+		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
 		LOGGER.info("Validating {} global power set(s)...", size);
 
 		while (iterator.hasNext()) {
@@ -171,25 +173,24 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.any(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
 
 			set.validate(validator);
-
-			reporter.getErrorsFlattened().ifPresent(error -> {
-				LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error);
-				iterator.remove();
-			});
+			reporter.getErrorsFlattened().ifPresentOrElse(
+				error -> LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error),
+				() -> builder.put(id, set)
+			);
 
 		}
 
-		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, BY_ID.size());
-		BY_ID.trim();
+		sets = builder.build();
+		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, sets.size());
 
 	}
 
 	public static Set<ResourceLocation> ids() {
-		return new ObjectOpenHashSet<>(BY_ID.keySet());
+		return new ObjectOpenHashSet<>(sets.keySet());
 	}
 
 	public static List<GlobalPowerSet> sets() {
-		return new ObjectArrayList<>(BY_ID.values());
+		return new ObjectArrayList<>(sets.values());
 	}
 
 	public static List<GlobalPowerSet> getApplicableSets(Entity entity) {

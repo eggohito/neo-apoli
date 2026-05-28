@@ -27,8 +27,7 @@ public abstract class LivingEntityRendererMixin<S extends LivingEntityRenderStat
 	@WrapOperation(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
 	void modifyModelColor(EntityModel<S> model, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, int color, Operation<Void> original, S methodRenderState, PoseStack methodPoseStack, MultiBufferSource methodBufferSource, int methodLight) {
 
-		modifyColor:
-		{
+		modifyColor: {
 
 			Entity viewer = Minecraft.getInstance().getCameraEntity();
 			Entity rendered = methodRenderState.neo_apoli$getEntity();

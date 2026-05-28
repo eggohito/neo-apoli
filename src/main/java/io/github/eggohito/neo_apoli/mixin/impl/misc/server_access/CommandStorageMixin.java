@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.misc.server_access;
 
 import io.github.eggohito.neo_apoli.impl.misc.ServerAccess;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeCommandStorageS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -40,7 +40,7 @@ public abstract class CommandStorageMixin implements ServerAccess {
 	private void syncNewStorageValue(ResourceLocation id, CompoundTag nbt, CallbackInfo ci) {
 
 		for (ServerPlayer serverPlayer : this.neo_apoli$getServer().getPlayerList().getPlayers()) {
-			ServerPlayNetworking.send(serverPlayer, new SynchronizeCommandStorageS2CPacket(id, nbt));
+			ServerPlayNetworking.send(serverPlayer, new ClientboundCommandStorageUpdatePacket(id, nbt));
 		}
 
 	}

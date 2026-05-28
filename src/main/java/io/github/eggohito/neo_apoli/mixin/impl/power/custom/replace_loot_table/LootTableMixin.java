@@ -75,13 +75,17 @@ public abstract class LootTableMixin implements KeyableLootTable {
 				holder = fishingHook.getOwner();
 			}
 
-		} else if (keySet == LootContextParamSets.ENTITY) {
+		}
+
+		else if (keySet == LootContextParamSets.ENTITY) {
 
 			if (lootContext.hasParameter(LootContextParams.ATTACKING_ENTITY)) {
 				holder = lootContext.getParameter(LootContextParams.ATTACKING_ENTITY);
 			}
 
-		} else if (keySet == LootContextParamSets.PIGLIN_BARTER) {
+		}
+
+		else if (keySet == LootContextParamSets.PIGLIN_BARTER) {
 
 			if (thisEntity instanceof Piglin piglin) {
 				holder = piglin.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER).orElse(null);
@@ -100,9 +104,13 @@ public abstract class LootTableMixin implements KeyableLootTable {
 			Reporter reporter = context.reporter();
 
 			if (instance.isActive(context)) {
+
 				replacementTable = instance.getReplacement(context.forChild(".replacements"), key)
 					.map(this.neo_apoli$holder::getLootTable)
 					.filter(Predicate.not(LootTable.EMPTY::equals));
+
+				replacementTable.ifPresent(ReplaceLootTablePower::push);
+
 			}
 
 			reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.logOnce(Level.WARN, "Found error(s) while trying to replace loot table \"" + key.location() + "\" " + errors));

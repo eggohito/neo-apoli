@@ -14,9 +14,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
-public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type> extends ArgumentType<T> {
+public interface ObjectEntryArgument<T extends ObjectEntryArgument.Result> extends ArgumentType<T> {
 
-	HolderLookup.Provider lookupProvider();
+	HolderLookup.Provider registries();
 
 	boolean allowInlineDefinitions();
 
@@ -25,7 +25,7 @@ public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type> extends
 	@Override
 	default T parse(StringReader reader) throws CommandSyntaxException {
 
-		RegistryOps<Tag> ops = lookupProvider().createSerializationContext(NbtOps.INSTANCE);
+		RegistryOps<Tag> ops = registries().createSerializationContext(NbtOps.INSTANCE);
 		int prevCursor = reader.getCursor();
 
 		if (allowInlineDefinitions()) {
@@ -51,7 +51,7 @@ public interface ObjectEntryArgument<T extends ObjectEntryArgument.Type> extends
 
 	}
 
-	interface Type {
+	interface Result {
 
 	}
 

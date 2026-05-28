@@ -11,10 +11,11 @@ import net.minecraft.resources.ResourceLocation;
 
 public class NeoApoliBooleanProviderTypes {
 
-	public static final BooleanProvider.Type<ConditionResultBooleanProvider> CONDITION_RESULT = registerInternal("condition_result", ConditionResultBooleanProvider.MAP_CODEC, ConditionResultBooleanProvider.STREAM_CODEC);
 	public static final BooleanProvider.Type<ConditionalBooleanProvider> CONDITIONAL = registerInternal("conditional", ConditionalBooleanProvider.MAP_CODEC, ConditionalBooleanProvider.STREAM_CODEC);
 	public static final BooleanProvider.Type<ConstantBooleanProvider> CONSTANT = registerInternal("constant", ConstantBooleanProvider.MAP_CODEC, ConstantBooleanProvider.STREAM_CODEC);
 	public static final BooleanProvider.Type<SwitchBooleanProvider> SWITCH = registerInternal("switch", SwitchBooleanProvider.MAP_CODEC, SwitchBooleanProvider.STREAM_CODEC);
+
+	public static final BooleanProvider.Type<ConditionResultBooleanProvider> CONDITION_RESULT = registerInternal("condition_result", ConditionResultBooleanProvider.MAP_CODEC, ConditionResultBooleanProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

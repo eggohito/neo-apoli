@@ -35,7 +35,7 @@ public class ModifyInvisibilityPower extends Power {
 
 	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = Instance::isActiveAndShouldRenderArmor;
 
-	public static final MapCodec<ModifyInvisibilityPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))
 		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
@@ -98,12 +98,12 @@ public class ModifyInvisibilityPower extends Power {
 
 		public boolean isActiveAndShouldRenderArmor(Context context) {
 			return this.isActive(context)
-				&& power.getRenderArmor().nextBoolean(context.forChild(".render_armor"));
+				&& power.getRenderArmor().getBoolean(context.forChild(".render_armor"));
 		}
 
 		public boolean isActiveAndShouldRenderOutline(Context context) {
 			return this.isActive(context)
-				&& power.getRenderOutline().nextBoolean(context.forChild(".render_outline"));
+				&& power.getRenderOutline().getBoolean(context.forChild(".render_outline"));
 		}
 
 	}

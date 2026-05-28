@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.api.event;
 
 import com.google.gson.JsonElement;
+import com.mojang.serialization.DynamicOps;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 
 public interface PowerPreparation {
@@ -20,6 +20,6 @@ public interface PowerPreparation {
 		}
 	);
 
-	void prepare(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, RegistryOps<JsonElement> ops);
+	void prepare(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, DynamicOps<JsonElement> ops);
 
 }

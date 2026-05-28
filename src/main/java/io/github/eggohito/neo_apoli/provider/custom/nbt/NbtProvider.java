@@ -25,7 +25,7 @@ public interface NbtProvider extends ValueProvider {
 	NbtProvider.Type<?> getType();
 
 	@NotNull
-	Tag nextTag(Context context);
+	Tag getTag(Context context);
 
 	record Type<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

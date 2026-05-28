@@ -22,8 +22,8 @@ public record ConditionalStringProvider(Condition condition, StringProvider ifVa
 	}
 
 	@Override
-	public @NotNull String nextString(Context context) {
-		return nextOrElse(context, StringProvider::nextString, () -> "");
+	public @NotNull String getString(Context context) {
+		return nextOrElse(context, StringProvider::getString, () -> "");
 	}
 
 }

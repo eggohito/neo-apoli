@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.ServerAccess;
 import io.github.eggohito.neo_apoli.mixin.access.CommandStorageAccessor;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeCommandStorageS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -56,7 +56,7 @@ public abstract class MinecraftServerMixin implements CommandStorageHolder {
 				String path = entry.getKey();
 				CompoundTag nbt = entry.getValue();
 
-				ServerPlayNetworking.send(player, new SynchronizeCommandStorageS2CPacket(ResourceLocation.fromNamespaceAndPath(namespace, path), nbt));
+				ServerPlayNetworking.send(player, new ClientboundCommandStorageUpdatePacket(ResourceLocation.fromNamespaceAndPath(namespace, path), nbt));
 
 			}
 

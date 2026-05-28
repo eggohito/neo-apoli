@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
-import io.github.eggohito.neo_apoli.codec.FilteredUnboundedMapCodec;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -23,10 +22,6 @@ import java.util.Set;
 import java.util.function.*;
 
 public class CodecUtil {
-
-	public static <K, V> FilteredUnboundedMapCodec<K, V> filteredUnboundedMap(final Codec<K> keyCodec, final Codec<V> elementCodec, Predicate<K> keyFilter) {
-		return new FilteredUnboundedMapCodec<>(keyCodec, elementCodec, keyFilter);
-	}
 
 	public static <E> Codec<E> mapped(Supplier<BiMap<String, E>> supplier) {
 		return Codec.STRING.flatXmap(

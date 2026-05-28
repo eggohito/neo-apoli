@@ -4,12 +4,12 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.api.power.PowersAttachment;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.*;
@@ -159,13 +159,13 @@ public final class PowersImpl implements Powers {
 	@Override
 	public boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.grantPowerInternal(id, source, invokeCallbacks);
+			&& this.grantInternal(id, source, invokeCallbacks);
 	}
 
 	@Override
 	public boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 		return !holder.level().isClientSide()
-			&& this.revokePowerInternal(id, source, invokeCallbacks);
+			&& this.revokeInternal(id, source, invokeCallbacks);
 	}
 
 	@Override
@@ -197,7 +197,7 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	private boolean grantPowerInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean grantInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 
 		List<Power.Instance<?>> addedPowers = new ObjectArrayList<>();
 		List<Power.Instance<?>> grantedPowers = new ObjectArrayList<>();
@@ -255,7 +255,7 @@ public final class PowersImpl implements Powers {
 
 	}
 
-	private boolean revokePowerInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean revokeInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
 
 		List<PowerIdentifier> revokedPowers = new ObjectArrayList<>();
 		boolean result = this.revokePowerRecursively(id, source, revokedPowers::add, invokeCallbacks);
@@ -384,7 +384,7 @@ public final class PowersImpl implements Powers {
 		powers.update();
 
 		if (!pendingDataSync.isEmpty()) {
-			MiscUtil.sendToTracking(entity, SynchronizePowerDataS2CPacket.bulk(entity.getId(), ops, pendingDataSync));
+			MiscUtil.sendToTracking(entity, ClientboundPowerDataUpdatePacket.bulk(entity.getId(), ops, pendingDataSync));
 		}
 
 	}
@@ -407,14 +407,14 @@ public final class PowersImpl implements Powers {
 		public void handle(Level level) {
 
 			Entity holder = level.getEntity(entityId());
+			PowersImpl powers = (PowersImpl) Powers.getNullable(holder);
 
-			if (holder == null) {
+			if (powers == null) {
 				NeoApoli.LOGGER.warn("Received packet for granting {} power(s) to an unknown entity!", powers().size());
 			}
 
 			else {
-				PowersImpl powers = (PowersImpl) Powers.getOrCreate(holder);
-				powers().forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> powers.grantPowerInternal(reference, source, invokeCallbacks)));
+				powers().forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> powers.grantInternal(reference, source, invokeCallbacks)));
 			}
 
 		}
@@ -438,14 +438,14 @@ public final class PowersImpl implements Powers {
 		public void handle(Level level) {
 
 			Entity holder = level.getEntity(entityId());
+			PowersImpl powers = (PowersImpl) Powers.getNullable(holder);
 
-			if (holder == null) {
-				NeoApoli.LOGGER.warn("Received packet for revoking {} power(s) to an unknown entity!", powers().size());
+			if (powers == null) {
+				NeoApoli.LOGGER.warn("Received packet for revoking {} power(s) from an unknown entity!", powers().size());
 			}
 
 			else {
-				PowersImpl powers = (PowersImpl) Powers.getOrCreate(holder);
-				powers().forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> powers.revokePowerInternal(reference, source, invokeCallbacks)));
+				powers().forEach((source, entries) -> entries.forEach((reference, invokeCallbacks) -> powers.revokeInternal(reference, source, invokeCallbacks)));
 			}
 
 		}

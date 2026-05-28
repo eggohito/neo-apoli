@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record AbsoluteNumberProvider(NumberProvider number) implements NumberProvider {
 
-	public static final MapCodec<AbsoluteNumberProvider> MAP_CODEC = MapCodecUtil.lazy(AbsoluteNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<AbsoluteNumberProvider> CODEC = MapCodecUtil.lazy(AbsoluteNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.fieldOf("number").forGetter(AbsoluteNumberProvider::number)
 	).apply(instance, AbsoluteNumberProvider::new)));
 
@@ -27,13 +27,13 @@ public record AbsoluteNumberProvider(NumberProvider number) implements NumberPro
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return Math.abs(this.number().nextDouble(context.forChild(".number")));
+	public double getDouble(Context context) {
+		return Math.abs(this.number().getDouble(context.forChild(".number")));
 	}
 
 	@Override
-	public long nextLong(Context context) {
-		return Math.abs(this.number().nextLong(context.forChild(".number")));
+	public long getLong(Context context) {
+		return Math.abs(this.number().getLong(context.forChild(".number")));
 	}
 
 	@Override

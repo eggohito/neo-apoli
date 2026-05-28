@@ -19,9 +19,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliHudElementTypes;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -65,9 +63,9 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 	}
 
 	@Override
-	public boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+	public boolean shouldRender(Context context, RenderPhase renderPhase) {
 		return NumberBoundHudElement.super.shouldRender(context, renderPhase)
-			&& shouldRender().nextBoolean(context.forChild(".should_render"));
+			&& shouldRender().getBoolean(context.forChild(".should_render"));
 	}
 
 	@Override
@@ -86,8 +84,8 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 		Context minContext = context.forChild(".min");
 		double min = min()
-			.map(p -> p.nextDouble(minContext))
-			.or(() -> context.getOptional(NeoApoliContextParams.MIN_VALUE))
+			.map(p -> p.getDouble(minContext))
+			.or(() -> context.getOptional(NumberBoundHudElement.MIN_VALUE))
 			.orElse(0.0D);
 
 		if (minContext.hasErrors()) {
@@ -96,8 +94,8 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 		Context maxContext = context.forChild(".max");
 		double max = max()
-			.map(p -> p.nextDouble(maxContext))
-			.or(() -> context.getOptional(NeoApoliContextParams.MAX_VALUE))
+			.map(p -> p.getDouble(maxContext))
+			.or(() -> context.getOptional(NumberBoundHudElement.MAX_VALUE))
 			.orElse(min + 1.0);
 
 		if (maxContext.hasErrors()) {
@@ -106,8 +104,8 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 
 		Context valueContext = context.forChild(".value");
 		double value = value()
-			.map(p -> p.nextDouble(valueContext))
-			.or(() -> context.getOptional(NeoApoliContextParams.CURRENT_VALUE))
+			.map(p -> p.getDouble(valueContext))
+			.or(() -> context.getOptional(NumberBoundHudElement.CURRENT_VALUE))
 			.orElse(min);
 
 		if (valueContext.hasErrors()) {
@@ -115,7 +113,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		}
 
 		Context invertedContext = context.forChild(".inverted");
-		boolean inverted = properties().inverted().nextBoolean(invertedContext);
+		boolean inverted = properties().inverted().getBoolean(invertedContext);
 
 		double fill = Mth.clamp((value - min) / (max - min), 0.0D, 1.0D);
 		return inverted ? 1.0 - fill : fill;

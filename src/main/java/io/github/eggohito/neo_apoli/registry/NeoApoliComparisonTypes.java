@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.registry;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
+import io.github.eggohito.neo_apoli.comparison.custom.EntityComparison;
 import io.github.eggohito.neo_apoli.comparison.custom.NbtComparison;
 import io.github.eggohito.neo_apoli.comparison.custom.NumberComparison;
 import io.github.eggohito.neo_apoli.comparison.custom.StringComparison;
@@ -13,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class NeoApoliComparisonTypes {
 
+	public static final Comparison.Type<EntityComparison> ENTITY = registerInternal("entity", EntityComparison.CODEC, EntityComparison.STREAM_CODEC);
 	public static final Comparison.Type<NbtComparison> NBT = registerInternal("nbt", NbtComparison.CODEC, NbtComparison.STREAM_CODEC);
 	public static final Comparison.Type<NumberComparison> NUMBER = registerInternal("number", NumberComparison.CODEC, NumberComparison.STREAM_CODEC);
 	public static final Comparison.Type<StringComparison> STRING = registerInternal("string", StringComparison.CODEC, StringComparison.STREAM_CODEC);

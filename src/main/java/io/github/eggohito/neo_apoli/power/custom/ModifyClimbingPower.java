@@ -4,8 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.TestEntityCondition;
-import io.github.eggohito.neo_apoli.condition.custom.entity.IsSneakingEntityCondition;
+import io.github.eggohito.neo_apoli.condition.custom.IsEntitySneakingCondition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -13,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -32,8 +32,8 @@ public class ModifyClimbingPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyClimbingPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new TestEntityCondition(IsSneakingEntityCondition.INSTANCE, NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
+	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
 		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
 		.apply(instance, ModifyClimbingPower::new));
 
@@ -85,16 +85,13 @@ public class ModifyClimbingPower extends Power {
 			Level level = holder.level();
 			BlockPos blockPos = holder.blockPosition();
 
-			return super.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos));
+			return super.createHolderContextBuilder(holder).withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos));
 
 		}
 
 		public boolean canHold(Context context) {
 			return this.isActive(context)
-				&& power.getAllowHolding().nextBoolean(context.forChild(".allow_holding"))
+				&& power.getAllowHolding().getBoolean(context.forChild(".allow_holding"))
 				&& power.getHoldingCondition().test(context.forChild(".holding_condition"));
 		}
 

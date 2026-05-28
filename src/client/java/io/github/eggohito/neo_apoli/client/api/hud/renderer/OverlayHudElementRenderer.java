@@ -15,7 +15,7 @@ public interface OverlayHudElementRenderer extends HudElementRenderer {
 
 	default boolean isVisibleInPerspective(Context context, OverlayHudElement overlay) {
 		return Minecraft.getInstance().options.getCameraType().isFirstPerson()
-			|| overlay.visibleInThirdPerson().nextBoolean(context.forChild(".visible_in_third_person"));
+			|| overlay.visibleInThirdPerson().getBoolean(context.forChild(".visible_in_third_person"));
 	}
 
 }

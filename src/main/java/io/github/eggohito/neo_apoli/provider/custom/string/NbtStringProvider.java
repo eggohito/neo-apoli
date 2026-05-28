@@ -34,10 +34,10 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public @NotNull String nextString(Context context) {
+	public @NotNull String getString(Context context) {
 
 		Context sourceContext = context.forChild(".source");
-		Tag source = source().nextTag(sourceContext);
+		Tag source = source().getTag(sourceContext);
 
 		if (sourceContext.hasErrors()) {
 			return "";

@@ -2,11 +2,14 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,21 +18,18 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
-public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition, BoxProvider box) implements NumberProvider {
+public record BlocksIntersectingBoxNumberProvider(Condition condition, BoxProvider box) implements NumberProvider {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
-		.required(NeoApoliContextParams.BLOCK_POS)
-		.required(NeoApoliContextParams.BLOCK_STATE)
-		.optional(NeoApoliContextParams.BLOCK_ENTITY)
-		.build();
+	public static final Context.Parameter<CachedBlock> BLOCK_INTERSECTING_BOX = NeoApoliContextParams.registerSimpleInternal("block_intersecting_box", CachedBlock.class);
+	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(BLOCK_INTERSECTING_BOX).build();
 
-	public static final MapCodec<BlocksIntersectingBoxNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksIntersectingBoxNumberProvider::blockCondition),
+	public static final MapCodec<BlocksIntersectingBoxNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.fieldOf("condition").forGetter(BlocksIntersectingBoxNumberProvider::condition),
 		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksIntersectingBoxNumberProvider::box)
 	).apply(instance, BlocksIntersectingBoxNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksIntersectingBoxNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		BlockCondition.STREAM_CODEC, BlocksIntersectingBoxNumberProvider::blockCondition,
+		Condition.STREAM_CODEC, BlocksIntersectingBoxNumberProvider::condition,
 		BoxProvider.STREAM_CODEC, BlocksIntersectingBoxNumberProvider::box,
 		BlocksIntersectingBoxNumberProvider::new
 	);
@@ -40,7 +40,7 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Level level = context.level();
 		int matches = 0;
@@ -54,18 +54,21 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 
 		for (var blockPos : BlockPos.betweenClosed(box)) {
 
-			if (!level.hasChunkAt(blockPos)) {
-				continue;
+			try {
+
+				CachedBlock block = CachedBlock.fromLoadedPos(level, blockPos);
+				Context blockContext = new Context.Builder(context)
+					.withRequired(BLOCK_INTERSECTING_BOX, block)
+					.build(level);
+
+				if (condition().test(blockContext.forChild(".condition"))) {
+					matches++;
+				}
+
 			}
 
-			Context blockContext = new Context.Builder(context)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
-				.build(level);
-
-			if (blockCondition().test(blockContext.forChild(".block_condition"))) {
-				matches++;
+			catch (PosUnloadedException | PosOutOfBoundsException e) {
+				context.reportProblem(e.getMessage());
 			}
 
 		}
@@ -76,12 +79,9 @@ public record BlocksIntersectingBoxNumberProvider(BlockCondition blockCondition,
 
 	@Override
 	public void validate(Context.Validator validator) {
-
 		NumberProvider.super.validate(validator);
-
-		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMETER_SET).forChild(".condition"));
 		box().validate(validator.forChild(".box"));
-
 	}
 
 }

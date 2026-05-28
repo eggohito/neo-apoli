@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) implements Vec3Provider {
 
-	public static final MapCodec<OffsetVec3Provider> MAP_CODEC = MapCodecUtil.lazy(OffsetVec3Provider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<OffsetVec3Provider> CODEC = MapCodecUtil.lazy(OffsetVec3Provider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("vector").forGetter(OffsetVec3Provider::vector),
 		Vec3Provider.CODEC.fieldOf("offset").forGetter(OffsetVec3Provider::offset)
 	).apply(instance, OffsetVec3Provider::new)));
@@ -30,10 +30,10 @@ public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) imple
 	}
 
 	@Override
-	public @NotNull Vec3 nextVec3(Context context) {
+	public @NotNull Vec3 getVec3(Context context) {
 
-		Vec3 vector = vector().nextVec3(context.forChild(".vector"));
-		Vec3 offset = offset().nextVec3(context.forChild(".offset"));
+		Vec3 vector = vector().getVec3(context.forChild(".vector"));
+		Vec3 offset = offset().getVec3(context.forChild(".offset"));
 
 		return vector.add(offset);
 

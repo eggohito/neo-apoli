@@ -13,9 +13,10 @@ import org.jetbrains.annotations.NotNull;
 
 public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 
-	public static final MapCodec<StorageNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		ResourceLocation.CODEC.fieldOf("id").forGetter(StorageNbtProvider::id)
-	).apply(instance, StorageNbtProvider::new));
+	public static final MapCodec<StorageNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ResourceLocation.CODEC.fieldOf("id").forGetter(StorageNbtProvider::id))
+		.apply(instance, StorageNbtProvider::new)
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, StorageNbtProvider> STREAM_CODEC = StreamCodec.composite(
 		ResourceLocation.STREAM_CODEC, StorageNbtProvider::id,
@@ -28,7 +29,7 @@ public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag nextTag(Context context) {
+	public @NotNull Tag getTag(Context context) {
 		return ((CommandStorageHolder) context.level()).neo_apoli$getStorage(this.id());
 	}
 

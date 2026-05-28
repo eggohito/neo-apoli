@@ -6,26 +6,23 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+public record PowerCooldownProgressNumberProvider(PowerIdentifier power, EntityProvider entity) implements NumberProvider {
 
-public record PowerCooldownProgressNumberProvider(PowerIdentifier power, Context.Parameter<Entity> entity) implements NumberProvider {
-
-	public static final MapCodec<PowerCooldownProgressNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PowerCooldownProgressNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerCooldownProgressNumberProvider::power),
-		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(PowerCooldownProgressNumberProvider::entity)
+		EntityProvider.CODEC.fieldOf("entity").forGetter(PowerCooldownProgressNumberProvider::entity)
 	).apply(instance, PowerCooldownProgressNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownProgressNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		PowerIdentifier.STREAM_CODEC, PowerCooldownProgressNumberProvider::power,
-		NeoApoliContextParams.StreamCodecs.ENTITY, PowerCooldownProgressNumberProvider::entity,
+		EntityProvider.STREAM_CODEC, PowerCooldownProgressNumberProvider::entity,
 		PowerCooldownProgressNumberProvider::new
 	);
 
@@ -35,9 +32,11 @@ public record PowerCooldownProgressNumberProvider(PowerIdentifier power, Context
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
-		Entity entity = context.getNullable(entity());
+		Context entityContext = context.forChild(".entity");
+		Entity entity = entity().getEntity(entityContext).orElse(null);
+
 		CooldownPower.Instance cooldownInstance = Powers.getOptional(entity)
 			.flatMap(powers -> powers.getOptionalInstance(this.power()))
 			.filter(CooldownPower.Instance.class::isInstance)
@@ -47,7 +46,7 @@ public record PowerCooldownProgressNumberProvider(PowerIdentifier power, Context
 		if (entity == null || cooldownInstance == null) {
 
 			if (entity == null) {
-				context.reportProblem("Entity from parameter \"" + entity().name() + "\" doesn't exist!");
+				entityContext.reportProblem("Entity doesn't exist!");
 			}
 
 			if (cooldownInstance == null) {
@@ -65,14 +64,10 @@ public record PowerCooldownProgressNumberProvider(PowerIdentifier power, Context
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity());
-	}
-
-	@Override
 	public void validate(Context.Validator validator) {
 		NumberProvider.super.validate(validator);
 		power().validate(validator.forChild(".power"), CooldownPower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
+		entity().validate(validator.forChild(".entity"));
 	}
 
 }

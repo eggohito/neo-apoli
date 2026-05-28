@@ -25,7 +25,7 @@ public interface Vec3Provider extends ValueProvider {
 	Vec3Provider.Type<?> getType();
 
 	@NotNull
-	Vec3 nextVec3(Context context);
+	Vec3 getVec3(Context context);
 
 	record Type<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

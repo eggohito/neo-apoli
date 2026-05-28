@@ -34,7 +34,7 @@ public record ConstantNbtProvider(Tag value) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag nextTag(Context context) {
+	public @NotNull Tag getTag(Context context) {
 		return value();
 	}
 

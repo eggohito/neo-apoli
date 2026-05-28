@@ -20,7 +20,7 @@ import java.util.Optional;
 @Getter
 public class CallbackPowerRevokedPower extends CallbackPower {
 
-	public static final MapCodec<CallbackPowerRevokedPower> MAP_CODEC = createSimpleCallbackCodec(CallbackPowerRevokedPower::new);
+	public static final MapCodec<CallbackPowerRevokedPower> CODEC = createSimpleCallbackCodec(CallbackPowerRevokedPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerRevokedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPowerRevokedPower::new);
 
 	public CallbackPowerRevokedPower(Optional<Condition> activeCondition, Action action) {

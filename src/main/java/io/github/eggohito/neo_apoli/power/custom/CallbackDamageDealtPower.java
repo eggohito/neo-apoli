@@ -25,7 +25,7 @@ import java.util.Optional;
 @Getter
 public class CallbackDamageDealtPower extends Power implements PrioritizedPower<CallbackDamageDealtPower> {
 
-	public static final MapCodec<CallbackDamageDealtPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::getOnHitAction))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::getPriority))
 		.apply(instance, CallbackDamageDealtPower::new));

@@ -22,8 +22,8 @@ public record ConditionalBooleanProvider(Condition condition, BooleanProvider if
 	}
 
 	@Override
-	public boolean nextBoolean(Context context) {
-		return nextOrElse(context, BooleanProvider::nextBoolean, () -> false);
+	public boolean getBoolean(Context context) {
+		return nextOrElse(context, BooleanProvider::getBoolean, () -> false);
 	}
 
 }

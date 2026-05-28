@@ -26,7 +26,7 @@ public record ConditionResultBooleanProvider(Condition condition) implements Boo
 	}
 
 	@Override
-	public boolean nextBoolean(Context context) {
+	public boolean getBoolean(Context context) {
 		return condition().test(context.forChild(".condition"));
 	}
 

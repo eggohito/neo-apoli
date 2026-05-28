@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.impl.tag;
 
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeTagCacheS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundTagCacheUpdatePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.core.Registry;
@@ -17,7 +17,7 @@ public class NestedTagCacheClientImpl<T> extends NestedTagCacheImpl<T> {
 		super(registry, cache);
 	}
 
-	private static <T> void receive(SynchronizeTagCacheS2CPacket<T> payload) {
+	private static <T> void receive(ClientboundTagCacheUpdatePacket<T> payload) {
 
 		ResourceKey<? extends Registry<T>> registry = payload.registry();
 		NestedTagCacheImpl<T> tag = new NestedTagCacheClientImpl<>(registry, payload.cache());
@@ -29,7 +29,7 @@ public class NestedTagCacheClientImpl<T> extends NestedTagCacheImpl<T> {
 	public static void init() {
 
 		ClientPlayConnectionEvents.INIT.register((listener, client) ->
-			ClientPlayNetworking.registerReceiver(SynchronizeTagCacheS2CPacket.TYPE, (payload, context) -> receive(payload))
+			ClientPlayNetworking.registerReceiver(ClientboundTagCacheUpdatePacket.TYPE, (payload, context) -> receive(payload))
 		);
 
 		ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> GLOBAL.clear());

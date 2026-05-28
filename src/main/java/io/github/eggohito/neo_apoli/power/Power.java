@@ -8,7 +8,8 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerDataS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;
+import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
@@ -62,6 +63,10 @@ public abstract class Power implements ContextUser {
 
 	public abstract Instance<?> createInstance();
 
+	public boolean canBePartiallyParsed() {
+		return false;
+	}
+
 	@Override
 	public void validate(Context.Validator validator) {
 		this.getActiveCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
@@ -101,8 +106,7 @@ public abstract class Power implements ContextUser {
 		public Context.Builder createHolderContextBuilder(Entity holder) {
 			return new Context.Builder()
 				.withReporter(new Reporter("{\"" + this.getId() + "\"}"))
-				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder)
-				.withRequired(NeoApoliContextParams.THIS_POS, holder.position());
+				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder);
 		}
 
 		public Context createHolderContext(Entity holder) {
@@ -125,7 +129,7 @@ public abstract class Power implements ContextUser {
 			else {
 				MiscUtil.handleResult(
 					this.encodeData(ops),
-					tag -> MiscUtil.sendToTracking(holder, SynchronizePowerDataS2CPacket.single(holder.getId(), ops, id, tag)),
+					tag -> MiscUtil.sendToTracking(holder, ClientboundPowerDataUpdatePacket.single(holder.getId(), ops, id, tag)),
 					warning -> NeoApoli.LOGGER.warn("Couldn't fully encode instance data of {} to send to entity {} (sending partially encoded data): {}", id.asDisplayString(false), holder.getName().getString(), warning),
 					error -> NeoApoli.LOGGER.error("Couldn't encode instance data of {} to send to entity {}! (skipping): {}", id.asDisplayString(false), holder.getName().getString(), error)
 				);

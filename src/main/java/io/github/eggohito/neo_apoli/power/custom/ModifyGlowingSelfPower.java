@@ -30,7 +30,7 @@ public class ModifyGlowingSelfPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyGlowingSelfPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::getUseTeamColors))
 		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::getColor))
 		.apply(instance, ModifyGlowingSelfPower::new));
@@ -90,7 +90,7 @@ public class ModifyGlowingSelfPower extends Power {
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
-			return power.getUseTeamColors().nextBoolean(context.forChild(".use_team_color"));
+			return power.getUseTeamColors().getBoolean(context.forChild(".use_team_color"));
 		}
 
 		public int getColor(Context context) {

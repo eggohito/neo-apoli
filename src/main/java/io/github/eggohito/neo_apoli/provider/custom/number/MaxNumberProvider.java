@@ -11,7 +11,7 @@ import java.util.List;
 
 public record MaxNumberProvider(List<NumberProvider> numbers) implements MultiNumberProvider {
 
-	public static final MapCodec<MaxNumberProvider> MAP_CODEC = MultiNumberProvider.codec(MaxNumberProvider::new);
+	public static final MapCodec<MaxNumberProvider> CODEC = MultiNumberProvider.codec(MaxNumberProvider::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MaxNumberProvider> STREAM_CODEC = MultiNumberProvider.streamCodec(MaxNumberProvider::new);
 
 	@Override
@@ -20,8 +20,8 @@ public record MaxNumberProvider(List<NumberProvider> numbers) implements MultiNu
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.iterateAndProcess(context, NumberProvider::nextDouble, Math::max, 0.0d);
+	public double getDouble(Context context) {
+		return this.iterateAndProcess(context, NumberProvider::getDouble, Math::max, 0.0d);
 	}
 
 }

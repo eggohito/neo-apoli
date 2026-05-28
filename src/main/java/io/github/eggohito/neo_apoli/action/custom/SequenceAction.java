@@ -1,24 +1,44 @@
 package io.github.eggohito.neo_apoli.action.custom;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.meta.SequenceMetaAction;
-import io.github.eggohito.neo_apoli.registry.action.NeoApoliActionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record SequenceAction(List<Action> actions) implements SequenceMetaAction<Action> {
+public record SequenceAction(List<Action> actions) implements Action {
 
-	public static final MapCodec<SequenceAction> MAP_CODEC = MapCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.mapCodec(Action.CODEC, SequenceAction::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceAction> STREAM_CODEC = StreamCodecUtil.lazy(SequenceAction.class.getSimpleName(), () -> SequenceMetaAction.streamCodec(Action.STREAM_CODEC, SequenceAction::new));
+	public static final MapCodec<SequenceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(Action.CODEC.listOf().fieldOf("actions").forGetter(SequenceAction::actions))
+		.apply(instance, SequenceAction::new)
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, SequenceAction> STREAM_CODEC = StreamCodec.composite(
+		Action.STREAM_CODEC.apply(ByteBufCodecs.list()), SequenceAction::actions,
+		SequenceAction::new
+	);
 
 	@Override
 	public Type<?> getType() {
 		return NeoApoliActionTypes.SEQUENCE;
+	}
+
+	@Override
+	public void execute(Context context) {
+		MiscUtil.iterateList(actions(), (index, action) -> action.execute(context.forChild(".actions[" + index + "]")));
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		Action.super.validate(validator);
+		ContextHelper.validateAll(actions(), validator, index -> ".actions[" + index + "]");
 	}
 
 }

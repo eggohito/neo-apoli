@@ -2,11 +2,14 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.condition.custom.block.BlockCondition;
+import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
+import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,21 +20,18 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
-public record BlocksCollidingBoxNumberProvider(BlockCondition blockCondition, BoxProvider box) implements NumberProvider {
+public record BlocksCollidingBoxNumberProvider(Condition condition, BoxProvider box) implements NumberProvider {
 
-	private static final ContextKeySet CONDITION_CONTEXT = new ContextKeySet.Builder()
-		.required(NeoApoliContextParams.BLOCK_POS)
-		.required(NeoApoliContextParams.BLOCK_STATE)
-		.optional(NeoApoliContextParams.BLOCK_ENTITY)
-		.build();
+	public static final Context.Parameter<CachedBlock> BLOCK_COLLIDING_BOX = NeoApoliContextParams.registerSimpleInternal("block_colliding_box", CachedBlock.class);
+	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(BLOCK_COLLIDING_BOX).build();
 
-	public static final MapCodec<BlocksCollidingBoxNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockCondition.CODEC.fieldOf("block_condition").forGetter(BlocksCollidingBoxNumberProvider::blockCondition),
+	public static final MapCodec<BlocksCollidingBoxNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.fieldOf("condition").forGetter(BlocksCollidingBoxNumberProvider::condition),
 		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksCollidingBoxNumberProvider::box)
 	).apply(instance, BlocksCollidingBoxNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksCollidingBoxNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		BlockCondition.STREAM_CODEC, BlocksCollidingBoxNumberProvider::blockCondition,
+		Condition.STREAM_CODEC, BlocksCollidingBoxNumberProvider::condition,
 		BoxProvider.STREAM_CODEC, BlocksCollidingBoxNumberProvider::box,
 		BlocksCollidingBoxNumberProvider::new
 	);
@@ -42,7 +42,7 @@ public record BlocksCollidingBoxNumberProvider(BlockCondition blockCondition, Bo
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Level level = context.level();
 		int matches = 0;
@@ -54,20 +54,26 @@ public record BlocksCollidingBoxNumberProvider(BlockCondition blockCondition, Bo
 			return matches;
 		}
 
-		CollisionContext shapeContext = box().getCollisionContext(boxContext);
-		BlockCollisions<BlockPos> spliterator = new BlockCollisions<>(level, shapeContext, box, false, (pos, shape) -> pos);
+		CollisionContext collisionContext = box().getCollisionContext(boxContext);
+		BlockCollisions<BlockPos> spliterator = new BlockCollisions<>(level, collisionContext, box, false, (pos, shape) -> pos);
 
 		while (spliterator.hasNext()) {
 
-			BlockPos blockPos = spliterator.next();
-			Context blockContext = new Context.Builder(context)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
-				.build(level);
+			try {
 
-			if (blockCondition().test(blockContext.forChild(".block_condition"))) {
-				matches++;
+				CachedBlock block = CachedBlock.fromLoadedPos(level, spliterator.next());
+				Context blockContext = new Context.Builder(context)
+					.withRequired(BLOCK_COLLIDING_BOX, block)
+					.build(level);
+
+				if (condition().test(blockContext.forChild(".condition"))) {
+					matches++;
+				}
+
+			}
+
+			catch (PosUnloadedException | PosOutOfBoundsException e) {
+				context.reportProblem(e.getMessage());
 			}
 
 		}
@@ -78,12 +84,9 @@ public record BlocksCollidingBoxNumberProvider(BlockCondition blockCondition, Bo
 
 	@Override
 	public void validate(Context.Validator validator) {
-
 		NumberProvider.super.validate(validator);
-
-		blockCondition().validate(validator.withAdditionalKeysFromSets(CONDITION_CONTEXT).forChild(".block_condition"));
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMETER_SET).forChild(".condition"));
 		box().validate(validator.forChild(".box"));
-
 	}
 
 }

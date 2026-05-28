@@ -19,7 +19,7 @@ import java.util.List;
 
 public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements NumberProvider {
 
-	public static final MapCodec<NbtNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<NbtNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NbtProvider.CODEC.fieldOf("source").forGetter(NbtNumberProvider::source),
 		NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtNumberProvider::path)
 	).apply(instance, NbtNumberProvider::new));
@@ -36,10 +36,10 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context sourceContext = context.forChild(".source");
-		Tag source = source().nextTag(sourceContext);
+		Tag source = source().getTag(sourceContext);
 
 		if (sourceContext.hasErrors()) {
 			return 0;

@@ -6,11 +6,10 @@ import io.github.eggohito.neo_apoli.hud.OverlayHudElement;
 import io.github.eggohito.neo_apoli.hud.Sprite;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliHudElementTypes;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record NauseaOverlayHudElement(Sprite sprite, Color color, HudRenderPhase renderPhase, BooleanProvider shouldRender, BooleanProvider hideWithHud, BooleanProvider visibleInThirdPerson, int order) implements OverlayHudElement {
+public record NauseaOverlayHudElement(Sprite sprite, Color color, RenderPhase renderPhase, BooleanProvider shouldRender, BooleanProvider hideWithHud, BooleanProvider visibleInThirdPerson, int order) implements OverlayHudElement {
 
 	public static final MapCodec<NauseaOverlayHudElement> CODEC = OverlayHudElement.createCommonOverlayCodec(NauseaOverlayHudElement::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, NauseaOverlayHudElement> STREAM_CODEC = OverlayHudElement.createCommonOverlayStreamCodec(NauseaOverlayHudElement::new);

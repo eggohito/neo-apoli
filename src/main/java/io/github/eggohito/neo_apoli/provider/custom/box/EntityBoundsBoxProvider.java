@@ -3,29 +3,26 @@ package io.github.eggohito.neo_apoli.provider.custom.box;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
-
-public record EntityBoundsBoxProvider(Context.Parameter<Entity> entity) implements BoxProvider {
+public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvider {
 
 	public static final MapCodec<EntityBoundsBoxProvider> MAP_CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
+		EntityProvider.CODEC.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
 	).apply(instance, EntityBoundsBoxProvider::new)));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityBoundsBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
-		NeoApoliContextParams.StreamCodecs.ENTITY, EntityBoundsBoxProvider::entity,
+		EntityProvider.STREAM_CODEC, EntityBoundsBoxProvider::entity,
 		EntityBoundsBoxProvider::new
 	));
 
@@ -36,33 +33,22 @@ public record EntityBoundsBoxProvider(Context.Parameter<Entity> entity) implemen
 
 	@Override
 	public @NotNull AABB nextBox(Context context) {
-
-		if (!context.hasParameter(entity())) {
-			context.forChild(".entity").reportProblem("Couldn't get the bounding box of a non-existing entity!");
-		}
-
-		return context.getOptional(entity())
+		return entity().getEntity(context.forChild(".entity"))
 			.map(Entity::getBoundingBox)
 			.orElse(AABBUtil.EMPTY);
-
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity());
+	public void validate(Context.Validator validator) {
+		BoxProvider.super.validate(validator);
+		entity().validate(validator.forChild(".entity"));
 	}
 
 	@Override
 	public CollisionContext getCollisionContext(Context context) {
-
-		if (!context.hasParameter(entity())) {
-			context.forChild(".entity").reportProblem("Couldn't get collision context from non-existent entity!");
-		}
-
-		return context.getOptional(entity())
+		return entity().getEntity(context.forChild(".entity"))
 			.map(CollisionContext::of)
 			.orElseGet(CollisionContext::empty);
-
 	}
 
 }

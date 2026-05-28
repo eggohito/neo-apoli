@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 @Getter
 public class ModifyItemUsePower extends Power implements PrioritizedPower<ModifyItemUsePower> {
 
-	public static final MapCodec<ModifyItemUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
 		.and(NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
 		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::getHands))
@@ -107,8 +107,8 @@ public class ModifyItemUsePower extends Power implements PrioritizedPower<Modify
 
 		public Context createContext(Entity holder, SlotAccess slotAccess) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
-				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
+				.withRequired(NeoApoliContextParams.SLOT, slotAccess)
+				.withRequired(NeoApoliContextParams.ITEM, slotAccess.get())
 				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_USE.keySet());
 		}
 

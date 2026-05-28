@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -32,7 +33,7 @@ import java.util.Optional;
 @Getter
 public class CallbackBlockBreakPower extends Power implements PrioritizedPower<CallbackBlockBreakPower> {
 
-	public static final MapCodec<CallbackBlockBreakPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
 		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::getOnlyWhenHarvested))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
@@ -85,16 +86,14 @@ public class CallbackBlockBreakPower extends Power implements PrioritizedPower<C
 
 		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
+				.withRequired(NeoApoliContextParams.BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
 				.withNullable(NeoApoliContextParams.DIRECTION, side)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_BLOCK_BREAK.keySet());
+				.build(holder.level());
 		}
 
 		public boolean doesApply(Context context, boolean harvested) {
 			return this.isActive(context)
-				&& (!power.getOnlyWhenHarvested().nextBoolean(context.forChild(".only_when_harvested")) || harvested);
+				&& (!power.getOnlyWhenHarvested().getBoolean(context.forChild(".only_when_harvested")) || harvested);
 		}
 
 		public void execute(Context context) {

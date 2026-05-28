@@ -40,10 +40,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -61,6 +63,7 @@ import org.quiltmc.parsers.json.gson.GsonReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -273,14 +276,18 @@ public class MiscUtil {
 
 	}
 
-	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer) {
+	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer, BooleanSupplier continueCondition) {
 
 		ListIterator<E> listIterator = list.listIterator();
 
-		while (listIterator.hasNext()) {
+		while (listIterator.hasNext() && continueCondition.getAsBoolean()) {
 			consumer.accept(listIterator.nextIndex(), listIterator.next());
 		}
 
+	}
+
+	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer) {
+		iterateList(list, consumer, () -> true);
 	}
 
 	public static <T, U extends T> Function<T, DataResult<U>> validateType(Class<U> typeClass, Supplier<String> errorSupplier) {
@@ -452,6 +459,30 @@ public class MiscUtil {
 		});
 
 		return result;
+
+	}
+
+	public static SlotAccess createContainerSlotSafely(Container container, int slot) {
+
+		if (slot >= 0 && slot < container.getContainerSize()) {
+			return SlotAccess.forContainer(container, slot);
+		}
+
+		else {
+			return SlotAccess.NULL;
+		}
+
+	}
+
+	public static <A> Optional<HolderLookup.Provider> getLookupProvider(RegistryOps<A> ops) {
+
+		if (((RegistryOpsAccessor) ops).getLookupProvider() instanceof RegistryOps.HolderLookupAdapter adapter) {
+			return Optional.of(((RegistryOpsAccessor.HolderLookupAdapterAccessor) (Object) adapter).getLookupProvider());
+		}
+
+		else {
+			return Optional.empty();
+		}
 
 	}
 

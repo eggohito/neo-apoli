@@ -27,7 +27,7 @@ import java.util.Optional;
 @Getter
 public class TogglePower extends Power {
 
-	public static final MapCodec<TogglePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::getAction))
 		.and(KeyReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
@@ -102,7 +102,7 @@ public class TogglePower extends Power {
 
 		@Override
 		public void onGranted(Entity holder) {
-			this.toggled = power.getActiveByDefault().nextBoolean(this.createHolderContext(holder).forChild(".active_by_default"));
+			this.toggled = power.getActiveByDefault().getBoolean(this.createHolderContext(holder).forChild(".active_by_default"));
 		}
 
 		@Override
@@ -120,7 +120,7 @@ public class TogglePower extends Power {
 		public boolean shouldTick(Entity holder) {
 			return toggled
 				&& power.getActiveCondition().isPresent()
-				&& !power.getRetainState().nextBoolean(this.createHolderContext(holder).forChild(".retain_state"));
+				&& !power.getRetainState().getBoolean(this.createHolderContext(holder).forChild(".retain_state"));
 		}
 
 		@Override

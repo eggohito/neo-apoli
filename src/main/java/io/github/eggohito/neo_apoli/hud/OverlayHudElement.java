@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.color.custom.Argb;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,7 +28,7 @@ public interface OverlayHudElement extends HudElement {
 
 	Color color();
 
-	HudRenderPhase renderPhase();
+	RenderPhase renderPhase();
 
 	BooleanProvider shouldRender();
 
@@ -38,14 +37,14 @@ public interface OverlayHudElement extends HudElement {
 	BooleanProvider visibleInThirdPerson();
 
 	@Override
-	default boolean shouldRender(Context context, HudRenderPhase renderPhase) {
+	default boolean shouldRender(Context context, RenderPhase renderPhase) {
 		return this.renderPhase() == renderPhase
-			&& this.shouldRender().nextBoolean(context.forChild(".should_render"));
+			&& this.shouldRender().getBoolean(context.forChild(".should_render"));
 	}
 
 	@Override
 	default boolean hideWithHud(Context context) {
-		return hideWithHud().nextBoolean(context.forChild(".hide_with_hud"));
+		return hideWithHud().getBoolean(context.forChild(".hide_with_hud"));
 	}
 
 	@Override
@@ -57,11 +56,11 @@ public interface OverlayHudElement extends HudElement {
 		visibleInThirdPerson().validate(validator.forChild(".visible_in_third_person"));
 	}
 
-	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<Sprite, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
+	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<Sprite, Color, RenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
 			OVERLAY_SPRITE_CODEC.fieldOf("sprite").forGetter(OverlayHudElement::sprite),
 			Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(OverlayHudElement::color),
-			HudRenderPhase.CODEC.fieldOf("render_phase").forGetter(OverlayHudElement::renderPhase),
+			RenderPhase.CODEC.fieldOf("render_phase").forGetter(OverlayHudElement::renderPhase),
 			BooleanProvider.CODEC.optionalFieldOf("should_render", new ConstantBooleanProvider(true)).forGetter(OverlayHudElement::shouldRender),
 			BooleanProvider.CODEC.optionalFieldOf("hide_with_hud", new ConstantBooleanProvider(true)).forGetter(OverlayHudElement::hideWithHud),
 			BooleanProvider.CODEC.optionalFieldOf("visible_in_third_person", new ConstantBooleanProvider(true)).forGetter(OverlayHudElement::visibleInThirdPerson),
@@ -69,11 +68,11 @@ public interface OverlayHudElement extends HudElement {
 		).apply(instance, constructor));
 	}
 
-	static <H extends OverlayHudElement> StreamCodec<RegistryFriendlyByteBuf, H> createCommonOverlayStreamCodec(Function7<Sprite, Color, HudRenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
+	static <H extends OverlayHudElement> StreamCodec<RegistryFriendlyByteBuf, H> createCommonOverlayStreamCodec(Function7<Sprite, Color, RenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
 		return StreamCodec.composite(
 			Sprite.STREAM_CODEC, OverlayHudElement::sprite,
 			Color.STREAM_CODEC, OverlayHudElement::color,
-			HudRenderPhase.STREAM_CODEC, OverlayHudElement::renderPhase,
+			RenderPhase.STREAM_CODEC, OverlayHudElement::renderPhase,
 			BooleanProvider.STREAM_CODEC, OverlayHudElement::shouldRender,
 			BooleanProvider.STREAM_CODEC, OverlayHudElement::hideWithHud,
 			BooleanProvider.STREAM_CODEC, OverlayHudElement::visibleInThirdPerson,

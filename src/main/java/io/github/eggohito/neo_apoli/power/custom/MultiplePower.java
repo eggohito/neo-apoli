@@ -26,7 +26,6 @@ import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.ApiStatus;
@@ -163,7 +162,7 @@ public class MultiplePower extends Power {
 
 	};
 
-	public static final MapCodec<MultiplePower> MAP_CODEC = SUB_POWERS_CODEC.xmap(
+	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
 		MultiplePower::new,
 		MultiplePower::getSubPowers
 	);
@@ -189,6 +188,11 @@ public class MultiplePower extends Power {
 		return new Instance<>(this) {};
 	}
 
+	@Override
+	public boolean canBePartiallyParsed() {
+		return true;
+	}
+
 	/**
 	 * 	<p>Pre-process the sub-powers of a multiple power to prepare the sub-powers for proper parsing. This takes care
 	 * 	of two things:</p>
@@ -200,7 +204,7 @@ public class MultiplePower extends Power {
 	 * 	</ul>
 	 */
 	@ApiStatus.Internal
-	public static void preProcessSubPowers(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, RegistryOps<JsonElement> ops) {
+	public static void preProcessSubPowers(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, DynamicOps<JsonElement> ops) {
 
 		if (!(jsonWithSource.json() instanceof JsonObject powerJson) || !Type.CODEC.parse(ops, powerJson.get(TYPE_KEY)).mapOrElse(NeoApoliPowerTypes.MULTIPLE::equals, error -> false)) {
 			return;

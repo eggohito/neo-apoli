@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
@@ -52,7 +51,7 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareHudElements(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static void prepareHudElements(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
 		if (!(instance instanceof HudRenderPower.Instance hudRender)) {
 			return;
@@ -74,7 +73,7 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareCooldownElements(Entity holder, Power.Instance<?> instance, HudRenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static void prepareCooldownElements(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
 		if (!(instance instanceof CooldownPower.Instance cooldown)) {
 			return;

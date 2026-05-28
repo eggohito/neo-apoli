@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConditionalNumberProvider(Condition condition, NumberProvider ifValue, NumberProvider elseValue) implements NumberProvider, ConditionalValueProvider<NumberProvider> {
 
-	public static final MapCodec<ConditionalNumberProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(NumberProvider.CODEC, ConditionalNumberProvider::new));
+	public static final MapCodec<ConditionalNumberProvider> CODEC = MapCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(NumberProvider.CODEC, ConditionalNumberProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNumberProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNumberProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(NumberProvider.STREAM_CODEC, ConditionalNumberProvider::new));
 
 	@Override
@@ -22,8 +22,8 @@ public record ConditionalNumberProvider(Condition condition, NumberProvider ifVa
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return this.nextOrElse(context, NumberProvider::nextDouble, () -> 0.0D);
+	public double getDouble(Context context) {
+		return this.nextOrElse(context, NumberProvider::getDouble, () -> 0.0D);
 	}
 
 }

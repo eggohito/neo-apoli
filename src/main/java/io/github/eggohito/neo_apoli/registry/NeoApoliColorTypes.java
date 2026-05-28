@@ -3,7 +3,12 @@ package io.github.eggohito.neo_apoli.registry;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.color.Color;
-import io.github.eggohito.neo_apoli.color.custom.*;
+import io.github.eggohito.neo_apoli.color.custom.Argb;
+import io.github.eggohito.neo_apoli.color.custom.Hsv;
+import io.github.eggohito.neo_apoli.color.custom.Rgba;
+import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicArgb;
+import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicHsv;
+import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicRgba;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,9 +20,9 @@ public final class NeoApoliColorTypes {
 	public static final Color.Type<Hsv> HSV = registerInternal("hsv", Hsv.CODEC, Hsv.STREAM_CODEC);
 	public static final Color.Type<Rgba> RGBA = registerInternal("rgba", Rgba.CODEC, Rgba.STREAM_CODEC);
 
-	public static final Color.Type<ArgbDynamic> ARGB_DYNAMIC = registerInternal("dynamic/argb", ArgbDynamic.CODEC, ArgbDynamic.STREAM_CODEC);
-	public static final Color.Type<HsvDynamic> HSV_DYNAMIC = registerInternal("dynamic/hsv", HsvDynamic.CODEC, HsvDynamic.STREAM_CODEC);
-	public static final Color.Type<RgbaDynamic> RGBA_DYNAMIC = registerInternal("dynamic/rgba", RgbaDynamic.CODEC, RgbaDynamic.STREAM_CODEC);
+	public static final Color.Type<DynamicArgb> DYNAMIC_ARGB = registerInternal("dynamic/argb", DynamicArgb.CODEC, DynamicArgb.STREAM_CODEC);
+	public static final Color.Type<DynamicHsv> DYNAMIC_HSV = registerInternal("dynamic/hsv", DynamicHsv.CODEC, DynamicHsv.STREAM_CODEC);
+	public static final Color.Type<DynamicRgba> DYNAMIC_RGBA = registerInternal("dynamic/rgba", DynamicRgba.CODEC, DynamicRgba.STREAM_CODEC);
 
 	public static void registerAll() {
 

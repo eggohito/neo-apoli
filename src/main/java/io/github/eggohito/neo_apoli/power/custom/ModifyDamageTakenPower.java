@@ -25,7 +25,7 @@ import java.util.Optional;
 @Getter
 public class ModifyDamageTakenPower extends DamageModifyingPower {
 
-	public static final MapCodec<ModifyDamageTakenPower> MAP_CODEC = DamageModifyingPower.createDamageModifyingCodec(ModifyDamageTakenPower::new);
+	public static final MapCodec<ModifyDamageTakenPower> CODEC = DamageModifyingPower.createDamageModifyingCodec(ModifyDamageTakenPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageTakenPower> STREAM_CODEC = DamageModifyingPower.createDamageModifyingStreamCodec(ModifyDamageTakenPower::new);
 
 	public ModifyDamageTakenPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) {

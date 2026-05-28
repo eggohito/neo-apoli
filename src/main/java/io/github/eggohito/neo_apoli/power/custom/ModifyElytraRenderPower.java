@@ -27,7 +27,7 @@ import java.util.Optional;
 @Getter
 public class ModifyElytraRenderPower extends Power implements PrioritizedPower<ModifyElytraRenderPower> {
 
-	public static final MapCodec<ModifyElytraRenderPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyElytraRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(ResourceKey.codec(EquipmentAssets.ROOT_ID).fieldOf("asset_id").forGetter(ModifyElytraRenderPower::getAssetId))
 		.and(ArmorTrim.CODEC.optionalFieldOf("trim").forGetter(ModifyElytraRenderPower::getTrim))
 		.and(Color.CODEC.optionalFieldOf("color").forGetter(ModifyElytraRenderPower::getColor))

@@ -24,7 +24,7 @@ import java.util.Optional;
 @Getter
 public class CallbackPowerTickPower extends Power {
 
-	public static final MapCodec<CallbackPowerTickPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Action.CODEC.optionalFieldOf("tick_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getTickAction))
 		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getRisingAction))
 		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getFallingAction))
@@ -90,7 +90,7 @@ public class CallbackPowerTickPower extends Power {
 		public void onTick(Entity holder) {
 
 			Context context = createHolderContext(holder);
-			int interval = power.getInterval().nextInt(context.forChild(".interval"));
+			int interval = power.getInterval().getInt(context.forChild(".interval"));
 
 			if (context.hasAnyErrors()) {
 

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
-import io.github.eggohito.neo_apoli.network.chat.contents.ForcedTranslatableContents;
+import io.github.eggohito.neo_apoli.network.chat.contents.TranslatableContentsWithTextFallback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
@@ -26,7 +26,7 @@ public class ComponentUtil {
 	 * 	        translatable text (constructed via {@link Component#translatableWithFallback(String, String)}.)
 	 * 	    </li>
 	 * 	    <li>
-	 * 	        If neither of the above scenarios are inapplicable, a {@linkplain ForcedTranslatableContents forced
+	 * 	        If neither of the above scenarios are inapplicable, a {@linkplain TranslatableContentsWithTextFallback forced
 	 * 	        translatable text} will be constructed with {@code altText} serving as its fallback text.
 	 * 	    </li>
 	 * 	</ol>
@@ -35,7 +35,7 @@ public class ComponentUtil {
 	 * @param text			the text to use as a fallback if a traditional translatable text can't be constructed
 	 *
 	 * @return	either a traditional translatable text (if {@code altText} is not null, and a literal string, or a
-	 * 			translatable text), or a {@link ForcedTranslatableContents}.
+	 * 			translatable text), or a {@link TranslatableContentsWithTextFallback}.
 	 */
 	public static Component forceTranslatable(String translationKey, Component text) {
 
@@ -55,7 +55,7 @@ public class ComponentUtil {
 		}
 
 		else {
-			return MutableComponent.create(new ForcedTranslatableContents(translationKey, text));
+			return MutableComponent.create(new TranslatableContentsWithTextFallback(translationKey, text));
 		}
 
 	}

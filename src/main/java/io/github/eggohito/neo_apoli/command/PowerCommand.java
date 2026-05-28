@@ -34,7 +34,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -53,27 +52,27 @@ public class PowerCommand {
 			.requires(source -> source.hasPermission(2))
 			.build();
 
-		baseNode.addChild(GrantSubCommand.node());
-		baseNode.addChild(RevokeSubCommand.node());
-		baseNode.addChild(RemoveSubCommand.node());
-		baseNode.addChild(ClearSubCommand.node());
-		baseNode.addChild(ListSubCommand.node());
-		baseNode.addChild(DumpSubCommand.node());
+		baseNode.addChild(Grant.node());
+		baseNode.addChild(Revoke.node());
+		baseNode.addChild(Remove.node());
+		baseNode.addChild(Clear.node());
+		baseNode.addChild(List.node());
+		baseNode.addChild(Dump.node());
 
 		rootNode.addChild(baseNode);
 
 	}
 
-	static final class GrantSubCommand {
+	static final class Grant {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("grant")
 				.then(argument("targets", EntityArgument.entities())
 					.then(argument("power", PowerArgument.powerOrTag())
-						.executes(GrantSubCommand::withDefaultSource)
+						.executes(Grant::withDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(GrantSubCommand::withSpecificSource))));
+							.executes(Grant::withSpecificSource))));
 
 			return node.build();
 
@@ -91,11 +90,11 @@ public class PowerCommand {
 
 			CommandSourceStack commandSource = commandContext.getSource();
 
-			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
+			java.util.List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
-			PowerArgument.Type type = PowerArgument.getArgument(commandContext, "power");
-			List<PowerHolder<?>> powerHolders = type.get(commandContext);
+			PowerArgument.Result result = PowerArgument.getArgument(commandContext, "power");
+			java.util.List<PowerHolder<?>> powerHolders = result.get();
 
 			for (var target : targets) {
 
@@ -114,8 +113,8 @@ public class PowerCommand {
 
 			}
 
-			switch (type) {
-				case PowerArgument.Type.Singleton singleton -> {
+			switch (result) {
+				case PowerArgument.Result.Singleton singleton -> {
 
 					HoverEvent hoverEvent = new HoverEvent.ShowText(Component.nullToEmpty(singleton.id().toString()));
 					Component powerName = powerHolders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
@@ -145,7 +144,7 @@ public class PowerCommand {
 					}
 
 				}
-				case PowerArgument.Type.Collection collection -> {
+				case PowerArgument.Result.Collection collection -> {
 
 					if (processedTargets.isEmpty()) {
 
@@ -187,20 +186,20 @@ public class PowerCommand {
 
 	}
 
-	static final class RevokeSubCommand {
+	static final class Revoke {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("revoke")
 				.then(argument("targets", EntityArgument.entities())
 					.then(literal("all")
-						.executes(RevokeSubCommand::allFromDefaultSource)
+						.executes(Revoke::allFromDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(RevokeSubCommand::allFromSpecificSource)))
+							.executes(Revoke::allFromSpecificSource)))
 					.then(argument("power", PowerArgument.power())
-						.executes(RevokeSubCommand::oneFromDefaultSource)
+						.executes(Revoke::oneFromDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(RevokeSubCommand::oneFromSpecificSource))));
+							.executes(Revoke::oneFromSpecificSource))));
 
 			return node.build();
 
@@ -242,7 +241,7 @@ public class PowerCommand {
 			);
 		}
 
-		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets, @Nullable PowerHolder<?> powerHolder, ResourceLocation source) {
+		static int execute(CommandContext<CommandSourceStack> commandContext, java.util.List<Entity> targets, @Nullable PowerHolder<?> powerHolder, ResourceLocation source) {
 
 			CommandSourceStack commandSource = commandContext.getSource();
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
@@ -373,14 +372,14 @@ public class PowerCommand {
 
 	}
 
-	static final class RemoveSubCommand {
+	static final class Remove {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("remove")
 				.then(argument("targets", EntityArgument.entities())
 					.then(argument("power", PowerArgument.power())
-						.executes(RemoveSubCommand::execute)));
+						.executes(Remove::execute)));
 
 			return node.build();
 
@@ -388,8 +387,8 @@ public class PowerCommand {
 
 		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
-			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
-			List<Entity> processedTargets = new ObjectArrayList<>();
+			java.util.List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
+			java.util.List<Entity> processedTargets = new ObjectArrayList<>();
 
 			PowerHolder<?> powerHolder = PowerArgument.getPower(commandContext, "power");
 			CommandSourceStack commandSource = commandContext.getSource();
@@ -449,14 +448,14 @@ public class PowerCommand {
 
 	}
 
-	static final class ClearSubCommand {
+	static final class Clear {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("clear")
-				.executes(ClearSubCommand::fromSelf)
+				.executes(Clear::fromSelf)
 				.then(argument("targets", EntityArgument.entities())
-					.executes(ClearSubCommand::fromSpecified));
+					.executes(Clear::fromSpecified));
 
 			return node.build();
 
@@ -470,7 +469,7 @@ public class PowerCommand {
 			return execute(commandContext, new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")));
 		}
 
-		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets) {
+		static int execute(CommandContext<CommandSourceStack> commandContext, java.util.List<Entity> targets) {
 
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 			CommandSourceStack commandSource = commandContext.getSource();
@@ -545,16 +544,16 @@ public class PowerCommand {
 
 	}
 
-	static final class ListSubCommand {
+	static final class List {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("list")
-				.executes(ListSubCommand::fromSelf)
+				.executes(List::fromSelf)
 				.then(argument("target", EntityArgument.entity())
-					.executes(ListSubCommand::fromSpecified)
+					.executes(List::fromSpecified)
 					.then(argument("includeSubPowers", BoolArgumentType.bool())
-						.executes(ListSubCommand::fromSpecifiedWithSubPowerOption)));
+						.executes(List::fromSpecifiedWithSubPowerOption)));
 
 			return node.build();
 
@@ -577,8 +576,8 @@ public class PowerCommand {
 			Powers powers = Powers.getNullable(target);
 			CommandSourceStack commandSource = commandContext.getSource();
 
-			List<PowerHolder<?>> powerHolders = Optional.ofNullable(powers).map(self -> self.getAll(includeSubPowers)).orElseGet(ObjectArrayList::new);
-			List<Component> powerTooltips = new ObjectArrayList<>();
+			java.util.List<PowerHolder<?>> powerHolders = Optional.ofNullable(powers).map(self -> self.getAll(includeSubPowers)).orElseGet(ObjectArrayList::new);
+			java.util.List<Component> powerTooltips = new ObjectArrayList<>();
 
 			for (var powerHolder : powerHolders) {
 
@@ -589,7 +588,7 @@ public class PowerCommand {
 				Power power = powerHolder.value();
 				Power.Type<?> type = power.getType();
 
-				List<Component> sourceTooltips = powers.getSources(powerHolder.id())
+				java.util.List<Component> sourceTooltips = powers.getSources(powerHolder.id())
 					.stream()
 					.map(Objects::toString)
 					.map(source -> Component.literal(source).withStyle())
@@ -620,15 +619,15 @@ public class PowerCommand {
 
 	}
 
-	static final class DumpSubCommand {
+	static final class Dump {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("dump")
 				.then(argument("power", PowerArgument.power())
-					.executes(DumpSubCommand::withDefaultIndent)
+					.executes(Dump::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
-						.executes(DumpSubCommand::withSpecificIndent)));
+						.executes(Dump::withSpecificIndent)));
 
 			return node.build();
 

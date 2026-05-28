@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -31,7 +32,7 @@ public class ModifyBlockSelectablePower extends Power implements PrioritizedPowe
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockSelectablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::getAllow))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::getPriority))
 		.apply(instance, ModifyBlockSelectablePower::new));
@@ -76,14 +77,12 @@ public class ModifyBlockSelectablePower extends Power implements PrioritizedPowe
 
 		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, blockState)
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_BLOCK_SELECTABLE.keySet());
+				.withRequired(NeoApoliContextParams.BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
+				.build(holder.level());
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().nextBoolean(context.forChild(".allow"));
+			return power.getAllow().getBoolean(context.forChild(".allow"));
 		}
 
 	}

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis axis) implements NumberProvider {
 
-	public static final MapCodec<VectorComponentNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<VectorComponentNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("vector").forGetter(VectorComponentNumberProvider::vector),
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(VectorComponentNumberProvider::axis)
 	).apply(instance, VectorComponentNumberProvider::new));
@@ -31,10 +31,10 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context vectorContext = context.forChild(".vector");
-		Vec3 vector = vector().nextVec3(vectorContext);
+		Vec3 vector = vector().getVec3(vectorContext);
 
 		if (vectorContext.hasErrors()) {
 			return 0.0D;

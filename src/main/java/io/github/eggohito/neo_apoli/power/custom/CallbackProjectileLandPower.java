@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.AABBUtil;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -31,7 +32,7 @@ import java.util.Optional;
 @Getter
 public class CallbackProjectileLandPower extends CallbackPower {
 
-	public static final MapCodec<CallbackProjectileLandPower> MAP_CODEC = CallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
+	public static final MapCodec<CallbackProjectileLandPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackProjectileLandPower::new);
 
 	public CallbackProjectileLandPower(Optional<Condition> activeCondition, Action action) {
@@ -82,14 +83,12 @@ public class CallbackProjectileLandPower extends CallbackPower {
 			}
 
 			return this.createHolderContextBuilder(holder)
+				.withRequired(NeoApoliContextParams.PROJECTILE_ENTITY, projectile)
+				.withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, owner)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, target)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
 				.withNullable(NeoApoliContextParams.DIRECTION, side)
-				.withRequired(NeoApoliContextParams.PROJECTILE_ENTITY, projectile)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_PROJECTILE_LAND.keySet());
+				.build(level);
 
 		}
 

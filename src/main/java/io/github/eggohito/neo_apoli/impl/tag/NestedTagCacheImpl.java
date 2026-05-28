@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.impl.tag;
 import io.github.eggohito.neo_apoli.api.event.TagLoaderBuild;
 import io.github.eggohito.neo_apoli.api.tag.NestedTagCache;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizeTagCacheS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundTagCacheUpdatePacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -76,12 +76,12 @@ public class NestedTagCacheImpl<T> implements NestedTagCache<T> {
 	}
 
 	private void send(ServerPlayer recipient) {
-		ServerPlayNetworking.send(recipient, new SynchronizeTagCacheS2CPacket<>(this.registry(), this.cache));
+		ServerPlayNetworking.send(recipient, new ClientboundTagCacheUpdatePacket<>(this.registry(), this.cache));
 	}
 
 	public static void init() {
 
-		PayloadTypeRegistry.playS2C().register(SynchronizeTagCacheS2CPacket.TYPE, SynchronizeTagCacheS2CPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ClientboundTagCacheUpdatePacket.TYPE, ClientboundTagCacheUpdatePacket.CODEC);
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, manager) ->
 			GLOBAL.values().forEach(tag -> tag.cache.clear())

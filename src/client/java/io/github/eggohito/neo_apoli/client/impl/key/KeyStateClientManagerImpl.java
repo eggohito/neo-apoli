@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.impl.key;
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
-import io.github.eggohito.neo_apoli.network.packet.c2s.SynchronizeKeyStatesC2SPacket;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
@@ -86,7 +85,7 @@ public class KeyStateClientManagerImpl extends KeyStateManagerImpl {
 	private static void send(Object2BooleanMap<String> updated) {
 
 		if (!updated.isEmpty()) {
-			ClientPlayNetworking.send(new SynchronizeKeyStatesC2SPacket(updated));
+			ClientPlayNetworking.send(new ServerboundKeyStatesUpdatePacket(updated));
 		}
 
 	}

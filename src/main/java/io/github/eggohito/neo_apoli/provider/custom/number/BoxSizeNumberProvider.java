@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 
-	public static final MapCodec<BoxSizeNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<BoxSizeNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(BoxProvider.CODEC.fieldOf("box").forGetter(BoxSizeNumberProvider::box))
 		.apply(instance, BoxSizeNumberProvider::new));
 
@@ -27,7 +27,7 @@ public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		Context boxContext = context.forChild(".box");
 		AABB box = box().nextBox(boxContext);

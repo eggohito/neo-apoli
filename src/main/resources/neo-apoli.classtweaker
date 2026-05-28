@@ -12,6 +12,7 @@ mutable     field	net/minecraft/world/entity/player/StackedItemContents       ra
 accessible	field	net/minecraft/world/entity/player/StackedItemContents	    raw             Lnet/minecraft/world/entity/player/StackedContents;
 accessible  class   net/minecraft/client/resources/model/AtlasSet$AtlasEntry
 accessible  class   net/minecraft/util/random/WeightedList$Selector
+accessible  class   net/minecraft/resources/RegistryOps$HolderLookupAdapter
 
 transitive-inject-interface net/minecraft/client/renderer/entity/state/EntityRenderState io/github/eggohito/neo_apoli/client/api/misc/EntityRenderCache
 transitive-inject-interface net/minecraft/commands/CommandSourceStack io/github/eggohito/neo_apoli/api/misc/ContextBuilderHolder

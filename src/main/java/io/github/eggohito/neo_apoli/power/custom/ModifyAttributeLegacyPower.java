@@ -27,7 +27,7 @@ import java.util.Optional;
 @Getter
 public class ModifyAttributeLegacyPower extends AttributeModifyingPower {
 
-	public static final MapCodec<ModifyAttributeLegacyPower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addConditionalAttributeModifyingAndFields(instance)
+	public static final MapCodec<ModifyAttributeLegacyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addConditionalAttributeModifyingAndFields(instance)
 		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeLegacyPower::getTickRate))
 		.apply(instance, ModifyAttributeLegacyPower::new));
 
@@ -99,7 +99,7 @@ public class ModifyAttributeLegacyPower extends AttributeModifyingPower {
 		public void onTick(Entity holder) {
 
 			Context context = createHolderContext(holder);
-			int tickRate = power.getTickRate().nextInt(context.forChild(".tick_rate"));
+			int tickRate = power.getTickRate().getInt(context.forChild(".tick_rate"));
 
 			if (context.hasAnyErrors()) {
 

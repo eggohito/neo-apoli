@@ -2,22 +2,37 @@ package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
-import io.github.eggohito.neo_apoli.condition.custom.meta.InvertedMetaCondition;
-import io.github.eggohito.neo_apoli.registry.condition.NeoApoliConditionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record InvertedCondition(Condition condition) implements InvertedMetaCondition<Condition> {
+public record InvertedCondition(Condition condition) implements Condition {
 
-	public static final MapCodec<InvertedCondition> MAP_CODEC = MapCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.mapCodec(Condition.CODEC, InvertedCondition::new));
+	public static final MapCodec<InvertedCondition> CODEC = Condition.CODEC.fieldOf("condition").xmap(
+		InvertedCondition::new,
+		InvertedCondition::condition
+	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedCondition> STREAM_CODEC = StreamCodecUtil.lazy(InvertedCondition.class.getSimpleName(), () -> InvertedMetaCondition.streamCodec(Condition.STREAM_CODEC, InvertedCondition::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedCondition> STREAM_CODEC = Condition.STREAM_CODEC.map(
+		InvertedCondition::new,
+		InvertedCondition::condition
+	);
 
 	@Override
 	public Type<?> getType() {
 		return NeoApoliConditionTypes.INVERTED;
+	}
+
+	@Override
+	public boolean test(Context context) {
+		return !condition().test(context.forChild(".condition"));
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		Condition.super.validate(validator);
+		condition().validate(validator.forChild(".condition"));
 	}
 
 }

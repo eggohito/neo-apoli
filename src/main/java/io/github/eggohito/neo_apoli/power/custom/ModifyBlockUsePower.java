@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.action.custom.item.NothingItemAction;
+import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
@@ -15,6 +15,7 @@ import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.BlockUsePhase;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import lombok.EqualsAndHashCode;
@@ -44,7 +45,7 @@ import java.util.function.Supplier;
 @Getter
 public class ModifyBlockUsePower extends Power implements PrioritizedPower<ModifyBlockUsePower> {
 
-	public static final MapCodec<ModifyBlockUsePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
 		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::getConditions))
 		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::getUsePhases))
@@ -106,12 +107,10 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 				: SlotAccess.NULL;
 
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withRequired(NeoApoliContextParams.BLOCK_STATE, level.getBlockState(blockPos))
-				.withNullable(NeoApoliContextParams.BLOCK_ENTITY, level.getBlockEntity(blockPos))
+				.withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
+				.withRequired(NeoApoliContextParams.SLOT, slotAccess)
+				.withRequired(NeoApoliContextParams.ITEM, slotAccess.get())
 				.withRequired(NeoApoliContextParams.DIRECTION, blockResult.getDirection())
-				.withRequired(NeoApoliContextParams.SLOT_ACCESS, slotAccess)
-				.withRequired(NeoApoliContextParams.ITEM_STACK, slotAccess.get())
 				.buildWithRequirements(level, NeoApoliPowerTypes.MODIFY_BLOCK_USE.keySet());
 
 		}
@@ -130,7 +129,7 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 	public record Actions(Action action, InteractionResult result) implements ContextUser {
 
 		public static final MapCodec<Actions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Action.CODEC.optionalFieldOf("action", NothingItemAction.INSTANCE).forGetter(Actions::action),
+			Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(Actions::action),
 			NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(Actions::result)
 		).apply(instance, Actions::new));
 

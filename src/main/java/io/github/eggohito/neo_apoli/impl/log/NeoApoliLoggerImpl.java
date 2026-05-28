@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.impl.log;
 
-import io.github.eggohito.neo_apoli.network.packet.s2c.ClearLogsS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundLogsClearPacket;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -14,7 +14,7 @@ public class NeoApoliLoggerImpl {
 
 	public static void init() {
 
-		PayloadTypeRegistry.playS2C().register(ClearLogsS2CPacket.TYPE, ClearLogsS2CPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ClientboundLogsClearPacket.TYPE, ClientboundLogsClearPacket.CODEC);
 
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, manager, success) -> {
 
@@ -23,7 +23,7 @@ public class NeoApoliLoggerImpl {
 			}
 
 			CACHE.clear();
-			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClearLogsS2CPacket.INSTANCE));
+			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClientboundLogsClearPacket.INSTANCE));
 
 		});
 

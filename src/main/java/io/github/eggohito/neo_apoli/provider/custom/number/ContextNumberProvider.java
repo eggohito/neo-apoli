@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -16,9 +17,15 @@ import java.util.Set;
 
 public record ContextNumberProvider(Context.Parameter<Number> parameter) implements NumberProvider {
 
-	public static final MapCodec<ContextNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+	public static final MapCodec<ContextNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParams.Codecs.NUMBER.fieldOf("parameter").forGetter(ContextNumberProvider::parameter))
-		.apply(instance, ContextNumberProvider::new));
+		.apply(instance, ContextNumberProvider::new)
+	);
+
+	public static final Codec<ContextNumberProvider> INLINE_CODEC = NeoApoliContextParams.Codecs.NUMBER.xmap(
+		ContextNumberProvider::new,
+		ContextNumberProvider::parameter
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		NeoApoliContextParams.StreamCodecs.NUMBER, ContextNumberProvider::parameter,
@@ -31,7 +38,7 @@ public record ContextNumberProvider(Context.Parameter<Number> parameter) impleme
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
 		ResourceLocation id = parameter().name();
 		Optional<Number> number = context.getOptional(parameter());

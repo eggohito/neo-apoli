@@ -3,30 +3,28 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.Set;
 
-public record EffectAmplifierNumberProvider(Holder<MobEffect> effect, Context.Parameter<Entity> entity) implements NumberProvider {
+public record EffectAmplifierNumberProvider(Holder<MobEffect> effect, EntityProvider entity) implements NumberProvider {
 
-	public static final MapCodec<EffectAmplifierNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<EffectAmplifierNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		MobEffect.CODEC.fieldOf("effect").forGetter(EffectAmplifierNumberProvider::effect),
-		NeoApoliContextParams.Codecs.ENTITY.fieldOf("entity").forGetter(EffectAmplifierNumberProvider::entity)
+		EntityProvider.CODEC.fieldOf("entity").forGetter(EffectAmplifierNumberProvider::entity)
 	).apply(instance, EffectAmplifierNumberProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EffectAmplifierNumberProvider> STREAM_CODEC = StreamCodec.composite(
 		MobEffect.STREAM_CODEC, EffectAmplifierNumberProvider::effect,
-		NeoApoliContextParams.StreamCodecs.ENTITY, EffectAmplifierNumberProvider::entity,
+		EntityProvider.STREAM_CODEC, EffectAmplifierNumberProvider::entity,
 		EffectAmplifierNumberProvider::new
 	);
 
@@ -36,18 +34,21 @@ public record EffectAmplifierNumberProvider(Holder<MobEffect> effect, Context.Pa
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 
-		switch (context.getNullable(entity())) {
+		Context entityContext = context.forChild(".entity");
+		Entity entity = entity().getEntity(entityContext).orElse(null);
+
+		switch (entity) {
 			case LivingEntity livingEntity when livingEntity.hasEffect(effect()) -> {
 				return Objects.requireNonNull(livingEntity.getEffect(effect())).getAmplifier();
 			}
 			case LivingEntity ignored ->
-				context.reportProblem("Entity from parameter \"" + entity().name() + "\" doesn't have the effect \"" + effect().unwrapKey().orElseThrow().location() + "\"!");
+				entityContext.reportProblem("Entity doesn't have the effect \"" + effect().unwrapKey().orElseThrow().location() + "\"!");
 			case null ->
-				context.reportProblem("Entity from parameter \"" + entity().name() + "\" doesn't exist!");
+				entityContext.reportProblem("Entity doesn't exist!");
 			default ->
-				context.reportProblem("Entity from parameter \"" + entity().name() + "\" is not a living entity!");
+				entityContext.reportProblem("Entity is not a living entity!");
 		}
 
 		return 0;
@@ -55,8 +56,9 @@ public record EffectAmplifierNumberProvider(Holder<MobEffect> effect, Context.Pa
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(entity());
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		entity().validate(validator.forChild(".entity"));
 	}
 
 }

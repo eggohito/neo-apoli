@@ -12,6 +12,7 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.ResourceLocationException;
@@ -41,7 +42,7 @@ import java.util.regex.Pattern;
 @Getter
 public class ReplaceLootTablePower extends Power implements PrioritizedPower<ReplaceLootTablePower> {
 
-	public static final MapCodec<ReplaceLootTablePower> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
+	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(NeoApoliCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::getReplacements))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::getPriority))
 		.apply(instance, ReplaceLootTablePower::new));
@@ -96,10 +97,8 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, lootContext.getOptionalParameter(LootContextParams.THIS_ENTITY))
-				.withOptional(NeoApoliContextParams.BLOCK_POS, blockPos)
-				.withOptional(NeoApoliContextParams.BLOCK_STATE, blockState)
-				.withOptional(NeoApoliContextParams.BLOCK_ENTITY, blockEntity)
-				.withNullable(NeoApoliContextParams.ITEM_STACK, lootContext.getOptionalParameter(LootContextParams.TOOL))
+				.withOptional(NeoApoliContextParams.BLOCK, blockPos.flatMap(pos -> blockState.map(state -> new CachedBlock(pos, state, blockEntity.orElse(null)))))
+				.withNullable(NeoApoliContextParams.ITEM, lootContext.getOptionalParameter(LootContextParams.TOOL))
 				.build(lootContext.getLevel());
 
 		}

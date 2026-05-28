@@ -7,8 +7,10 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.HudRenderPhase;
+import io.github.eggohito.neo_apoli.util.CodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,8 +27,8 @@ public interface HudElement extends ContextUser {
 
 	int order();
 
-	default boolean shouldRender(Context context, HudRenderPhase renderPhase) {
-		return renderPhase == HudRenderPhase.ABOVE_HUD;
+	default boolean shouldRender(Context context, RenderPhase renderPhase) {
+		return renderPhase == RenderPhase.ABOVE_HUD;
 	}
 
 	default boolean hideWithHud(Context context) {
@@ -47,6 +49,18 @@ public interface HudElement extends ContextUser {
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
+
+	}
+
+	enum RenderPhase {
+
+		BELOW_HUD,
+
+		ABOVE_HUD;
+
+		public static final Codec<RenderPhase> CODEC = CodecUtil.enumType(RenderPhase.class);
+
+		public static final StreamCodec<ByteBuf, RenderPhase> STREAM_CODEC = StreamCodecUtil.enumType(RenderPhase.class);
 
 	}
 

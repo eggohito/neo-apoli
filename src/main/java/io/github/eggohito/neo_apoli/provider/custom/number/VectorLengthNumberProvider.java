@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record VectorLengthNumberProvider(Vec3Provider vector) implements NumberProvider {
 
-    public static final MapCodec<VectorLengthNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    public static final MapCodec<VectorLengthNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Vec3Provider.CODEC.fieldOf("vector").forGetter(VectorLengthNumberProvider::vector)
     ).apply(instance, VectorLengthNumberProvider::new));
 
@@ -27,10 +27,10 @@ public record VectorLengthNumberProvider(Vec3Provider vector) implements NumberP
     }
 
     @Override
-    public double nextDouble(Context context) {
+    public double getDouble(Context context) {
 
         Context vectorContext = context.forChild(".vector");
-        Vec3 vector = vector().nextVec3(vectorContext);
+        Vec3 vector = vector().getVec3(vectorContext);
 
         if (vectorContext.hasErrors()) {
             return 0.0D;

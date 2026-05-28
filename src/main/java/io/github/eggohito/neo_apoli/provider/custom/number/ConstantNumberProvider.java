@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConstantNumberProvider(double value) implements NumberProvider {
 
-	public static final MapCodec<ConstantNumberProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ConstantNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.DOUBLE.fieldOf("value").forGetter(ConstantNumberProvider::value)
 	).apply(instance, ConstantNumberProvider::new));
 
@@ -32,7 +32,7 @@ public record ConstantNumberProvider(double value) implements NumberProvider {
 	}
 
 	@Override
-	public double nextDouble(Context context) {
+	public double getDouble(Context context) {
 		return value();
 	}
 

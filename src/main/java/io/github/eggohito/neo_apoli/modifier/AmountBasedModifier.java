@@ -16,7 +16,7 @@ public interface AmountBasedModifier extends Modifier {
 
 	@Override
 	default double apply(Context context, double base, double total) {
-		return calculate(amount().nextDouble(context.forChild(".amount")), base, total);
+		return calculate(amount().getDouble(context.forChild(".amount")), base, total);
 	}
 
 	@Override

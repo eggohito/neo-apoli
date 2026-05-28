@@ -1,11 +1,11 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.crafting_recipe;
 
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.network.packet.s2c.SynchronizePowerRecipeDisplaysS2CPacket;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerRecipeDisplaysUpdatePacket;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.PowerManager;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
+import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -98,7 +98,7 @@ public abstract class RecipeManagerMixin implements PowerRecipeDisplayHolder {
 	@Override
 	public void neo_apoli$sendAll(ServerPlayer recipient) {
 
-		SynchronizePowerRecipeDisplaysS2CPacket packet = new SynchronizePowerRecipeDisplaysS2CPacket(this.neo_apoli$getPowerIdsByIndex());
+		ClientboundPowerRecipeDisplaysUpdatePacket packet = new ClientboundPowerRecipeDisplaysUpdatePacket(this.neo_apoli$getPowerIdsByIndex());
 
 		if (ServerPlayNetworking.canSend(recipient, packet.type())) {
 			ServerPlayNetworking.send(recipient, packet);

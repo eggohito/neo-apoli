@@ -1,23 +1,26 @@
 package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.provider.custom.item.ItemProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+public record ItemCountMaxNumberProvider(ItemProvider item) implements NumberProvider {
 
-public enum ItemCountMaxNumberProvider implements NumberProvider {
+	public static final MapCodec<ItemCountMaxNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ItemProvider.CODEC.fieldOf("item").forGetter(ItemCountMaxNumberProvider::item))
+		.apply(instance, ItemCountMaxNumberProvider::new)
+	);
 
-	INSTANCE;
-
-	public static final MapCodec<ItemCountMaxNumberProvider> MAP_CODEC = MapCodec.unit(INSTANCE);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ItemCountMaxNumberProvider> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ItemCountMaxNumberProvider> STREAM_CODEC = StreamCodec.composite(
+		ItemProvider.STREAM_CODEC, ItemCountMaxNumberProvider::item,
+		ItemCountMaxNumberProvider::new
+	);
 
 	@Override
 	public @NotNull NumberProvider.Type<?> getType() {
@@ -25,15 +28,25 @@ public enum ItemCountMaxNumberProvider implements NumberProvider {
 	}
 
 	@Override
-	public double nextDouble(Context context) {
-		return context.getOptional(NeoApoliContextParams.ITEM_STACK)
-			.map(ItemStack::getMaxStackSize)
-			.orElse(0);
+	public double getDouble(Context context) {
+
+		Context itemContext = context.forChild(".item");
+		ItemStack item = item().nextItem(itemContext);
+
+		if (itemContext.hasErrors()) {
+			return 0;
+		}
+
+		else {
+			return item.getMaxStackSize();
+		}
+
 	}
 
 	@Override
-	public Set<ContextKey<?>> getRequiredParameters() {
-		return Set.of(NeoApoliContextParams.ITEM_STACK);
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		item().validate(validator.forChild(".item"));
 	}
 
 }

@@ -4,10 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.mixin.access.CommandSourceStackAccessor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.quiltmc.parsers.json.JsonFormat;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -55,6 +58,13 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 
 		private boolean showOutput;
 		private int permissionLevel;
+
+		public CommandSourceStack sanitize(CommandSourceStack commandSource) {
+			CommandSource output = ((CommandSourceStackAccessor) commandSource).getOutput();
+			return commandSource
+				.withSource(showOutput() ? output : CommandSource.NULL)
+				.withPermission(permissionLevel());
+		}
 
 	}
 
