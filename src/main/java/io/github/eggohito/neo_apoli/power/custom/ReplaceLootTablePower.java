@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.ResourceLocationException;
@@ -106,6 +107,8 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 		public Optional<ResourceKey<LootTable>> getReplacement(Context context, ResourceKey<LootTable> key) {
 
 			String tableId = key.location().toString();
+			ResourceLocationUtil.setCurrent(this.id.value());
+
 			for (Map.Entry<Pattern, String> entry : power.getReplacements().entrySet()) {
 
 				Pattern regex = entry.getKey();
@@ -124,13 +127,14 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 					}
 
 					catch (ResourceLocationException e) {
-						context.forChild("." + regex.pattern()).reportProblem(e.getMessage());
+						context.forChild(".\"" + regex.pattern() + "\"").reportProblem(e.getMessage());
 					}
 
 				}
 
 			}
 
+			ResourceLocationUtil.setCurrent(null);
 			return Optional.empty();
 
 		}
