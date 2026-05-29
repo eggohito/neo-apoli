@@ -25,7 +25,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -138,18 +137,6 @@ public class NeoApoli implements ModInitializer {
 	public static boolean serverSide() {
 		return server != null
 			&& server.isSameThread();
-	}
-
-	public static CommandSource validateCommandOutput(CommandSource commandOutput) {
-
-		if (getConfig().command.get().showOutput()) {
-			return commandOutput;
-		}
-
-		else {
-			return CommandSource.NULL;
-		}
-
 	}
 
 	public static void logOnce(Level level, String message) {

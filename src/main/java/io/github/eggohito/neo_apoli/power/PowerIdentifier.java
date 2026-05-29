@@ -35,11 +35,11 @@ public final class PowerIdentifier implements StringDisplayable, ContextUser {
 
 	public static final char SEPARATOR = '@';
 
-	private final ResourceLocation id;
+	private final ResourceLocation value;
 	private final @Nullable String subName;
 
-	PowerIdentifier(ResourceLocation id, @Nullable String subName) {
-		this.id = ResourceLocationUtil.validateNonEmpty(id).getOrThrow();
+	PowerIdentifier(ResourceLocation value, @Nullable String subName) {
+		this.value = ResourceLocationUtil.validateNonEmpty(value).getOrThrow();
 		this.subName = subName != null
 			? MultiplePower.validateSubPowerName(subName).getOrThrow()
 			: null;
@@ -48,8 +48,8 @@ public final class PowerIdentifier implements StringDisplayable, ContextUser {
 	@Override
 	public String asDisplayString() {
 		return isSubPower()
-			? "Sub-power \"" + subName() + "\" of power \"" + id() + "\""
-			: "Power \"" + id() + "\"";
+			? "Sub-power \"" + subName() + "\" of power \"" + value() + "\""
+			: "Power \"" + value() + "\"";
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public final class PowerIdentifier implements StringDisplayable, ContextUser {
 
 	@Override
 	public @NotNull String toString() {
-		return id() + (isSubPower() ? SEPARATOR + subName() : "");
+		return value() + (isSubPower() ? SEPARATOR + subName() : "");
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public final class PowerIdentifier implements StringDisplayable, ContextUser {
 		}
 
 		else if (obj instanceof PowerIdentifier that) {
-			return Objects.equals(this.id(), that.id())
+			return Objects.equals(this.value(), that.value())
 				&& Objects.equals(this.subName(), that.subName());
 		}
 
@@ -82,11 +82,11 @@ public final class PowerIdentifier implements StringDisplayable, ContextUser {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id(), subName());
+		return Objects.hash(value(), subName());
 	}
 
 	public String createTranslationKey() {
-		return Util.makeDescriptionId("power", id()) + (isSubPower() ? SEPARATOR + subName() : "");
+		return Util.makeDescriptionId("power", value()) + (isSubPower() ? SEPARATOR + subName() : "");
 	}
 
 	public boolean isSubPower() {
