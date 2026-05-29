@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.mixin.access.ResourceLocationAccessor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+@SuppressWarnings("UnstableApiUsage")
 public class ResourceLocationUtil {
 
 	private static final char PLACEHOLDER = '*';
@@ -35,18 +36,6 @@ public class ResourceLocationUtil {
 
 	public static ResourceLocation nonEmpty(ResourceLocation id) {
 		return validateNonEmpty(id).getOrThrow();
-	}
-
-	public static String replaceWithCurrent(String input, Function<ResourceLocation, String> replacement) {
-
-		if (getCurrent() != null && NeoApoli.getConfig().placeholderIdentifier.get().enabled()) {
-			return input.replace(String.valueOf(PLACEHOLDER), replacement.apply(getCurrent()));
-		}
-
-		else {
-			return input;
-		}
-
 	}
 
 	public static ResourceLocation bySeparatorAndDefaultNamespace(String input, String separator, String defaultNamespace) {
@@ -95,9 +84,29 @@ public class ResourceLocationUtil {
 	}
 
 	public static boolean isEnabledAndPlaceholder(char ch) {
-		return getCurrent() != null
-			&& NeoApoli.getConfig().placeholderIdentifier.get().enabled()
+		return NeoApoliCommonConfig.INSTANCE.placeholderIdentifier.get().enabled()
 			&& ch == PLACEHOLDER;
+	}
+
+	public static String replaceWithCurrent(String input, Function<ResourceLocation, String> replacement) {
+
+		ResourceLocation current = getCurrent();
+		String placeholderString = String.valueOf(PLACEHOLDER);
+
+		if (NeoApoliCommonConfig.INSTANCE.placeholderIdentifier.get().enabled()) {
+
+			if (current != null) {
+				return input.replace(placeholderString, replacement.apply(current));
+			}
+
+			if (input.contains(placeholderString)) {
+				throw new ResourceLocationException("The '*' placeholder doesn't have any value, but it's used");
+			}
+
+		}
+
+		return input;
+
 	}
 
 }

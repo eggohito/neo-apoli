@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.mixin.impl.misc.placeholder_identifier;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,13 +23,29 @@ public abstract class ResourceLocationMixin {
     }
 
     @ModifyReturnValue(method = "assertValidNamespace", at = @At("RETURN"))
-    private static String replacePlaceholderInNamespaces(String original) {
-        return ResourceLocationUtil.replaceWithCurrent(original, ResourceLocation::getNamespace);
+    private static String replacePlaceholderInNamespaces(String original, String namespace, String path) {
+
+        try {
+            return ResourceLocationUtil.replaceWithCurrent(original, ResourceLocation::getNamespace);
+        }
+
+        catch (ResourceLocationException e) {
+            throw new ResourceLocationException(e.getMessage() + " in location: '" + namespace + ":" + path);
+        }
+
     }
 
     @ModifyReturnValue(method = "assertValidPath", at = @At("RETURN"))
-    private static String replacePlaceholderInPaths(String original) {
-        return ResourceLocationUtil.replaceWithCurrent(original, ResourceLocation::getPath);
+    private static String replacePlaceholderInPaths(String original, String namespace, String path) {
+
+        try {
+            return ResourceLocationUtil.replaceWithCurrent(original, ResourceLocation::getPath);
+        }
+
+        catch (ResourceLocationException e) {
+            throw new ResourceLocationException(e.getMessage() + " in location: '" + namespace + ":" + path);
+        }
+
     }
 
 }
