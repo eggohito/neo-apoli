@@ -37,6 +37,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<SequenceAction> SEQUENCE = registerInternal("sequence", SequenceAction.CODEC, SequenceAction.STREAM_CODEC);
 	public static final Action.Type<SetEntityOnFireAction> SET_ENTITY_ON_FIRE = registerInternal("set_entity_on_fire", SetEntityOnFireAction.CODEC, SetEntityOnFireAction.STREAM_CODEC);
 	public static final Action.Type<ShootEntityAction> SHOOT_ENTITY = registerInternal("shoot_entity", ShootEntityAction.CODEC, ShootEntityAction.STREAM_CODEC);
+	public static final Action.Type<SideAction> SIDE = registerInternal("side", SideAction.CODEC, SideAction.STREAM_CODEC);
 	public static final Action.Type<SpawnParticlesAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesAction.CODEC, SpawnParticlesAction.STREAM_CODEC);
 	public static final Action.Type<SwingHandAction> SWING_HAND = registerInternal("swing_hand", SwingHandAction.CODEC, SwingHandAction.STREAM_CODEC);
 	public static final Action.Type<SwitchAction> SWITCH = registerInternal("switch", SwitchAction.CODEC, SwitchAction.STREAM_CODEC);
