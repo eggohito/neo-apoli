@@ -34,6 +34,7 @@
 	"commands.neo-apoli.power.revoke.fail.single": "Entity %s didn't have the power '%s' from source '%s'",
 	"commands.neo-apoli.power.revoke.success.multiple": "%s entities had power '%s' from source '%s' revoked",
 	"commands.neo-apoli.power.revoke.success.single": "Entity %s had power '%s' from source '%s' revoked",
+	"config.neo-apoli": "neo-apoli",
 	"config.neo-apoli.common.command.description": "Options for controlling behavior of types that execute Minecraft commands.",
 	"config.neo-apoli.common.command.name": "Commands",
 	"config.neo-apoli.common.command.option.permission_level.description": "Determines the level of permission for the command that will be executed.",
@@ -66,5 +67,6 @@
 	"config.neo-apoli.type.power.multiple.name": "Multiple",
 	"config.neo-apoli.type.power.multiple.option.enabled.description": "Determines whether the power type is enabled.",
 	"config.neo-apoli.type.power.multiple.option.enabled.name": "Enabled",
-	"config.neo-apoli.type.power.name": "Power types"
+	"config.neo-apoli.type.power.name": "Power types",
+	"power.type.neo-apoli.crafting_recipe.missing_power": "Missing power: %s"
 }

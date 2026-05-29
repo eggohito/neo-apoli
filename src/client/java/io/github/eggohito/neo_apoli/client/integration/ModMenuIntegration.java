@@ -18,7 +18,7 @@ public class ModMenuIntegration implements ModMenuApi {
 		return screen -> {
 
 			var yacl = YetAnotherConfigLib.createBuilder()
-				.title(Component.literal("neo-apoli"))
+				.title(Component.translatable("config.neo-apoli"))
 				.category(this.createCommonCategory())
 				.category(this.createHudElementTypesCategory())
 				.category(this.createPowerTypesCategory())

@@ -44,7 +44,7 @@ public abstract class RecipeButtonMixin {
 		}
 
 		components.add(Component.empty());
-		components.add(Component.literal("Missing power: ").withStyle(ChatFormatting.RED).append(PowerManager.get(powerId).name()));
+		components.add(Component.translatable("power.type.neo-apoli.crafting_recipe.missing_power", PowerManager.get(powerId).name().copy().withStyle(ChatFormatting.RED)));
 
 	}
 
