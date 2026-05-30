@@ -67,7 +67,7 @@ public class ModifyEffectDurationPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.withRequired(NeoApoliContextParams.EFFECT, effectInstance)
+				.withRequired(NeoApoliContextParams.APPLIED_EFFECT, effectInstance)
 				.build(holder.level());
 		}
 

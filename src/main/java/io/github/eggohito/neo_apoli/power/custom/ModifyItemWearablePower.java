@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ItemContextParameter;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -31,10 +32,11 @@ import java.util.function.Function;
 @Getter
 public class ModifyItemWearablePower extends Power {
 
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+	public static final Context.Parameter<ItemStack> WORN_ITEM = NeoApoliContextParams.registerInternal("worn_item", ItemContextParameter::new);
+
 	private static final Codec<EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, Case.codec(Condition.CODEC.fieldOf("condition"), BooleanProvider.CODEC.fieldOf("allow")))).xmap(EnumMap::new, Function.identity());
 	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Case.streamCodec(Condition.STREAM_CODEC, BooleanProvider.STREAM_CODEC));
-
-	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::getSlots))
@@ -89,7 +91,7 @@ public class ModifyItemWearablePower extends Power {
 
 		public Context createContext(Entity holder, ItemStack stack) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.ITEM, stack)
+				.withRequired(WORN_ITEM, stack)
 				.build(holder.level());
 		}
 

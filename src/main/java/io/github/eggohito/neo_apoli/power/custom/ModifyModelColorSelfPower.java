@@ -68,7 +68,7 @@ public class ModifyModelColorSelfPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_MODEL_COLOR_OTHER.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_MODEL_COLOR_OTHER.requirements());
 		}
 
 		public int getColor(Context context) {

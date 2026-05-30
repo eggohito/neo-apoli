@@ -86,8 +86,8 @@ public class CallbackBlockBreakPower extends Power implements PrioritizedPower<C
 
 		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity, @Nullable Direction side) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
-				.withNullable(NeoApoliContextParams.DIRECTION, side)
+				.withRequired(NeoApoliContextParams.BROKEN_BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
+				.withNullable(NeoApoliContextParams.BROKEN_SIDE, side)
 				.build(holder.level());
 		}
 

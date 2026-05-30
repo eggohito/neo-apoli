@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.ItemContextParameter;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
@@ -26,6 +27,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -43,6 +45,9 @@ import java.util.regex.Pattern;
 @Getter
 public class ReplaceLootTablePower extends Power implements PrioritizedPower<ReplaceLootTablePower> {
 
+	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, NeoApoli.id("replaced_loot_table"));
+	public static final Context.Parameter<ItemStack> TOOL_ITEM = NeoApoliContextParams.registerInternal("tool_item", ItemContextParameter::new);
+
 	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(NeoApoliCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::getReplacements))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::getPriority))
@@ -54,8 +59,6 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 		ByteBufCodecs.INT, ReplaceLootTablePower::getPriority,
 		ReplaceLootTablePower::new
 	);
-
-	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, NeoApoli.id("replaced_loot_table"));
 
 	private static final Stack<LootTable> REPLACEMENT_STACK = new Stack<>();
 	private static final Stack<LootTable> BACKTRACK_STACK = new Stack<>();
@@ -98,8 +101,8 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, lootContext.getOptionalParameter(LootContextParams.THIS_ENTITY))
-				.withOptional(NeoApoliContextParams.BLOCK, blockPos.flatMap(pos -> blockState.map(state -> new CachedBlock(pos, state, blockEntity.orElse(null)))))
-				.withNullable(NeoApoliContextParams.ITEM, lootContext.getOptionalParameter(LootContextParams.TOOL))
+				.withOptional(NeoApoliContextParams.BROKEN_BLOCK, blockPos.flatMap(pos -> blockState.map(state -> new CachedBlock(pos, state, blockEntity.orElse(null)))))
+				.withNullable(TOOL_ITEM, lootContext.getOptionalParameter(LootContextParams.TOOL))
 				.build(lootContext.getLevel());
 
 		}

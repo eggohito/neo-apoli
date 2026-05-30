@@ -46,9 +46,9 @@ import java.util.Optional;
 
 public record ExplodeAction(Condition damageableCondition, Condition destructibleCondition, Display display, Property property, Vec3Provider position, Optional<EntityProvider> emitter) implements Action {
 
-	public static final Context.Parameter<CachedBlock> EXPLODED_BLOCK = NeoApoliContextParams.registerSimpleInternal("action/exploded_block", CachedBlock.class);
-	public static final Context.Parameter<Entity> EMITTER_ENTITY = NeoApoliContextParams.registerSimpleInternal("action/emitter_entity", Entity.class);
-	public static final Context.Parameter<Entity> EXPLODED_ENTITY = NeoApoliContextParams.registerSimpleInternal("action/exploded_entity", Entity.class);
+	public static final Context.Parameter<CachedBlock> EXPLODED_BLOCK = NeoApoliContextParams.registerSimpleInternal("exploded_block", CachedBlock.class);
+	public static final Context.Parameter<Entity> EMITTER_ENTITY = NeoApoliContextParams.registerSimpleInternal("emitter_entity", Entity.class);
+	public static final Context.Parameter<Entity> EXPLODED_ENTITY = NeoApoliContextParams.registerSimpleInternal("exploded_entity", Entity.class);
 
 	public static final ContextKeySet DAMAGEABLE_PARAMETER_SET = new ContextKeySet.Builder()
 		.required(EXPLODED_ENTITY)

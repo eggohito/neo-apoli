@@ -70,13 +70,13 @@ public class CallbackDamageDealtPower extends Power implements PrioritizedPower<
 
 		public Context createContext(Entity holder, Entity target, DamageSource source, float amount) {
 			return this.createHolderContextBuilder(holder)
+				.withRequired(NeoApoliContextParams.DEALT_DAMAGE_SOURCE, source)
+				.withRequired(NeoApoliContextParams.DEALT_DAMAGE_AMOUNT, amount)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, holder)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
-				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
-				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_DAMAGE_DEALT.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.CALLBACK_DAMAGE_DEALT.requirements());
 		}
 
 		public void execute(Context context) {

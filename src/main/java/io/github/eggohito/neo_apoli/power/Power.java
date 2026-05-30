@@ -193,7 +193,7 @@ public abstract class Power implements ContextUser {
 
 	}
 
-	public record Type<P extends Power>(ContextKeySet keySet, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+	public record Type<P extends Power>(ContextKeySet requirements, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
 
 		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.POWER_TYPE);
 

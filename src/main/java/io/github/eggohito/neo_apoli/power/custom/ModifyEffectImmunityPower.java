@@ -51,8 +51,8 @@ public class ModifyEffectImmunityPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, source)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.withRequired(NeoApoliContextParams.EFFECT, effectInstance)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.keySet());
+				.withRequired(NeoApoliContextParams.APPLIED_EFFECT, effectInstance)
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_EFFECT_DURATION.requirements());
 		}
 
 	}

@@ -42,14 +42,21 @@ public class NeoApoliContextParams {
 	public static final Context.Parameter<Entity> TARGET_ENTITY = registerInternal("target_entity", EntityContextParameter::new);
 	public static final Context.Parameter<Entity> THIS_ENTITY = registerInternal("this_entity", EntityContextParameter::new);
 
-	public static final Context.Parameter<CachedBlock> BLOCK = registerInternal("block", BlockContextParameter::new);
-	public static final Context.Parameter<Direction> DIRECTION = registerInternal("direction", id -> new EnumContextParameter<>(id, Direction.class));
-	public static final Context.Parameter<ItemStack> ITEM = registerInternal("item", ItemContextParameter::new);
-	public static final Context.Parameter<SlotAccess> SLOT = registerInternal("slot", SlotAccessContextParameter::new);
+	public static final Context.Parameter<CachedBlock> BROKEN_BLOCK = registerInternal("broken_block", BlockContextParameter::new);
+	public static final Context.Parameter<Direction> BROKEN_SIDE = registerInternal("broken_side", id -> new EnumContextParameter<>(id, Direction.class));
 
-	public static final Context.Parameter<DamageSource> DAMAGE_SOURCE = registerSimpleInternal("damage_source", DamageSource.class);
-	public static final Context.Parameter<Float> DAMAGE_AMOUNT = registerSimpleInternal("damage_amount", Float.class);
-	public static final Context.Parameter<MobEffectInstance> EFFECT = registerSimpleInternal("effect", MobEffectInstance.class);
+	public static final Context.Parameter<CachedBlock> MINING_BLOCK = registerInternal("mining_block", BlockContextParameter::new);
+	public static final Context.Parameter<CachedBlock> SELECTED_BLOCK = registerInternal("selected_block", BlockContextParameter::new);
+
+	public static final Context.Parameter<Float> DEALT_DAMAGE_AMOUNT = registerSimpleInternal("dealt_damage/amount", Float.class);
+	public static final Context.Parameter<Float> TAKEN_DAMAGE_AMOUNT = registerSimpleInternal("taken_damage/amount", Float.class);
+	public static final Context.Parameter<DamageSource> DEALT_DAMAGE_SOURCE = registerSimpleInternal("dealt_damage/source", DamageSource.class);
+	public static final Context.Parameter<DamageSource> TAKEN_DAMAGE_SOURCE = registerSimpleInternal("taken_damage/source", DamageSource.class);
+
+	public static final Context.Parameter<MobEffectInstance> APPLIED_EFFECT = registerSimpleInternal("applied_effect", MobEffectInstance.class);
+
+	public static final Context.Parameter<ItemStack> USED_ITEM = registerInternal("used_item", ItemContextParameter::new);
+	public static final Context.Parameter<SlotAccess> USED_ITEM_SLOT = registerInternal("used_item_slot", SlotAccessContextParameter::new);
 
 	public static void registerAll() {
 		ALIASES.addPathAlias("actor", ACTOR_ENTITY);

@@ -53,11 +53,11 @@ public class ModifyDamageTakenPower extends DamageModifyingPower {
 			return this.createHolderContextBuilder(target)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, actor)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
-				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
-				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
+				.withRequired(NeoApoliContextParams.TAKEN_DAMAGE_SOURCE, source)
+				.withRequired(NeoApoliContextParams.TAKEN_DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
-				.buildWithRequirements(target.level(), NeoApoliPowerTypes.MODIFY_DAMAGE_TAKEN.keySet());
+				.buildWithRequirements(target.level(), NeoApoliPowerTypes.MODIFY_DAMAGE_TAKEN.requirements());
 		}
 
 	}

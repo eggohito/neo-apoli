@@ -81,7 +81,7 @@ public class ModifyGlowingSelfPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_GLOWING_SELF.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_GLOWING_SELF.requirements());
 		}
 
 		public boolean doesApply(Context context, boolean hasTeamColor) {

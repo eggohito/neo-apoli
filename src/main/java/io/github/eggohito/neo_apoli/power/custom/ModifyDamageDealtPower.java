@@ -52,8 +52,8 @@ public class ModifyDamageDealtPower extends DamageModifyingPower {
 			return this.createHolderContextBuilder(actor)
 				.withRequired(NeoApoliContextParams.ACTOR_ENTITY, actor)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, target)
-				.withRequired(NeoApoliContextParams.DAMAGE_SOURCE, source)
-				.withRequired(NeoApoliContextParams.DAMAGE_AMOUNT, amount)
+				.withRequired(NeoApoliContextParams.DEALT_DAMAGE_SOURCE, source)
+				.withRequired(NeoApoliContextParams.DEALT_DAMAGE_AMOUNT, amount)
 				.withNullable(NeoApoliContextParams.DAMAGING_ENTITY, source.getEntity())
 				.withNullable(NeoApoliContextParams.DIRECT_DAMAGING_ENTITY, source.getDirectEntity())
 				.build(actor.level());

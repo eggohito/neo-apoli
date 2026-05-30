@@ -5,6 +5,8 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
+import io.github.eggohito.neo_apoli.context.parameter.EnumContextParameter;
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -33,6 +35,9 @@ import java.util.Optional;
 @EqualsAndHashCode
 @Getter
 public class CallbackProjectileLandPower extends CallbackPower {
+
+	public static final Context.Parameter<CachedBlock> LANDED_ON_BLOCK = NeoApoliContextParams.registerInternal("landed_on_block", BlockContextParameter::new);
+	public static final Context.Parameter<Direction> LANDED_ON_SIDE = NeoApoliContextParams.registerInternal("landed_on_side", id -> new EnumContextParameter<>(id, Direction.class));
 
 	public static final MapCodec<CallbackProjectileLandPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackProjectileLandPower::new);
@@ -85,11 +90,11 @@ public class CallbackProjectileLandPower extends CallbackPower {
 			}
 
 			return this.createHolderContextBuilder(holder)
+				.withRequired(LANDED_ON_BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
+				.withNullable(LANDED_ON_SIDE, side)
 				.withRequired(NeoApoliContextParams.PROJECTILE_ENTITY, projectile)
-				.withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, owner)
 				.withNullable(NeoApoliContextParams.TARGET_ENTITY, target)
-				.withNullable(NeoApoliContextParams.DIRECTION, side)
 				.build(level);
 
 		}

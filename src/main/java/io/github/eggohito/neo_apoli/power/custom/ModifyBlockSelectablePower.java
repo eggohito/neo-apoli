@@ -77,7 +77,7 @@ public class ModifyBlockSelectablePower extends Power implements PrioritizedPowe
 
 		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
+				.withRequired(NeoApoliContextParams.SELECTED_BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
 				.build(holder.level());
 		}
 

@@ -32,7 +32,6 @@ public class ModifyInvisibilityPower extends Power {
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_OUTLINE = Instance::isActiveAndShouldRenderOutline;
-
 	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = Instance::isActiveAndShouldRenderArmor;
 
 	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
@@ -88,7 +87,7 @@ public class ModifyInvisibilityPower extends Power {
 			return this.createHolderContextBuilder(holder)
 				.withNullable(NeoApoliContextParams.ACTOR_ENTITY, viewer)
 				.withRequired(NeoApoliContextParams.TARGET_ENTITY, holder)
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_INVISIBILITY.keySet());
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_INVISIBILITY.requirements());
 		}
 
 		public boolean isInvisibleTo(Context context) {

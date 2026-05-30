@@ -10,6 +10,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
+import io.github.eggohito.neo_apoli.context.parameter.EnumContextParameter;
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -46,6 +48,9 @@ import java.util.function.Supplier;
 @EqualsAndHashCode
 @Getter
 public class ModifyBlockUsePower extends Power implements PrioritizedPower<ModifyBlockUsePower> {
+
+	public static final Context.Parameter<CachedBlock> USED_BLOCK = NeoApoliContextParams.registerInternal("used_block", BlockContextParameter::new);
+	public static final Context.Parameter<Direction> USED_SIDE = NeoApoliContextParams.registerInternal("used_side", id -> new EnumContextParameter<>(id, Direction.class));
 
 	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
@@ -104,16 +109,16 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 
 			Level level = holder.level();
 			BlockPos blockPos  = blockResult.getBlockPos();
-			SlotAccess slotAccess = holder instanceof LivingEntity livingEntity
+			SlotAccess usedItemSlot = holder instanceof LivingEntity livingEntity
 				? SlotAccess.of(() -> livingEntity.getItemInHand(hand), stack -> livingEntity.setItemInHand(hand, stack))
 				: SlotAccess.NULL;
 
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
-				.withRequired(NeoApoliContextParams.SLOT, slotAccess)
-				.withRequired(NeoApoliContextParams.ITEM, slotAccess.get())
-				.withRequired(NeoApoliContextParams.DIRECTION, blockResult.getDirection())
-				.buildWithRequirements(level, NeoApoliPowerTypes.MODIFY_BLOCK_USE.keySet());
+				.withRequired(USED_BLOCK, CachedBlock.fromLoadedPos(level, blockPos))
+				.withRequired(USED_SIDE, blockResult.getDirection())
+				.withRequired(NeoApoliContextParams.USED_ITEM_SLOT, usedItemSlot)
+				.withRequired(NeoApoliContextParams.USED_ITEM, usedItemSlot.get())
+				.buildWithRequirements(level, NeoApoliPowerTypes.MODIFY_BLOCK_USE.requirements());
 
 		}
 
@@ -168,7 +173,7 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 		);
 
 		public boolean test(Context context, InteractionHand hand) {
-			return context.getOptional(NeoApoliContextParams.DIRECTION).map(directions()::contains).orElse(false)
+			return context.getOptional(USED_SIDE).map(directions()::contains).orElse(false)
 				&& hands().contains(hand);
 		}
 

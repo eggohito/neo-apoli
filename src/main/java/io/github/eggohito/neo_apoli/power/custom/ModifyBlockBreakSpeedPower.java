@@ -72,7 +72,7 @@ public class ModifyBlockBreakSpeedPower extends Power {
 
 		public Context createContext(Entity holder, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
+					.withRequired(NeoApoliContextParams.MINING_BLOCK, new CachedBlock(blockPos, blockState, blockEntity))
 				.build(holder.level());
 		}
 

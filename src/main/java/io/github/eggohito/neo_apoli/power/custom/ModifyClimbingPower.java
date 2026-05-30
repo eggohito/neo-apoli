@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.IsEntitySneakingCondition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
@@ -33,6 +34,7 @@ import java.util.function.BiPredicate;
 public class ModifyClimbingPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+	public static final Context.Parameter<CachedBlock> CLIMBED_BLOCK = NeoApoliContextParams.registerInternal("climbed_block", BlockContextParameter::new);
 
 	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
@@ -87,7 +89,7 @@ public class ModifyClimbingPower extends Power {
 			Level level = holder.level();
 			BlockPos blockPos = holder.blockPosition();
 
-			return super.createHolderContextBuilder(holder).withRequired(NeoApoliContextParams.BLOCK, CachedBlock.fromLoadedPos(level, blockPos));
+			return super.createHolderContextBuilder(holder).withRequired(CLIMBED_BLOCK, CachedBlock.fromLoadedPos(level, blockPos));
 
 		}
 

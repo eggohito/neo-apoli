@@ -107,9 +107,9 @@ public class ModifyItemUsePower extends Power implements PrioritizedPower<Modify
 
 		public Context createContext(Entity holder, SlotAccess slotAccess) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.SLOT, slotAccess)
-				.withRequired(NeoApoliContextParams.ITEM, slotAccess.get())
-				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_USE.keySet());
+				.withRequired(NeoApoliContextParams.USED_ITEM_SLOT, slotAccess)
+				.withRequired(NeoApoliContextParams.USED_ITEM, slotAccess.get())
+				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_ITEM_USE.requirements());
 		}
 
 		public InteractionResult execute(Context context) {

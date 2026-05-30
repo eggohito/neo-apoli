@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.custom.IsEntitySneakingCondition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
@@ -35,6 +36,7 @@ import java.util.function.BiPredicate;
 public class PhasingPower extends Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
+	public static final Context.Parameter<CachedBlock> PHASED_BLOCK = NeoApoliContextParams.registerInternal("phased_block", BlockContextParameter::new);
 
 	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
 		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
@@ -86,7 +88,7 @@ public class PhasingPower extends Power {
 
 		public Context createContext(Entity holder, CachedBlock cachedBlock) {
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, cachedBlock)
+				.withRequired(PHASED_BLOCK, cachedBlock)
 				.build(holder.level());
 		}
 

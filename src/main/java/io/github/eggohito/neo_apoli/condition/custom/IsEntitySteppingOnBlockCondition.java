@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 
 public record IsEntitySteppingOnBlockCondition(Condition steppedOnCondition, EntityProvider entity) implements Condition {
 
-	public static final Context.Parameter<CachedBlock> STEPPED_ON_BLOCK = NeoApoliContextParams.registerSimpleInternal("condition/stepped_on_block", CachedBlock.class);
+	public static final Context.Parameter<CachedBlock> STEPPED_ON_BLOCK = NeoApoliContextParams.registerSimpleInternal("stepped_on_block", CachedBlock.class);
 	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(STEPPED_ON_BLOCK).build();
 
 	public static final MapCodec<IsEntitySteppingOnBlockCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(

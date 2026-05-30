@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -27,6 +28,8 @@ import java.util.Optional;
 @EqualsAndHashCode
 @Getter
 public class CallbackPlayerWakeUpPower extends CallbackPower {
+
+	public static final Context.Parameter<CachedBlock> SLEPT_ON_BLOCK = NeoApoliContextParams.registerInternal("slept_on_block", BlockContextParameter::new);
 
 	public static final MapCodec<CallbackPlayerWakeUpPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackPlayerWakeUpPower::new);
@@ -57,7 +60,7 @@ public class CallbackPlayerWakeUpPower extends CallbackPower {
 			CachedBlock sleptOnBlock = CachedBlock.fromLoadedPos(level, sleepingPos);
 
 			return this.createHolderContextBuilder(holder)
-				.withRequired(NeoApoliContextParams.BLOCK, sleptOnBlock)
+				.withRequired(SLEPT_ON_BLOCK, sleptOnBlock)
 				.build(level);
 
 		}

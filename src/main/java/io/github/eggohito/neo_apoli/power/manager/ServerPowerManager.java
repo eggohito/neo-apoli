@@ -183,7 +183,7 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 				Power power = powerHolder.value();
 				Reporter reporter = new Reporter("{\"" + powerHolder.id() + "\"}");
 
-				Context.Validator validator = new Context.Validator(power.getType().keySet(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+				Context.Validator validator = new Context.Validator(power.getType().requirements(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
 				power.validate(validator);
 
 				reporter.getErrorsFlattened().ifPresentOrElse(
