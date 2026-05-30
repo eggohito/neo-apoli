@@ -23,6 +23,9 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
@@ -46,8 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public final class ServerPowerManager extends PowerManager implements IdentifiableResourceReloadListener {
 
@@ -131,13 +132,30 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 			return;
 		}
 
-		Set<PowerHolder<?>> filtered = powers.values()
-			.stream()
-			.filter(Predicate.not(PowerHolder::isSubPower))
-			.collect(Collectors.toSet());
+		Set<PowerHolder<?>> powers = new ObjectLinkedOpenHashSet<>();
+		Map<ResourceLocation, List<PowerIdentifier>> tags = new Object2ObjectLinkedOpenHashMap<>();
 
-		LOGGER.info("Sent {} power(s) to player {}!", filtered.size(), recipient.getName().getString());
-		ServerPlayNetworking.send(recipient, new ClientboundPowersUpdatePacket(filtered));
+		for (var power : PowerManager.powers()) {
+
+			if (!power.isSubPower()) {
+				powers.add(power);
+			}
+
+		}
+
+		for (var tag : PowerManager.tags.entrySet()) {
+
+			var id = tag.getKey();
+			var entries = tag.getValue();
+
+			for (var entry : entries) {
+				tags.computeIfAbsent(id, k -> new ObjectArrayList<>()).add(entry.id());
+			}
+
+		}
+
+		LOGGER.info("Sent {} power(s) to player {}!", powers.size(), recipient.getName().getString());
+		ServerPlayNetworking.send(recipient, new ClientboundPowersUpdatePacket(powers));
 
 		LOGGER.info("Sent {} power tag(s) to player {}!", tags.size(), recipient.getName().getString());
 		ServerPlayNetworking.send(recipient, new ClientboundTagsUpdatePacket(tags));

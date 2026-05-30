@@ -11,7 +11,8 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -160,10 +161,10 @@ public class PowerManager {
 
 	}
 
-	public record ClientboundTagsUpdatePacket(Map<ResourceLocation, List<PowerHolder<?>>> tags) implements CustomPacketPayload {
+	public record ClientboundTagsUpdatePacket(Map<ResourceLocation, List<PowerIdentifier>> tags) implements CustomPacketPayload {
 
-		private static final StreamCodec<ByteBuf, PowerHolder<?>> ENTRY_CODEC = PowerIdentifier.STREAM_CODEC.map(PowerManager::get, PowerHolder::id);
-		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<PowerHolder<?>>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ENTRY_CODEC.apply(ByteBufCodecs.list()));
+		private static final StreamCodec<ByteBuf, List<PowerIdentifier>> IDS_CODEC = PowerIdentifier.STREAM_CODEC.apply(ByteBufCodecs.list());
+		private static final StreamCodec<RegistryFriendlyByteBuf, Map<ResourceLocation, List<PowerIdentifier>>> TAGS_CODEC = ByteBufCodecs.map(Object2ObjectLinkedOpenHashMap::new, ResourceLocation.STREAM_CODEC, IDS_CODEC);
 
 		public static final Type<ClientboundTagsUpdatePacket> TYPE = new Type<>(NeoApoli.id("clientbound/update_power_tags"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundTagsUpdatePacket> CODEC = TAGS_CODEC.map(ClientboundTagsUpdatePacket::new, ClientboundTagsUpdatePacket::tags);
@@ -174,7 +175,23 @@ public class PowerManager {
 		}
 
 		public void handle() {
-			PowerManager.tags = ImmutableMap.copyOf(tags());
+
+			Map<ResourceLocation, List<PowerHolder<?>>> tags = new Object2ObjectLinkedOpenHashMap<>();
+			for (var entry : tags().entrySet()) {
+
+				ResourceLocation tagId = entry.getKey();
+				List<PowerIdentifier> powerIds = entry.getValue();
+
+				for (var powerId : powerIds) {
+					PowerManager.getAsResult(powerId)
+						.ifSuccess(power -> tags.computeIfAbsent(tagId, k -> new ObjectArrayList<>()).add(power))
+						.ifError(error -> NeoApoli.LOGGER.error("Couldn't properly receive power tag \"{}\": {}", tagId, error.message()));
+				}
+
+			}
+
+			PowerManager.tags = ImmutableMap.copyOf(tags);
+
 		}
 
 	}
