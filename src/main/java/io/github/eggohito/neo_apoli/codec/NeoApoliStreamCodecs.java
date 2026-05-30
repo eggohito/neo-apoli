@@ -21,6 +21,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
@@ -128,5 +129,7 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<ByteBuf, SlotRange> SLOT_RANGE = ByteBufCodecs.STRING_UTF8.map(name -> Objects.requireNonNull(SlotRanges.nameToIds(name), "Unknown slot range: \"" + name + "\""), StringRepresentable::getSerializedName);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.streamCodecWithSimpleContext(ItemPredicateArgument::itemPredicate);
+
+	public static final StreamCodec<ByteBuf, SoundSource> SOUND_SOURCE = StreamCodecUtil.enumType(SoundSource.class);
 
 }

@@ -32,6 +32,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<MountAction> MOUNT = registerInternal("mount", MountAction.CODEC, MountAction.STREAM_CODEC);
 	public static final Action.Type<NothingAction> NOTHING = registerInternal("nothing", NothingAction.CODEC, NothingAction.STREAM_CODEC);
 	public static final Action.Type<PlaceBlockAction> PLACE_BLOCK = registerInternal("place_block", PlaceBlockAction.CODEC, PlaceBlockAction.STREAM_CODEC);
+	public static final Action.Type<PlaySoundAction> PLAY_SOUND = registerInternal("play_sound", PlaySoundAction.CODEC, PlaySoundAction.STREAM_CODEC);
 	public static final Action.Type<RandomChanceAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceAction.CODEC, RandomChanceAction.STREAM_CODEC);
 	public static final Action.Type<ReferenceAction> REFERENCE = registerInternal("reference", ReferenceAction.CODEC, ReferenceAction.STREAM_CODEC);
 	public static final Action.Type<SequenceAction> SEQUENCE = registerInternal("sequence", SequenceAction.CODEC, SequenceAction.STREAM_CODEC);

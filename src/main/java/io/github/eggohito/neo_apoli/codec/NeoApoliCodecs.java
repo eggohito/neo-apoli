@@ -28,6 +28,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -190,5 +191,7 @@ public class NeoApoliCodecs {
 	);
 
 	public static final Codec<ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.codecWithSimpleContext(ItemPredicateArgument::itemPredicate);
+
+	public static final Codec<SoundSource> SOUND_SOURCE = CodecUtil.enumType(SoundSource.class);
 
 }
