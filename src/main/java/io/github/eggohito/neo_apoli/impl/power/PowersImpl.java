@@ -1,5 +1,7 @@
 package io.github.eggohito.neo_apoli.impl.power;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.api.power.PowersAttachment;
@@ -42,7 +44,9 @@ public final class PowersImpl implements Powers {
 	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, REFERENCE_AND_CALLBACK_STREAM_CODEC);
 
 	private final Entity holder;
-	private PowersAttachment.Mutable mutableAttachment;
+
+	private final Object2ObjectMap<PowerIdentifier, Power.Instance<?>> instances;
+	private final SetMultimap<PowerIdentifier, ResourceLocation> sources;
 
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
@@ -50,29 +54,30 @@ public final class PowersImpl implements Powers {
 	public PowersImpl(Entity holder, PowersAttachment attachment) {
 
 		this.holder = holder;
-		this.mutableAttachment = new PowersAttachment.Mutable(attachment);
+		this.instances = new Object2ObjectLinkedOpenHashMap<>(attachment.instances());
+		this.sources = LinkedHashMultimap.create(attachment.sources());
 
 		//  TODO:   Remove this once the codebase has been ported to 26.1.x since decoding/encoding data attachments
 		//          in FAPI in that version promotes its partial result
-		attachment.decodingErrors().ifPresent(errors -> NeoApoli.LOGGER.warn("Found errors while decoding powers attachment on entity {}: {}", holder.getName().getString(), errors));
+		attachment.decodingErrors().ifPresent(errors -> NeoApoli.logOnce(org.slf4j.event.Level.WARN, "Found errors while decoding powers attachment on entity %s: %s".formatted(holder.getName().getString(), errors)));
 
 	}
 
 	@Override
 	public Set<PowerIdentifier> getAllIds() {
-		return new ObjectLinkedOpenHashSet<>(mutableAttachment.instances().keySet());
+		return new ObjectLinkedOpenHashSet<>(instances.keySet());
 	}
 
 	@Override
 	public Set<ResourceLocation> getAllSources() {
-		return new ObjectLinkedOpenHashSet<>(mutableAttachment.sources().values());
+		return new ObjectLinkedOpenHashSet<>(sources.values());
 	}
 
 	@Override
 	public List<PowerHolder<?>> getAll(boolean includeSubPowers) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		mutableAttachment.instances().keySet().forEach(reference -> PowerManager.getAsResult(reference)
+		instances.keySet().forEach(reference -> PowerManager.getAsResult(reference)
 			.result()
 			.filter(entry -> includeSubPowers || !entry.isSubPower())
 			.ifPresent(result::add));
@@ -85,7 +90,7 @@ public final class PowersImpl implements Powers {
 	public List<PowerHolder<?>> getAllFromSource(ResourceLocation source) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		mutableAttachment.sources().asMap().forEach((reference, sources) -> PowerManager.getAsResult(reference)
+		sources.asMap().forEach((reference, sources) -> PowerManager.getAsResult(reference)
 			.result()
 			.filter(entry -> sources.contains(source))
 			.ifPresent(result::add));
@@ -96,29 +101,29 @@ public final class PowersImpl implements Powers {
 
 	@Override
 	public Set<ResourceLocation> getSources(PowerIdentifier id) {
-		return new ObjectOpenHashSet<>(mutableAttachment.sources().values());
+		return new ObjectOpenHashSet<>(sources.values());
 	}
 
 	@Override
 	public @NotNull Power.Instance<?> getInstance(PowerIdentifier id) {
-		return Objects.requireNonNull(mutableAttachment.instances().get(id), "Entity " + holder.getName().getString() + " didn't have " + id.asDisplayString(false) + " granted!");
+		return Objects.requireNonNull(instances.get(id), "Entity " + holder.getName().getString() + " didn't have " + id.asDisplayString(false) + " granted!");
 	}
 
 	@Override
 	public boolean hasInstance(PowerIdentifier id, ResourceLocation source) {
-		return mutableAttachment.sources().get(id).contains(source);
+		return sources.get(id).contains(source);
 	}
 
 	@Override
 	public boolean hasInstance(PowerIdentifier id) {
-		return mutableAttachment.instances().containsKey(id);
+		return instances.containsKey(id);
 	}
 
 	@Override
 	public <I extends Power.Instance<?>> List<I> getInstances(Class<I> instanceClass, Predicate<I> instanceFilter) {
 
 		List<I> result = new ObjectArrayList<>();
-		mutableAttachment.instances().values().forEach(instance -> {
+		instances.values().forEach(instance -> {
 
 			if (instanceClass.isInstance(instance)) {
 
@@ -138,13 +143,13 @@ public final class PowersImpl implements Powers {
 
 	@Override
 	public List<Power.Instance<?>> getAllInstances() {
-		return new ObjectArrayList<>(mutableAttachment.instances().values());
+		return new ObjectArrayList<>(instances.values());
 	}
 
 	@Override
 	public <I extends Power.Instance<?>> boolean hasInstances(Class<I> instanceClass, Predicate<I> instanceFilter) {
 
-		for (var instance : mutableAttachment.instances().values()) {
+		for (var instance : instances.values()) {
 
 			if (instanceClass.isInstance(instance) && instanceFilter.test(instanceClass.cast(instance))) {
 				return true;
@@ -185,10 +190,7 @@ public final class PowersImpl implements Powers {
 				MiscUtil.sendToTracking(holder, new GrantS2CPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.grantedPowers)));
 			}
 
-			PowersAttachment attachment = this.mutableAttachment.toImmutable();
-
-			this.holder.setAttached(NeoApoliEntityAttachments.POWERS, attachment);
-			this.mutableAttachment = new PowersAttachment.Mutable(attachment);
+			this.holder.setAttached(NeoApoliEntityAttachments.POWERS, new PowersAttachment(instances, sources));
 
 		}
 
@@ -217,15 +219,15 @@ public final class PowersImpl implements Powers {
 			return false;
 		}
 
-		Set<ResourceLocation> sources = mutableAttachment.sources().get(id);
-		boolean firstTimeGranting = !mutableAttachment.instances().containsKey(id);
+		Set<ResourceLocation> sources = PowersImpl.this.sources.get(id);
+		boolean firstTimeGranting = !instances.containsKey(id);
 
 		if (!sources.add(source)) {
 			return false;
 		}
 
 		Power power = PowerManager.get(id).value();
-		Power.Instance<?> instance = mutableAttachment.instances().computeIfAbsent(id, k -> power.createInstance());
+		Power.Instance<?> instance = instances.computeIfAbsent(id, k -> power.createInstance());
 
 		if (power instanceof MultiplePower multiplePower) {
 
@@ -260,8 +262,8 @@ public final class PowersImpl implements Powers {
 		List<PowerIdentifier> revokedPowers = new ObjectArrayList<>();
 		boolean result = this.revokePowerRecursively(id, source, revokedPowers::add, invokeCallbacks);
 
-		mutableAttachment.instances().keySet().removeIf(revokedPowers::contains);
-		mutableAttachment.sources().keySet().removeIf(revokedPowers::contains);
+		instances.keySet().removeIf(revokedPowers::contains);
+		sources.keySet().removeIf(revokedPowers::contains);
 
 		return result;
 
@@ -269,12 +271,12 @@ public final class PowersImpl implements Powers {
 
 	private boolean revokePowerRecursively(PowerIdentifier id, ResourceLocation source, Consumer<PowerIdentifier> onRevoked, boolean invokeCallbacks) {
 
-		if (!mutableAttachment.sources().remove(id, source) || !mutableAttachment.instances().containsKey(id)) {
+		if (!sources.remove(id, source) || !instances.containsKey(id)) {
 			return false;
 		}
 
-		Power.Instance<?> instance = mutableAttachment.instances().get(id);
-		boolean revoked = mutableAttachment.sources().get(id).isEmpty();
+		Power.Instance<?> instance = instances.get(id);
+		boolean revoked = sources.get(id).isEmpty();
 
 		if (instance.getPower() instanceof MultiplePower multiplePower) {
 

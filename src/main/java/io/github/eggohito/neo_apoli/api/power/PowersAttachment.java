@@ -26,6 +26,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -72,6 +73,10 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		}
 
 	};
+
+	public PowersAttachment(Map<PowerIdentifier, Power.Instance<?>> instances, SetMultimap<PowerIdentifier, ResourceLocation> sources) {
+		this(ImmutableMap.copyOf(instances), ImmutableSetMultimap.copyOf(sources), Optional.empty(), Powers.VERSION);
+	}
 
 	public PowersAttachment() {
 		this(ImmutableMap.of(), ImmutableSetMultimap.of(), Optional.empty(), Powers.VERSION);
