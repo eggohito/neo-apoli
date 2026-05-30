@@ -17,12 +17,10 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -48,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -148,24 +145,6 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 	}
 
 	public static void init() {
-
-	}
-
-	private static void register(BiConsumer<PowerIdentifier, PowerHolder<?>> builder, PowerHolder<?> powerHolder) {
-
-		builder.accept(powerHolder.id(), powerHolder);
-
-		if (powerHolder.value() instanceof MultiplePower multiplePower) {
-
-			if (powerHolder.id().isSubPower()) {
-				throw new IllegalStateException("Tried to register " + powerHolder.id().asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, multiplePower.getType()) + "\" power type, which is not allowed!");
-			}
-
-			else {
-				multiplePower.getSubPowers().forEach(subPowerHolder -> register(builder, subPowerHolder));
-			}
-
-		}
 
 	}
 

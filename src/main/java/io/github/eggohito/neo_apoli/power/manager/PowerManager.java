@@ -6,6 +6,9 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
+import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -23,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 @ApiStatus.NonExtendable
 public class PowerManager {
@@ -117,6 +121,24 @@ public class PowerManager {
 		return getIdAsResult(power).isSuccess();
 	}
 
+	protected static void register(BiConsumer<PowerIdentifier, PowerHolder<?>> builder, PowerHolder<?> powerHolder) {
+
+		builder.accept(powerHolder.id(), powerHolder);
+
+		if (powerHolder.value() instanceof MultiplePower multiplePower) {
+
+			if (powerHolder.id().isSubPower()) {
+				throw new IllegalStateException("Tried to register " + powerHolder.id().asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, multiplePower.getType()) + "\" power type, which is not allowed!");
+			}
+
+			else {
+				multiplePower.getSubPowers().forEach(subPowerHolder -> register(builder, subPowerHolder));
+			}
+
+		}
+
+	}
+
 	public record ClientboundPowersUpdatePacket(Set<PowerHolder<?>> powers) implements CustomPacketPayload {
 
 		public static final Type<ClientboundPowersUpdatePacket> TYPE = new Type<>(NeoApoli.id("clientbound/update_powers"));
@@ -130,7 +152,7 @@ public class PowerManager {
 		public void handle() {
 
 			ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> builder = ImmutableMap.builder();
-			powers().forEach(power -> builder.put(power.id(), power));
+			powers().forEach(power -> register(builder::put, power));
 
 			PowerManager.powers = builder.build();
 
