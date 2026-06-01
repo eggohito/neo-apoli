@@ -93,8 +93,8 @@ public class NeoApoli implements ModInitializer {
 		ServerPowerManager.init();
 		GlobalPowerSetManager.init();
 
-		NeoApoliServerboundPacketListener.init();
 		NeoApoliPackets.registerAll();
+		NeoApoliServerboundPacketListener.init();
 
 		PowerIntegrations.registerAll();
 
