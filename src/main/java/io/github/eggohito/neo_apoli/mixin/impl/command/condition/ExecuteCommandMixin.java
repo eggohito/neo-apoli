@@ -23,7 +23,7 @@ public abstract class ExecuteCommandMixin {
 
 	@Shadow
 	private static ArgumentBuilder<CommandSourceStack, ?> addConditional(CommandNode<CommandSourceStack> commandNode, ArgumentBuilder<CommandSourceStack, ?> builder, boolean value, ExecuteCommand.CommandPredicate test) {
-		throw new UnsupportedOperationException("Implemented via mixin");
+		throw new AssertionError();
 	}
 
 	@ModifyReturnValue(method = "addConditionals", at = @At("RETURN"))

@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.recipe.book;
+package io.github.eggohito.neo_apoli.registry.recipe;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import net.minecraft.core.Registry;

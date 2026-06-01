@@ -1,6 +1,7 @@
-package io.github.eggohito.neo_apoli.recipe;
+package io.github.eggohito.neo_apoli.registry.recipe;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.recipe.PowerCraftingRecipe;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;

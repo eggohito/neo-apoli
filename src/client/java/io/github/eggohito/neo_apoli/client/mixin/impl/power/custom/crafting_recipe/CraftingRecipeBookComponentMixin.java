@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.client.mixin.impl.power.custom.crafting_rec
 import com.google.common.collect.ImmutableList;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.recipe.PowerStackedItemContents;
-import io.github.eggohito.neo_apoli.recipe.book.NeoApoliRecipeBookCategories;
+import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import net.minecraft.client.gui.screens.recipebook.CraftingRecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.world.entity.player.StackedItemContents;
