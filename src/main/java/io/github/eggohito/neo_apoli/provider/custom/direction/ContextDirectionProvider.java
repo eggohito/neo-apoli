@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,12 +27,12 @@ public record ContextDirectionProvider(Context.Parameter<Direction> parameter) i
 	);
 
 	@Override
-	public DirectionProvider.Type<?> getType() {
+	public DirectionProvider.@NotNull Type<?> getType() {
 		return NeoApoliDirectionProviderTypes.CONTEXT;
 	}
 
 	@Override
-	public Optional<Direction> nextDirection(Context context) {
+	public Optional<Direction> getDirection(Context context) {
 		return context.getOptional(parameter());
 	}
 

@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +22,13 @@ public record SwitchBlockProvider(List<Case<Condition, BlockProvider>> cases, Bl
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchBlockProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchBlockProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(BlockProvider.STREAM_CODEC, SwitchBlockProvider::new));
 
 	@Override
-	public BlockProvider.Type<?> getType() {
+	public BlockProvider.@NotNull Type<?> getType() {
 		return NeoApoliBlockProviderTypes.SWITCH;
 	}
 
 	@Override
 	public Optional<CachedBlock> getBlock(Context context) {
-		return this.nextOrDefault(context, BlockProvider::getBlock);
+		return this.getOrDefault(context, BlockProvider::getBlock);
 	}
 
 }

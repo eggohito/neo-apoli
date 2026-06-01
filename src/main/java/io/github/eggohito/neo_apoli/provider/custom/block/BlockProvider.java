@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public interface BlockProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, BlockProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(BlockProvider::getType, Type::streamCodec);
 
 	@Override
-	BlockProvider.Type<?> getType();
+	BlockProvider.@NotNull Type<?> getType();
 
 	Optional<CachedBlock> getBlock(Context context);
 

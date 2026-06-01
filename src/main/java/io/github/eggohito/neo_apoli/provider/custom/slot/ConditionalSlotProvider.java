@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
+import org.jetbrains.annotations.NotNull;
 
 public record ConditionalSlotProvider(Condition condition, SlotProvider ifValue, SlotProvider elseValue) implements SlotProvider, ConditionalValueProvider<SlotProvider> {
 
@@ -17,13 +18,13 @@ public record ConditionalSlotProvider(Condition condition, SlotProvider ifValue,
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalSlotProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalSlotProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(SlotProvider.STREAM_CODEC, ConditionalSlotProvider::new));
 
 	@Override
-	public SlotProvider.Type<?> getType() {
+	public SlotProvider.@NotNull Type<?> getType() {
 		return NeoApoliSlotProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public SlotAccess getSlot(Context context) {
-		return this.nextOrElse(context, SlotProvider::getSlot, () -> SlotAccess.NULL);
+	public @NotNull SlotAccess getSlot(Context context) {
+		return this.getOrElse(context, SlotProvider::getSlot, () -> SlotAccess.NULL);
 	}
 
 }

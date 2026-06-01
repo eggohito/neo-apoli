@@ -13,6 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"UnstableApiUsage", "ConstantValue"})
@@ -29,12 +30,12 @@ public record EntityCommandSourceProvider(EntityProvider entity) implements Comm
 	);
 
 	@Override
-	public CommandSourceProvider.Type<?> getType() {
+	public CommandSourceProvider.@NotNull Type<?> getType() {
 		return NeoApoliCommandSourceProviderTypes.ENTITY;
 	}
 
 	@Override
-	public CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
+	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
 
 		MinecraftServer server = serverLevel.getServer();
 		Entity entity = entity().getEntity(context.forChild(".entity")).orElse(null);

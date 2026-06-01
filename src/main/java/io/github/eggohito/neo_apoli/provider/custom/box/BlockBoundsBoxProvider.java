@@ -36,7 +36,7 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType, BlockProvider 
 	}
 
 	@Override
-	public @NotNull AABB nextBox(Context context) {
+	public @NotNull AABB getBox(Context context) {
 
 		Context blockContext = context.forChild(".block");
 		CachedBlock block = block().getBlock(blockContext).orElse(null);

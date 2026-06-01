@@ -35,7 +35,7 @@ public record ItemNbtProvider(ItemProvider item) implements NbtProvider {
 	public @NotNull Tag getTag(Context context) {
 
 		Context itemContext = context.forChild(".item");
-		ItemStack item = item().nextItem(itemContext);
+		ItemStack item = item().getItem(itemContext);
 
 		if (itemContext.hasErrors()) {
 			return new CompoundTag();

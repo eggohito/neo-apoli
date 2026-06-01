@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffectInstance;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -23,9 +24,9 @@ public interface EffectProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, EffectProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(EffectProvider::getType, Type::streamCodec);
 
 	@Override
-	EffectProvider.Type<?> getType();
+	EffectProvider.@NotNull Type<?> getType();
 
-	Optional<MobEffectInstance> nextEffect(Context context);
+	Optional<MobEffectInstance> getEffect(Context context);
 
 	record Type<P extends EffectProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

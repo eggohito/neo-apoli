@@ -60,7 +60,7 @@ public record BoneMealAction(Vec3Provider position, BooleanProvider showEffects,
 
 			else {
 
-				Direction offsetDirection = offsetDirection().flatMap(self -> self.nextDirection(context.forChild(".offset_direction"))).orElse(null);
+				Direction offsetDirection = offsetDirection().flatMap(self -> self.getDirection(context.forChild(".offset_direction"))).orElse(null);
 				BlockState state = serverLevel.getBlockState(pos);
 
 				if (offsetDirection != null && state.isFaceSturdy(serverLevel, pos, offsetDirection) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, serverLevel, pos.relative(offsetDirection), offsetDirection)) {

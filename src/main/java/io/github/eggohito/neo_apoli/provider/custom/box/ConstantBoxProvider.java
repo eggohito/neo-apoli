@@ -43,7 +43,7 @@ public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 	}
 
 	@Override
-	public @NotNull AABB nextBox(Context context) {
+	public @NotNull AABB getBox(Context context) {
 		return new AABB(min(), max());
 	}
 

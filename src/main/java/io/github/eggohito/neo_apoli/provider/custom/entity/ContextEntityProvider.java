@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ public record ContextEntityProvider(Context.Parameter<Entity> parameter) impleme
 	);
 
 	@Override
-	public EntityProvider.Type<?> getType() {
+	public EntityProvider.@NotNull Type<?> getType() {
 		return NeoApoliEntityProviderTypes.CONTEXT;
 	}
 

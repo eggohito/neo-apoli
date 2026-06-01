@@ -36,7 +36,7 @@ public record ItemMatchesPredicateCondition(ParsedArgument<ItemPredicateArgument
 	public boolean test(Context context) {
 
 		Context itemContext = context.forChild(".item");
-		ItemStack item = item().nextItem(itemContext);
+		ItemStack item = item().getItem(itemContext);
 
 		return !itemContext.hasErrors()
 			&& predicate().argument().test(item);

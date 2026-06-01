@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -19,13 +20,13 @@ public record ConditionalBlockProvider(Condition condition, BlockProvider ifValu
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBlockProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBlockProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BlockProvider.STREAM_CODEC, ConditionalBlockProvider::new));
 
 	@Override
-	public BlockProvider.Type<?> getType() {
+	public BlockProvider.@NotNull Type<?> getType() {
 		return NeoApoliBlockProviderTypes.CONDITIONAL;
 	}
 
 	@Override
 	public Optional<CachedBlock> getBlock(Context context) {
-		return this.nextOrElse(context, BlockProvider::getBlock, Optional::empty);
+		return this.getOrElse(context, BlockProvider::getBlock, Optional::empty);
 	}
 
 }

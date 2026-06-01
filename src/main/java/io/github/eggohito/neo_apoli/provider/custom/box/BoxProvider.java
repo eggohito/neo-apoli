@@ -26,7 +26,7 @@ public interface BoxProvider extends ValueProvider {
 	BoxProvider.Type<?> getType();
 
 	@NotNull
-	AABB nextBox(Context context);
+	AABB getBox(Context context);
 
 	default CollisionContext getCollisionContext(Context context) {
 		return CollisionContext.empty();

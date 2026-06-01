@@ -27,7 +27,7 @@ public record SwitchNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtPro
 
 	@Override
 	public @NotNull Tag getTag(Context context) {
-		return nextOrDefault(context, NbtProvider::getTag);
+		return getOrDefault(context, NbtProvider::getTag);
 	}
 
 }

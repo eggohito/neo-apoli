@@ -11,6 +11,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.NotNull;
 
 public record ConditionalCommandSourceProvider(Condition condition, CommandSourceProvider ifValue, CommandSourceProvider elseValue) implements CommandSourceProvider, ConditionalValueProvider<CommandSourceProvider> {
 
@@ -18,13 +19,13 @@ public record ConditionalCommandSourceProvider(Condition condition, CommandSourc
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalCommandSourceProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalCommandSourceProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(CommandSourceProvider.STREAM_CODEC, ConditionalCommandSourceProvider::new));
 
 	@Override
-	public CommandSourceProvider.Type<?> getType() {
+	public CommandSourceProvider.@NotNull Type<?> getType() {
 		return NeoApoliCommandSourceProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		return this.nextOrElse(context, (provider, ctx) -> provider.getSource(serverLevel, ctx), serverLevel.getServer()::createCommandSourceStack);
+	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
+		return this.getOrElse(context, (provider, ctx) -> provider.getSource(serverLevel, ctx), serverLevel.getServer()::createCommandSourceStack);
 	}
 
 }

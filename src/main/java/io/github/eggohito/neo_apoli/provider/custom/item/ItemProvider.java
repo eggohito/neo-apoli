@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public interface ItemProvider extends ValueProvider {
 
@@ -21,9 +22,10 @@ public interface ItemProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, ItemProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(ItemProvider::getType, Type::streamCodec);
 
 	@Override
-	ItemProvider.Type<?> getType();
+	ItemProvider.@NotNull Type<?> getType();
 
-	ItemStack nextItem(Context context);
+	@NotNull
+	ItemStack getItem(Context context);
 
 	record Type<P extends ItemProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

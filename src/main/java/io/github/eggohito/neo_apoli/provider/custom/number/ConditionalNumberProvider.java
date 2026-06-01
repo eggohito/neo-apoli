@@ -23,7 +23,7 @@ public record ConditionalNumberProvider(Condition condition, NumberProvider ifVa
 
 	@Override
 	public double getDouble(Context context) {
-		return this.nextOrElse(context, NumberProvider::getDouble, () -> 0.0D);
+		return this.getOrElse(context, NumberProvider::getDouble, () -> 0.0D);
 	}
 
 }

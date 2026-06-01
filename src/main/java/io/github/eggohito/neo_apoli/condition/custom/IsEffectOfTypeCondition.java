@@ -31,7 +31,7 @@ public record IsEffectOfTypeCondition(Holder<MobEffect> effectType, EffectProvid
 
 	@Override
 	public boolean test(Context context) {
-		return effect().nextEffect(context.forChild(".effect"))
+		return effect().getEffect(context.forChild(".effect"))
 			.stream()
 			.anyMatch(effect -> effect.is(this.effectType()));
 	}

@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.registry.provider.NeoApoliDirectionProviderT
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -30,12 +31,12 @@ public record ConstantDirectionProvider(Direction value) implements DirectionPro
 	);
 
 	@Override
-	public DirectionProvider.Type<?> getType() {
+	public DirectionProvider.@NotNull Type<?> getType() {
 		return NeoApoliDirectionProviderTypes.CONSTANT;
 	}
 
 	@Override
-	public Optional<Direction> nextDirection(Context context) {
+	public Optional<Direction> getDirection(Context context) {
 		return Optional.of(value());
 	}
 

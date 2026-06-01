@@ -30,7 +30,7 @@ public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 	public double getDouble(Context context) {
 
 		Context boxContext = context.forChild(".box");
-		AABB box = box().nextBox(boxContext);
+		AABB box = box().getBox(boxContext);
 
 		if (boxContext.hasErrors()) {
 			return 0.0D;

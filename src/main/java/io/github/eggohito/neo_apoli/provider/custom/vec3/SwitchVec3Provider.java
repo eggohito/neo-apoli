@@ -27,7 +27,7 @@ public record SwitchVec3Provider(List<Case<Condition, Vec3Provider>> cases, Vec3
 
 	@Override
 	public @NotNull Vec3 getVec3(Context context) {
-		return this.nextOrDefault(context, Vec3Provider::getVec3);
+		return this.getOrDefault(context, Vec3Provider::getVec3);
 	}
 
 }

@@ -23,7 +23,7 @@ public record ConditionalBooleanProvider(Condition condition, BooleanProvider if
 
 	@Override
 	public boolean getBoolean(Context context) {
-		return nextOrElse(context, BooleanProvider::getBoolean, () -> false);
+		return getOrElse(context, BooleanProvider::getBoolean, () -> false);
 	}
 
 }

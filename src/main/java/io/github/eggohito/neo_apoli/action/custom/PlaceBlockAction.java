@@ -75,7 +75,7 @@ public record PlaceBlockAction(Vec3Provider position, BlockInput block, Mode mod
 				placeBlock = serverLevel.isEmptyBlock(blockPos);
 			case DEFAULT -> {
 
-				Direction offsetDirection = offsetDirection().flatMap(self -> self.nextDirection(context.forChild(".offset_direction"))).orElse(null);
+				Direction offsetDirection = offsetDirection().flatMap(self -> self.getDirection(context.forChild(".offset_direction"))).orElse(null);
 				placeBlock = serverLevel.isEmptyBlock(blockPos);
 
 				if (!placeBlock && offsetDirection != null) {

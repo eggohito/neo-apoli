@@ -24,8 +24,8 @@ public record ConditionalBoxProvider(Condition condition, BoxProvider ifValue, B
 	}
 
 	@Override
-	public @NotNull AABB nextBox(Context context) {
-		return nextOrElse(context, BoxProvider::nextBox, () -> AABBUtil.EMPTY);
+	public @NotNull AABB getBox(Context context) {
+		return getOrElse(context, BoxProvider::getBox, () -> AABBUtil.EMPTY);
 	}
 
 }

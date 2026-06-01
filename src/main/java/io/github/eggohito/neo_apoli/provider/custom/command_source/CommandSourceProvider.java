@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.NotNull;
 
 public interface CommandSourceProvider extends ValueProvider {
 
@@ -21,8 +22,9 @@ public interface CommandSourceProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, CommandSourceProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(CommandSourceProvider::getType, Type::streamCodec);
 
 	@Override
-	CommandSourceProvider.Type<?> getType();
+	CommandSourceProvider.@NotNull Type<?> getType();
 
+	@NotNull
 	CommandSourceStack getSource(ServerLevel serverLevel, Context context);
 
 	interface Type<P extends CommandSourceProvider> extends ValueProvider.Type<P> {

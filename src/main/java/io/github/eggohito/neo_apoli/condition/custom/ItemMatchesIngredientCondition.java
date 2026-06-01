@@ -33,7 +33,7 @@ public record ItemMatchesIngredientCondition(Ingredient ingredient, ItemProvider
 	public boolean test(Context context) {
 
 		Context itemContext = context.forChild(".item");
-		ItemStack item = item().nextItem(itemContext);
+		ItemStack item = item().getItem(itemContext);
 
 		return !itemContext.hasErrors()
 			&& ingredient().test(item);

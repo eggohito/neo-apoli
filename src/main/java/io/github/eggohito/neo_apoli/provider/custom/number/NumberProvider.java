@@ -40,15 +40,15 @@ public interface NumberProvider extends ValueProvider {
 		return (int) this.getLong(context);
 	}
 
-	default short nextShort(Context context) {
+	default short getShort(Context context) {
 		return (short) this.getInt(context);
 	}
 
-	default byte nextByte(Context context) {
+	default byte getByte(Context context) {
 		return (byte) this.getInt(context);
 	}
 
-	default Number next(NumberType type, Context context) {
+	default Number getAs(NumberType type, Context context) {
 		return switch (type) {
 			case DOUBLE ->
 				this.getDouble(context);
@@ -59,9 +59,9 @@ public interface NumberProvider extends ValueProvider {
 			case INT ->
 				this.getInt(context);
 			case SHORT ->
-				this.nextShort(context);
+				this.getShort(context);
 			case BYTE ->
-				this.nextByte(context);
+				this.getByte(context);
 		};
 	}
 

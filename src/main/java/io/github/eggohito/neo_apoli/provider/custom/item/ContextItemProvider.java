@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -31,12 +32,12 @@ public record ContextItemProvider(Context.Parameter<ItemStack> parameter) implem
 	);
 
 	@Override
-	public ItemProvider.Type<?> getType() {
+	public ItemProvider.@NotNull Type<?> getType() {
 		return NeoApoliItemProviderTypes.CONTEXT;
 	}
 
 	@Override
-	public ItemStack nextItem(Context context) {
+	public @NotNull ItemStack getItem(Context context) {
 
 		if (!context.hasParameter(parameter())) {
 			context.reportProblem("Parameter \"" + parameter().name() + "\" is not provided in the context!");

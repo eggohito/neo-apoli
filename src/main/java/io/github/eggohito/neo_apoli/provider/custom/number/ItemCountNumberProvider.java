@@ -31,7 +31,7 @@ public record ItemCountNumberProvider(ItemProvider item) implements NumberProvid
 	public double getDouble(Context context) {
 
 		Context itemContext = context.forChild(".item");
-		ItemStack item = item().nextItem(itemContext);
+		ItemStack item = item().getItem(itemContext);
 
 		if (itemContext.hasErrors()) {
 			return 0;

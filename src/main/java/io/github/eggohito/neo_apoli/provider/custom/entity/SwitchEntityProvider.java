@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +22,13 @@ public record SwitchEntityProvider(List<Case<Condition, EntityProvider>> cases, 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchEntityProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchEntityProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(EntityProvider.STREAM_CODEC, SwitchEntityProvider::new));
 
 	@Override
-	public EntityProvider.Type<?> getType() {
+	public EntityProvider.@NotNull Type<?> getType() {
 		return NeoApoliEntityProviderTypes.SWITCH;
 	}
 
 	@Override
 	public Optional<Entity> getEntity(Context context) {
-		return this.nextOrDefault(context, EntityProvider::getEntity);
+		return this.getOrDefault(context, EntityProvider::getEntity);
 	}
 
 }

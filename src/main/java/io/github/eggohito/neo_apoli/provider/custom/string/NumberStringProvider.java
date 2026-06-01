@@ -30,7 +30,7 @@ public record NumberStringProvider(NumberProvider number, NumberType as) impleme
 
 	@Override
 	public @NotNull String getString(Context context) {
-		return number().next(as(), context.forChild(".number")).toString();
+		return number().getAs(as(), context.forChild(".number")).toString();
 	}
 
 	@Override

@@ -25,7 +25,7 @@ public interface SwitchValueProvider<P extends ValueProvider> extends ValueProvi
 	P defaultValue();
 
 	@NotNull
-	default <V> V nextOrDefault(Context context, BiFunction<P, Context, V> getter) {
+	default <V> V getOrDefault(Context context, BiFunction<P, Context, V> getter) {
 
 		ListIterator<Case<Condition, P>> listIterator = cases().listIterator();
 

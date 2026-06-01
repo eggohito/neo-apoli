@@ -24,7 +24,7 @@ public record ConditionalVec3Provider(Condition condition, Vec3Provider ifValue,
 
 	@Override
 	public @NotNull Vec3 getVec3(Context context) {
-		return this.nextOrElse(context, Vec3Provider::getVec3, () -> Vec3.ZERO);
+		return this.getOrElse(context, Vec3Provider::getVec3, () -> Vec3.ZERO);
 	}
 
 }

@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -30,12 +31,12 @@ public record BlockCommandSourceProvider(BlockProvider block) implements Command
 	);
 
 	@Override
-	public CommandSourceProvider.Type<?> getType() {
+	public CommandSourceProvider.@NotNull Type<?> getType() {
 		return NeoApoliCommandSourceProviderTypes.BLOCK;
 	}
 
 	@Override
-	public CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
+	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
 		CachedBlock block = block().getBlock(context.forChild(".block")).orElse(null);
 		return NeoApoliCommonConfig.INSTANCE.command.get().sanitize(this.getCommandSource(block, serverLevel));
 	}

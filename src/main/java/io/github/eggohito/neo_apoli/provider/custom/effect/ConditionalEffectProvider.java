@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffectInstance;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -19,13 +20,13 @@ public record ConditionalEffectProvider(Condition condition, EffectProvider ifVa
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEffectProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEffectProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(EffectProvider.STREAM_CODEC, ConditionalEffectProvider::new));
 
 	@Override
-	public EffectProvider.Type<?> getType() {
+	public EffectProvider.@NotNull Type<?> getType() {
 		return NeoApoliEffectProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public Optional<MobEffectInstance> nextEffect(Context context) {
-		return this.nextOrElse(context, EffectProvider::nextEffect, Optional::empty);
+	public Optional<MobEffectInstance> getEffect(Context context) {
+		return this.getOrElse(context, EffectProvider::getEffect, Optional::empty);
 	}
 
 }

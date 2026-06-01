@@ -12,6 +12,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -21,13 +22,13 @@ public record SwitchCommandSourceProvider(List<Case<Condition, CommandSourceProv
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchCommandSourceProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchCommandSourceProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(CommandSourceProvider.STREAM_CODEC, SwitchCommandSourceProvider::new));
 
 	@Override
-	public CommandSourceProvider.Type<?> getType() {
+	public CommandSourceProvider.@NotNull Type<?> getType() {
 		return NeoApoliCommandSourceProviderTypes.SWITCH;
 	}
 
 	@Override
-	public CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		return this.nextOrDefault(context, (provider, ctx) -> provider.getSource(serverLevel, ctx));
+	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
+		return this.getOrDefault(context, (provider, ctx) -> provider.getSource(serverLevel, ctx));
 	}
 
 }

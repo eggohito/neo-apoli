@@ -25,7 +25,7 @@ public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, N
 
 	@Override
 	public @NotNull Tag getTag(Context context) {
-		return nextOrElse(context, NbtProvider::getTag, CompoundTag::new);
+		return getOrElse(context, NbtProvider::getTag, CompoundTag::new);
 	}
 
 }

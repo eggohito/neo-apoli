@@ -17,6 +17,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public record SelectorEntityProvider(ParsedArgument<EntitySelector> selector) im
 	);
 
 	@Override
-	public EntityProvider.Type<?> getType() {
+	public EntityProvider.@NotNull Type<?> getType() {
 		return NeoApoliEntityProviderTypes.SELECTOR;
 	}
 

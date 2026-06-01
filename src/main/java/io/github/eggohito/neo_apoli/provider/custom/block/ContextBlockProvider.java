@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.CachedBlock;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ public record ContextBlockProvider(Context.Parameter<CachedBlock> parameter) imp
 	);
 
 	@Override
-	public BlockProvider.Type<?> getType() {
+	public BlockProvider.@NotNull Type<?> getType() {
 		return NeoApoliBlockProviderTypes.CONTEXT;
 	}
 

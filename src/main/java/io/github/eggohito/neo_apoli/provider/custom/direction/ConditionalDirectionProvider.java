@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -19,13 +20,13 @@ public record ConditionalDirectionProvider(Condition condition, DirectionProvide
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalDirectionProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalDirectionProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(DirectionProvider.STREAM_CODEC, ConditionalDirectionProvider::new));
 
 	@Override
-	public DirectionProvider.Type<?> getType() {
+	public DirectionProvider.@NotNull Type<?> getType() {
 		return NeoApoliDirectionProviderTypes.CONDITIONAL;
 	}
 
 	@Override
-	public Optional<Direction> nextDirection(Context context) {
-		return this.nextOrElse(context, DirectionProvider::nextDirection, Optional::empty);
+	public Optional<Direction> getDirection(Context context) {
+		return this.getOrElse(context, DirectionProvider::getDirection, Optional::empty);
 	}
 
 }

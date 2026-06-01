@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
+import org.jetbrains.annotations.NotNull;
 
 public interface SlotProvider extends ValueProvider {
 
@@ -21,8 +22,9 @@ public interface SlotProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, SlotProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(SlotProvider::getType, Type::streamCodec);
 
 	@Override
-	SlotProvider.Type<?> getType();
+	SlotProvider.@NotNull Type<?> getType();
 
+	@NotNull
 	SlotAccess getSlot(Context context);
 
 	record Type<P extends SlotProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {

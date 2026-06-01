@@ -23,7 +23,7 @@ public record ConditionalStringProvider(Condition condition, StringProvider ifVa
 
 	@Override
 	public @NotNull String getString(Context context) {
-		return nextOrElse(context, StringProvider::getString, () -> "");
+		return getOrElse(context, StringProvider::getString, () -> "");
 	}
 
 }

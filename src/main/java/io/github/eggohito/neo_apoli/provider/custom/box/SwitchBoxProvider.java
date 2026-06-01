@@ -26,8 +26,8 @@ public record SwitchBoxProvider(List<Case<Condition, BoxProvider>> cases, BoxPro
 	}
 
 	@Override
-	public @NotNull AABB nextBox(Context context) {
-		return nextOrDefault(context, BoxProvider::nextBox);
+	public @NotNull AABB getBox(Context context) {
+		return getOrDefault(context, BoxProvider::getBox);
 	}
 
 }

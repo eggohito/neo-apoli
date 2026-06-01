@@ -21,7 +21,7 @@ public interface ConditionalValueProvider<P extends ValueProvider> extends Value
 
 	P elseValue();
 
-	default <V> V nextOrElse(Context context, BiFunction<P, Context, V> getter, Supplier<V> errorValue) {
+	default <V> V getOrElse(Context context, BiFunction<P, Context, V> getter, Supplier<V> errorValue) {
 
 		Context conditionContext = context.forChild(".condition");
 		boolean provides = condition().test(conditionContext);

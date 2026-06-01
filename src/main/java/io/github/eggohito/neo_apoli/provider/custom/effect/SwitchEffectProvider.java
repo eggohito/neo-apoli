@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffectInstance;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +22,13 @@ public record SwitchEffectProvider(List<Case<Condition, EffectProvider>> cases, 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchEffectProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchEffectProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(EffectProvider.STREAM_CODEC, SwitchEffectProvider::new));
 
 	@Override
-	public EffectProvider.Type<?> getType() {
+	public EffectProvider.@NotNull Type<?> getType() {
 		return NeoApoliEffectProviderTypes.SWITCH;
 	}
 
 	@Override
-	public Optional<MobEffectInstance> nextEffect(Context context) {
-		return this.nextOrDefault(context, EffectProvider::nextEffect);
+	public Optional<MobEffectInstance> getEffect(Context context) {
+		return this.getOrDefault(context, EffectProvider::getEffect);
 	}
 
 }

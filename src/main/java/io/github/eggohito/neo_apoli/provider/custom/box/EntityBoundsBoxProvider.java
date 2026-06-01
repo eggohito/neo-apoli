@@ -32,7 +32,7 @@ public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvi
 	}
 
 	@Override
-	public @NotNull AABB nextBox(Context context) {
+	public @NotNull AABB getBox(Context context) {
 		return entity().getEntity(context.forChild(".entity"))
 			.map(Entity::getBoundingBox)
 			.orElse(AABBUtil.EMPTY);

@@ -26,7 +26,7 @@ public record SwitchNumberProvider(List<Case<Condition, NumberProvider>> cases, 
 
 	@Override
 	public double getDouble(Context context) {
-		return this.nextOrDefault(context, NumberProvider::getDouble);
+		return this.getOrDefault(context, NumberProvider::getDouble);
 	}
 
 }

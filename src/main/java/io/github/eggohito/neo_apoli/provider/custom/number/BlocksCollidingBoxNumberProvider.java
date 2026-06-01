@@ -48,7 +48,7 @@ public record BlocksCollidingBoxNumberProvider(Condition condition, BoxProvider 
 		int matches = 0;
 
 		Context boxContext = context.forChild(".box");
-		AABB box = box().nextBox(boxContext);
+		AABB box = box().getBox(boxContext);
 
 		if (boxContext.hasErrors()) {
 			return matches;

@@ -26,7 +26,7 @@ public record SwitchBooleanProvider(List<Case<Condition, BooleanProvider>> cases
 
 	@Override
 	public boolean getBoolean(Context context) {
-		return nextOrDefault(context, BooleanProvider::getBoolean);
+		return getOrDefault(context, BooleanProvider::getBoolean);
 	}
 
 }

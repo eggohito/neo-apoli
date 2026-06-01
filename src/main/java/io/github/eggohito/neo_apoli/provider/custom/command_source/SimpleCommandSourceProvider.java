@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
@@ -12,7 +13,7 @@ public interface SimpleCommandSourceProvider<P extends SimpleCommandSourceProvid
 	Codec<SimpleCommandSourceProvider<?>> CODEC = Type.CODEC.comapFlatMap(SimpleCommandSourceProvider::validate, Function.identity());
 
 	@Override
-	default SimpleCommandSourceProvider<P> getType() {
+	default @NotNull SimpleCommandSourceProvider<P> getType() {
 		return this;
 	}
 

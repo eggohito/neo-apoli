@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public interface EntityProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, EntityProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(EntityProvider::getType, Type::streamCodec);
 
 	@Override
-	EntityProvider.Type<?> getType();
+	EntityProvider.@NotNull Type<?> getType();
 
 	Optional<Entity> getEntity(Context context);
 

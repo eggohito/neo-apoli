@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -23,9 +24,9 @@ public interface DirectionProvider extends ValueProvider {
 	StreamCodec<RegistryFriendlyByteBuf, DirectionProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(DirectionProvider::getType, Type::streamCodec);
 
 	@Override
-	DirectionProvider.Type<?> getType();
+	DirectionProvider.@NotNull Type<?> getType();
 
-	Optional<Direction> nextDirection(Context context);
+	Optional<Direction> getDirection(Context context);
 
 	record Type<P extends DirectionProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

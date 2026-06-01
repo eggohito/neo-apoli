@@ -7,6 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UnstableApiUsage")
 public enum ServerCommandSourceProvider implements SimpleCommandSourceProvider<ServerCommandSourceProvider> {
@@ -27,7 +28,7 @@ public enum ServerCommandSourceProvider implements SimpleCommandSourceProvider<S
 	}
 
 	@Override
-	public CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
+	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
 		return NeoApoliCommonConfig.INSTANCE.command.get().sanitize(serverLevel.getServer().createCommandSourceStack());
 	}
 

@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -28,7 +29,7 @@ public record WorldBlockProvider(Vec3Provider position) implements BlockProvider
 	);
 
 	@Override
-	public BlockProvider.Type<?> getType() {
+	public BlockProvider.@NotNull Type<?> getType() {
 		return NeoApoliBlockProviderTypes.WORLD;
 	}
 

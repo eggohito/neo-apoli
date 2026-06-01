@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +22,13 @@ public record SwitchDirectionProvider(List<Case<Condition, DirectionProvider>> c
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchDirectionProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchDirectionProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(DirectionProvider.STREAM_CODEC, SwitchDirectionProvider::new));
 
 	@Override
-	public DirectionProvider.Type<?> getType() {
+	public DirectionProvider.@NotNull Type<?> getType() {
 		return NeoApoliDirectionProviderTypes.SWITCH;
 	}
 
 	@Override
-	public Optional<Direction> nextDirection(Context context) {
-		return this.nextOrDefault(context, DirectionProvider::nextDirection);
+	public Optional<Direction> getDirection(Context context) {
+		return this.getOrDefault(context, DirectionProvider::getDirection);
 	}
 
 }

@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.SlotAccess;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -31,12 +32,12 @@ public record ContextSlotProvider(Context.Parameter<SlotAccess> parameter) imple
 	);
 
 	@Override
-	public SlotProvider.Type<?> getType() {
+	public SlotProvider.@NotNull Type<?> getType() {
 		return NeoApoliSlotProviderTypes.CONTEXT;
 	}
 
 	@Override
-	public SlotAccess getSlot(Context context) {
+	public @NotNull SlotAccess getSlot(Context context) {
 		return context.getOptional(parameter()).orElse(SlotAccess.NULL);
 	}
 

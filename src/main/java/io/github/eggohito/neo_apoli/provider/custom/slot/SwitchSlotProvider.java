@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -20,13 +21,13 @@ public record SwitchSlotProvider(List<Case<Condition, SlotProvider>> cases, Slot
 	public static final StreamCodec<RegistryFriendlyByteBuf, SwitchSlotProvider> STREAM_CODEC = StreamCodecUtil.lazy(SwitchSlotProvider.class.getSimpleName(), () -> SwitchValueProvider.streamCodec(SlotProvider.STREAM_CODEC, SwitchSlotProvider::new));
 
 	@Override
-	public SlotProvider.Type<?> getType() {
+	public SlotProvider.@NotNull Type<?> getType() {
 		return NeoApoliSlotProviderTypes.SWITCH;
 	}
 
 	@Override
-	public SlotAccess getSlot(Context context) {
-		return this.nextOrDefault(context, SlotProvider::getSlot);
+	public @NotNull SlotAccess getSlot(Context context) {
+		return this.getOrDefault(context, SlotProvider::getSlot);
 	}
 
 }

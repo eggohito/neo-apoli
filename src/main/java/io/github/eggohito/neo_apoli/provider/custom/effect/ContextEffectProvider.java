@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.effect.MobEffectInstance;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.Set;
@@ -32,12 +33,12 @@ public record ContextEffectProvider(Context.Parameter<MobEffectInstance> paramet
 	);
 
 	@Override
-	public EffectProvider.Type<?> getType() {
+	public EffectProvider.@NotNull Type<?> getType() {
 		return NeoApoliEffectProviderTypes.CONTEXT;
 	}
 
 	@Override
-	public Optional<MobEffectInstance> nextEffect(Context context) {
+	public Optional<MobEffectInstance> getEffect(Context context) {
 
 		if (!context.hasParameter(parameter())) {
 			context.reportProblem("Parameter \"" + parameter().name() + "\" is not provided in the context!");

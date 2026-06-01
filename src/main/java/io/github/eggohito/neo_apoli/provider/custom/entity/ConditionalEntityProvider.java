@@ -10,6 +10,7 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -19,13 +20,13 @@ public record ConditionalEntityProvider(Condition condition, EntityProvider ifVa
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEntityProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEntityProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(EntityProvider.STREAM_CODEC, ConditionalEntityProvider::new));
 
 	@Override
-	public EntityProvider.Type<?> getType() {
+	public EntityProvider.@NotNull Type<?> getType() {
 		return NeoApoliEntityProviderTypes.CONDITIONAL;
 	}
 
 	@Override
 	public Optional<Entity> getEntity(Context context) {
-		return this.nextOrElse(context, EntityProvider::getEntity, Optional::empty);
+		return this.getOrElse(context, EntityProvider::getEntity, Optional::empty);
 	}
 
 }
