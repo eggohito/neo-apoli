@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +68,14 @@ public sealed class AbstractPowers implements Powers permits PowersImpl, PowersB
 
 	@Override
 	public Set<ResourceLocation> getSources(PowerIdentifier id) {
-		return new ObjectOpenHashSet<>(sources.values());
+
+		Set<ResourceLocation> result = new ObjectLinkedOpenHashSet<>();
+		if (sources.containsKey(id)) {
+			result.addAll(sources.get(id));
+		}
+
+		return result;
+
 	}
 
 	@Override
