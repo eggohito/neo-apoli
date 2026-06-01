@@ -8,6 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
@@ -97,7 +99,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 		};
 	}
 
-	public sealed interface Result permits Result.Singleton, Result.Collection {
+	public sealed interface Result extends ContextValidatable permits Result.Singleton, Result.Collection {
 
 		List<PowerHolder<?>> get() throws CommandSyntaxException;
 
@@ -108,6 +110,11 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 				return List.of(PowerManager.getAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
 			}
 
+			@Override
+			public void validate(Context.Validator validator) {
+				id().validate(validator);
+			}
+
 		}
 
 		record Collection(TagKey<PowerHolder<?>> tag) implements Result {
@@ -115,6 +122,11 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 			@Override
 			public List<PowerHolder<?>> get() throws CommandSyntaxException {
 				return PowerManager.getTag(this.id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+			}
+
+			@Override
+			public void validate(Context.Validator validator) {
+				PowerManager.getTag(this.id()).ifError(error -> validator.reportProblem(error.message()));
 			}
 
 			public ResourceLocation id() {

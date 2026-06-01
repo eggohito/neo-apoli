@@ -15,6 +15,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<ApplyEffectsAction> APPLY_EFFECTS = registerInternal("apply_effects", ApplyEffectsAction.CODEC, ApplyEffectsAction.STREAM_CODEC);
 	public static final Action.Type<AreaOfEffectAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectAction.CODEC, AreaOfEffectAction.STREAM_CODEC);
 	public static final Action.Type<BoneMealAction> BONE_MEAL = registerInternal("bone_meal", BoneMealAction.CODEC, BoneMealAction.STREAM_CODEC);
+	public static final Action.Type<ClearPowersAction> CLEAR_POWERS = registerInternal("clear_powers", ClearPowersAction.CODEC, ClearPowersAction.STREAM_CODEC);
 	public static final Action.Type<ConditionalAction> CONDITIONAL = registerInternal("conditional", ConditionalAction.CODEC, ConditionalAction.STREAM_CODEC);
 	public static final Action.Type<ConsumeItemAction> CONSUME_ITEM = registerInternal("consume_item", ConsumeItemAction.CODEC, ConsumeItemAction.STREAM_CODEC);
 	public static final Action.Type<DamageEntityAction> DAMAGE_ENTITY = registerInternal("damage_entity", DamageEntityAction.CODEC, DamageEntityAction.STREAM_CODEC);
@@ -26,6 +27,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<ExplodeAction> EXPLODE = registerInternal("explode", ExplodeAction.CODEC, ExplodeAction.STREAM_CODEC);
 	public static final Action.Type<ExtinguishEntityFireAction> EXTINGUISH_ENTITY_FIRE = registerInternal("extinguish_entity_fire", ExtinguishEntityFireAction.CODEC, ExtinguishEntityFireAction.STREAM_CODEC);
 	public static final Action.Type<GiveItemsAction> GIVE_ITEMS = registerInternal("give_items", GiveItemsAction.CODEC, GiveItemsAction.STREAM_CODEC);
+	public static final Action.Type<GrantPowerAction> GRANT_POWER = registerInternal("grant_power", GrantPowerAction.CODEC, GrantPowerAction.STREAM_CODEC);
 	public static final Action.Type<LoopAction> LOOP = registerInternal("loop", LoopAction.CODEC, LoopAction.STREAM_CODEC);
 	public static final Action.Type<ModifyBlockStatePropertyAction> MODIFY_BLOCK_STATE_PROPERTY = registerInternal("modify_block_state_property", ModifyBlockStatePropertyAction.CODEC, ModifyBlockStatePropertyAction.STREAM_CODEC);
 	public static final Action.Type<ModifyItemAction> MODIFY_ITEM = registerInternal("modify_item", ModifyItemAction.CODEC, ModifyItemAction.STREAM_CODEC);
@@ -35,6 +37,9 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<PlaySoundAction> PLAY_SOUND = registerInternal("play_sound", PlaySoundAction.CODEC, PlaySoundAction.STREAM_CODEC);
 	public static final Action.Type<RandomChanceAction> RANDOM_CHANCE = registerInternal("random_chance", RandomChanceAction.CODEC, RandomChanceAction.STREAM_CODEC);
 	public static final Action.Type<ReferenceAction> REFERENCE = registerInternal("reference", ReferenceAction.CODEC, ReferenceAction.STREAM_CODEC);
+	public static final Action.Type<RemovePowerAction> REMOVE_POWER = registerInternal("remove_power", RemovePowerAction.CODEC, RemovePowerAction.STREAM_CODEC);
+	public static final Action.Type<RevokeAllPowersAction> REVOKE_ALL_POWERS = registerInternal("revoke_all_powers", RevokeAllPowersAction.CODEC, RevokeAllPowersAction.STREAM_CODEC);
+	public static final Action.Type<RevokePowerAction> REVOKE_POWER = registerInternal("revoke_power", RevokePowerAction.CODEC, RevokePowerAction.STREAM_CODEC);
 	public static final Action.Type<SequenceAction> SEQUENCE = registerInternal("sequence", SequenceAction.CODEC, SequenceAction.STREAM_CODEC);
 	public static final Action.Type<SetEntityOnFireAction> SET_ENTITY_ON_FIRE = registerInternal("set_entity_on_fire", SetEntityOnFireAction.CODEC, SetEntityOnFireAction.STREAM_CODEC);
 	public static final Action.Type<ShootEntityAction> SHOOT_ENTITY = registerInternal("shoot_entity", ShootEntityAction.CODEC, ShootEntityAction.STREAM_CODEC);

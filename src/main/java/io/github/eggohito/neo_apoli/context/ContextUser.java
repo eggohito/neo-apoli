@@ -4,12 +4,13 @@ import net.minecraft.util.context.ContextKey;
 
 import java.util.Set;
 
-public interface ContextUser {
+public interface ContextUser extends ContextValidatable {
 
 	default Set<ContextKey<?>> getRequiredParameters() {
 		return Set.of();
 	}
 
+	@Override
 	default void validate(Context.Validator validator) {
 		validator.validate(this);
 	}

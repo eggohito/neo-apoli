@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.util.*;
 import io.netty.buffer.ByteBuf;
@@ -131,5 +132,7 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.streamCodecWithSimpleContext(ItemPredicateArgument::itemPredicate);
 
 	public static final StreamCodec<ByteBuf, SoundSource> SOUND_SOURCE = StreamCodecUtil.enumType(SoundSource.class);
+
+	public static final StreamCodec<ByteBuf, ParsedArgument<PowerArgument.Result>> POWER_OR_TAG_ARGUMENT = ParsedArgument.streamCodec(PowerArgument.powerOrTag());
 
 }
