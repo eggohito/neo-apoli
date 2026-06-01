@@ -8,6 +8,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -17,6 +19,7 @@ import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,26 +27,27 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.event.Level;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
-public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> instances, ImmutableSetMultimap<PowerIdentifier, ResourceLocation> sources, Optional<String> decodingErrors, int version) {
+@SuppressWarnings("UnstableApiUsage")
+public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> instances, ImmutableSetMultimap<PowerIdentifier, ResourceLocation> sources, Optional<String> decodingErrors) {
 
 	public static final Codec<PowersAttachment> CODEC = new Codec<>() {
 
 		@Override
 		public <T> DataResult<Pair<PowersAttachment, T>> decode(DynamicOps<T> ops, T input) {
-			return Packed.CODEC.parse(ops, input).flatMap(packed -> unpack(ops, packed)).map(attachment -> Pair.of(attachment, input));
+			return Entry.LIST_CODEC.parse(ops, input).flatMap(entries -> unpack(ops, entries)).map(attachment -> Pair.of(attachment, input));
 		}
 
 		@Override
 		public <T> DataResult<T> encode(PowersAttachment input, DynamicOps<T> ops, T prefix) {
-			return input.pack(ops).flatMap(packed -> Packed.CODEC.encode(packed, ops, prefix));
+			return input.pack(ops).flatMap(packed -> Entry.LIST_CODEC.encode(packed, ops, prefix));
 		}
 
 	};
@@ -53,11 +57,11 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		@Override
 		public @NotNull PowersAttachment decode(RegistryFriendlyByteBuf buf) {
 
+			RegistryOps<Tag> ops = buf.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 			boolean present = buf.readBoolean();
-			Optional<Packed> packed = present ? Optional.of(Packed.STREAM_CODEC.decode(buf)) : Optional.empty();
 
-			RegistryOps<Tag> nbtOps = buf.registryAccess().createSerializationContext(NbtOps.INSTANCE);
-			return packed.flatMap(self -> unpack(nbtOps, self).resultOrPartial()).orElseGet(PowersAttachment::new);
+			Optional<List<Entry>> entries = present ? Optional.of(Entry.LIST_STREAM_CODEC.decode(buf)) : Optional.empty();
+			return entries.flatMap(self -> unpack(ops, self).resultOrPartial()).orElseGet(PowersAttachment::new);
 
 		}
 
@@ -65,40 +69,48 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		public void encode(RegistryFriendlyByteBuf buf, PowersAttachment input) {
 
 			RegistryOps<Tag> nbtOps = buf.registryAccess().createSerializationContext(NbtOps.INSTANCE);
-			Optional<Packed> packedList = input.pack(nbtOps).resultOrPartial();
+			Optional<List<Entry>> entries = input.pack(nbtOps).resultOrPartial();
 
-			buf.writeBoolean(packedList.isPresent());
-			packedList.ifPresent(self -> Packed.STREAM_CODEC.encode(buf, self));
+			buf.writeBoolean(entries.isPresent());
+			entries.ifPresent(self -> Entry.LIST_STREAM_CODEC.encode(buf, self));
 
 		}
 
 	};
 
 	public PowersAttachment(Map<PowerIdentifier, Power.Instance<?>> instances, SetMultimap<PowerIdentifier, ResourceLocation> sources) {
-		this(ImmutableMap.copyOf(instances), ImmutableSetMultimap.copyOf(sources), Optional.empty(), Powers.VERSION);
+		this(ImmutableMap.copyOf(instances), ImmutableSetMultimap.copyOf(sources), Optional.empty());
 	}
 
 	public PowersAttachment() {
-		this(ImmutableMap.of(), ImmutableSetMultimap.of(), Optional.empty(), Powers.VERSION);
+		this(ImmutableMap.of(), ImmutableSetMultimap.of(), Optional.empty());
 	}
 
-	private <T> DataResult<Packed> pack(DynamicOps<T> ops) {
+	private <T> DataResult<List<Entry>> pack(DynamicOps<T> ops) {
 
 		Set<Entry> entries = new ObjectLinkedOpenHashSet<>();
 		DataResult<Unit> identity = DataResult.success(Unit.INSTANCE);
 
-		this.instances.forEach((reference, instance) -> {
+		for (var instanceEntry : instances.entrySet()) {
 
-			Set<ResourceLocation> sources = this.sources.get(reference);
-			T data = identity.apply2stable((unit, t) -> t, instance.encodeData(ops)).mapOrElse(Function.identity(), error -> ops.emptyMap());
+			PowerIdentifier id = instanceEntry.getKey();
+			Power.Instance<?> instance = instanceEntry.getValue();
 
-			Entry packed = new Entry(reference, instance.getPower().getType(), sources, new Dynamic<>(ops, data));
+			Set<ResourceLocation> sources = this.sources.get(id);
+			DataResult<T> encodedData = instance.encodeData(ops);
+
+			T data = encodedData.mapOrElse(Function.identity(), error -> ops.emptyMap());
+			identity = identity.apply2stable((unit, t) -> unit, encodedData);
+
+			Entry packed = new Entry(id, instance.getPower().getType(), sources, new Dynamic<>(ops, data));
 			entries.add(packed);
 
-		});
+		}
 
-		ImmutableSet<Entry> immutableEntries = ImmutableSet.copyOf(entries);
-		return DataResult.success(new Packed(immutableEntries, version()));
+		ImmutableList<Entry> entriesAsList = ImmutableList.copyOf(entries);
+		return identity.map(unit -> entriesAsList)
+			.setPartial(entriesAsList)
+			.map(Function.identity());
 
 	}
 
@@ -111,12 +123,11 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 	 *  <p>Also cache the errors encountered during decoding to be logged at a later point with the context of the
 	 *  attachment target (which in this case, is an {@link net.minecraft.world.entity.Entity})</p>
 	 */
-	private static <T> DataResult<PowersAttachment> unpack(DynamicOps<T> ops, Packed packed) {
+	private static <T> DataResult<PowersAttachment> unpack(DynamicOps<T> ops, List<Entry> entries) {
 
 		Object2ObjectMap<PowerIdentifier, Power.Instance<?>> instancesMap = new Object2ObjectLinkedOpenHashMap<>();
 		SetMultimap<PowerIdentifier, ResourceLocation> sourcesMap = LinkedHashMultimap.create();
 
-		Set<Entry> entries = packed.entries();
 		DataResult<Unit> identity = DataResult.success(Unit.INSTANCE);
 
 		for (var entry : entries) {
@@ -149,23 +160,20 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 
 		}
 
-		PowersAttachment result = new PowersAttachment(ImmutableMap.copyOf(instancesMap), ImmutableSetMultimap.copyOf(sourcesMap), identity.error().map(DataResult.Error::message), packed.version());
+		PowersAttachment result = new PowersAttachment(ImmutableMap.copyOf(instancesMap), ImmutableSetMultimap.copyOf(sourcesMap), identity.error().map(DataResult.Error::message));
 		return DataResult.success(result);
 
 	}
 
-	record Packed(Set<Entry> entries, int version) {
+	//  TODO:   Remove this once the codebase has been ported to 26.1.x since decoding/encoding data attachments
+	//          in FAPI in that version promotes its partial result
+	private static void onLoad(Entity entity, ServerLevel serverLevel) {
 
-		public static final Codec<Packed> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			Entry.SET_CODEC.fieldOf("powers").forGetter(Packed::entries),
-			Codec.INT.fieldOf("version").forGetter(Packed::version)
-		).apply(instance, Packed::new));
+		PowersAttachment attachment = entity.getAttached(NeoApoliEntityAttachments.POWERS);
 
-		public static final StreamCodec<RegistryFriendlyByteBuf, Packed> STREAM_CODEC = StreamCodec.composite(
-			Entry.SET_STREAM_CODEC, Packed::entries,
-			ByteBufCodecs.INT, Packed::version,
-			Packed::new
-		);
+		if (attachment != null) {
+			attachment.decodingErrors().ifPresent(errors -> NeoApoli.logOnce(Level.WARN, "Found error(s) while decoding powers attachment on entity %s: %s".formatted(entity.getName().getString(), errors)));
+		}
 
 	}
 
@@ -178,7 +186,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 			Codec.PASSTHROUGH.fieldOf("data").forGetter(Entry::data)
 		).apply(instance, Entry::new));
 
-		public static final Codec<Set<Entry>> SET_CODEC = CODEC.listOf().xmap(ImmutableSet::copyOf, ImmutableList::copyOf);
+		public static final Codec<List<Entry>> LIST_CODEC = CODEC.listOf();
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
 			PowerIdentifier.STREAM_CODEC, Entry::id,
@@ -188,20 +196,12 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 			Entry::new
 		);
 
-		public static final StreamCodec<RegistryFriendlyByteBuf, Set<Entry>> SET_STREAM_CODEC = STREAM_CODEC.apply(ByteBufCodecs.list()).map(ImmutableSet::copyOf, ImmutableList::copyOf);
+		public static final StreamCodec<RegistryFriendlyByteBuf, List<Entry>> LIST_STREAM_CODEC = STREAM_CODEC.apply(ByteBufCodecs.list());
 
 	}
 
-	public record Mutable(Object2ObjectMap<PowerIdentifier, Power.Instance<?>> instances, SetMultimap<PowerIdentifier, ResourceLocation> sources) {
-
-		public Mutable(PowersAttachment attachment) {
-			this(new Object2ObjectLinkedOpenHashMap<>(attachment.instances()), LinkedHashMultimap.create(attachment.sources()));
-		}
-
-		public PowersAttachment toImmutable() {
-			return new PowersAttachment(ImmutableMap.copyOf(this.instances), ImmutableSetMultimap.copyOf(this.sources), Optional.empty(), Powers.VERSION);
-		}
-
+	static {
+		ServerEntityEvents.ENTITY_LOAD.register(Powers.ID, PowersAttachment::onLoad);
 	}
 
 }

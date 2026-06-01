@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.api.power;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
+import io.github.eggohito.neo_apoli.impl.power.PowersBuilderImpl;
 import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
@@ -23,8 +24,6 @@ import java.util.function.Predicate;
 public interface Powers {
 
 	ResourceLocation ID = NeoApoli.id("powers");
-
-	int VERSION = 1;
 
 
 	Set<PowerIdentifier> getAllIds();
@@ -87,31 +86,6 @@ public interface Powers {
 	}
 
 
-	boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
-
-	default boolean grantWithCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.grant(id, source, true);
-	}
-
-	default boolean grantWithoutCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.grant(id, source, false);
-	}
-
-
-	boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
-
-	default boolean revokeWithCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.revoke(id, source, true);
-	}
-
-	default boolean revokeWithoutCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.revoke(id, source, false);
-	}
-
-
-	void update();
-
-
 	static Optional<Powers> getOptional(Entity holder) {
 		return Optional.ofNullable(holder)
 			.filter(entity -> entity.hasAttached(NeoApoliEntityAttachments.POWERS))
@@ -123,7 +97,12 @@ public interface Powers {
 	}
 
 	static Powers getOrCreate(@NotNull Entity holder) {
-		return new PowersImpl(holder, holder.getAttachedOrCreate(NeoApoliEntityAttachments.POWERS));
+		return PowersImpl.of(holder);
+	}
+
+
+	static PowersBuilder builder(@NotNull Entity holder) {
+		return PowersBuilderImpl.of(holder);
 	}
 
 

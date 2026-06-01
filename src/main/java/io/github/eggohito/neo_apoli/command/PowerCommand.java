@@ -11,6 +11,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.power.Powers;
+import io.github.eggohito.neo_apoli.api.power.PowersBuilder;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
@@ -98,10 +99,10 @@ public class PowerCommand {
 
 			for (var target : targets) {
 
-				Powers powers = Powers.getOrCreate(target);
+				PowersBuilder powersBuilder = Powers.builder(target);
 				long grantedPowers = powerHolders
 					.stream()
-					.filter(entry -> powers.grantWithCallback(entry.id(), source))
+					.filter(entry -> powersBuilder.grantWithCallback(entry.id(), source))
 					.count();
 
 				if (grantedPowers <= 0) {
@@ -109,7 +110,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, grantedPowers);
-				powers.update();
+				powersBuilder.build();
 
 			}
 
@@ -252,12 +253,12 @@ public class PowerCommand {
 					continue;
 				}
 
-				Powers powers = Powers.getOrCreate(target);
+				PowersBuilder powersBuilder = Powers.builder(target);
 				long revokedPowers;
 
 				if (powerHolder != null) {
 
-					if (powers.revokeWithCallback(powerHolder.id(), source)) {
+					if (powersBuilder.revokeWithCallback(powerHolder.id(), source)) {
 						revokedPowers = 1;
 					}
 
@@ -268,9 +269,9 @@ public class PowerCommand {
 				}
 
 				else {
-					revokedPowers = powers.getAllFromSource(source)
+					revokedPowers = powersBuilder.getAllFromSource(source)
 						.stream()
-						.filter(inner -> powers.revokeWithCallback(inner.id(), source))
+						.filter(inner -> powersBuilder.revokeWithCallback(inner.id(), source))
 						.count();
 				}
 
@@ -279,7 +280,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, revokedPowers);
-				powers.update();
+				powersBuilder.build();
 
 			}
 
@@ -401,12 +402,12 @@ public class PowerCommand {
 					continue;
 				}
 
-				Powers powers = Powers.getOrCreate(target);
-				Set<ResourceLocation> sources = powers.getSources(powerHolder.id());
+				PowersBuilder powersBuilder = Powers.builder(target);
+				Set<ResourceLocation> sources = powersBuilder.getSources(powerHolder.id());
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> powers.revokeWithCallback(powerHolder.id(), source))
+					.filter(source -> powersBuilder.revokeWithCallback(powerHolder.id(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -414,7 +415,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.add(target);
-				powers.update();
+				powersBuilder.build();
 
 			}
 
@@ -476,18 +477,18 @@ public class PowerCommand {
 
 			for (Entity target : targets) {
 
-				Powers powers = Powers.getNullable(target);
-				long clearedPowers = 0;
-
-				if (powers == null) {
+				if (!Powers.has(target)) {
 					continue;
 				}
 
-				for (var entry : powers.getAll()) {
+				PowersBuilder powersBuilder = Powers.builder(target);
+				long clearedPowers = 0;
 
-					for (var source : powers.getSources(entry.id())) {
+				for (var entry : powersBuilder.getAll()) {
 
-						if (powers.revokeWithCallback(entry.id(), source)) {
+					for (var source : powersBuilder.getSources(entry.id())) {
+
+						if (powersBuilder.revokeWithCallback(entry.id(), source)) {
 							clearedPowers++;
 						}
 
@@ -500,7 +501,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, clearedPowers);
-				powers.update();
+				powersBuilder.build();
 
 			}
 
