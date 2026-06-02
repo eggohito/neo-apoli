@@ -70,6 +70,7 @@
 		"impl.power.custom.modify_effect_immunity.LivingEntityMixin",
 		"impl.power.custom.modify_entity_type_tag.EntityMixin",
 		"impl.power.custom.modify_entity_type_tag.EntityTypeMixin",
+		"impl.power.custom.modify_exhaustion.PlayerMixin",
 		"impl.power.custom.modify_falling.LivingEntityMixin",
 		"impl.power.custom.modify_invisibility.EntityMixin",
 		"impl.power.custom.modify_invisibility.LivingEntityMixin",

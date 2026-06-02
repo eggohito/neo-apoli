@@ -270,6 +270,13 @@ public class NeoApoliPowerTypes {
 		UnaryOperator.identity()
 	);
 
+	public static final Power.Type<ModifyExhaustionPower> MODIFY_EXHAUSTION = registerInternal(
+		"modify/exhaustion",
+		ModifyExhaustionPower.CODEC,
+		ModifyExhaustionPower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
+
 	public static final Power.Type<ModifyFallingPower> MODIFY_FALLING = registerInternal(
 		"modify/falling",
 		ModifyFallingPower.CODEC,
