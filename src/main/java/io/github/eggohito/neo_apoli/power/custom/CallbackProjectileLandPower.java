@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.context.parameter.EnumContextParameter;
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
+import io.github.eggohito.neo_apoli.mixin.access.AABBAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
@@ -72,9 +73,17 @@ public class CallbackProjectileLandPower extends CallbackPower {
 
 			switch (result) {
 				case EntityHitResult entityResult -> {
+
 					target = entityResult.getEntity();
+					Vec3 end = target.position();
+
+					double dx = end.x() - pos.x();
+					double dy = end.y() - pos.y();
+					double dz = end.z() - pos.z();
+
 					blockPos = BlockPos.containing(pos);
-					side = null;
+					side = AABBAccessor.callGetDirection(target.getBoundingBox(), pos, new double[]{1.0}, null, dx, dy, dz);
+
 				}
 				case BlockHitResult blockResult -> {
 					target = null;
