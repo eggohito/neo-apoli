@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class NeoApoliNbtProviderTypes {
+public final class NeoApoliNbtProviderTypes {
 
 	public static final NbtProvider.Type<ConditionalNbtProvider> CONDITIONAL = registerInternal("conditional", ConditionalNbtProvider.MAP_CODEC, ConditionalNbtProvider.STREAM_CODEC);
 	public static final NbtProvider.Type<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.MAP_CODEC, ConstantNbtProvider.STREAM_CODEC);

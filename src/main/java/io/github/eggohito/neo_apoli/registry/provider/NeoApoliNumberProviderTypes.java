@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class NeoApoliNumberProviderTypes {
+public final class NeoApoliNumberProviderTypes {
 
 	public static final NumberProvider.Type<AbsoluteNumberProvider> ABSOLUTE = registerInternal("absolute", AbsoluteNumberProvider.CODEC, AbsoluteNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<BinomialNumberProvider> BINOMIAL = registerInternal("binomial", BinomialNumberProvider.CODEC, BinomialNumberProvider.STREAM_CODEC);

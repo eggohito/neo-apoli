@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.registry.context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.util.context.ContextKeySet;
 
-public class NeoApoliContextParamSets {
+public final class NeoApoliContextParamSets {
 
 	public static ContextKeySet any() {
 

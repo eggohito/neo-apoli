@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class NeoApoliBooleanProviderTypes {
+public final class NeoApoliBooleanProviderTypes {
 
 	public static final BooleanProvider.Type<ConditionalBooleanProvider> CONDITIONAL = registerInternal("conditional", ConditionalBooleanProvider.MAP_CODEC, ConditionalBooleanProvider.STREAM_CODEC);
 	public static final BooleanProvider.Type<ConstantBooleanProvider> CONSTANT = registerInternal("constant", ConstantBooleanProvider.MAP_CODEC, ConstantBooleanProvider.STREAM_CODEC);

@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
-public class NeoApoliServerboundPacketListener {
+public final class NeoApoliServerboundPacketListener {
 
 	public static void init() {
 

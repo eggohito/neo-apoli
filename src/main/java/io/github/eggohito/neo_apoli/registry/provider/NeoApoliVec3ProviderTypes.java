@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class NeoApoliVec3ProviderTypes {
+public final class NeoApoliVec3ProviderTypes {
 
 	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConditionalVec3Provider> CONDITIONAL = registerInternal("conditional", ConditionalVec3Provider.CODEC, ConditionalVec3Provider.STREAM_CODEC);

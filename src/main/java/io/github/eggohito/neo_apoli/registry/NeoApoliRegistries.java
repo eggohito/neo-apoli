@@ -26,7 +26,7 @@ import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
-public class NeoApoliRegistries {
+public final class NeoApoliRegistries {
 
 	public static final Registry<Power.Type<?>> POWER_TYPE = create(NeoApoliRegistryKeys.POWER_TYPE);
 	public static final Registry<Action.Type<?>> ACTION_TYPE = create(NeoApoliRegistryKeys.ACTION_TYPE);

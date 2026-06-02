@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.network.packet.clientbound.*;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
-public class NeoApoliPackets {
+public final class NeoApoliPackets {
 
 	public static void registerAll() {
 

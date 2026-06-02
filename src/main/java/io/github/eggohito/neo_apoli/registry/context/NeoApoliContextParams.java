@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 import static net.minecraft.commands.Commands.literal;
 
-public class NeoApoliContextParams {
+public final class NeoApoliContextParams {
 
 	public static final FixedRegistryAlias<Context.Parameter<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONTEXT_PARAMETER);
 

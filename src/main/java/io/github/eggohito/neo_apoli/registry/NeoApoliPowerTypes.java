@@ -14,7 +14,7 @@ import net.minecraft.util.context.ContextKeySet;
 
 import java.util.function.UnaryOperator;
 
-public class NeoApoliPowerTypes {
+public final class NeoApoliPowerTypes {
 
 	public static final Power.Type<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal(
 		"callback/block/break",

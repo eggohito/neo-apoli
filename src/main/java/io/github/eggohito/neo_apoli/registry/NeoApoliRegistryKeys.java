@@ -28,7 +28,7 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
-public class NeoApoliRegistryKeys {
+public final class NeoApoliRegistryKeys {
 
 	public static final ResourceKey<Registry<PowerHolder<?>>> POWER = create("power");
 	public static final ResourceKey<Registry<GlobalPowerSet>> GLOBAL_POWER_SET = create("global_power_set");

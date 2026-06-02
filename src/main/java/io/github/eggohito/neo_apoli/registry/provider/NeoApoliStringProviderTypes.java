@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public class NeoApoliStringProviderTypes {
+public final class NeoApoliStringProviderTypes {
 
 	public static final StringProvider.Type<ConditionalStringProvider> CONDITIONAL = registerInternal("conditional", ConditionalStringProvider.MAP_CODEC, ConditionalStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<ConstantStringProvider> CONSTANT = registerInternal("constant", ConstantStringProvider.MAP_CODEC, ConstantStringProvider.STREAM_CODEC);

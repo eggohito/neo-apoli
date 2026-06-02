@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.network.packet.clientbound.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
-public class NeoApoliClientboundPacketListener {
+public final class NeoApoliClientboundPacketListener {
 
 	public static void init() {
 
