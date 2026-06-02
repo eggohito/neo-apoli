@@ -26,6 +26,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<ExhaustAction> EXHAUST = registerInternal("exhaust", ExhaustAction.CODEC, ExhaustAction.STREAM_CODEC);
 	public static final Action.Type<ExplodeAction> EXPLODE = registerInternal("explode", ExplodeAction.CODEC, ExplodeAction.STREAM_CODEC);
 	public static final Action.Type<ExtinguishEntityFireAction> EXTINGUISH_ENTITY_FIRE = registerInternal("extinguish_entity_fire", ExtinguishEntityFireAction.CODEC, ExtinguishEntityFireAction.STREAM_CODEC);
+	public static final Action.Type<GainAirAction> GAIN_AIR = registerInternal("gain_air", GainAirAction.CODEC, GainAirAction.STREAM_CODEC);
 	public static final Action.Type<GiveItemsAction> GIVE_ITEMS = registerInternal("give_items", GiveItemsAction.CODEC, GiveItemsAction.STREAM_CODEC);
 	public static final Action.Type<GrantPowerAction> GRANT_POWER = registerInternal("grant_power", GrantPowerAction.CODEC, GrantPowerAction.STREAM_CODEC);
 	public static final Action.Type<LoopAction> LOOP = registerInternal("loop", LoopAction.CODEC, LoopAction.STREAM_CODEC);
