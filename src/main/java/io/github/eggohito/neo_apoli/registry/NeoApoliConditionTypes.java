@@ -20,6 +20,7 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<DifficultyCondition> DIFFICULTY = registerInternal("difficulty", DifficultyCondition.CODEC, DifficultyCondition.STREAM_CODEC);
 	public static final Condition.Type<DynamicCondition> DYNAMIC = registerInternal("dynamic", DynamicCondition.CODEC, DynamicCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasActivePowerCondition> ENTITY_HAS_ACTIVE_POWER = registerInternal("entity_has_active_power", EntityHasActivePowerCondition.CODEC, EntityHasActivePowerCondition.STREAM_CODEC);
+	public static final Condition.Type<EntityHasCorrectToolForBlockCondition> ENTITY_HAS_CORRECT_TOOL_FOR_BLOCK = registerInternal("entity_has_correct_tool_for_block", EntityHasCorrectToolForBlockCondition.CODEC, EntityHasCorrectToolForBlockCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasItemEquippedCondition> ENTITY_HAS_ITEM_EQUIPPED = registerInternal("entity_has_item_equipped", EntityHasItemEquippedCondition.CODEC, EntityHasItemEquippedCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasPowerCondition> ENTITY_HAS_POWER = registerInternal("entity_has_power", EntityHasPowerCondition.CODEC, EntityHasPowerCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasPressedKeysSimultaneouslyCondition> ENTITY_HAS_PRESSED_KEYS_SIMULTANEOUSLY = registerInternal("entity_has_pressed_keys_simultaneously", EntityHasPressedKeysSimultaneouslyCondition.CODEC, EntityHasPressedKeysSimultaneouslyCondition.STREAM_CODEC);
