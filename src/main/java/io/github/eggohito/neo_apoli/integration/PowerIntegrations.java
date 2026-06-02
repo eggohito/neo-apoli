@@ -9,6 +9,8 @@ import io.github.eggohito.neo_apoli.power.custom.ModifyElytraFlightPower;
 import io.github.eggohito.neo_apoli.power.custom.TogglePower;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -16,10 +18,15 @@ import net.minecraft.world.level.gameevent.GameEvent;
 public class PowerIntegrations {
 
 	public static void registerAll() {
+		ServerPlayerEvents.AFTER_RESPAWN.register(Powers.ID, PowerIntegrations::onRespawnCallback);
 		EntityElytraEvents.ALLOW.register(PowerIntegrations::allowPowerElytraFlight);
 		EntityElytraEvents.CUSTOM.register(PowerIntegrations::onPowerElytraFlight);
 		KeyStateEvents.HELD.register(PowerIntegrations::toggleOnKeyHeld);
 		KeyStateEvents.HELD.register(PowerIntegrations::openInventoryOnKeyHeld);
+	}
+
+	private static void onRespawnCallback(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
+		Powers.getAllInstances(newPlayer).forEach(instance -> instance.onRespawned(newPlayer));
 	}
 
 	private static void openInventoryOnKeyHeld(Player player, KeyState previous, KeyState current) {

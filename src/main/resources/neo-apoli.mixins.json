@@ -39,7 +39,6 @@
 		"impl.misc.moving.EntityMixin",
 		"impl.misc.placeholder_identifier.ResourceLocationMixin",
 		"impl.misc.power_callbacks.EntityMixin",
-		"impl.misc.power_callbacks.PlayerListMixin",
 		"impl.misc.server_access.CommandStorageMixin",
 		"impl.misc.weighted_extension.WeightedListMixin",
 		"impl.power.custom.callback_block_break.ServerPlayerGameModeMixin",
