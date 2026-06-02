@@ -55,6 +55,8 @@ public class NeoApoliContextParams {
 
 	public static final Context.Parameter<MobEffectInstance> APPLIED_EFFECT = registerSimpleInternal("applied_effect", MobEffectInstance.class);
 
+	public static final Context.Parameter<ItemStack> ITEM_IN_CONTAINER = registerInternal("item_in_container", ItemContextParameter::new);
+	public static final Context.Parameter<SlotAccess> ITEM_IN_CONTAINER_SLOT = registerInternal("item_in_container_slot", SlotAccessContextParameter::new);
 	public static final Context.Parameter<ItemStack> USED_ITEM = registerInternal("used_item", ItemContextParameter::new);
 	public static final Context.Parameter<SlotAccess> USED_ITEM_SLOT = registerInternal("used_item_slot", SlotAccessContextParameter::new);
 

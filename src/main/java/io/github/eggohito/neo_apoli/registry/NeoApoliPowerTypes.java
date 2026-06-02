@@ -131,6 +131,13 @@ public class NeoApoliPowerTypes {
 		UnaryOperator.identity()
 	);
 
+	public static final Power.Type<InventoryPower> INVENTORY = registerInternal(
+		"inventory",
+		InventoryPower.CODEC,
+		InventoryPower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
+
 	public static final Power.Type<ModifyAirSpeedPower> MODIFY_AIR_SPEED = registerInternal(
 		"modify/air/speed",
 		ModifyAirSpeedPower.CODEC,

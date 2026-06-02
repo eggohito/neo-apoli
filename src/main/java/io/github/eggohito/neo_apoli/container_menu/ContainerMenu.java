@@ -28,6 +28,10 @@ public interface ContainerMenu {
 
 	int rows();
 
+	default int size() {
+		return columns() * rows();
+	}
+
 	interface Type<C extends ContainerMenu> {
 
 		FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONTAINER_MENU_TYPE);

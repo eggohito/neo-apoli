@@ -53,6 +53,7 @@
 		"impl.power.custom.crafting_recipe.RecipeDisplayEntryMixin",
 		"impl.power.custom.crafting_recipe.RecipeManagerMixin",
 		"impl.power.custom.crafting_recipe.TransientCraftingContainerMixin",
+		"impl.power.custom.inventory.PlayerMixin",
 		"impl.power.custom.modify_air_speed.LivingEntityMixin",
 		"impl.power.custom.modify_air_speed.PlayerMixin",
 		"impl.power.custom.modify_block_break_speed.BlockBehaviorMixin",

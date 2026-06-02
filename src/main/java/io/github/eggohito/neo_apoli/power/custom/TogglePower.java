@@ -134,7 +134,7 @@ public class TogglePower extends Power {
 
 		public boolean shouldToggle(Context context, KeyState previous, KeyState current) {
 
-			if (current.pressed() && !super.isActive(context)) {
+			if (!current.pressed() || !super.isActive(context)) {
 				return false;
 			}
 
