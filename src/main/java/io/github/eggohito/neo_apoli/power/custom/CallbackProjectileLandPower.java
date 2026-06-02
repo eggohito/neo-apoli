@@ -13,7 +13,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -75,7 +74,7 @@ public class CallbackProjectileLandPower extends CallbackPower {
 				case EntityHitResult entityResult -> {
 					target = entityResult.getEntity();
 					blockPos = BlockPos.containing(pos);
-					side = AABBUtil.getSideFromPoint(target.getBoundingBox(), pos);
+					side = null;
 				}
 				case BlockHitResult blockResult -> {
 					target = null;
