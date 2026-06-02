@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.codec;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
@@ -24,12 +25,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -39,6 +43,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.Vec3;
 
 import java.math.RoundingMode;
@@ -196,5 +201,18 @@ public class NeoApoliCodecs {
 	public static final Codec<SoundSource> SOUND_SOURCE = CodecUtil.enumType(SoundSource.class);
 
 	public static final Codec<ParsedArgument<PowerArgument.Result>> POWER_OR_TAG_ARGUMENT = ParsedArgument.codec(PowerArgument.powerOrTag());
+
+	public static final Codec<ResourceKey<Biome>> BIOME_KEY = ResourceKey.codec(Registries.BIOME);
+
+	public static final Codec<TagKey<Biome>> BIOME_TAG = TagKey.hashedCodec(Registries.BIOME);
+
+	public static final Codec<Either<ResourceKey<Biome>, TagKey<Biome>>> BIOME_KEY_OR_TAG = Codec.either(BIOME_KEY, BIOME_TAG);
+
+	public static final Codec<ResourceKey<Structure>> STRUCTURE_KEY = ResourceKey.codec(Registries.STRUCTURE);
+
+	public static final Codec<TagKey<Structure>> STRUCTURE_TAG = TagKey.hashedCodec(Registries.STRUCTURE);
+
+	public static final Codec<Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = Codec.either(STRUCTURE_KEY, STRUCTURE_TAG);
+
 
 }

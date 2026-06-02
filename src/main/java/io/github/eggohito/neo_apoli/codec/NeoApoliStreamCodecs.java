@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.codec;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
@@ -21,6 +22,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagEntry;
@@ -40,6 +42,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.math.RoundingMode;
 import java.util.*;
@@ -134,5 +137,17 @@ public class NeoApoliStreamCodecs {
 	public static final StreamCodec<ByteBuf, SoundSource> SOUND_SOURCE = StreamCodecUtil.enumType(SoundSource.class);
 
 	public static final StreamCodec<ByteBuf, ParsedArgument<PowerArgument.Result>> POWER_OR_TAG_ARGUMENT = ParsedArgument.streamCodec(PowerArgument.powerOrTag());
+
+	public static final StreamCodec<ByteBuf, ResourceKey<Biome>> BIOME_KEY = ResourceKey.streamCodec(Registries.BIOME);
+
+	public static final StreamCodec<ByteBuf, TagKey<Biome>> BIOME_TAG = TagKey.streamCodec(Registries.BIOME);
+
+	public static final StreamCodec<ByteBuf, Either<ResourceKey<Biome>, TagKey<Biome>>> BIOME_KEY_OR_TAG = ByteBufCodecs.either(BIOME_KEY, BIOME_TAG);
+
+	public static final StreamCodec<ByteBuf, ResourceKey<Structure>> STRUCTURE_KEY = ResourceKey.streamCodec(Registries.STRUCTURE);
+
+	public static final StreamCodec<ByteBuf, TagKey<Structure>> STRUCTURE_TAG = TagKey.streamCodec(Registries.STRUCTURE);
+
+	public static final StreamCodec<ByteBuf, Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = ByteBufCodecs.either(STRUCTURE_KEY, STRUCTURE_TAG);
 
 }

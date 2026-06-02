@@ -1,5 +1,7 @@
 package io.github.eggohito.neo_apoli.power.custom;
 
+import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -10,7 +12,8 @@ import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
-import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
@@ -44,8 +47,10 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quiltmc.parsers.json.JsonFormat;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -57,32 +62,30 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::getDimension))
-		.and(TagKey.hashedCodec(Registries.BIOME).optionalFieldOf("biome_tag").forGetter(ModifyPlayerSpawnPower::getBiomeTag))
-		.and(TagKey.hashedCodec(Registries.STRUCTURE).optionalFieldOf("structure_tag").forGetter(ModifyPlayerSpawnPower::getStructureTag))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::getPriority))
-		.apply(instance, ModifyPlayerSpawnPower::new));
+	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::getDimension),
+		NeoApoliCodecs.BIOME_KEY_OR_TAG.optionalFieldOf("biome").forGetter(ModifyPlayerSpawnPower::getBiome),
+		NeoApoliCodecs.STRUCTURE_KEY_OR_TAG.optionalFieldOf("structure").forGetter(ModifyPlayerSpawnPower::getStructure),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::getPriority)
+	).apply(instance, ModifyPlayerSpawnPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyPlayerSpawnPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
 		ResourceKey.streamCodec(Registries.DIMENSION), ModifyPlayerSpawnPower::getDimension,
-		ByteBufCodecs.optional(TagKey.streamCodec(Registries.BIOME)), ModifyPlayerSpawnPower::getBiomeTag,
-		ByteBufCodecs.optional(TagKey.streamCodec(Registries.STRUCTURE)), ModifyPlayerSpawnPower::getStructureTag,
+		ByteBufCodecs.optional(NeoApoliStreamCodecs.BIOME_KEY_OR_TAG), ModifyPlayerSpawnPower::getBiome,
+		ByteBufCodecs.optional(NeoApoliStreamCodecs.STRUCTURE_KEY_OR_TAG), ModifyPlayerSpawnPower::getStructure,
 		ByteBufCodecs.INT, ModifyPlayerSpawnPower::getPriority,
 		ModifyPlayerSpawnPower::new
 	);
 
 	private final ResourceKey<Level> dimension;
-	private final Optional<TagKey<Biome>> biomeTag;
-	private final Optional<TagKey<Structure>> structureTag;
+	private final Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome;
+	private final Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure;
 	private final int priority;
 
-	public ModifyPlayerSpawnPower(Optional<Condition> activeCondition, ResourceKey<Level> dimension, Optional<TagKey<Biome>> biomeTag, Optional<TagKey<Structure>> structureTag, int priority) {
-		super(activeCondition);
+	public ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority) {
 		this.dimension = dimension;
-		this.biomeTag = biomeTag;
-		this.structureTag = structureTag;
+		this.biome = biome;
+		this.structure = structure;
 		this.priority = priority;
 	}
 
@@ -100,20 +103,16 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 	public void validate(Context.Validator validator) {
 		super.validate(validator);
 		RegistryUtil.validateKey(validator.forChild(".dimension"), this.getDimension());
-		this.getBiomeTag().ifPresent(biomeTag -> RegistryUtil.validateTag(validator.forChild(".biome_tag"), biomeTag));
-		this.getStructureTag().ifPresent(structureTag -> RegistryUtil.validateTag(validator.forChild(".structure_tag"), structureTag));
+		this.getBiome().ifPresent(biome -> RegistryUtil.validateKeyOrTag(validator.forChild(".biome_tag"), biome));
+		this.getStructure().ifPresent(structure -> RegistryUtil.validateKeyOrTag(validator.forChild(".structure_tag"), structure));
 	}
 
 	public static class Instance extends Power.Instance<ModifyPlayerSpawnPower> {
 
-		private static final MapCodec<Optional<ServerPlayer.RespawnConfig>> LOCATION_MAP_CODEC = ExtraCodecs.optionalEmptyMap(ServerPlayer.RespawnConfig.CODEC).fieldOf("location");
+		private static final MapCodec<Optional<ServerPlayer.RespawnConfig>> LOCATION_MAP_CODEC = MapCodec.assumeMapUnsafe(ExtraCodecs.optionalEmptyMap(ServerPlayer.RespawnConfig.CODEC));
 
-		@NotNull
-		@Getter
-		private Optional<ServerPlayer.RespawnConfig> spawnLocation = Optional.empty();
-		@NotNull
-		@Getter
-		private Optional<TeleportTransition> spawnTeleport = Optional.empty();
+		private CompletableFuture<TeleportTransition> respawnTeleport = null;
+		private Optional<ServerPlayer.RespawnConfig> respawnLocation = Optional.empty();
 
 		protected Instance(@NotNull ModifyPlayerSpawnPower power) {
 			super(power);
@@ -121,58 +120,61 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 		@Override
 		public void onGranted(Entity holder) {
-			super.onGranted(holder);
-			this.findSpawnLocation(holder);
-		}
 
-		@Override
-		public void onRespawned(Entity holder) {
-			super.onRespawned(holder);
-			this.findSpawnLocation(holder);
+			super.onGranted(holder);
+
+			if (holder instanceof ServerPlayer player) {
+				this.findRespawnLocation(player);
+			}
+
 		}
 
 		@Override
 		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
 			return LOCATION_MAP_CODEC.decode(ops, mapInput)
-				.ifSuccess(location -> this.spawnLocation = location)
+				.ifSuccess(location -> this.respawnLocation = location)
 				.map(ignored -> Unit.INSTANCE);
 		}
 
 		@Override
 		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
-			return LOCATION_MAP_CODEC.encode(this.getSpawnLocation(), ops, prefix);
+			return LOCATION_MAP_CODEC.encode(this.respawnLocation, ops, prefix);
 		}
 
-		private CompletableFuture<Void> findSpawnLocation(Entity holder) {
+		@Nullable
+		public CompletableFuture<TeleportTransition> getRespawnLocation() {
+			return respawnTeleport;
+		}
 
-			if (!(holder instanceof ServerPlayer serverPlayer)) {
-				return CompletableFuture.completedFuture(null);
-			}
+		public CompletableFuture<TeleportTransition> getOrFindRespawnLocation(ServerPlayer player) {
+			return Objects.requireNonNullElseGet(this.getRespawnLocation(), () -> this.findRespawnLocation(player));
+		}
 
-			return CompletableFuture
-				.supplyAsync(() -> this.getRespawnConfig(serverPlayer))
-				.thenAccept(config -> this.setRespawnPoint(serverPlayer, config));
+		public CompletableFuture<TeleportTransition> findRespawnLocation(ServerPlayer player) {
+			return this.respawnTeleport = CompletableFuture
+				.supplyAsync(() -> this.findRespawnLocationInternal(player))
+				.thenApply(this::onLocationFound);
+		}
+
+		private TeleportTransition onLocationFound(Pair<ServerLevel, BlockPos> pair) {
+
+			ServerLevel level = pair.getFirst();
+			BlockPos blockPos = pair.getSecond();
+
+			var newTeleport = new TeleportTransition(level, blockPos.getBottomCenter(), Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING);
+			this.respawnLocation = Optional.of(new ServerPlayer.RespawnConfig(level.dimension(), blockPos, 0.0F, false));
+
+			return newTeleport;
 
 		}
 
-		private void setRespawnPoint(ServerPlayer serverPlayer, Optional<ServerPlayer.RespawnConfig> config) {
+		private Pair<ServerLevel, BlockPos> findRespawnLocationInternal(ServerPlayer player) {
 
-			MinecraftServer server = serverPlayer.server;
-			ServerLevel dimension = server.getLevel(power.getDimension());
-
-			if (dimension != null) {
-				this.spawnTeleport = config.map(inner -> new TeleportTransition(dimension, inner.pos().getBottomCenter(), Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING));
-			}
-
-		}
-
-		private Optional<ServerPlayer.RespawnConfig> getRespawnConfig(ServerPlayer serverPlayer) {
-
-			MinecraftServer server = serverPlayer.server;
+			MinecraftServer server = player.server;
 			ServerLevel dimension = server.getLevel(power.getDimension());
 
 			if (dimension == null) {
-				return Optional.empty();
+				throw new IllegalStateException("Dimension \"" + power.getDimension().location() + "\" doesn't exist!");
 			}
 
 			BlockPos spawnPos = dimension.getSharedSpawnPos();
@@ -184,23 +186,18 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);
 
-			return Optional.of(new ServerPlayer.RespawnConfig(
-				power.getDimension(),
-				MiscUtil.adjustSpawnLocationSafely(serverPlayer, dimension, spawnPos),
-				0.0F,
-				true
-			));
+			return Pair.of(dimension, MiscUtil.adjustSpawnLocationSafely(player, dimension, spawnPos));
 
 		}
 
 		private BlockPos findBiomeLocation(ServerLevel dimension, BlockPos pos, int horizontalSteps, int verticalSteps, int radius) {
 
-			if (power.getBiomeTag().isEmpty()) {
+			if (power.getBiome().isEmpty()) {
 				return pos;
 			}
 
 			var foundBiome = dimension.findClosestBiome3d(
-				biomeHolder -> biomeHolder.is(power.getBiomeTag().get()),
+				biomeHolder -> power.getBiome().get().map(biomeHolder::is, biomeHolder::is),
 				pos,
 				radius,
 				horizontalSteps,
@@ -219,12 +216,12 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 		private BlockPos findStructureLocation(ServerLevel dimension, BlockPos pos, int radius) {
 
-			if (power.getStructureTag().isEmpty()) {
+			if (power.getStructure().isEmpty()) {
 				return pos;
 			}
 
 			Registry<Structure> registry = dimension.registryAccess().lookupOrThrow(Registries.STRUCTURE);
-			HolderSet.Named<Structure> structures = registry.getOrThrow(power.getStructureTag().get());
+			HolderSet<Structure> structures = power.getStructure().get().map(key -> HolderSet.direct(registry.getOrThrow(key)), registry::getOrThrow);
 
 			var foundStructure = dimension.getChunkSource().getGenerator().findNearestMapStructure(
 				dimension,
