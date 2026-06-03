@@ -24,8 +24,6 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
@@ -34,11 +32,7 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ReloadableServerResources;
@@ -58,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
 
 public final class ServerPowerManager extends PowerManager implements IdentifiableResourceReloadListener {
 
@@ -206,61 +199,19 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 		);
 	}
 
-	private static void send(RegistryAccess registryAccess, BiConsumer<Map<PowerIdentifier, Tag>, Map<ResourceLocation, List<PowerIdentifier>>> sender) {
-
-		Map<PowerIdentifier, Tag> powers = new Object2ObjectLinkedOpenHashMap<>();
-		Map<ResourceLocation, List<PowerIdentifier>> tags = new Object2ObjectLinkedOpenHashMap<>();
-
-		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
-		for (var entry : PowerManager.powers.entrySet()) {
-
-			PowerIdentifier id = entry.getKey();
-			PowerHolder<?> holder = entry.getValue();
-
-			if (!id.isSubPower()) {
-				PowerHolder.CODEC.encodeStart(ops, holder)
-					.ifError(error -> LOGGER.error("Couldn't encode {} during the syncing process (skipping): {}", id.asDisplayString(false), error.message()))
-					.ifSuccess(tag -> powers.put(id, tag));
-			}
-
-		}
-
-		for (var tag : PowerManager.tags.entrySet()) {
-
-			ResourceLocation tagId = tag.getKey();
-			List<PowerHolder<?>> tagEntries = tag.getValue();
-
-			for (var tagEntry : tagEntries) {
-				tags.computeIfAbsent(tagId, k -> new ObjectArrayList<>()).add(tagEntry.id());
-			}
-
-		}
-
-		sender.accept(powers, tags);
-
-	}
-
 	private static void onConfigure(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
 
 		if (ServerConfigurationNetworking.canSend(handler, ClientboundSyncInitiatedPacket.TYPE)) {
-			send(server.registryAccess(), (powers, tags) -> handler.addTask(new SynchronizeTask(powers, tags)));
+			handler.addTask(new SynchronizeTask(server.registryAccess()));
 		}
 
 	}
 
 	private static void onReload(ServerPlayer player, boolean joined) {
 
-		if (joined) {
-			return;
+		if (!joined) {
+			send(player.registryAccess(), packet -> ServerPlayNetworking.send(player, packet));
 		}
-
-		send(
-			player.registryAccess(),
-			(powers, tags) -> {
-				ServerPlayNetworking.send(player, new ClientboundUpdatePowersPacket(powers));
-				ServerPlayNetworking.send(player, new ClientboundUpdateTagsPacket(tags));
-			}
-		);
 
 	}
 

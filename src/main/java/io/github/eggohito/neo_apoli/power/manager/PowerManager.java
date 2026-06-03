@@ -13,6 +13,7 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.minecraft.core.RegistryAccess;
@@ -150,14 +151,104 @@ public class PowerManager {
 
 	}
 
-	public record SynchronizeTask(Map<PowerIdentifier, Tag> powers, Map<ResourceLocation, List<PowerIdentifier>> tags) implements ConfigurationTask {
+	protected static void send(RegistryAccess registryAccess, Consumer<CustomPacketPayload> sender) {
+		sender.accept(new ClientboundUpdatePowersPacket(packPowers(registryAccess.createSerializationContext(NbtOps.INSTANCE))));
+		sender.accept(new ClientboundUpdatePowerTagsPacket(packTags()));
+	}
+
+	protected static Map<PowerIdentifier, Tag> packPowers(RegistryOps<Tag> ops) {
+
+		Map<PowerIdentifier, Tag> powers = new Object2ObjectLinkedOpenHashMap<>();
+		for (var entry : PowerManager.powers.entrySet()) {
+
+			PowerIdentifier id = entry.getKey();
+			PowerHolder<?> holder = entry.getValue();
+
+			if (!id.isSubPower()) {
+				PowerHolder.CODEC.encodeStart(ops, holder)
+					.ifError(error -> NeoApoli.LOGGER.error("Couldn't encode {} during the syncing process (skipping): {}", id.asDisplayString(false), error))
+					.ifSuccess(tag -> powers.put(id, tag));
+			}
+
+		}
+
+		return powers;
+
+	}
+
+	protected static ImmutableMap<PowerIdentifier, PowerHolder<?>> unpackPowers(RegistryAccess registryAccess, Map<PowerIdentifier, Tag> packed) {
+
+		ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> builder = ImmutableMap.builder();
+		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+
+		for (var entry : packed.entrySet()) {
+
+			PowerIdentifier id = entry.getKey();
+			Tag tag = entry.getValue();
+
+			PowerHolder.CODEC.parse(ops, tag)
+				.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive {} from the server: {}", id.asDisplayString(false), error.message()))
+				.ifSuccess(holder -> register(builder::put, holder));
+
+		}
+
+		return builder.build();
+
+	}
+
+	protected static Map<ResourceLocation, List<PowerIdentifier>> packTags() {
+
+		Map<ResourceLocation, List<PowerIdentifier>> tags = new Object2ObjectLinkedOpenHashMap<>();
+		for (var tag : PowerManager.tags.entrySet()) {
+
+			ResourceLocation tagId = tag.getKey();
+			List<PowerHolder<?>> tagEntries = tag.getValue();
+
+			for (var tagEntry : tagEntries) {
+				tags
+					.computeIfAbsent(tagId, k -> new ObjectArrayList<>())
+					.add(tagEntry.id());
+			}
+
+		}
+
+		return tags;
+
+	}
+
+	protected static ImmutableMap<ResourceLocation, List<PowerHolder<?>>> unpackTags(Map<ResourceLocation, List<PowerIdentifier>> packed) {
+
+		ImmutableMap.Builder<ResourceLocation, List<PowerHolder<?>>> builder = ImmutableMap.builder();
+		for (var entry : packed.entrySet()) {
+
+			ResourceLocation tagId = entry.getKey();
+			List<PowerIdentifier> powerIds = entry.getValue();
+
+			ImmutableList.Builder<PowerHolder<?>> powersBuilder = ImmutableList.builder();
+			Reporter reporter = new Reporter("{\"#" + tagId + "\"}");
+
+			for (var powerId : powerIds) {
+				PowerManager.getAsResult(powerId)
+					.ifError(error -> reporter.forChild(".\"" + powerId + "\"").report(error.message()))
+					.ifSuccess(powersBuilder::add);
+			}
+
+			reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.LOGGER.error("Couldn't properly receive power tag \"{}\" due to errors {}", tagId, errors));
+			builder.put(tagId, powersBuilder.build());
+
+		}
+
+		return builder.build();
+
+	}
+
+	public record SynchronizeTask(RegistryAccess registryAccess) implements ConfigurationTask {
 
 		public static final Type TYPE = new Type(NeoApoli.id("task/synchronize_powers").toString());
 
 		@Override
 		public void start(Consumer<Packet<?>> task) {
-			task.accept(ServerConfigurationNetworking.createS2CPacket(new ClientboundUpdatePowersPacket(powers())));
-			task.accept(ServerConfigurationNetworking.createS2CPacket(new ClientboundUpdateTagsPacket(tags())));
+			send(registryAccess(), packet -> task.accept(ServerConfigurationNetworking.createS2CPacket(packet)));
 			task.accept(ServerConfigurationNetworking.createS2CPacket(ClientboundSyncInitiatedPacket.INSTANCE));
 		}
 
@@ -215,31 +306,15 @@ public class PowerManager {
 		}
 
 		public void handle(RegistryAccess registryAccess) {
-
-			ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> builder = ImmutableMap.builder();
-			RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
-
-			for (var entry : powers().entrySet()) {
-
-				PowerIdentifier id = entry.getKey();
-				Tag tag = entry.getValue();
-
-				PowerHolder.CODEC.parse(ops, tag)
-					.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive {} from the server: {}", id.asDisplayString(false), error.message()))
-					.ifSuccess(holder -> register(builder::put, holder));
-
-			}
-
-			PowerManager.powers = builder.build();
-
+			PowerManager.powers = unpackPowers(registryAccess, powers());
 		}
 
 	}
 
-	public record ClientboundUpdateTagsPacket(Map<ResourceLocation, List<PowerIdentifier>> tags) implements CustomPacketPayload {
+	public record ClientboundUpdatePowerTagsPacket(Map<ResourceLocation, List<PowerIdentifier>> tags) implements CustomPacketPayload {
 
-		public static final Type<ClientboundUpdateTagsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/powers/update_tags"));
-		public static final StreamCodec<ByteBuf, ClientboundUpdateTagsPacket> CODEC = TAGS_STREAM_CODEC.map(ClientboundUpdateTagsPacket::new, ClientboundUpdateTagsPacket::tags);
+		public static final Type<ClientboundUpdatePowerTagsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/powers/update_tags"));
+		public static final StreamCodec<ByteBuf, ClientboundUpdatePowerTagsPacket> CODEC = TAGS_STREAM_CODEC.map(ClientboundUpdatePowerTagsPacket::new, ClientboundUpdatePowerTagsPacket::tags);
 
 		@Override
 		public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -247,29 +322,7 @@ public class PowerManager {
 		}
 
 		public void handle() {
-
-			ImmutableMap.Builder<ResourceLocation, List<PowerHolder<?>>> tagsBuilder = ImmutableMap.builder();
-			for (var entry : tags.entrySet()) {
-
-				ResourceLocation tagId = entry.getKey();
-				List<PowerIdentifier> powerIds = entry.getValue();
-
-				ImmutableList.Builder<PowerHolder<?>> powersBuilder = ImmutableList.builder();
-				Reporter reporter = new Reporter("{\"#" + tagId + "\"}");
-
-				for (var powerId : powerIds) {
-					PowerManager.getAsResult(powerId)
-						.ifError(error -> reporter.forChild(".\"" + powerId + "\"").report(error.message()))
-						.ifSuccess(powersBuilder::add);
-				}
-
-				reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.LOGGER.error("Couldn't properly receive power tag \"{}\" due to errors {}", tagId, errors));
-				tagsBuilder.put(tagId, powersBuilder.build());
-
-			}
-
-			PowerManager.tags = tagsBuilder.build();
-
+			PowerManager.tags = unpackTags(tags());
 		}
 
 	}

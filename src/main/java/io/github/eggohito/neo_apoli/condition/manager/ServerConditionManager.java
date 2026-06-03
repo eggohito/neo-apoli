@@ -12,7 +12,6 @@ import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
@@ -21,10 +20,6 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,7 +34,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 
 public final class ServerConditionManager extends ConditionManager implements IdentifiableResourceReloadListener {
 
@@ -94,44 +88,19 @@ public final class ServerConditionManager extends ConditionManager implements Id
 
 	}
 
-	private static void send(RegistryAccess registryAccess, Consumer<Map<ResourceLocation, Tag>> sender) {
-
-		Map<ResourceLocation, Tag> conditions = new Object2ObjectLinkedOpenHashMap<>();
-		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
-
-		for (var entry : ConditionManager.conditions.entrySet()) {
-
-			ResourceLocation id = entry.getKey();
-			Condition condition = entry.getValue();
-
-			Condition.CODEC.encodeStart(ops, condition)
-				.ifError(error -> LOGGER.error("Couldn't encode condition \"{}\" during the syncing process (skipping): {}", id, error.message()))
-				.ifSuccess(tag -> conditions.put(id, tag));
-
-		}
-
-		sender.accept(conditions);
-
-	}
-
 	private static void onConfigure(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
 
 		if (ServerConfigurationNetworking.canSend(handler, ClientboundUpdateConditionsPacket.TYPE)) {
-			send(server.registryAccess(), conditions -> handler.addTask(new SynchronizeTask(conditions)));
+			handler.addTask(new SynchronizeTask(server.registryAccess()));
 		}
 
 	}
 
 	private static void onReload(ServerPlayer player, boolean joined) {
 
-		if (joined) {
-			return;
+		if (!joined) {
+			send(player.registryAccess(), packet -> ServerPlayNetworking.send(player, packet));
 		}
-
-		send(
-			player.registryAccess(),
-			conditions -> ServerPlayNetworking.send(player, new ClientboundUpdateConditionsPacket(conditions))
-		);
 
 	}
 

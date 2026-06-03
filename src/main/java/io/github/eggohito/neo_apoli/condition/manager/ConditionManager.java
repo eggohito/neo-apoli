@@ -5,6 +5,7 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.minecraft.core.RegistryAccess;
@@ -81,13 +82,53 @@ public class ConditionManager {
 		return getIdAsResult(condition).isSuccess();
 	}
 
-	public record SynchronizeTask(Map<ResourceLocation, Tag> conditions) implements ConfigurationTask {
+	protected static void send(RegistryAccess registryAccess, Consumer<CustomPacketPayload> sender) {
+
+		Map<ResourceLocation, Tag> conditions = new Object2ObjectLinkedOpenHashMap<>();
+		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+
+		for (var entry : ConditionManager.conditions.entrySet()) {
+
+			ResourceLocation id = entry.getKey();
+			Condition condition = entry.getValue();
+
+			Condition.CODEC.encodeStart(ops, condition)
+				.ifError(error -> NeoApoli.LOGGER.error("Couldn't encode condition \"{}\" during the syncing process (skipping): {}", id, error.message()))
+				.ifSuccess(tag -> conditions.put(id, tag));
+
+		}
+
+		sender.accept(new ClientboundUpdateConditionsPacket(conditions));
+
+	}
+
+	protected static ImmutableMap<ResourceLocation, Condition> unpackConditions(RegistryAccess registryAccess, Map<ResourceLocation, Tag> packed) {
+
+		ImmutableMap.Builder<ResourceLocation, Condition> builder = ImmutableMap.builder();
+		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+
+		for (var entry : packed.entrySet()) {
+
+			ResourceLocation id = entry.getKey();
+			Tag tag = entry.getValue();
+
+			Condition.CODEC.parse(ops, tag)
+				.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive condition \"{}\" from the server: {}", id, error.message()))
+				.ifSuccess(condition -> builder.put(id, condition));
+
+		}
+
+		return builder.build();
+
+	}
+
+	public record SynchronizeTask(RegistryAccess registryAccess) implements ConfigurationTask {
 
 		public static final Type TYPE = new Type(NeoApoli.id("task/synchronize_conditions").toString());
 
 		@Override
 		public void start(Consumer<Packet<?>> task) {
-			task.accept(ServerConfigurationNetworking.createS2CPacket(new ClientboundUpdateConditionsPacket(conditions())));
+			send(registryAccess(), packet -> task.accept(ServerConfigurationNetworking.createS2CPacket(packet)));
 		}
 
 		@Override
@@ -126,23 +167,7 @@ public class ConditionManager {
 		}
 
 		public void handle(RegistryAccess registryAccess) {
-
-			ImmutableMap.Builder<ResourceLocation, Condition> builder = ImmutableMap.builder();
-			RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
-
-			for (var entry : conditions.entrySet()) {
-
-				ResourceLocation id = entry.getKey();
-				Tag tag = entry.getValue();
-
-				Condition.CODEC.parse(ops, tag)
-					.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive condition \"{}\" from the server: {}", id, error.message()))
-					.ifSuccess(condition -> builder.put(id, condition));
-
-			}
-
-			ConditionManager.conditions = builder.build();
-
+			ConditionManager.conditions = unpackConditions(registryAccess, conditions());
 		}
 
 	}

@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.minecraft.core.RegistryAccess;
@@ -105,14 +106,102 @@ public class ActionManager {
 		return getIdAsResult(action).isSuccess();
 	}
 
-	public record SynchronizeTask(Map<ResourceLocation, Tag> actions, Map<ResourceLocation, List<ResourceLocation>> tags) implements ConfigurationTask {
+	protected static void send(RegistryAccess registryAccess, Consumer<CustomPacketPayload> sender) {
+		sender.accept(new ClientboundUpdateActionsPacket(packActions(registryAccess.createSerializationContext(NbtOps.INSTANCE))));
+		sender.accept(new ClientboundUpdateActionTagsPacket(packTags()));
+	}
+
+	protected static Map<ResourceLocation, Tag> packActions(RegistryOps<Tag> ops) {
+
+		Map<ResourceLocation, Tag> actions = new Object2ObjectLinkedOpenHashMap<>();
+		for (var entry : ActionManager.actions.entrySet()) {
+
+			ResourceLocation id = entry.getKey();
+			Action action = entry.getValue();
+
+			Action.CODEC.encodeStart(ops, action)
+				.ifError(error -> NeoApoli.LOGGER.error("Couldn't encode action \"{}\" during the syncing process (skipping): {}", id, error))
+				.ifSuccess(tag -> actions.put(id, tag));
+
+		}
+
+		return actions;
+
+	}
+
+	protected static ImmutableMap<ResourceLocation, Action> unpackActions(RegistryAccess registryAccess, Map<ResourceLocation, Tag> packed) {
+
+		ImmutableMap.Builder<ResourceLocation, Action> builder = ImmutableMap.builder();
+		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+
+		for (var entry : packed.entrySet()) {
+
+			ResourceLocation id = entry.getKey();
+			Tag tag = entry.getValue();
+
+			Action.CODEC.parse(ops, tag)
+				.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive action \"{}\" from the server: {}", id, error.message()))
+				.ifSuccess(action -> builder.put(id, action));
+
+		}
+
+		return builder.build();
+
+	}
+
+	protected static Map<ResourceLocation, List<ResourceLocation>> packTags() {
+
+		Map<ResourceLocation, List<ResourceLocation>> tags = new Object2ObjectLinkedOpenHashMap<>();
+		for (var tag : ActionManager.tags.entrySet()) {
+
+			ResourceLocation tagId = tag.getKey();
+			List<Action> tagEntries = tag.getValue();
+
+			for (var tagEntry : tagEntries) {
+				getIdAsResult(tagEntry).ifSuccess(id -> tags
+					.computeIfAbsent(tagId, k -> new ObjectArrayList<>())
+					.add(id));
+			}
+
+		}
+
+		return tags;
+
+	}
+
+	protected static ImmutableMap<ResourceLocation, List<Action>> unpackTags(Map<ResourceLocation, List<ResourceLocation>> packed) {
+
+		ImmutableMap.Builder<ResourceLocation, List<Action>> build = ImmutableMap.builder();
+		for (var entry : packed.entrySet()) {
+
+			ResourceLocation tagId = entry.getKey();
+			List<ResourceLocation> actionIds = entry.getValue();
+
+			ImmutableList.Builder<Action> actionsBuilder = ImmutableList.builder();
+			Reporter reporter = new Reporter("{\"#" + tagId + "\"}");
+
+			for (var actionId : actionIds) {
+				ActionManager.getAsResult(actionId)
+					.ifError(error -> reporter.forChild(".\"" + actionId + "\"").report(error.message()))
+					.ifSuccess(actionsBuilder::add);
+			}
+
+			reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.LOGGER.error("Couldn't properly receive action tag \"{}\" due to errors {}", tagId, errors));
+			build.put(tagId, actionsBuilder.build());
+
+		}
+
+		return build.build();
+
+	}
+
+	public record SynchronizeTask(RegistryAccess registryAccess) implements ConfigurationTask {
 
 		public static final Type TYPE = new Type(NeoApoli.id("task/synchronize_actions").toString());
 
 		@Override
 		public void start(Consumer<Packet<?>> task) {
-			task.accept(ServerConfigurationNetworking.createS2CPacket(new ClientboundUpdateActionsPacket(actions())));
-			task.accept(ServerConfigurationNetworking.createS2CPacket(new ClientboundUpdateTagsPacket(tags())));
+			send(registryAccess, packet -> task.accept(ServerConfigurationNetworking.createS2CPacket(packet)));
 			task.accept(ServerConfigurationNetworking.createS2CPacket(ClientboundSyncInitiatedPacket.INSTANCE));
 		}
 
@@ -170,31 +259,15 @@ public class ActionManager {
 		}
 
 		public void handle(RegistryAccess registryAccess) {
-
-			ImmutableMap.Builder<ResourceLocation, Action> builder = ImmutableMap.builder();
-			RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
-
-			for (var entry : actions.entrySet()) {
-
-				ResourceLocation id = entry.getKey();
-				Tag tag = entry.getValue();
-
-				Action.CODEC.parse(ops, tag)
-					.ifError(error -> NeoApoli.LOGGER.error("Couldn't receive {} from the server: {}", id, error.message()))
-					.ifSuccess(action -> builder.put(id, action));
-
-			}
-
-			ActionManager.actions = builder.build();
-
+			ActionManager.actions = unpackActions(registryAccess, actions());
 		}
 
 	}
 
-	public record ClientboundUpdateTagsPacket(Map<ResourceLocation, List<ResourceLocation>> tags) implements CustomPacketPayload {
+	public record ClientboundUpdateActionTagsPacket(Map<ResourceLocation, List<ResourceLocation>> tags) implements CustomPacketPayload {
 
-		public static final Type<ClientboundUpdateTagsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/update_action_tags"));
-		public static final StreamCodec<ByteBuf, ClientboundUpdateTagsPacket> CODEC = TAGS_STREAM_CODEC.map(ClientboundUpdateTagsPacket::new, ClientboundUpdateTagsPacket::tags);
+		public static final Type<ClientboundUpdateActionTagsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/update_action_tags"));
+		public static final StreamCodec<ByteBuf, ClientboundUpdateActionTagsPacket> CODEC = TAGS_STREAM_CODEC.map(ClientboundUpdateActionTagsPacket::new, ClientboundUpdateActionTagsPacket::tags);
 
 		@Override
 		public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -202,29 +275,7 @@ public class ActionManager {
 		}
 
 		public void handle() {
-
-			ImmutableMap.Builder<ResourceLocation, List<Action>> tagsBuilder = ImmutableMap.builder();
-			for (var entry : tags.entrySet()) {
-
-				ResourceLocation tagId = entry.getKey();
-				List<ResourceLocation> actionIds = entry.getValue();
-
-				ImmutableList.Builder<Action> actionsBuilder = ImmutableList.builder();
-				Reporter reporter = new Reporter("{\"#" + tagId + "\"}");
-
-				for (var actionId : actionIds) {
-					ActionManager.getAsResult(actionId)
-						.ifError(error -> reporter.forChild(".\"" + actionId + "\"").report(error.message()))
-						.ifSuccess(actionsBuilder::add);
-				}
-
-				reporter.getErrorsFlattened().ifPresent(errors -> NeoApoli.LOGGER.error("Couldn't properly receive action tag \"{}\" due to errors {}", tagId, errors));
-				tagsBuilder.put(tagId, actionsBuilder.build());
-
-			}
-
-			ActionManager.tags = tagsBuilder.build();
-
+			ActionManager.tags = unpackTags(tags());
 		}
 
 	}
