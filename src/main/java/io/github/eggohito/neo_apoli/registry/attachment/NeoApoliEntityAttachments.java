@@ -1,7 +1,7 @@
-package io.github.eggohito.neo_apoli.attachment;
+package io.github.eggohito.neo_apoli.registry.attachment;
 
 import io.github.eggohito.neo_apoli.api.power.Powers;
-import io.github.eggohito.neo_apoli.api.power.PowersAttachment;
+import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;

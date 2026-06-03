@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.power;
+package io.github.eggohito.neo_apoli.attachment.entity;
 
 import com.google.common.collect.*;
 import com.mojang.datafixers.util.Pair;
@@ -9,13 +9,14 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
+import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
+import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;

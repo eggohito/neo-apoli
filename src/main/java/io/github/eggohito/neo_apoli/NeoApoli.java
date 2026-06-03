@@ -1,7 +1,6 @@
 package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
-import io.github.eggohito.neo_apoli.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
@@ -16,6 +15,7 @@ import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
 import io.github.eggohito.neo_apoli.registry.*;
+import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.*;
