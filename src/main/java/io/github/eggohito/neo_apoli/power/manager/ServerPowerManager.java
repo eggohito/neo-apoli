@@ -11,6 +11,7 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.api.event.PowerPreparation;
+import io.github.eggohito.neo_apoli.api.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
@@ -46,6 +47,8 @@ import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +95,7 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 
 		return powersFuture.thenCombine(tagsFuture, Pair::of)
 			.thenCompose(barrier::wait)
-			.thenAcceptAsync(pair -> this.applyAll(pair.getFirst(), pair.getSecond()), gameExecutor);
+			.thenAcceptAsync(pair -> this.applyAll(pair.getFirst(), pair.getSecond(), manager, Profiler.get()), gameExecutor);
 
 	}
 
@@ -105,10 +108,13 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 
 	}
 
-	private void applyAll(Map<ResourceLocation, JsonWithSource> unparsedPowers, Map<ResourceLocation, List<TagLoader.EntryWithSource>> unparsedTags) {
+	private void applyAll(Map<ResourceLocation, JsonWithSource> unparsedPowers, Map<ResourceLocation, List<TagLoader.EntryWithSource>> unparsedTags, ResourceManager manager, ProfilerFiller profiler) {
 
-		LOGGER.info("Parsing powers from data packs...");
 		ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> powersBuilder = ImmutableMap.builder();
+		powers = ImmutableMap.of();
+
+		PowerReloadEvents.BEFORE.invoker().beforeReload(manager, profiler);
+		LOGGER.info("Parsing powers from data packs...");
 
 		unparsedPowers.forEach((id, jsonWithSource) -> {
 
@@ -127,8 +133,9 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 		});
 
 		powers = powersBuilder.build();
-		LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s)", powers.size());
+		PowerReloadEvents.AFTER.invoker().afterReload(manager, profiler);
 
+		LOGGER.info("Finished parsing powers from data packs. Parsed {} power(s)", powers.size());
 		pendingTags = ImmutableMap.copyOf(unparsedTags);
 
 	}
