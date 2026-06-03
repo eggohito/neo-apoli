@@ -1,7 +1,7 @@
-package io.github.eggohito.neo_apoli.mixin.impl.event.tag_loader_build;
+package io.github.eggohito.neo_apoli.mixin.impl.event.tags_built;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.api.event.TagLoaderBuild;
+import io.github.eggohito.neo_apoli.api.event.TagsBuilt;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagLoader;
@@ -25,7 +25,7 @@ public abstract class TagLoaderMixin {
 
 	@Inject(method = "build", at = @At("RETURN"))
 	private <T> void hookOnBuild(Map<ResourceLocation, List<TagLoader.EntryWithSource>> builders, CallbackInfoReturnable<Map<ResourceLocation, List<T>>> cir, @Local TagEntry.Lookup<T> lookup, @Local DependencySorter<ResourceLocation, TagLoader.SortingEntry> sorter) {
-		TagLoaderBuild.EVENT.invoker().onBuild(this.directory, lookup, sorter);
+		TagsBuilt.EVENT.invoker().onBuild(this.directory, lookup, sorter);
 	}
 
 }

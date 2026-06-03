@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.event.ModifyValue;
+import io.github.eggohito.neo_apoli.api.event.PowerModifyEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -102,7 +102,7 @@ public class ModifyEffectDurationPower extends Power {
 
 		}
 
-		ModifyValue.EVENT.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
+		PowerModifyEvents.NUMBER.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
 		return (int) Math.round(Modifier.applyAll(entries, duration));
 
 	}

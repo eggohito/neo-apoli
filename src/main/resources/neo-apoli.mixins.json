@@ -32,7 +32,7 @@
 		"impl.event.component_contents_registration.ComponentSerializationStrictEitherMixin",
 		"impl.event.data_provider_registration.DataCommandsMixin",
 		"impl.event.reloadable_server_resources.ReloadableServerResourcesMixin",
-		"impl.event.tag_loader_build.TagLoaderMixin",
+		"impl.event.tags_built.TagLoaderMixin",
 		"impl.misc.better_codec_errors.DataResultMixin",
 		"impl.misc.better_codec_errors.EitherCodecMixin",
 		"impl.misc.context_builder_holder.CommandSourceStackMixin",

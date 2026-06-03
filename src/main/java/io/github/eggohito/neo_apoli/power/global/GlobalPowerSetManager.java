@@ -253,8 +253,8 @@ public class GlobalPowerSetManager extends SimplePreparableReloadListener<Map<Re
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, GlobalPowerSetManager::new);
 		DependencyManager.GLOBAL_POWER_SETS.register(ID, dependencies -> dependencies.add(PowerManager.ID));
 
-		ReloadableServerResourcesEvents.AFTER_LOAD.addPhaseOrdering(PowerManager.ID, ID);
-		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, GlobalPowerSetManager::validate);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(PowerManager.ID, ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, GlobalPowerSetManager::validate);
 
 		ServerEntityEvents.ENTITY_LOAD.addPhaseOrdering(PowerManager.ID, ID);
 		ServerEntityEvents.ENTITY_LOAD.register(ID, GlobalPowerSetManager::applyAll);

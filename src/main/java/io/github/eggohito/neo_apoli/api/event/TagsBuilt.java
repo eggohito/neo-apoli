@@ -8,14 +8,14 @@ import net.minecraft.tags.TagLoader;
 import net.minecraft.util.DependencySorter;
 
 /**
- *  An event used for hooking into when tags from {@link TagLoader} are built. Useful for caching tags where querying tags
- *  from the registry does not fit one's use-case
+ *  An event invoked when tags from a {@link TagLoader} instance are built.
+ *  @see io.github.eggohito.neo_apoli.api.tag.NestedTagCache
  */
-public interface TagLoaderBuild {
+public interface TagsBuilt {
 
-	Event<TagLoaderBuild> EVENT = EventFactory.createArrayBacked(
-		TagLoaderBuild.class,
-		callbacks -> new TagLoaderBuild() {
+	Event<TagsBuilt> EVENT = EventFactory.createArrayBacked(
+		TagsBuilt.class,
+		callbacks -> new TagsBuilt() {
 
 			@Override
 			public <T> void onBuild(String directory, TagEntry.Lookup<T> lookup, DependencySorter<ResourceLocation, TagLoader.SortingEntry> sorter) {

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.impl.tag;
 
-import io.github.eggohito.neo_apoli.api.event.TagLoaderBuild;
+import io.github.eggohito.neo_apoli.api.event.TagsBuilt;
 import io.github.eggohito.neo_apoli.api.tag.NestedTagCache;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundTagCacheUpdatePacket;
@@ -38,7 +38,7 @@ public class NestedTagCacheImpl<T> implements NestedTagCache<T> {
 	public NestedTagCacheImpl(ResourceKey<? extends Registry<T>> registry) {
 		this(registry, new Object2ObjectOpenHashMap<>());
 
-		TagLoaderBuild.EVENT.register(registry.location(), new TagLoaderBuild() {
+		TagsBuilt.EVENT.register(registry.location(), new TagsBuilt() {
 
 			@Override
 			public <I> void onBuild(String directory, TagEntry.Lookup<I> lookup, DependencySorter<ResourceLocation, TagLoader.SortingEntry> sorter) {

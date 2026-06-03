@@ -236,7 +236,7 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 		});
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
-		ReloadableServerResourcesEvents.AFTER_LOAD.register(ID, ServerPowerManager::validate);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, ServerPowerManager::validate);
 
 	}
 
