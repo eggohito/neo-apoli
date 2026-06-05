@@ -32,9 +32,10 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -53,27 +54,27 @@ public class PowerCommand {
 			.requires(source -> source.hasPermission(2))
 			.build();
 
-		baseNode.addChild(Grant.node());
-		baseNode.addChild(Revoke.node());
-		baseNode.addChild(Remove.node());
-		baseNode.addChild(Clear.node());
-		baseNode.addChild(List.node());
-		baseNode.addChild(Dump.node());
+		baseNode.addChild(GrantArgument.node());
+		baseNode.addChild(RevokeArgument.node());
+		baseNode.addChild(RemoveArgument.node());
+		baseNode.addChild(ClearArgument.node());
+		baseNode.addChild(ListArgument.node());
+		baseNode.addChild(DumpArgument.node());
 
 		rootNode.addChild(baseNode);
 
 	}
 
-	static final class Grant {
+	static final class GrantArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("grant")
 				.then(argument("targets", EntityArgument.entities())
 					.then(argument("power", PowerArgument.powerOrTag())
-						.executes(Grant::withDefaultSource)
+						.executes(GrantArgument::withDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(Grant::withSpecificSource))));
+							.executes(GrantArgument::withSpecificSource))));
 
 			return node.build();
 
@@ -90,20 +91,26 @@ public class PowerCommand {
 		static int execute(CommandContext<CommandSourceStack> commandContext, ResourceLocation source) throws CommandSyntaxException {
 
 			CommandSourceStack commandSource = commandContext.getSource();
-
-			java.util.List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
+			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
-			PowerArgument.Result result = PowerArgument.getArgument(commandContext, "power");
-			java.util.List<PowerHolder<?>> powerHolders = result.get();
+			PowerArgument.Result result = PowerArgument.getResult(commandContext, "power");
+
+			List<PowerHolder<?>> powerHolders = result.get();
+			long totalGrantedPowers = 0;
 
 			for (var target : targets) {
 
 				PowersBuilder powersBuilder = Powers.builder(target);
-				long grantedPowers = powerHolders
-					.stream()
-					.filter(entry -> powersBuilder.grantWithCallback(entry.id(), source))
-					.count();
+				long grantedPowers = 0;
+
+				for (var powerHolder : powerHolders) {
+
+					if (powersBuilder.grantWithCallback(powerHolder.id(), source)) {
+						grantedPowers++;
+					}
+
+				}
 
 				if (grantedPowers <= 0) {
 					continue;
@@ -111,6 +118,8 @@ public class PowerCommand {
 
 				processedTargets.put(target, grantedPowers);
 				powersBuilder.build();
+
+				totalGrantedPowers += grantedPowers;
 
 			}
 
@@ -161,19 +170,15 @@ public class PowerCommand {
 
 					else {
 
+						var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
+						long finalTotalGrantedPowers = totalGrantedPowers;
+
 						if (processedTargets.size() == 1) {
-							var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
 							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), collection.id().toString(), source.toString()), true);
 						}
 
 						else {
-
-							long totalGrantedPowers = processedTargets.values()
-								.longStream()
-								.sum();
-
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), collection.id().toString(), totalGrantedPowers, source.toString()), true);
-
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalGrantedPowers, collection.id().toString(), source.toString()), true);
 						}
 
 					}
@@ -187,39 +192,37 @@ public class PowerCommand {
 
 	}
 
-	static final class Revoke {
+	static final class RevokeArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("revoke")
 				.then(argument("targets", EntityArgument.entities())
 					.then(literal("all")
-						.executes(Revoke::allFromDefaultSource)
+						.executes(RevokeArgument::allFromDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(Revoke::allFromSpecificSource)))
-					.then(argument("power", PowerArgument.power())
-						.executes(Revoke::oneFromDefaultSource)
+							.executes(RevokeArgument::allFromSpecificSource)))
+					.then(argument("power", PowerArgument.powerOrTag())
+						.executes(RevokeArgument::oneFromDefaultSource)
 						.then(argument("source", ResourceLocationArgument.id())
-							.executes(Revoke::oneFromSpecificSource))));
+							.executes(RevokeArgument::oneFromSpecificSource))));
 
 			return node.build();
 
 		}
 
 		static int allFromDefaultSource(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-			return execute(
+			return executeAll(
 				commandContext,
 				new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")),
-				null,
 				DEFAULT_SOURCE
 			);
 		}
 
 		static int allFromSpecificSource(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-			return execute(
+			return executeAll(
 				commandContext,
 				new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")),
-				null,
 				ResourceLocationArgument.getId(commandContext, "source")
 			);
 		}
@@ -228,7 +231,7 @@ public class PowerCommand {
 			return execute(
 				commandContext,
 				new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")),
-				PowerArgument.getPower(commandContext, "power"),
+				PowerArgument.getResult(commandContext, "power"),
 				DEFAULT_SOURCE
 			);
 		}
@@ -237,42 +240,31 @@ public class PowerCommand {
 			return execute(
 				commandContext,
 				new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")),
-				PowerArgument.getPower(commandContext, "power"),
+				PowerArgument.getResult(commandContext, "power"),
 				ResourceLocationArgument.getId(commandContext, "source")
 			);
 		}
 
-		static int execute(CommandContext<CommandSourceStack> commandContext, java.util.List<Entity> targets, @Nullable PowerHolder<?> powerHolder, ResourceLocation source) {
+		static int executeAll(CommandContext<CommandSourceStack> commandContext, List<Entity> targets, ResourceLocation source) {
 
 			CommandSourceStack commandSource = commandContext.getSource();
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
-			for (Entity target : targets) {
+			for (var target : targets) {
 
 				if (!Powers.has(target)) {
 					continue;
 				}
 
 				PowersBuilder powersBuilder = Powers.builder(target);
-				long revokedPowers;
+				long revokedPowers = 0;
 
-				if (powerHolder != null) {
+				for (var holder : powersBuilder.getAllFromSource(source)) {
 
-					if (powersBuilder.revokeWithCallback(powerHolder.id(), source)) {
-						revokedPowers = 1;
+					if (powersBuilder.revokeWithCallback(holder.id(), source)) {
+						revokedPowers++;
 					}
 
-					else {
-						revokedPowers = 0;
-					}
-
-				}
-
-				else {
-					revokedPowers = powersBuilder.getAllFromSource(source)
-						.stream()
-						.filter(inner -> powersBuilder.revokeWithCallback(inner.id(), source))
-						.count();
 				}
 
 				if (revokedPowers <= 0) {
@@ -287,37 +279,11 @@ public class PowerCommand {
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-
-					if (powerHolder != null) {
-
-						PowerIdentifier powerId = powerHolder.id();
-						Component powerName = powerHolder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
-
-						commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.fail.single", targets.getFirst().getName(), powerName, source));
-
-					}
-
-					else {
-						commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.all.fail.single", targets.getFirst().getName(), source.toString()));
-					}
-
+					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.all.fail.single_entity", targets.getFirst().getName(), source.toString()));
 				}
 
 				else {
-
-					if (powerHolder != null) {
-
-						PowerIdentifier powerId = powerHolder.id();
-						Component powerName = powerHolder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
-
-						commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.fail.multiple", targets.size(), powerName, source.toString()));
-
-					}
-
-					else {
-						commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.all.fail.multiple", targets.size(), source));
-					}
-
+					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.all.fail.multiple_entities", targets.size(), source.toString()));
 				}
 
 			}
@@ -325,43 +291,17 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-
-					var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
-					if (powerHolder != null) {
-
-						PowerIdentifier powerId = powerHolder.id();
-						Component powerName = powerHolder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
-
-						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.single", processedTarget.getKey().getName(), powerName, source.toString()), true);
-
-					}
-
-					else {
-						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.single", processedTarget.getKey().getName(), processedTarget.getLongValue(), source.toString()), true);
-					}
-
+					var processedEntry = processedTargets.object2LongEntrySet().iterator().next();
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.single_entity", processedEntry.getKey(), processedEntry.getLongValue(), source.toString()), true);
 				}
 
 				else {
 
-					if (powerHolder != null) {
+					long totalRevokedPowers = processedTargets.values()
+						.longStream()
+						.sum();
 
-						PowerIdentifier powerId = powerHolder.id();
-						Component powerName = powerHolder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerId.toString()))));
-
-						commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.success.multiple", processedTargets.size(), powerName, source.toString()), true);
-
-					}
-
-					else {
-
-						long totalRevokedPowers = processedTargets.values()
-							.longStream()
-							.sum();
-
-						commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.all.success.multiple", processedTargets.size(), totalRevokedPowers, source), true);
-
-					}
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.multiple_entities", processedTargets.size(), totalRevokedPowers, source.toString()), true);
 
 				}
 
@@ -371,16 +311,121 @@ public class PowerCommand {
 
 		}
 
+		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets, PowerArgument.Result result, ResourceLocation source) throws CommandSyntaxException {
+
+			CommandSourceStack commandSource = commandContext.getSource();
+			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
+
+			List<PowerHolder<?>> powerHolders = result.get();
+			long totalRevokedPowers = 0;
+
+			for (var target : targets) {
+
+				if (!Powers.has(target)) {
+					continue;
+				}
+
+				PowersBuilder powersBuilder = Powers.builder(target);
+				long revokedPowers = 0;
+
+				for (var powerHolder : powerHolders) {
+
+					if (powersBuilder.revokeWithCallback(powerHolder.id(), source)) {
+						revokedPowers++;
+					}
+
+				}
+
+				if (revokedPowers <= 0) {
+					continue;
+				}
+
+				processedTargets.put(target, revokedPowers);
+				powersBuilder.build();
+
+				totalRevokedPowers += revokedPowers;
+
+			}
+
+			switch (result) {
+				case PowerArgument.Result.Singleton(PowerIdentifier id) -> {
+
+					HoverEvent hoverEvent = new HoverEvent.ShowText(Component.nullToEmpty(id.toString()));
+					Component powerName = powerHolders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
+
+					if (processedTargets.isEmpty()) {
+
+						if (targets.size() == 1) {
+							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source.toString()));
+						}
+
+						else {
+							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.single_power.fail.multiple_entities", targets.size(), powerName, source.toString()));
+						}
+
+					}
+
+					else {
+
+						if (processedTargets.size() == 1) {
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.single_entity", processedTargets.keySet().iterator().next(), powerName, source.toString()), true);
+						}
+
+						else {
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.multiple_entities"), true);
+						}
+
+					}
+
+				}
+				case PowerArgument.Result.Collection(TagKey<PowerHolder<?>> tag) -> {
+
+					Component tagName = Component.literal("#" + tag.location());
+
+					if (processedTargets.isEmpty()) {
+
+						if (targets.size() == 1) {
+							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.fail.single_entity", targets.getFirst().getName(), tagName, source.toString()));
+						}
+
+						else {
+							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.fail.multiple_entities", targets.size(), tagName, source.toString()));
+						}
+
+					}
+
+					else {
+
+						var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
+						long finalTotalRevokedPowers = totalRevokedPowers;
+
+						if (processedTargets.size() == 1) {
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), tagName, source.toString()), true);
+						}
+
+						else {
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalRevokedPowers, tagName, source.toString()), true);
+						}
+
+					}
+
+				}
+			}
+
+			return processedTargets.size();
+
+		}
+
 	}
 
-	static final class Remove {
+	static final class RemoveArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("remove")
 				.then(argument("targets", EntityArgument.entities())
 					.then(argument("power", PowerArgument.power())
-						.executes(Remove::execute)));
+						.executes(RemoveArgument::execute)));
 
 			return node.build();
 
@@ -388,8 +433,8 @@ public class PowerCommand {
 
 		static int execute(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
 
-			java.util.List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
-			java.util.List<Entity> processedTargets = new ObjectArrayList<>();
+			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
+			List<Entity> processedTargets = new ObjectArrayList<>();
 
 			PowerHolder<?> powerHolder = PowerArgument.getPower(commandContext, "power");
 			CommandSourceStack commandSource = commandContext.getSource();
@@ -422,11 +467,11 @@ public class PowerCommand {
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.single", targets.getFirst().getName(), powerName));
+					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.single_entity", targets.getFirst().getName(), powerName));
 				}
 
 				else {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.multiple", targets.size(), powerName));
+					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.multiple_entities", targets.size(), powerName));
 				}
 
 			}
@@ -434,11 +479,11 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.single", processedTargets.getFirst().getName(), powerName), true);
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.single_entity", processedTargets.getFirst().getName(), powerName), true);
 				}
 
 				else {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.multiple", processedTargets.size(), powerName), true);
+					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.multiple_entities", processedTargets.size(), powerName), true);
 				}
 
 			}
@@ -449,14 +494,14 @@ public class PowerCommand {
 
 	}
 
-	static final class Clear {
+	static final class ClearArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("clear")
-				.executes(Clear::fromSelf)
+				.executes(ClearArgument::fromSelf)
 				.then(argument("targets", EntityArgument.entities())
-					.executes(Clear::fromSpecified));
+					.executes(ClearArgument::fromSpecified));
 
 			return node.build();
 
@@ -470,7 +515,7 @@ public class PowerCommand {
 			return execute(commandContext, new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets")));
 		}
 
-		static int execute(CommandContext<CommandSourceStack> commandContext, java.util.List<Entity> targets) {
+		static int execute(CommandContext<CommandSourceStack> commandContext, List<Entity> targets) {
 
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 			CommandSourceStack commandSource = commandContext.getSource();
@@ -545,16 +590,16 @@ public class PowerCommand {
 
 	}
 
-	static final class List {
+	static final class ListArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("list")
-				.executes(List::fromSelf)
+				.executes(ListArgument::fromSelf)
 				.then(argument("target", EntityArgument.entity())
-					.executes(List::fromSpecified)
+					.executes(ListArgument::fromSpecified)
 					.then(argument("includeSubPowers", BoolArgumentType.bool())
-						.executes(List::fromSpecifiedWithSubPowerOption)));
+						.executes(ListArgument::fromSpecifiedWithSubPowerOption)));
 
 			return node.build();
 
@@ -577,8 +622,8 @@ public class PowerCommand {
 			Powers powers = Powers.getNullable(target);
 			CommandSourceStack commandSource = commandContext.getSource();
 
-			java.util.List<PowerHolder<?>> powerHolders = Optional.ofNullable(powers).map(self -> self.getAll(includeSubPowers)).orElseGet(ObjectArrayList::new);
-			java.util.List<Component> powerTooltips = new ObjectArrayList<>();
+			List<PowerHolder<?>> powerHolders = Optional.ofNullable(powers).map(self -> self.getAll(includeSubPowers)).orElseGet(ObjectArrayList::new);
+			List<Component> powerTooltips = new ObjectArrayList<>();
 
 			for (var powerHolder : powerHolders) {
 
@@ -589,7 +634,7 @@ public class PowerCommand {
 				Power power = powerHolder.value();
 				Power.Type<?> type = power.getType();
 
-				java.util.List<Component> sourceTooltips = powers.getSources(powerHolder.id())
+				List<Component> sourceTooltips = powers.getSources(powerHolder.id())
 					.stream()
 					.map(Objects::toString)
 					.map(source -> Component.literal(source).withStyle())
@@ -620,15 +665,15 @@ public class PowerCommand {
 
 	}
 
-	static final class Dump {
+	static final class DumpArgument {
 
 		static CommandNode<CommandSourceStack> node() {
 
 			var node = literal("dump")
 				.then(argument("power", PowerArgument.power())
-					.executes(Dump::withDefaultIndent)
+					.executes(DumpArgument::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
-						.executes(Dump::withSpecificIndent)));
+						.executes(DumpArgument::withSpecificIndent)));
 
 			return node.build();
 

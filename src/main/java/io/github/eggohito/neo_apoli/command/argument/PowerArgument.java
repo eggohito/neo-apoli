@@ -68,12 +68,16 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 		return new PowerArgument(true);
 	}
 
-	public static Result getArgument(CommandContext<CommandSourceStack> context, String name) {
+	public static Result getResult(CommandContext<CommandSourceStack> context, String name) {
 		return context.getArgument(name, Result.class);
 	}
 
+	public static List<PowerHolder<?>> getPowers(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+		return context.getArgument(name, Result.class).get();
+	}
+
 	public static PowerHolder<?> getPower(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
-		return switch (getArgument(context, name)) {
+		return switch (getResult(context, name)) {
 			case Result.Singleton singleton ->
 				singleton.get().getFirst();
 			case Result.Collection collection ->
@@ -82,7 +86,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 	}
 
 	public static List<PowerHolder<?>> getTag(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
-		return switch (getArgument(context, name)) {
+		return switch (getResult(context, name)) {
 			case Result.Singleton singleton ->
 				throw MiscUtil.createCommandException(() -> "Expected a tag, but got power " + singleton.id() + "!");
 			case Result.Collection collection ->
@@ -91,7 +95,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 	}
 
 	public static Either<Result.Singleton, Result.Collection> getPowerOrTag(CommandContext<CommandSourceStack> context, String name) {
-		return switch (getArgument(context, name)) {
+		return switch (getResult(context, name)) {
 			case Result.Singleton singleton ->
 				Either.left(singleton);
 			case Result.Collection collection ->
