@@ -158,7 +158,7 @@ public class ConditionManager {
 
 	public record ClientboundUpdateConditionsPacket(Map<ResourceLocation, Tag> conditions) implements CustomPacketPayload {
 
-		public static final Type<ClientboundUpdateConditionsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/update_conditions"));
+		public static final Type<ClientboundUpdateConditionsPacket> TYPE = new Type<>(NeoApoli.id("clientbound/conditions/update_conditions"));
 		public static final StreamCodec<ByteBuf, ClientboundUpdateConditionsPacket> CODEC = CONDITIONS_CODEC.map(ClientboundUpdateConditionsPacket::new, ClientboundUpdateConditionsPacket::conditions);
 
 		@Override
