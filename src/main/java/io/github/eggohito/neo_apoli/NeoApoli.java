@@ -1,6 +1,8 @@
 package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
+import io.github.eggohito.neo_apoli.command.ActionCommand;
+import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
@@ -42,13 +44,19 @@ public class NeoApoli implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+		CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, environment) -> {
 
 			var rootNode = dispatcher.getRoot();
 			var baseNode = Commands.literal("neo-apoli").build();
 
 			PowerCommand.register(rootNode);
 			PowerCommand.register(baseNode);
+
+			ActionCommand.register(buildContext, rootNode);
+			ActionCommand.register(buildContext, baseNode);
+
+			ConditionCommand.register(buildContext, rootNode);
+			ConditionCommand.register(buildContext, baseNode);
 
 			rootNode.addChild(baseNode);
 
