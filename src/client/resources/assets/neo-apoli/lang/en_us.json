@@ -1,4 +1,5 @@
 {
+	"argument.neo-apoli.action.invalid_reference_inline_or_tag": "Invalid ID, inline, or tag",
 	"commands.neo-apoli.data.power.modified": "Modified data of power '%s' from entity %s",
 	"commands.neo-apoli.data.power.query": "Power '%s' from entity %s has the following data: %s",
 	"commands.neo-apoli.data.power.query.scaled": "%s on power '%s' from entity %s after scale factor of %s is %s",

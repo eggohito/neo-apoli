@@ -21,6 +21,8 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
+import java.util.List;
+
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -64,7 +66,7 @@ public class ActionCommand {
 		public static int execute(CommandContext<CommandSourceStack> context, int indent) throws CommandSyntaxException {
 
 			CommandSourceStack source = context.getSource();
-			Action action = ActionArgument.getAction(context, "action");
+			Action action = ActionArgument.getActions(context, "action").getFirst();
 
 			return switch (Action.CODEC.encodeStart(source.registryAccess().createSerializationContext(JsonOps.INSTANCE), action)) {
 				case DataResult.Success<JsonElement> success -> {
@@ -107,33 +109,41 @@ public class ActionCommand {
 			CommandSourceStack source = commandContext.getSource();
 			Context.Builder contextBuilder = source.neo_apoli$getContextBuilder();
 
-			Action action = ActionArgument.getAction(commandContext, "action");
-			String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
+			List<Action> actions = ActionArgument.getActions(commandContext, "action");
+			int executed = 0;
 
-			Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), new Reporter(path)).withResolver(source.registryAccess());
-			action.validate(validator);
+			for (var action : actions) {
 
-			var validationException = validator.reporter().getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validation action ").append(error))
-				.map(MiscUtil::createCommandException);
+				String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
 
-			if (validationException.isPresent()) {
-				throw validationException.get();
+				Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), new Reporter(path)).withResolver(source.registryAccess());
+				action.validate(validator);
+
+				var validationException = validator.reporter().getErrorsFlattened()
+					.map(error -> Component.literal("Found errors while validation action ").append(error))
+					.map(MiscUtil::createCommandException);
+
+				if (validationException.isPresent()) {
+					throw validationException.get();
+				}
+
+				Context context = contextBuilder.build(source.getLevel());
+				action.execute(context);
+
+				var executionException = context.reporter().getErrorsFlattened()
+					.map(error -> Component.literal("Found errors while executing action ").append(error))
+					.map(MiscUtil::createCommandException);
+
+				if (executionException.isPresent()) {
+					throw executionException.get();
+				}
+
+				executed++;
+
 			}
 
-			Context context = contextBuilder.build(source.getLevel());
-			action.execute(context);
-
-			var executionException = context.reporter().getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while executing action ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (executionException.isPresent()) {
-				throw executionException.get();
-			}
-
-			source.sendSuccess(() -> Component.nullToEmpty("Successfully executed action!"), false);
-			return 1;
+			commandContext.getSource().sendSuccess(() -> Component.literal("Successfully executed action!"), false);
+			return executed;
 
 		}
 
