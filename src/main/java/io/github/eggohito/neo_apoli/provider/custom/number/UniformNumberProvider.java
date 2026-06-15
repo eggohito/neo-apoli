@@ -15,7 +15,7 @@ import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.random.RandomGenerator;
 
-public record UniformNumberProvider(Random random, NumberProvider min, NumberProvider max) implements NumberProvider{
+public record UniformNumberProvider(Random random, NumberProvider min, NumberProvider max) implements NumberProvider {
 
 	public static final MapCodec<UniformNumberProvider> CODEC = MapCodecUtil.lazy(UniformNumberProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NumberProvider.CODEC.optionalFieldOf("min", new ConstantNumberProvider(0)).forGetter(UniformNumberProvider::min),
@@ -45,6 +45,13 @@ public record UniformNumberProvider(Random random, NumberProvider min, NumberPro
 	@Override
 	public long getLong(Context context) {
 		return this.randomize(context, NumberProvider::getLong, RandomGenerator::nextLong);
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		min().validate(validator.forChild(".min"));
+		max().validate(validator.forChild(".max"));
 	}
 
 	private <N extends Number & Comparable<N>> N randomize(Context context, BiFunction<NumberProvider, Context, N> getter, TriFunction<Random, N, N, N> method) {

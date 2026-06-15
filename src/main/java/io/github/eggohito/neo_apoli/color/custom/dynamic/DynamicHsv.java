@@ -39,6 +39,7 @@ public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberPr
 
 	@Override
 	public void validate(Context.Validator validator) {
+		DynamicColor.super.validate(validator);
 		hue().validate(validator.forChild(".hue"));
 		saturation().validate(validator.forChild(".saturation"));
 		value().validate(validator.forChild(".value"));

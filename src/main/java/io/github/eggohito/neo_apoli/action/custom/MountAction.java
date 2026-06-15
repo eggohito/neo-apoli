@@ -60,6 +60,7 @@ public record MountAction(BooleanProvider force, EntityProvider vehicle, EntityP
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
+		force().validate(validator.forChild(".force"));
 		vehicle().validate(validator.forChild(".vehicle"));
 		passenger().validate(validator.forChild(".passenger"));
 	}

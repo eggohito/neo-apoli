@@ -121,6 +121,7 @@ public record GiveItemsAction(Action giveAction, List<IndexedStack> stacks, Enti
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		giveAction().validate(validator.withAdditionalKeysFromSets(ACTION_PARAMETER_SET).forChild(".give_action"));
+		entity().validate(validator.forChild(".entity"));
 	}
 
 }

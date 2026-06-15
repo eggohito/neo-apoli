@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
+import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -42,6 +43,7 @@ public record IsBlockInTagCondition(TagKey<Block> tag, BlockProvider block) impl
 	@Override
 	public void validate(Context.Validator validator) {
 		Condition.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), tag());
 		block().validate(validator.forChild(".block"));
 	}
 

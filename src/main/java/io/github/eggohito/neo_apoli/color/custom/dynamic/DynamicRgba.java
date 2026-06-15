@@ -34,6 +34,7 @@ public record DynamicRgba(NumberProvider red, NumberProvider green, NumberProvid
 
 	@Override
 	public void validate(Context.Validator validator) {
+		DynamicColor.super.validate(validator);
 		red().validate(validator.forChild(".red"));
 		green().validate(validator.forChild(".green"));
 		blue().validate(validator.forChild(".blue"));

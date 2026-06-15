@@ -74,9 +74,12 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 		NumberBoundHudElement.super.validate(validator);
 
 		properties().validate(validator);
+		x().validate(validator.forChild(".x"));
+		y().validate(validator.forChild(".y"));
+		shouldRender().validate(validator.forChild(".should_render"));
+		value().ifPresent(value -> value.validate(validator.forChild(".value")));
 		min().ifPresent(min -> min.validate(validator.forChild(".min")));
 		max().ifPresent(max -> max.validate(validator.forChild(".max")));
-		value().ifPresent(value -> value.validate(validator.forChild(".value")));
 
 	}
 

@@ -57,6 +57,7 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		method().validate(validator);
+		velocity().validate(validator.forChild(".velocity"));
 	}
 
 	public sealed interface Method extends ContextUser {
@@ -176,18 +177,7 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 
 			@Override
 			public Vec3 apply(Entity first, Entity second) {
-
-//				float pitch = first.getViewXRot(1.0F);
-//				float yaw = first.getViewYRot(1.0F);
-//
-//				float x = -Mth.sin(yaw * Mth.DEG_TO_RAD) * Mth.cos(pitch * Mth.DEG_TO_RAD);
-//				float y = -Mth.sin(pitch * Mth.DEG_TO_RAD);
-//				float z =  Mth.cos(yaw * Mth.DEG_TO_RAD) * Mth.cos(pitch * Mth.DEG_TO_RAD);
-//
-//				return new Vec3(x, y, z);
-
 				return first.getViewVector(1.0F);
-
 			}
 
 		};

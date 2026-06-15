@@ -39,6 +39,7 @@ public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvid
 
 	@Override
 	public void validate(Context.Validator validator) {
+		DynamicColor.super.validate(validator);
 		alpha().validate(validator.forChild(".alpha"));
 		red().validate(validator.forChild(".red"));
 		green().validate(validator.forChild(".green"));

@@ -6,7 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 
 @Accessors(fluent = true)
 @Getter
-public final class PowerIdentifier implements StringDisplayable, ContextUser {
+public final class PowerIdentifier implements StringDisplayable, ContextValidatable {
 
 	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::parseAsResult, PowerIdentifier::toString);
 	public static final StreamCodec<ByteBuf, PowerIdentifier> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerIdentifier::parse, PowerIdentifier::toString);

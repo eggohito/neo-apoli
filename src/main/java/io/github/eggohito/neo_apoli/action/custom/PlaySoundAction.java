@@ -110,6 +110,7 @@ public record PlaySoundAction(Holder<SoundEvent> sound, SoundSource category, Li
 		position().validate(validator.forChild(".position"));
 		volume().validate(validator.forChild(".volume"));
 		pitch().validate(validator.forChild(".pitch"));
+		minVolume().validate(validator.forChild(".min_volume"));
 	}
 
 	private List<ServerPlayer> getListeners(Context context, ServerLevel serverLevel) {

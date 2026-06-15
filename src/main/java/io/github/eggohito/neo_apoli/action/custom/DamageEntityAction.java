@@ -64,6 +64,7 @@ public record DamageEntityAction(Holder<DamageType> damageType, NumberProvider a
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
+		amount().validate(validator.forChild(".amount"));
 		victim().validate(validator.forChild(".victim"));
 		attacker().ifPresent(attacker -> attacker.validate(validator.forChild(".attacker")));
 	}
