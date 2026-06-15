@@ -12,8 +12,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,39 +23,28 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyInvisibilityPower extends Power {
+public record ModifyInvisibilityPower(Optional<Condition> activeCondition, Condition invisibleToCondition, BooleanProvider renderArmor, BooleanProvider renderOutline) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_OUTLINE = Instance::isActiveAndShouldRenderOutline;
-	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = Instance::isActiveAndShouldRenderArmor;
+	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_OUTLINE = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderOutline;
+	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderArmor;
 
-	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::getInvisibleToCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderArmor))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::getRenderOutline))
-		.apply(instance, ModifyInvisibilityPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyInvisibilityPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Condition.STREAM_CODEC, ModifyInvisibilityPower::getInvisibleToCondition,
-		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::getRenderArmor,
-		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::getRenderOutline,
-		ModifyInvisibilityPower::new
+	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::invisibleToCondition))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderArmor))
+		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderOutline))
+		.apply(instance, ModifyInvisibilityPower::new)
 	);
 
-	private final Condition invisibleToCondition;
-	private final BooleanProvider renderArmor;
-	private final BooleanProvider renderOutline;
-
-	public ModifyInvisibilityPower(Optional<Condition> activeCondition, Condition invisibleToCondition, BooleanProvider renderArmor, BooleanProvider renderOutline) {
-		super(activeCondition);
-		this.invisibleToCondition = invisibleToCondition;
-		this.renderArmor = renderArmor;
-		this.renderOutline = renderOutline;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyInvisibilityPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Condition.STREAM_CODEC, ModifyInvisibilityPower::invisibleToCondition,
+		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::renderArmor,
+		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::renderOutline,
+		ModifyInvisibilityPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -71,10 +58,10 @@ public class ModifyInvisibilityPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getInvisibleToCondition().validate(validator.forChild(".invisible_to_condition"));
-		getRenderArmor().validate(validator.forChild(".render_armor"));
-		getRenderOutline().validate(validator.forChild(".render_outline"));
+		Power.super.validate(validator);
+		invisibleToCondition().validate(validator.forChild(".invisible_to_condition"));
+		renderArmor().validate(validator.forChild(".render_armor"));
+		renderOutline().validate(validator.forChild(".render_outline"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyInvisibilityPower> {
@@ -92,17 +79,17 @@ public class ModifyInvisibilityPower extends Power {
 
 		public boolean isInvisibleTo(Context context) {
 			return this.isActive(context)
-				&& power.getInvisibleToCondition().test(context.forChild(".invisible_to_condition"));
+				&& power.invisibleToCondition().test(context.forChild(".invisible_to_condition"));
 		}
 
 		public boolean isActiveAndShouldRenderArmor(Context context) {
 			return this.isActive(context)
-				&& power.getRenderArmor().getBoolean(context.forChild(".render_armor"));
+				&& power.renderArmor().getBoolean(context.forChild(".render_armor"));
 		}
 
 		public boolean isActiveAndShouldRenderOutline(Context context) {
 			return this.isActive(context)
-				&& power.getRenderOutline().getBoolean(context.forChild(".render_outline"));
+				&& power.renderOutline().getBoolean(context.forChild(".render_outline"));
 		}
 
 	}

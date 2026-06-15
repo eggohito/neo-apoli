@@ -20,8 +20,6 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -41,9 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
-@EqualsAndHashCode
-@Getter
-public class MultiplePower extends Power {
+public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements Power {
 
 	public static final ResourceLocation ID = NeoApoli.id("multiple");
 
@@ -164,19 +160,13 @@ public class MultiplePower extends Power {
 
 	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
 		MultiplePower::new,
-		MultiplePower::getSubPowers
+		MultiplePower::subPowers
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = SUB_POWERS_STREAM_CODEC.map(
 		MultiplePower::new,
-		MultiplePower::getSubPowers
+		MultiplePower::subPowers
 	);
-
-	private final ImmutableSet<PowerHolder<?>> subPowers;
-
-	public MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) {
-		this.subPowers = subPowers;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -184,7 +174,7 @@ public class MultiplePower extends Power {
 	}
 
 	@Override
-	public Power.Instance<?> createInstance() {
+	public Instance<?> createInstance() {
 		return new Instance<>(this) {};
 	}
 

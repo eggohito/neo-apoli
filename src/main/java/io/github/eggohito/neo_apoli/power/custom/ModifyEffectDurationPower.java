@@ -10,9 +10,8 @@ import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,29 +22,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyEffectDurationPower extends Power {
+public record ModifyEffectDurationPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
 
-	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::getModifiers))
-		.apply(instance, ModifyEffectDurationPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectDurationPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), ModifyEffectDurationPower::getModifiers,
-		ModifyEffectDurationPower::new
+	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::modifiers))
+		.apply(instance, ModifyEffectDurationPower::new)
 	);
 
-	private final List<Modifier> modifiers;
-
-	public ModifyEffectDurationPower(Optional<Condition> activeCondition, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectDurationPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyEffectDurationPower::modifiers,
+		ModifyEffectDurationPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -71,39 +62,33 @@ public class ModifyEffectDurationPower extends Power {
 				.build(holder.level());
 		}
 
-		public List<Modifier> getModifiers() {
-			return power.getModifiers();
+		public List<Modifier.Operation> operations(Context context) {
+
+			List<Modifier.Operation> result = new ObjectArrayList<>();
+			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
+
+			return result;
+
 		}
 
 	}
 
 	public static int modify(Entity holder, MobEffectInstance effectInstance, @Nullable Entity source, int duration) {
 
-		List<Modifier.Operation> entries = new ObjectArrayList<>();
+		List<Modifier.Operation> operations = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(holder, Instance.class)) {
 
 			Context context = instance.createContext(holder, effectInstance, source);
 
-			if (!instance.isActive(context)) {
-				continue;
-			}
-
-			ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-
-			while (listIterator.hasNext()) {
-
-				Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
-				Modifier modifier = listIterator.next();
-
-				entries.add(Modifier.operation(modifier, modifierContext));
-
+			if (instance.isActive(context)) {
+				operations.addAll(instance.operations(context));
 			}
 
 		}
 
-		PowerModifyEvents.NUMBER.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_EFFECT_DURATION, entries, duration);
-		return (int) Math.round(Modifier.applyAll(entries, duration));
+		PowerModifyEvents.NUMBER.invoker().beforeModified(NeoApoliPowerTypes.MODIFY_EFFECT_DURATION, operations, duration);
+		return (int) Math.round(Modifier.applyAll(operations, duration));
 
 	}
 

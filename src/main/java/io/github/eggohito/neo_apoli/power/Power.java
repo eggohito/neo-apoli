@@ -16,8 +16,8 @@ import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -37,43 +37,35 @@ import java.util.Set;
  * 	<p>A power gives a certain "ability" to an entity upon being granted. As for what kind of "ability" it provides will
  * 	depend on the implementation (see: {@link Instance}) of the power itself.</p>
  */
-@EqualsAndHashCode
-@Getter
-public abstract class Power implements ContextUser {
+public interface Power extends ContextUser {
 
-	public static final String TYPE_KEY = "type";
+	String TYPE_KEY = "type";
 
-	public static final MapCodec<Power> MAP_CODEC = Type.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
+	MapCodec<Power> MAP_CODEC = Type.CODEC.dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
 
-	public static final Codec<Power> CODEC = MAP_CODEC.codec();
+	Codec<Power> CODEC = MAP_CODEC.codec();
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Power::getType, Type::streamCodec);
+	StreamCodec<RegistryFriendlyByteBuf, Power> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Power::getType, Type::streamCodec);
 
-	private final Optional<Condition> activeCondition;
+	Type<?> getType();
 
-	public Power(Optional<Condition> activeCondition) {
-		this.activeCondition = activeCondition;
+	Instance<?> createInstance();
+
+	default Optional<Condition> activeCondition() {
+		return Optional.empty();
 	}
 
-	public Power() {
-		this(Optional.empty());
-	}
-
-	public abstract Type<?> getType();
-
-	public abstract Instance<?> createInstance();
-
-	public boolean canBePartiallyParsed() {
+	default boolean canBePartiallyParsed() {
 		return false;
 	}
 
 	@Override
-	public void validate(Context.Validator validator) {
-		this.getActiveCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
+	default void validate(Context.Validator validator) {
+		this.activeCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
 	}
 
-	protected static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Optional<Condition>> addActiveConditionField(RecordCodecBuilder.Instance<P> instance) {
-		return instance.group(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Power::getActiveCondition));
+	static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Optional<Condition>> addActiveConditionField(RecordCodecBuilder.Instance<P> instance) {
+		return instance.group(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Power::activeCondition));
 	}
 
 	/**
@@ -82,8 +74,9 @@ public abstract class Power implements ContextUser {
 	 *
 	 * 	<p>The uniqueness of each instance is especially relevant for storing data.</p>
 	 */
+	@Accessors(fluent = true)
 	@Getter
-	public abstract static class Instance<P extends Power> implements ContextUser {
+	abstract class Instance<P extends Power> implements ContextUser {
 
 		protected final PowerIdentifier id;
 		protected final P power;
@@ -105,7 +98,7 @@ public abstract class Power implements ContextUser {
 
 		public Context.Builder createHolderContextBuilder(Entity holder) {
 			return new Context.Builder()
-				.withReporter(new Reporter("{\"" + this.getId() + "\"}"))
+				.withReporter(new Reporter("{\"" + this.id() + "\"}"))
 				.withRequired(NeoApoliContextParams.THIS_ENTITY, holder);
 		}
 
@@ -186,14 +179,14 @@ public abstract class Power implements ContextUser {
 		}
 
 		public boolean isActive(Context context) {
-			return power.getActiveCondition()
+			return power.activeCondition()
 				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
 				.orElse(true);
 		}
 
 	}
 
-	public record Type<P extends Power>(ContextKeySet requirements, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
+	record Type<P extends Power>(ContextKeySet requirements, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
 
 		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.POWER_TYPE);
 

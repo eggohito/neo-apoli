@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,38 +21,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyElytraRenderPower extends Power implements PrioritizedPower<ModifyElytraRenderPower> {
+public record ModifyElytraRenderPower(Optional<Condition> activeCondition, ResourceKey<EquipmentAsset> assetId, Optional<ArmorTrim> trim, Optional<Color> color, int priority) implements PrioritizedPower<ModifyElytraRenderPower> {
 
-	public static final MapCodec<ModifyElytraRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ResourceKey.codec(EquipmentAssets.ROOT_ID).fieldOf("asset_id").forGetter(ModifyElytraRenderPower::getAssetId))
-		.and(ArmorTrim.CODEC.optionalFieldOf("trim").forGetter(ModifyElytraRenderPower::getTrim))
-		.and(Color.CODEC.optionalFieldOf("color").forGetter(ModifyElytraRenderPower::getColor))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraRenderPower::getPriority))
-		.apply(instance, ModifyElytraRenderPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyElytraRenderPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		ResourceKey.streamCodec(EquipmentAssets.ROOT_ID), ModifyElytraRenderPower::getAssetId,
-		ByteBufCodecs.optional(ArmorTrim.STREAM_CODEC), ModifyElytraRenderPower::getTrim,
-		ByteBufCodecs.optional(Color.STREAM_CODEC), ModifyElytraRenderPower::getColor,
-		ByteBufCodecs.INT, ModifyElytraRenderPower::getPriority,
-		ModifyElytraRenderPower::new
+	public static final MapCodec<ModifyElytraRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ResourceKey.codec(EquipmentAssets.ROOT_ID).fieldOf("asset_id").forGetter(ModifyElytraRenderPower::assetId))
+		.and(ArmorTrim.CODEC.optionalFieldOf("trim").forGetter(ModifyElytraRenderPower::trim))
+		.and(Color.CODEC.optionalFieldOf("color").forGetter(ModifyElytraRenderPower::color))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraRenderPower::priority))
+		.apply(instance, ModifyElytraRenderPower::new)
 	);
 
-	private final ResourceKey<EquipmentAsset> assetId;
-	private final Optional<ArmorTrim> trim;
-	private final Optional<Color> color;
-	private final int priority;
-
-	public ModifyElytraRenderPower(Optional<Condition> activeCondition, ResourceKey<EquipmentAsset> assetId, Optional<ArmorTrim> trim, Optional<Color> color, int priority) {
-		super(activeCondition);
-		this.assetId = assetId;
-		this.trim = trim;
-		this.color = color;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyElytraRenderPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		ResourceKey.streamCodec(EquipmentAssets.ROOT_ID), ModifyElytraRenderPower::assetId,
+		ByteBufCodecs.optional(ArmorTrim.STREAM_CODEC), ModifyElytraRenderPower::trim,
+		ByteBufCodecs.optional(Color.STREAM_CODEC), ModifyElytraRenderPower::color,
+		ByteBufCodecs.INT, ModifyElytraRenderPower::priority,
+		ModifyElytraRenderPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -72,16 +57,16 @@ public class ModifyElytraRenderPower extends Power implements PrioritizedPower<M
 			super(power);
 		}
 
-		public ResourceKey<EquipmentAsset> getAssetId() {
-			return power.getAssetId();
+		public ResourceKey<EquipmentAsset> assetId() {
+			return power.assetId();
 		}
 
-		public Optional<ArmorTrim> getTrim() {
-			return power.getTrim();
+		public Optional<ArmorTrim> trim() {
+			return power.trim();
 		}
 
-		public Optional<DyedItemColor> getDyedColor(Context context) {
-			return power.getColor()
+		public Optional<DyedItemColor> colorAsDye(Context context) {
+			return power.color()
 				.map(color -> color.intValue(context.forChild(".color")))
 				.map(DyedItemColor::new);
 		}

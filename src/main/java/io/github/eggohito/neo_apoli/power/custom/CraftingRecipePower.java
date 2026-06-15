@@ -8,9 +8,6 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,24 +15,18 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
-@EqualsAndHashCode
-@Getter
-public class CraftingRecipePower extends Power implements PrioritizedPower<CraftingRecipePower> {
+public record CraftingRecipePower(RecipeHolder<CraftingRecipe> recipe, int priority) implements PrioritizedPower<CraftingRecipePower> {
 
 	public static final MapCodec<CraftingRecipePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::getRecipeEntry),
-		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::getPriority)
+		NeoApoliMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::recipe),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::priority)
 	).apply(instance, CraftingRecipePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CraftingRecipePower> STREAM_CODEC = StreamCodec.composite(
-		NeoApoliStreamCodecs.CRAFTING_RECIPE_ENTRY, CraftingRecipePower::getRecipeEntry,
-		ByteBufCodecs.INT, CraftingRecipePower::getPriority,
+		NeoApoliStreamCodecs.CRAFTING_RECIPE_ENTRY, CraftingRecipePower::recipe,
+		ByteBufCodecs.INT, CraftingRecipePower::priority,
 		CraftingRecipePower::new
 	);
-
-	private final RecipeHolder<CraftingRecipe> recipeEntry;
-	private final int priority;
 
 	@Override
 	public Type<?> getType() {
@@ -53,8 +44,8 @@ public class CraftingRecipePower extends Power implements PrioritizedPower<Craft
 			super(power);
 		}
 
-		public RecipeHolder<CraftingRecipe> getRecipeEntry() {
-			return power.getRecipeEntry();
+		public RecipeHolder<CraftingRecipe> recipe() {
+			return power.recipe();
 		}
 
 	}

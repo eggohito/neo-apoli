@@ -14,8 +14,6 @@ import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -31,28 +29,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyBlockBreakSpeedPower extends Power {
+public record ModifyBlockBreakSpeedPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockBreakSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyBlockBreakSpeedPower::getModifiers))
-		.apply(instance, ModifyBlockBreakSpeedPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockBreakSpeedPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyBlockBreakSpeedPower::getModifiers,
-		ModifyBlockBreakSpeedPower::new
+	public static final MapCodec<ModifyBlockBreakSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyBlockBreakSpeedPower::modifiers))
+		.apply(instance, ModifyBlockBreakSpeedPower::new)
 	);
 
-	private final List<Modifier> modifiers;
-
-	public ModifyBlockBreakSpeedPower(Optional<Condition> activeCondition, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockBreakSpeedPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyBlockBreakSpeedPower::modifiers,
+		ModifyBlockBreakSpeedPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -76,10 +67,10 @@ public class ModifyBlockBreakSpeedPower extends Power {
 				.build(holder.level());
 		}
 
-		public List<Modifier.Operation> getModifiers(Context context) {
+		public List<Modifier.Operation> modifiers(Context context) {
 
 			List<Modifier.Operation> result = new ObjectArrayList<>();
-			MiscUtil.iterateList(power.getModifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
+			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 
 			return result;
 
@@ -98,7 +89,7 @@ public class ModifyBlockBreakSpeedPower extends Power {
 				Context context = instance.createContext(player, blockPos, blockState, blockEntity);
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
-					entries.addAll(instance.getModifiers(context));
+					entries.addAll(instance.modifiers(context));
 				}
 
 			}

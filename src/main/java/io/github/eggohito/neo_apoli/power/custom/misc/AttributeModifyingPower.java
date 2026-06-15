@@ -3,14 +3,11 @@ package io.github.eggohito.neo_apoli.power.custom.misc;
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
-import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.util.AttributedModifier;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -18,26 +15,18 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
-@EqualsAndHashCode
-@Getter
-public abstract class AttributeModifyingPower extends Power {
+public interface AttributeModifyingPower extends Power {
 
-	private final List<AttributedModifier> modifiers;
-	private final BooleanProvider sendUpdate;
+	List<AttributedModifier> modifiers();
 
-	public AttributeModifyingPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-		this.sendUpdate = sendUpdate;
-	}
+	BooleanProvider sendUpdate();
 
 	@Override
-	public abstract AttributeModifyingPower.Instance<?> createInstance();
+	AttributeModifyingPower.Instance<?> createInstance();
 
-	public static abstract class Instance<P extends AttributeModifyingPower> extends Power.Instance<P> {
+	abstract class Instance<P extends AttributeModifyingPower> extends Power.Instance<P> {
 
 		protected Instance(@NotNull P power) {
 			super(power);
@@ -50,11 +39,11 @@ public abstract class AttributeModifyingPower extends Power {
 			}
 
 			Context sendUpdateContext = context.forChild(".send_update");
-			boolean sendUpdate = power.getSendUpdate().getBoolean(sendUpdateContext);
+			boolean sendUpdate = power.sendUpdate().getBoolean(sendUpdateContext);
 
 			if (!sendUpdateContext.hasErrors()) {
 
-				for (var attributeModifier: power.getModifiers()) {
+				for (var attributeModifier: power.modifiers()) {
 
 					AttributeInstance attributeInstance = livingHolder.getAttribute(attributeModifier.attribute());
 					net.minecraft.world.entity.ai.attributes.AttributeModifier modifier = attributeModifier.modifier();
@@ -99,17 +88,11 @@ public abstract class AttributeModifyingPower extends Power {
 
 	}
 
-	protected static <P extends AttributeModifyingPower> Products.P2<RecordCodecBuilder.Mu<P>, List<AttributedModifier>, BooleanProvider> addAttributeModifyingFields(RecordCodecBuilder.Instance<P> instance) {
+	static <P extends AttributeModifyingPower> Products.P2<RecordCodecBuilder.Mu<P>, List<AttributedModifier>, BooleanProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
-			NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AttributeModifyingPower::getModifiers),
-			BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AttributeModifyingPower::getSendUpdate)
+			NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AttributeModifyingPower::modifiers),
+			BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AttributeModifyingPower::sendUpdate)
 		);
-	}
-
-	protected static <P extends AttributeModifyingPower> Products.P3<RecordCodecBuilder.Mu<P>, Optional<Condition>, List<AttributedModifier>, BooleanProvider> addConditionalAttributeModifyingAndFields(RecordCodecBuilder.Instance<P> instance) {
-		return addActiveConditionField(instance)
-			.and(NeoApoliCodecs.NONEMPTY_ATTRIBUTE_MODIFIERS.fieldOf("modifiers").forGetter(AttributeModifyingPower::getModifiers))
-			.and(BooleanProvider.CODEC.optionalFieldOf("send_update", new ConstantBooleanProvider(true)).forGetter(AttributeModifyingPower::getSendUpdate));
 	}
 
 }

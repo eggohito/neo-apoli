@@ -16,20 +16,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface PrioritizedPower<P extends Power & PrioritizedPower<P>> extends Comparable<P> {
+public interface PrioritizedPower<P extends Power & PrioritizedPower<P>> extends Power, Comparable<P> {
 
 	@Override
 	default int compareTo(@NotNull P that) {
-		return Integer.compare(this.getPriority(), that.getPriority());
+		return Integer.compare(this.priority(), that.priority());
 	}
 
-	default boolean inPriorityPhase(PriorityPhase phase) {
-		return phase.test(this.getPriority());
+	default boolean inPhase(PriorityPhase phase) {
+		return phase.test(this.priority());
 	}
 
-	int getPriority();
+	int priority();
 
-	final class InstanceCollection<I extends Power.Instance<? extends PrioritizedPower<?>>> implements Iterable<I> {
+	final class InstanceCollection<I extends Instance<? extends PrioritizedPower<?>>> implements Iterable<I> {
 
 		private final Int2ObjectMap<List<I>> buckets = new Int2ObjectAVLTreeMap<>(Comparator.reverseOrder());
 
@@ -93,7 +93,7 @@ public interface PrioritizedPower<P extends Power & PrioritizedPower<P>> extends
 
 		private void add(I instance) {
 
-			int priority = instance.getPower().getPriority();
+			int priority = instance.power().priority();
 			buckets.computeIfAbsent(priority, i -> new ObjectArrayList<>()).add(instance);
 
 			if (priority < minPriority) {

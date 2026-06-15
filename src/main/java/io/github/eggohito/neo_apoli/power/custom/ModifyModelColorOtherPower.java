@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,26 +18,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyModelColorOtherPower extends Power {
+public record ModifyModelColorOtherPower(Optional<Condition> activeCondition, Color color) implements Power {
 
-	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::getColor))
-		.apply(instance, ModifyModelColorOtherPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorOtherPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Color.STREAM_CODEC, ModifyModelColorOtherPower::getColor,
-		ModifyModelColorOtherPower::new
+	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::color))
+		.apply(instance, ModifyModelColorOtherPower::new)
 	);
 
-	private final Color color;
-
-	public ModifyModelColorOtherPower(Optional<Condition> activeCondition, Color color) {
-		super(activeCondition);
-		this.color = color;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorOtherPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Color.STREAM_CODEC, ModifyModelColorOtherPower::color,
+		ModifyModelColorOtherPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -53,8 +44,8 @@ public class ModifyModelColorOtherPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getColor().validate(validator.forChild(".color"));
+		Power.super.validate(validator);
+		color().validate(validator.forChild(".color"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelColorOtherPower> {
@@ -70,8 +61,8 @@ public class ModifyModelColorOtherPower extends Power {
 				.buildWithRequirements(holder.level(), NeoApoliPowerTypes.MODIFY_MODEL_COLOR_OTHER.requirements());
 		}
 
-		public int getColor(Context context) {
-			return power.getColor().intValue(context.forChild(".color"));
+		public int color(Context context) {
+			return power.color().intValue(context.forChild(".color"));
 		}
 
 	}
@@ -83,7 +74,7 @@ public class ModifyModelColorOtherPower extends Power {
 			Context context = instance.createContext(viewer, rendered);
 
 			if (!Objects.equals(viewer, rendered) && instance.isActive(context)) {
-				color = Color.mix(color, instance.getColor(context));
+				color = Color.mix(color, instance.color(context));
 			}
 
 		}

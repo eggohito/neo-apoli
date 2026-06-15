@@ -144,7 +144,7 @@ public class PowerManager {
 			}
 
 			else {
-				multiplePower.getSubPowers().forEach(subPowerHolder -> register(builder, subPowerHolder));
+				multiplePower.subPowers().forEach(subPowerHolder -> register(builder, subPowerHolder));
 			}
 
 		}

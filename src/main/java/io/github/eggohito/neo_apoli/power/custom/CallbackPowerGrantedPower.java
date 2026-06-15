@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -16,16 +14,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackPowerGrantedPower extends CallbackPower {
+public record CallbackPowerGrantedPower(Optional<Condition> activeCondition, Action action) implements CallbackPower {
 
-	public static final MapCodec<CallbackPowerGrantedPower> CODEC = createSimpleCallbackCodec(CallbackPowerGrantedPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerGrantedPower> STREAM_CODEC = createSimpleCallbackStreamCodec(CallbackPowerGrantedPower::new);
-
-	public CallbackPowerGrantedPower(Optional<Condition> activeCondition, Action action) {
-		super(activeCondition, action);
-	}
+	public static final MapCodec<CallbackPowerGrantedPower> CODEC = CallbackPower.codec(CallbackPowerGrantedPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerGrantedPower> STREAM_CODEC = CallbackPower.streamCodec(CallbackPowerGrantedPower::new);
 
 	@Override
 	public Type<?> getType() {
@@ -50,7 +42,7 @@ public class CallbackPowerGrantedPower extends CallbackPower {
 			Context context = createHolderContext(holder);
 
 			if (this.isActive(context)) {
-				power.getAction().execute(context.forChild(".action"));
+				power.action().execute(context.forChild(".action"));
 			}
 
 		}

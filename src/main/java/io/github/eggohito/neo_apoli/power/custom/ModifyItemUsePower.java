@@ -17,8 +17,6 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -39,44 +37,27 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyItemUsePower extends Power implements PrioritizedPower<ModifyItemUsePower> {
+public record ModifyItemUsePower(Optional<Condition> activeCondition, Action onUseAction, InteractionResult result, EnumSet<InteractionHand> hands, TriggerType triggerType, int priority) implements PrioritizedPower<ModifyItemUsePower> {
 
-	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::getOnUseAction))
-		.and(NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::getResult))
-		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::getHands))
-		.and(TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::getTriggerType))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyItemUsePower::getPriority))
-		.apply(instance, ModifyItemUsePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemUsePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, ModifyItemUsePower::getOnUseAction,
-		NeoApoliStreamCodecs.INTERACTION_RESULT, ModifyItemUsePower::getResult,
-		NeoApoliStreamCodecs.HAND_SET, ModifyItemUsePower::getHands,
-		TriggerType.STREAM_CODEC, ModifyItemUsePower::getTriggerType,
-		ByteBufCodecs.INT, ModifyItemUsePower::getPriority,
-		ModifyItemUsePower::new
+	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::onUseAction))
+		.and(NeoApoliCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::result))
+		.and(NeoApoliCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::hands))
+		.and(TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::triggerType))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyItemUsePower::priority))
+		.apply(instance, ModifyItemUsePower::new)
 	);
 
-	private final Action onUseAction;
-	private final InteractionResult result;
-
-	private final EnumSet<InteractionHand> hands;
-	private final TriggerType triggerType;
-
-	private final int priority;
-
-	public ModifyItemUsePower(Optional<Condition> activeCondition, Action onUseAction, InteractionResult result, EnumSet<InteractionHand> hands, TriggerType triggerType, int priority) {
-		super(activeCondition);
-		this.onUseAction = onUseAction;
-		this.result = result;
-		this.hands = hands;
-		this.triggerType = triggerType;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemUsePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Action.STREAM_CODEC, ModifyItemUsePower::onUseAction,
+		NeoApoliStreamCodecs.INTERACTION_RESULT, ModifyItemUsePower::result,
+		NeoApoliStreamCodecs.HAND_SET, ModifyItemUsePower::hands,
+		TriggerType.STREAM_CODEC, ModifyItemUsePower::triggerType,
+		ByteBufCodecs.INT, ModifyItemUsePower::priority,
+		ModifyItemUsePower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -90,12 +71,12 @@ public class ModifyItemUsePower extends Power implements PrioritizedPower<Modify
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getOnUseAction().validate(validator.forChild(".on_use_action"));
+		PrioritizedPower.super.validate(validator);
+		onUseAction().validate(validator.forChild(".on_use_action"));
 	}
 
 	@Override
-	public int getPriority() {
+	public int priority() {
 		return priority;
 	}
 
@@ -113,14 +94,14 @@ public class ModifyItemUsePower extends Power implements PrioritizedPower<Modify
 		}
 
 		public InteractionResult execute(Context context) {
-			power.getOnUseAction().execute(context.forChild(".on_use_action"));
-			return power.getResult();
+			power.onUseAction().execute(context.forChild(".on_use_action"));
+			return power.result();
 		}
 
 		public boolean doesApply(PriorityPhase priorityPhase, TriggerType triggerType, InteractionHand hand) {
-			return power.inPriorityPhase(priorityPhase)
-				&& power.getHands().contains(hand)
-				&& Objects.equals(power.getTriggerType(), triggerType);
+			return power.inPhase(priorityPhase)
+				&& power.hands().contains(hand)
+				&& Objects.equals(power.triggerType(), triggerType);
 		}
 
 	}

@@ -16,8 +16,6 @@ import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -31,38 +29,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-@EqualsAndHashCode
-@Getter
-public class PhasingPower extends Power {
+public record PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderEffect renderEffect, float viewDistance) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final Context.Parameter<CachedBlock> PHASED_BLOCK = NeoApoliContextParams.registerInternal("phased_block", BlockContextParameter::new);
 
-	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::getPhaseDownCondition))
-		.and(RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::getRenderEffect))
-		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::getViewDistance))
-		.apply(instance, PhasingPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, PhasingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Condition.STREAM_CODEC, PhasingPower::getPhaseDownCondition,
-		RenderEffect.STREAM_CODEC, PhasingPower::getRenderEffect,
-		ByteBufCodecs.FLOAT, PhasingPower::getViewDistance,
-		PhasingPower::new
+	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(PhasingPower::phaseDownCondition))
+		.and(RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::renderEffect))
+		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::viewDistance))
+		.apply(instance, PhasingPower::new)
 	);
 
-	private final Condition phaseDownCondition;
-	private final RenderEffect renderEffect;
-
-	private final float viewDistance;
-
-	public PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderEffect renderEffect, float viewDistance) {
-		super(activeCondition);
-		this.phaseDownCondition = phaseDownCondition;
-		this.renderEffect = renderEffect;
-		this.viewDistance = viewDistance;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, PhasingPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Condition.STREAM_CODEC, PhasingPower::phaseDownCondition,
+		RenderEffect.STREAM_CODEC, PhasingPower::renderEffect,
+		ByteBufCodecs.FLOAT, PhasingPower::viewDistance,
+		PhasingPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -76,8 +62,8 @@ public class PhasingPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getPhaseDownCondition().validate(validator.forChild(".phase_down_condition"));
+		Power.super.validate(validator);
+		phaseDownCondition().validate(validator.forChild(".phase_down_condition"));
 	}
 
 	public static class Instance extends Power.Instance<PhasingPower> {
@@ -92,17 +78,17 @@ public class PhasingPower extends Power {
 				.build(holder.level());
 		}
 
-		public RenderEffect getRenderEffect() {
-			return power.getRenderEffect();
+		public RenderEffect renderEffect() {
+			return power.renderEffect();
 		}
 
 		public boolean doesApply(Entity holder, Context context, BlockPos blockPos, VoxelShape blockShape) {
 			return holder.getY() < (double) blockPos.getY() + blockShape.max(Direction.Axis.Y) - (holder.onGround() ? 8.05 / 16.0 : 0.0015)
-				|| power.getPhaseDownCondition().test(context.forChild(".phase_down_condition"));
+				|| power.phaseDownCondition().test(context.forChild(".phase_down_condition"));
 		}
 
-		public float getViewDistance() {
-			return power.getViewDistance();
+		public float viewDistance() {
+			return power.viewDistance();
 		}
 
 	}
@@ -144,7 +130,7 @@ public class PhasingPower extends Power {
 			try {
 
 				if (VISITOR.push(instance) && instance.isActive(context)) {
-					renderDistance = Math.min(renderDistance, instance.getViewDistance());
+					renderDistance = Math.min(renderDistance, instance.viewDistance());
 				}
 
 			}

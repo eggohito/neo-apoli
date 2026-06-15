@@ -1,0 +1,44 @@
+package io.github.eggohito.neo_apoli.power.custom;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
+import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+
+public record CooldownStandalonePower(HudElement hudElement, NumberProvider cooldown) implements CooldownPower {
+
+	public static final MapCodec<CooldownStandalonePower> CODEC = RecordCodecBuilder.mapCodec(instance -> CooldownPower
+		.addFields(instance)
+		.apply(instance, CooldownStandalonePower::new)
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownStandalonePower> STREAM_CODEC = StreamCodec.composite(
+		HudElement.STREAM_CODEC, CooldownStandalonePower::hudElement,
+		NumberProvider.STREAM_CODEC, CooldownStandalonePower::cooldown,
+		CooldownStandalonePower::new
+	);
+
+	@Override
+	public Type<?> getType() {
+		return NeoApoliPowerTypes.COOLDOWN;
+	}
+
+	@Override
+	public Power.Instance<?> createInstance() {
+		return new CooldownPower.Instance<>(this);
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		CooldownPower.super.validate(validator);
+		hudElement().validate(validator.forChild(".hud_element"));
+		cooldown().validate(validator.forChild(".cooldown"));
+	}
+
+}

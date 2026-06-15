@@ -22,8 +22,6 @@ import io.github.eggohito.neo_apoli.util.BlockUsePhase;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -45,42 +43,28 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyBlockUsePower extends Power implements PrioritizedPower<ModifyBlockUsePower> {
+public record ModifyBlockUsePower(Optional<Condition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockUsePhase> usePhases, int priority) implements PrioritizedPower<ModifyBlockUsePower> {
 
 	public static final Context.Parameter<CachedBlock> USED_BLOCK = NeoApoliContextParams.registerInternal("used_block", BlockContextParameter::new);
 	public static final Context.Parameter<Direction> USED_SIDE = NeoApoliContextParams.registerInternal("used_side", id -> new EnumContextParameter<>(id, Direction.class));
 
-	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::getActions))
-		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::getConditions))
-		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::getUsePhases))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::getPriority))
-		.apply(instance, ModifyBlockUsePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockUsePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Actions.STREAM_CODEC, ModifyBlockUsePower::getActions,
-		Conditions.STREAM_CODEC, ModifyBlockUsePower::getConditions,
-		BlockUsePhase.SET_STREAM_CODEC, ModifyBlockUsePower::getUsePhases,
-		ByteBufCodecs.INT, ModifyBlockUsePower::getPriority,
-		ModifyBlockUsePower::new
+	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::actions))
+		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::conditions))
+		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::usePhases))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::priority))
+		.apply(instance, ModifyBlockUsePower::new)
 	);
 
-	private final Actions actions;
-	private final Conditions conditions;
-
-	private final EnumSet<BlockUsePhase> usePhases;
-	private final int priority;
-
-	public ModifyBlockUsePower(Optional<Condition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockUsePhase> usePhases, int priority) {
-		super(activeCondition);
-		this.actions = actions;
-		this.conditions = conditions;
-		this.usePhases = usePhases;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockUsePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Actions.STREAM_CODEC, ModifyBlockUsePower::actions,
+		Conditions.STREAM_CODEC, ModifyBlockUsePower::conditions,
+		BlockUsePhase.SET_STREAM_CODEC, ModifyBlockUsePower::usePhases,
+		ByteBufCodecs.INT, ModifyBlockUsePower::priority,
+		ModifyBlockUsePower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -94,9 +78,9 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getActions().validate(validator);
-		getConditions().validate(validator);
+		PrioritizedPower.super.validate(validator);
+		actions().validate(validator);
+		conditions().validate(validator);
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockUsePower> {
@@ -123,12 +107,12 @@ public class ModifyBlockUsePower extends Power implements PrioritizedPower<Modif
 		}
 
 		public InteractionResult apply(Context context) {
-			return power.getActions().execute(context);
+			return power.actions().execute(context);
 		}
 
 		public boolean doesApply(BlockUsePhase interactionPhase, PriorityPhase priorityPhase) {
-			return power.getUsePhases().contains(interactionPhase)
-				&& power.inPriorityPhase(priorityPhase);
+			return power.usePhases().contains(interactionPhase)
+				&& power.inPhase(priorityPhase);
 		}
 
 	}

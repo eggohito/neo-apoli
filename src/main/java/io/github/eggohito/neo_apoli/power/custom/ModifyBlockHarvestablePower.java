@@ -12,8 +12,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -28,32 +26,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyBlockHarvestablePower extends Power implements PrioritizedPower<ModifyBlockHarvestablePower> {
+public record ModifyBlockHarvestablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) implements PrioritizedPower<ModifyBlockHarvestablePower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::getAllow))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::getPriority))
-		.apply(instance, ModifyBlockHarvestablePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockHarvestablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		BooleanProvider.STREAM_CODEC, ModifyBlockHarvestablePower::getAllow,
-		ByteBufCodecs.INT, ModifyBlockHarvestablePower::getPriority,
-		ModifyBlockHarvestablePower::new
+	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::allow))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::priority))
+		.apply(instance, ModifyBlockHarvestablePower::new)
 	);
 
-	private final BooleanProvider allow;
-	private final int priority;
-
-	public ModifyBlockHarvestablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) {
-		super(activeCondition);
-		this.allow = allow;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockHarvestablePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		BooleanProvider.STREAM_CODEC, ModifyBlockHarvestablePower::allow,
+		ByteBufCodecs.INT, ModifyBlockHarvestablePower::priority,
+		ModifyBlockHarvestablePower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -67,8 +56,8 @@ public class ModifyBlockHarvestablePower extends Power implements PrioritizedPow
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getAllow().validate(validator.forChild(".allow"));
+		PrioritizedPower.super.validate(validator);
+		allow().validate(validator.forChild(".allow"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockHarvestablePower> {
@@ -84,7 +73,7 @@ public class ModifyBlockHarvestablePower extends Power implements PrioritizedPow
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().getBoolean(context.forChild(".allow"));
+			return power.allow().getBoolean(context.forChild(".allow"));
 		}
 
 	}

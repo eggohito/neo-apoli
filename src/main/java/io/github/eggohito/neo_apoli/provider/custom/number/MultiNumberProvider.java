@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
@@ -25,7 +25,7 @@ public interface MultiNumberProvider extends NumberProvider {
 	@Override
 	default void validate(Context.Validator validator) {
 		NumberProvider.super.validate(validator);
-		ContextHelper.validateAll(numbers(), validator, index -> ".numbers[" + index + "]");
+		ContextValidatable.validate(numbers(), validator, index -> ".numbers[" + index + "]");
 	}
 
 	default <N extends Number> N iterateAndProcess(Context context, BiFunction<NumberProvider, Context, N> getter, BiFunction<N, N, N> processor, N initialValue) {

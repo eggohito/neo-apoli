@@ -23,8 +23,6 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
@@ -56,38 +54,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @SuppressWarnings("UnstableApiUsage")
-@EqualsAndHashCode
-@Getter
-public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<ModifyPlayerSpawnPower> {
+public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority) implements PrioritizedPower<ModifyPlayerSpawnPower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::getDimension),
-		NeoApoliCodecs.BIOME_KEY_OR_TAG.optionalFieldOf("biome").forGetter(ModifyPlayerSpawnPower::getBiome),
-		NeoApoliCodecs.STRUCTURE_KEY_OR_TAG.optionalFieldOf("structure").forGetter(ModifyPlayerSpawnPower::getStructure),
-		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::getPriority)
+		Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::dimension),
+		NeoApoliCodecs.BIOME_KEY_OR_TAG.optionalFieldOf("biome").forGetter(ModifyPlayerSpawnPower::biome),
+		NeoApoliCodecs.STRUCTURE_KEY_OR_TAG.optionalFieldOf("structure").forGetter(ModifyPlayerSpawnPower::structure),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::priority)
 	).apply(instance, ModifyPlayerSpawnPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyPlayerSpawnPower> STREAM_CODEC = StreamCodec.composite(
-		ResourceKey.streamCodec(Registries.DIMENSION), ModifyPlayerSpawnPower::getDimension,
-		ByteBufCodecs.optional(NeoApoliStreamCodecs.BIOME_KEY_OR_TAG), ModifyPlayerSpawnPower::getBiome,
-		ByteBufCodecs.optional(NeoApoliStreamCodecs.STRUCTURE_KEY_OR_TAG), ModifyPlayerSpawnPower::getStructure,
-		ByteBufCodecs.INT, ModifyPlayerSpawnPower::getPriority,
+		ResourceKey.streamCodec(Registries.DIMENSION), ModifyPlayerSpawnPower::dimension,
+		ByteBufCodecs.optional(NeoApoliStreamCodecs.BIOME_KEY_OR_TAG), ModifyPlayerSpawnPower::biome,
+		ByteBufCodecs.optional(NeoApoliStreamCodecs.STRUCTURE_KEY_OR_TAG), ModifyPlayerSpawnPower::structure,
+		ByteBufCodecs.INT, ModifyPlayerSpawnPower::priority,
 		ModifyPlayerSpawnPower::new
 	);
-
-	private final ResourceKey<Level> dimension;
-	private final Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome;
-	private final Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure;
-	private final int priority;
-
-	public ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority) {
-		this.dimension = dimension;
-		this.biome = biome;
-		this.structure = structure;
-		this.priority = priority;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -101,10 +85,10 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		RegistryUtil.validateKey(validator.forChild(".dimension"), this.getDimension());
-		this.getBiome().ifPresent(biome -> RegistryUtil.validateKeyOrTag(validator.forChild(".biome_tag"), biome));
-		this.getStructure().ifPresent(structure -> RegistryUtil.validateKeyOrTag(validator.forChild(".structure_tag"), structure));
+		PrioritizedPower.super.validate(validator);
+		RegistryUtil.validateKey(validator.forChild(".dimension"), this.dimension());
+		this.biome().ifPresent(biome -> RegistryUtil.validateKeyOrTag(validator.forChild(".biome_tag"), biome));
+		this.structure().ifPresent(structure -> RegistryUtil.validateKeyOrTag(validator.forChild(".structure_tag"), structure));
 	}
 
 	public static class Instance extends Power.Instance<ModifyPlayerSpawnPower> {
@@ -171,10 +155,10 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 		private Pair<ServerLevel, BlockPos> findRespawnLocationInternal(ServerPlayer player) {
 
 			MinecraftServer server = player.server;
-			ServerLevel dimension = server.getLevel(power.getDimension());
+			ServerLevel dimension = server.getLevel(power.dimension());
 
 			if (dimension == null) {
-				throw new IllegalStateException("Dimension \"" + power.getDimension().location() + "\" doesn't exist!");
+				throw new IllegalStateException("Dimension \"" + power.dimension().location() + "\" doesn't exist!");
 			}
 
 			BlockPos spawnPos = dimension.getSharedSpawnPos();
@@ -192,12 +176,12 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 		private BlockPos findBiomeLocation(ServerLevel dimension, BlockPos pos, int horizontalSteps, int verticalSteps, int radius) {
 
-			if (power.getBiome().isEmpty()) {
+			if (power.biome().isEmpty()) {
 				return pos;
 			}
 
 			var foundBiome = dimension.findClosestBiome3d(
-				biomeHolder -> power.getBiome().get().map(biomeHolder::is, biomeHolder::is),
+				biomeHolder -> power.biome().get().map(biomeHolder::is, biomeHolder::is),
 				pos,
 				radius,
 				horizontalSteps,
@@ -216,12 +200,12 @@ public class ModifyPlayerSpawnPower extends Power implements PrioritizedPower<Mo
 
 		private BlockPos findStructureLocation(ServerLevel dimension, BlockPos pos, int radius) {
 
-			if (power.getStructure().isEmpty()) {
+			if (power.structure().isEmpty()) {
 				return pos;
 			}
 
 			Registry<Structure> registry = dimension.registryAccess().lookupOrThrow(Registries.STRUCTURE);
-			HolderSet<Structure> structures = power.getStructure().get().map(key -> HolderSet.direct(registry.getOrThrow(key)), registry::getOrThrow);
+			HolderSet<Structure> structures = power.structure().get().map(key -> HolderSet.direct(registry.getOrThrow(key)), registry::getOrThrow);
 
 			var foundStructure = dimension.getChunkSource().getGenerator().findNearestMapStructure(
 				dimension,

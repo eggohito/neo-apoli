@@ -35,7 +35,7 @@ public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate
 			.flatMap(powers -> powers.getOptionalInstance(this.power()))
 			.filter(CraftingRecipePower.Instance.class::isInstance)
 			.map(CraftingRecipePower.Instance.class::cast)
-			.map(CraftingRecipePower.Instance::getRecipeEntry)
+			.map(CraftingRecipePower.Instance::recipe)
 			.map(RecipeHolder::value)
 			.orElse(null);
 

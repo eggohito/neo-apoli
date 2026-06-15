@@ -8,8 +8,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,16 +18,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyEffectImmunityPower extends Power {
+public record ModifyEffectImmunityPower(Optional<Condition> activeCondition) implements Power {
 
-	public static final MapCodec<ModifyEffectImmunityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance).apply(instance, ModifyEffectImmunityPower::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectImmunityPower> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition, ModifyEffectImmunityPower::new);
+	public static final MapCodec<ModifyEffectImmunityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.apply(instance, ModifyEffectImmunityPower::new)
+	);
 
-	public ModifyEffectImmunityPower(Optional<Condition> activeCondition) {
-		super(activeCondition);
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectImmunityPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		ModifyEffectImmunityPower::new
+	);
 
 	@Override
 	public Type<?> getType() {

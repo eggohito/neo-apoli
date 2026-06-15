@@ -12,8 +12,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,28 +22,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyAirSpeedPower extends Power {
+public record ModifyAirSpeedPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyAirSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyAirSpeedPower::getModifiers))
-		.apply(instance, ModifyAirSpeedPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAirSpeedPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), ModifyAirSpeedPower::getModifiers,
-		ModifyAirSpeedPower::new
+	public static final MapCodec<ModifyAirSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyAirSpeedPower::modifiers))
+		.apply(instance, ModifyAirSpeedPower::new)
 	);
 
-	private final List<Modifier> modifiers;
-
-	public ModifyAirSpeedPower(Optional<Condition> activeCondition, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAirSpeedPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), ModifyAirSpeedPower::modifiers,
+		ModifyAirSpeedPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -59,8 +50,8 @@ public class ModifyAirSpeedPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		MiscUtil.iterateList(getModifiers(), (index, modifier) -> modifier.validate(validator.forChild(".modifiers[" + index + "]")));
+		Power.super.validate(validator);
+		MiscUtil.iterateList(modifiers(), (index, modifier) -> modifier.validate(validator.forChild(".modifiers[" + index + "]")));
 	}
 
 	public static class Instance extends Power.Instance<ModifyAirSpeedPower> {
@@ -70,7 +61,7 @@ public class ModifyAirSpeedPower extends Power {
 		}
 
 		public List<Modifier> getModifiers() {
-			return power.getModifiers();
+			return power.modifiers();
 		}
 
 	}

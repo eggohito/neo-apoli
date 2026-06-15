@@ -103,7 +103,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 			T data = encodedData.mapOrElse(Function.identity(), error -> ops.emptyMap());
 			identity = identity.apply2stable((unit, t) -> unit, encodedData);
 
-			Entry packed = new Entry(id, instance.getPower().getType(), sources, new Dynamic<>(ops, data));
+			Entry packed = new Entry(id, instance.power().getType(), sources, new Dynamic<>(ops, data));
 			entries.add(packed);
 
 		}

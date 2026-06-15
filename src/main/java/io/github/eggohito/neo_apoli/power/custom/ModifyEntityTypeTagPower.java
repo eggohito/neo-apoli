@@ -10,8 +10,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,28 +23,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyEntityTypeTagPower extends Power {
+public record ModifyEntityTypeTagPower(Optional<Condition> activeCondition, TagKey<EntityType<?>> tag) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::getTag))
-		.apply(instance, ModifyEntityTypeTagPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEntityTypeTagPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		TagKey.streamCodec(Registries.ENTITY_TYPE), ModifyEntityTypeTagPower::getTag,
-		ModifyEntityTypeTagPower::new
+	public static final MapCodec<ModifyEntityTypeTagPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("tag").forGetter(ModifyEntityTypeTagPower::tag))
+		.apply(instance, ModifyEntityTypeTagPower::new)
 	);
 
-	private final TagKey<EntityType<?>> tag;
-
-	public ModifyEntityTypeTagPower(Optional<Condition> activeCondition, TagKey<EntityType<?>> tag) {
-		super(activeCondition);
-		this.tag = tag;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEntityTypeTagPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		TagKey.streamCodec(Registries.ENTITY_TYPE), ModifyEntityTypeTagPower::tag,
+		ModifyEntityTypeTagPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -60,8 +51,8 @@ public class ModifyEntityTypeTagPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		RegistryUtil.validateTag(validator.forChild(".tag"), this.getTag());
+		Power.super.validate(validator);
+		RegistryUtil.validateTag(validator.forChild(".tag"), this.tag());
 	}
 
 	public static class Instance extends Power.Instance<ModifyEntityTypeTagPower> {
@@ -72,7 +63,7 @@ public class ModifyEntityTypeTagPower extends Power {
 
 		public boolean doesApply(TagKey<EntityType<?>> tag) {
 
-			if (Objects.equals(power.getTag(), tag)) {
+			if (Objects.equals(power.tag(), tag)) {
 				return true;
 			}
 

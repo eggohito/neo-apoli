@@ -7,7 +7,8 @@ import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
+import io.github.eggohito.neo_apoli.power.custom.CooldownStandalonePower;
+import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -40,7 +41,7 @@ public record TriggerPowerCooldownAction(PowerIdentifier power, EntityProvider e
 			.map(powers -> powers.getInstance(this.power()))
 			.orElse(null);
 
-		if (entity != null && instance instanceof CooldownPower.Instance cooldownInstance) {
+		if (entity != null && instance instanceof CooldownPower.Instance<?> cooldownInstance) {
 			cooldownInstance.trigger(entity);
 		}
 
@@ -49,7 +50,7 @@ public record TriggerPowerCooldownAction(PowerIdentifier power, EntityProvider e
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
-		power().validate(validator.forChild(".power"), CooldownPower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
+		power().validate(validator.forChild(".power"), CooldownStandalonePower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
 		entity().validate(validator.forChild(".entity"));
 	}
 

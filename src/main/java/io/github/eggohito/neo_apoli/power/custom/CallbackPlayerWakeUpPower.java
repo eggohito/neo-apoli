@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,18 +23,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackPlayerWakeUpPower extends CallbackPower {
+public record CallbackPlayerWakeUpPower(Optional<Condition> activeCondition, Action action) implements CallbackPower {
 
 	public static final Context.Parameter<CachedBlock> SLEPT_ON_BLOCK = NeoApoliContextParams.registerInternal("slept_on_block", BlockContextParameter::new);
 
-	public static final MapCodec<CallbackPlayerWakeUpPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackPlayerWakeUpPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackPlayerWakeUpPower::new);
-
-	public CallbackPlayerWakeUpPower(Optional<Condition> activeCondition, Action action) {
-		super(activeCondition, action);
-	}
+	public static final MapCodec<CallbackPlayerWakeUpPower> CODEC = CallbackPower.codec(CallbackPlayerWakeUpPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPlayerWakeUpPower> STREAM_CODEC = CallbackPower.streamCodec(CallbackPlayerWakeUpPower::new);
 
 	@Override
 	public Type<?> getType() {
@@ -66,7 +58,7 @@ public class CallbackPlayerWakeUpPower extends CallbackPower {
 		}
 
 		public void execute(Context context) {
-			power.getAction().execute(context.forChild(".action"));
+			power.action().execute(context.forChild(".action"));
 		}
 
 	}

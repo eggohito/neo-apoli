@@ -3,13 +3,11 @@ package io.github.eggohito.neo_apoli.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,24 +16,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@EqualsAndHashCode
-@Getter
-public class HudRenderPower extends Power {
+public record HudRenderPower(List<HudElement> hudElements) implements Power {
 
 	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::getHudElements))
-		.apply(instance, HudRenderPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, HudRenderPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.collection(ObjectArrayList::new, HudElement.STREAM_CODEC), HudRenderPower::getHudElements,
-		HudRenderPower::new
+		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::hudElements))
+		.apply(instance, HudRenderPower::new)
 	);
 
-	private final List<HudElement> hudElements;
-
-	public HudRenderPower(List<HudElement> hudElements) {
-		this.hudElements = hudElements;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, HudRenderPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.collection(ObjectArrayList::new, HudElement.STREAM_CODEC), HudRenderPower::hudElements,
+		HudRenderPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -49,8 +40,8 @@ public class HudRenderPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		ContextHelper.validateAll(getHudElements(), validator, index -> ".hud_elements[" + index + "]");
+		Power.super.validate(validator);
+		ContextValidatable.validate(hudElements(), validator, index -> ".hud_elements[" + index + "]");
 	}
 
 	public static class Instance extends Power.Instance<HudRenderPower> {
@@ -59,8 +50,8 @@ public class HudRenderPower extends Power {
 			super(power);
 		}
 
-		public List<HudElement> getHudElements() {
-			return power.getHudElements();
+		public List<HudElement> hudElements() {
+			return power.hudElements();
 		}
 
 	}

@@ -15,8 +15,6 @@ import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -32,19 +30,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackProjectileLandPower extends CallbackPower {
+public record CallbackProjectileLandPower(Optional<Condition> activeCondition, Action action) implements CallbackPower {
 
 	public static final Context.Parameter<CachedBlock> LANDED_ON_BLOCK = NeoApoliContextParams.registerInternal("landed_on_block", BlockContextParameter::new);
 	public static final Context.Parameter<Direction> LANDED_ON_SIDE = NeoApoliContextParams.registerInternal("landed_on_side", id -> new EnumContextParameter<>(id, Direction.class));
 
-	public static final MapCodec<CallbackProjectileLandPower> CODEC = CallbackPower.createSimpleCallbackCodec(CallbackProjectileLandPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = CallbackPower.createSimpleCallbackStreamCodec(CallbackProjectileLandPower::new);
-
-	public CallbackProjectileLandPower(Optional<Condition> activeCondition, Action action) {
-		super(activeCondition, action);
-	}
+	public static final MapCodec<CallbackProjectileLandPower> CODEC = CallbackPower.codec(CallbackProjectileLandPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackProjectileLandPower> STREAM_CODEC = CallbackPower.streamCodec(CallbackProjectileLandPower::new);
 
 	@Override
 	public Type<?> getType() {
@@ -108,7 +100,7 @@ public class CallbackProjectileLandPower extends CallbackPower {
 		}
 
 		public void execute(Context context) {
-			power.getAction().execute(context.forChild(".action"));
+			power.action().execute(context.forChild(".action"));
 		}
 
 	}

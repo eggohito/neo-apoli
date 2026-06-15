@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -21,26 +19,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyModelColorSelfPower extends Power {
+public record ModifyModelColorSelfPower(Optional<Condition> activeCondition, Color color) implements Power {
 
-	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::getColor))
-		.apply(instance, ModifyModelColorSelfPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorSelfPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Color.STREAM_CODEC, ModifyModelColorSelfPower::getColor,
-		ModifyModelColorSelfPower::new
+	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::color))
+		.apply(instance, ModifyModelColorSelfPower::new)
 	);
 
-	private final Color color;
-
-	public ModifyModelColorSelfPower(Optional<Condition> activeCondition, Color color) {
-		super(activeCondition);
-		this.color = color;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorSelfPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Color.STREAM_CODEC, ModifyModelColorSelfPower::color,
+		ModifyModelColorSelfPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -54,8 +45,8 @@ public class ModifyModelColorSelfPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getColor().validate(validator.forChild(".color"));
+		Power.super.validate(validator);
+		color().validate(validator.forChild(".color"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyModelColorSelfPower> {
@@ -72,7 +63,7 @@ public class ModifyModelColorSelfPower extends Power {
 		}
 
 		public int getColor(Context context) {
-			return power.getColor().intValue(context.forChild(".color"));
+			return power.color().intValue(context.forChild(".color"));
 		}
 
 	}

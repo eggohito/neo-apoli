@@ -10,8 +10,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -21,30 +19,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackDamageDealtPower extends Power implements PrioritizedPower<CallbackDamageDealtPower> {
 
-	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::getOnHitAction))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::getPriority))
-		.apply(instance, CallbackDamageDealtPower::new));
+public record CallbackDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, int priority) implements PrioritizedPower<CallbackDamageDealtPower> {
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackDamageDealtPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, CallbackDamageDealtPower::getOnHitAction,
-		ByteBufCodecs.INT, CallbackDamageDealtPower::getPriority,
-		CallbackDamageDealtPower::new
+	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::onHitAction))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::priority))
+		.apply(instance, CallbackDamageDealtPower::new)
 	);
 
-	private final Action onHitAction;
-	private final int priority;
-
-	public CallbackDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, int priority) {
-		super(activeCondition);
-		this.onHitAction = onHitAction;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackDamageDealtPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Action.STREAM_CODEC, CallbackDamageDealtPower::onHitAction,
+		ByteBufCodecs.INT, CallbackDamageDealtPower::priority,
+		CallbackDamageDealtPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -58,8 +48,8 @@ public class CallbackDamageDealtPower extends Power implements PrioritizedPower<
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getOnHitAction().validate(validator.forChild(".on_hit_action"));
+		PrioritizedPower.super.validate(validator);
+		onHitAction().validate(validator.forChild(".on_hit_action"));
 	}
 
 	public static class Instance extends Power.Instance<CallbackDamageDealtPower> {
@@ -80,7 +70,7 @@ public class CallbackDamageDealtPower extends Power implements PrioritizedPower<
 		}
 
 		public void execute(Context context) {
-			power.getOnHitAction().execute(context.forChild(".on_hit_action"));
+			power.onHitAction().execute(context.forChild(".on_hit_action"));
 		}
 
 	}

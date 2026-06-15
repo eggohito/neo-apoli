@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.string;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -78,7 +78,7 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	@Override
 	public void validate(Context.Validator validator) {
 		StringProvider.super.validate(validator);
-		ContextHelper.validateAll(strings(), validator, index -> ".strings[" + index + "]");
+		ContextValidatable.validate(strings(), validator, index -> ".strings[" + index + "]");
 	}
 
 }

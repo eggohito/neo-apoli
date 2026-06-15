@@ -6,14 +6,12 @@ import io.github.eggohito.neo_apoli.api.event.PowerModifyEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,27 +22,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyExhaustionPower extends Power {
+public record ModifyExhaustionPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
 
-	public static final MapCodec<ModifyExhaustionPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyExhaustionPower::getModifiers))
+	public static final MapCodec<ModifyExhaustionPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyExhaustionPower::modifiers))
 		.apply(instance, ModifyExhaustionPower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyExhaustionPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyExhaustionPower::getModifiers,
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyExhaustionPower::modifiers,
 		ModifyExhaustionPower::new
 	);
-
-	private final List<Modifier> modifiers;
-
-	public ModifyExhaustionPower(Optional<Condition> activeCondition, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -58,8 +48,8 @@ public class ModifyExhaustionPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		ContextHelper.validateAll(getModifiers(), validator, index -> ".modifiers[" + index + "]");
+		Power.super.validate(validator);
+		ContextValidatable.validate(modifiers(), validator, index -> ".modifiers[" + index + "]");
 	}
 
 	public static class Instance extends Power.Instance<ModifyExhaustionPower> {
@@ -68,8 +58,8 @@ public class ModifyExhaustionPower extends Power {
 			super(power);
 		}
 
-		public List<Modifier> getModifiers() {
-			return power.getModifiers();
+		public List<Modifier> modifiers() {
+			return power.modifiers();
 		}
 
 	}
@@ -83,7 +73,7 @@ public class ModifyExhaustionPower extends Power {
 			Context context = instance.createHolderContext(player);
 
 			if (instance.isActive(context)) {
-				MiscUtil.iterateList(instance.getModifiers(), (index, modifier) -> operations.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
+				MiscUtil.iterateList(instance.modifiers(), (index, modifier) -> operations.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 			}
 
 		}

@@ -100,10 +100,10 @@ public final class NeoApoliPowerTypes {
 			.optional(NeoApoliContextParams.TARGET_ENTITY)
 	);
 
-	public static final Power.Type<CooldownPower> COOLDOWN = registerInternal(
+	public static final Power.Type<CooldownStandalonePower> COOLDOWN = registerInternal(
 		"cooldown",
-		CooldownPower.CODEC,
-		CooldownPower.STREAM_CODEC,
+		CooldownStandalonePower.CODEC,
+		CooldownStandalonePower.STREAM_CODEC,
 		params -> params
 			.required(NumberBoundHudElement.CURRENT_VALUE)
 			.required(NumberBoundHudElement.MAX_VALUE)

@@ -19,8 +19,6 @@ import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.InventoryUtil;
 import io.github.eggohito.neo_apoli.util.StackInContainer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -40,49 +38,29 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class InventoryPower extends Power implements PrioritizedPower<InventoryPower> {
+public record InventoryPower(Optional<Condition> activeCondition, Component title, ContainerMenu menu, Condition dropOnDeathCondition, BooleanProvider recoverable, KeyReference key, int priority) implements PrioritizedPower<InventoryPower> {
 
-	public static final MapCodec<InventoryPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ComponentSerialization.CODEC.optionalFieldOf("title", Component.translatable("container.inventory")).forGetter(InventoryPower::getTitle))
-		.and(ContainerMenu.CODEC.optionalFieldOf("menu", NeoApoliContainerMenuTypes.GENERIC_3X3).forGetter(InventoryPower::getMenu))
-		.and(Condition.CODEC.optionalFieldOf("drop_on_death_condition", new ConstantCondition(false)).forGetter(InventoryPower::getDropOnDeathCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("recoverable", new ConstantBooleanProvider(true)).forGetter(InventoryPower::getRecoverable))
-		.and(KeyReference.CODEC.fieldOf("key").forGetter(InventoryPower::getKey))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(InventoryPower::getPriority))
+	public static final MapCodec<InventoryPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ComponentSerialization.CODEC.optionalFieldOf("title", Component.translatable("container.inventory")).forGetter(InventoryPower::title))
+		.and(ContainerMenu.CODEC.optionalFieldOf("menu", NeoApoliContainerMenuTypes.GENERIC_3X3).forGetter(InventoryPower::menu))
+		.and(Condition.CODEC.optionalFieldOf("drop_on_death_condition", new ConstantCondition(false)).forGetter(InventoryPower::dropOnDeathCondition))
+		.and(BooleanProvider.CODEC.optionalFieldOf("recoverable", new ConstantBooleanProvider(true)).forGetter(InventoryPower::recoverable))
+		.and(KeyReference.CODEC.fieldOf("key").forGetter(InventoryPower::key))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(InventoryPower::priority))
 		.apply(instance, InventoryPower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, InventoryPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		ComponentSerialization.TRUSTED_STREAM_CODEC, InventoryPower::getTitle,
-		ContainerMenu.STREAM_CODEC, InventoryPower::getMenu,
-		Condition.STREAM_CODEC, InventoryPower::getDropOnDeathCondition,
-		BooleanProvider.STREAM_CODEC, InventoryPower::getRecoverable,
-		KeyReference.STREAM_CODEC, InventoryPower::getKey,
-		ByteBufCodecs.INT, InventoryPower::getPriority,
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		ComponentSerialization.TRUSTED_STREAM_CODEC, InventoryPower::title,
+		ContainerMenu.STREAM_CODEC, InventoryPower::menu,
+		Condition.STREAM_CODEC, InventoryPower::dropOnDeathCondition,
+		BooleanProvider.STREAM_CODEC, InventoryPower::recoverable,
+		KeyReference.STREAM_CODEC, InventoryPower::key,
+		ByteBufCodecs.INT, InventoryPower::priority,
 		InventoryPower::new
 	);
-
-	private final Component title;
-	private final ContainerMenu menu;
-
-	private final Condition dropOnDeathCondition;
-	private final BooleanProvider recoverable;
-
-	private final KeyReference key;
-	private final int priority;
-
-	public InventoryPower(Optional<Condition> activeCondition, Component title, ContainerMenu menu, Condition dropOnDeathCondition, BooleanProvider recoverable, KeyReference key, int priority) {
-		super(activeCondition);
-		this.title = title;
-		this.menu = menu;
-		this.dropOnDeathCondition = dropOnDeathCondition;
-		this.recoverable = recoverable;
-		this.key = key;
-		this.priority = priority;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -95,7 +73,7 @@ public class InventoryPower extends Power implements PrioritizedPower<InventoryP
 	}
 
 	@Override
-	public int getPriority() {
+	public int priority() {
 		return priority;
 	}
 
@@ -108,7 +86,7 @@ public class InventoryPower extends Power implements PrioritizedPower<InventoryP
 
 		protected Instance(@NotNull InventoryPower power) {
 			super(power);
-			this.menu = power.getMenu();
+			this.menu = power.menu();
 			this.container = new SimpleContainer(this.menu.size());
 			this.changed = new MutableBoolean(false);
 			this.container.addListener(container -> changed.setTrue());
@@ -119,7 +97,7 @@ public class InventoryPower extends Power implements PrioritizedPower<InventoryP
 
 			Context context = this.createHolderContext(holder);
 
-			if (power.getRecoverable().getBoolean(context.forChild(".recoverable"))) {
+			if (power.recoverable().getBoolean(context.forChild(".recoverable"))) {
 				this.dropItemsOnLost(holder);
 			}
 
@@ -241,8 +219,8 @@ public class InventoryPower extends Power implements PrioritizedPower<InventoryP
 				return false;
 			}
 
-			String id = power.getKey().id(context);
-			boolean continuous = power.getKey().continuous(context);
+			String id = power.key().id(context);
+			boolean continuous = power.key().continuous(context);
 
 			return current.id().equals(id)
 				&& (continuous || !previous.pressed());
@@ -250,12 +228,12 @@ public class InventoryPower extends Power implements PrioritizedPower<InventoryP
 		}
 
 		public boolean open(Player holder) {
-			return holder.openMenu(new SimpleMenuProvider(menu.constructor(this), power.getTitle())).isPresent();
+			return holder.openMenu(new SimpleMenuProvider(menu.constructor(this), power.title())).isPresent();
 		}
 
 		public boolean shouldDropOnDeath(Context context) {
 			return this.isActive(context)
-				&& power.getDropOnDeathCondition().test(context.forChild(".drop_on_death_condition"));
+				&& power.dropOnDeathCondition().test(context.forChild(".drop_on_death_condition"));
 		}
 
 		public void dropItemsOnLost(Entity holder) {

@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,39 +21,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class TogglePower extends Power {
+public record TogglePower(Optional<Condition> activeCondition, Action action, KeyReference key, BooleanProvider retainState, BooleanProvider activeByDefault) implements Power {
 
-	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::getAction))
-		.and(KeyReference.CODEC.fieldOf("key").forGetter(TogglePower::getKey))
-		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::getRetainState))
-		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::getActiveByDefault))
-		.apply(instance, TogglePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, TogglePower::getAction,
-		KeyReference.STREAM_CODEC, TogglePower::getKey,
-		BooleanProvider.STREAM_CODEC, TogglePower::getRetainState,
-		BooleanProvider.STREAM_CODEC, TogglePower::getActiveByDefault,
-		TogglePower::new
+	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::action))
+		.and(KeyReference.CODEC.fieldOf("key").forGetter(TogglePower::key))
+		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::retainState))
+		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::activeByDefault))
+		.apply(instance, TogglePower::new)
 	);
 
-	private final Action action;
-	private final KeyReference key;
-
-	private final BooleanProvider retainState;
-	private final BooleanProvider activeByDefault;
-
-	public TogglePower(Optional<Condition> activeCondition, Action action, KeyReference key, BooleanProvider retainState, BooleanProvider activeByDefault) {
-		super(activeCondition);
-		this.action = action;
-		this.key = key;
-		this.retainState = retainState;
-		this.activeByDefault = activeByDefault;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Action.STREAM_CODEC, TogglePower::action,
+		KeyReference.STREAM_CODEC, TogglePower::key,
+		BooleanProvider.STREAM_CODEC, TogglePower::retainState,
+		BooleanProvider.STREAM_CODEC, TogglePower::activeByDefault,
+		TogglePower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -70,12 +54,12 @@ public class TogglePower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		Power.super.validate(validator);
 
-		getAction().validate(validator.forChild(".action"));
-		getKey().validate(validator.forChild(".key"));
-		getRetainState().validate(validator.forChild(".retain_state"));
-		getActiveByDefault().validate(validator.forChild(".active_by_default"));
+		action().validate(validator.forChild(".action"));
+		key().validate(validator.forChild(".key"));
+		retainState().validate(validator.forChild(".retain_state"));
+		activeByDefault().validate(validator.forChild(".active_by_default"));
 
 	}
 
@@ -102,7 +86,7 @@ public class TogglePower extends Power {
 
 		@Override
 		public void onGranted(Entity holder) {
-			this.toggled = power.getActiveByDefault().getBoolean(this.createHolderContext(holder).forChild(".active_by_default"));
+			this.toggled = power.activeByDefault().getBoolean(this.createHolderContext(holder).forChild(".active_by_default"));
 		}
 
 		@Override
@@ -119,8 +103,8 @@ public class TogglePower extends Power {
 		@Override
 		public boolean shouldTick(Entity holder) {
 			return toggled
-				&& power.getActiveCondition().isPresent()
-				&& !power.getRetainState().getBoolean(this.createHolderContext(holder).forChild(".retain_state"));
+				&& power.activeCondition().isPresent()
+				&& !power.retainState().getBoolean(this.createHolderContext(holder).forChild(".retain_state"));
 		}
 
 		@Override
@@ -128,8 +112,8 @@ public class TogglePower extends Power {
 			return toggled;
 		}
 
-		public KeyReference getKey() {
-			return power.getKey();
+		public KeyReference key() {
+			return power.key();
 		}
 
 		public boolean shouldToggle(Context context, KeyState previous, KeyState current) {
@@ -138,8 +122,8 @@ public class TogglePower extends Power {
 				return false;
 			}
 
-			String id = getKey().id(context);
-			boolean continuous = getKey().continuous(context);
+			String id = key().id(context);
+			boolean continuous = key().continuous(context);
 
 			return current.id().equals(id)
 				&& (continuous || !previous.pressed());
@@ -159,7 +143,7 @@ public class TogglePower extends Power {
 
 					}
 
-					power.getAction().execute(context.forChild(".action"));
+					power.action().execute(context.forChild(".action"));
 
 				}
 

@@ -95,7 +95,7 @@ public abstract class LevelRendererMixin {
 	@Unique
 	private static boolean neo_apoli$shouldApplyBlindnessEffects(Entity entity) {
 		return MiscUtil.getViewBlocking(entity) != null
-			&& Powers.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.getRenderEffect() == PhasingPower.RenderEffect.BLINDNESS);
+			&& Powers.hasInstances(entity, PhasingPower.Instance.class, instance -> instance.renderEffect() == PhasingPower.RenderEffect.BLINDNESS);
 	}
 
 }

@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.DamageModifyingPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,16 +18,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyDamageDealtPower extends DamageModifyingPower {
+public record ModifyDamageDealtPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) implements DamageModifyingPower {
 
-	public static final MapCodec<ModifyDamageDealtPower> CODEC = DamageModifyingPower.createDamageModifyingCodec(ModifyDamageDealtPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageDealtPower> STREAM_CODEC = DamageModifyingPower.createDamageModifyingStreamCodec(ModifyDamageDealtPower::new);
-
-	public ModifyDamageDealtPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) {
-		super(activeCondition, modifiers, onModifyAction);
-	}
+	public static final MapCodec<ModifyDamageDealtPower> CODEC = DamageModifyingPower.codec(ModifyDamageDealtPower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageDealtPower> STREAM_CODEC = DamageModifyingPower.streamCodec(ModifyDamageDealtPower::new);
 
 	@Override
 	public Type<?> getType() {

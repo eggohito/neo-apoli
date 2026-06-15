@@ -5,21 +5,18 @@ import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-@EqualsAndHashCode
-@Getter
-public class NbtPower extends Power {
+public enum NbtPower implements Power {
 
-	public static final MapCodec<NbtPower> CODEC = MapCodec.unit(NbtPower::new);
-	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodecUtil.unit(NbtPower::new);
+	INSTANCE;
+
+	public static final MapCodec<NbtPower> CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
 	public Type<?> getType() {

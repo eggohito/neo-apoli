@@ -16,8 +16,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -29,33 +27,24 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyClimbingPower extends Power {
+public record ModifyClimbingPower(Optional<Condition> activeCondition, Condition holdingCondition, BooleanProvider allowHolding) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final Context.Parameter<CachedBlock> CLIMBED_BLOCK = NeoApoliContextParams.registerInternal("climbed_block", BlockContextParameter::new);
 
-	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::getHoldingCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::getAllowHolding))
-		.apply(instance, ModifyClimbingPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyClimbingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Condition.STREAM_CODEC, ModifyClimbingPower::getHoldingCondition,
-		BooleanProvider.STREAM_CODEC, ModifyClimbingPower::getAllowHolding,
-		ModifyClimbingPower::new
+	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(NeoApoliContextParams.THIS_ENTITY)).forGetter(ModifyClimbingPower::holdingCondition))
+		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::allowHolding))
+		.apply(instance, ModifyClimbingPower::new)
 	);
 
-	private final Condition holdingCondition;
-	private final BooleanProvider allowHolding;
-
-	public ModifyClimbingPower(Optional<Condition> activeCondition, Condition holdingCondition, BooleanProvider allowHolding) {
-		super(activeCondition);
-		this.holdingCondition = holdingCondition;
-		this.allowHolding = allowHolding;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyClimbingPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Condition.STREAM_CODEC, ModifyClimbingPower::holdingCondition,
+		BooleanProvider.STREAM_CODEC, ModifyClimbingPower::allowHolding,
+		ModifyClimbingPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -70,10 +59,10 @@ public class ModifyClimbingPower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		Power.super.validate(validator);
 
-		getHoldingCondition().validate(validator.forChild(".holding_condition"));
-		getAllowHolding().validate(validator.forChild(".allow_holding"));
+		holdingCondition().validate(validator.forChild(".holding_condition"));
+		allowHolding().validate(validator.forChild(".allow_holding"));
 
 	}
 
@@ -95,8 +84,8 @@ public class ModifyClimbingPower extends Power {
 
 		public boolean canHold(Context context) {
 			return this.isActive(context)
-				&& power.getAllowHolding().getBoolean(context.forChild(".allow_holding"))
-				&& power.getHoldingCondition().test(context.forChild(".holding_condition"));
+				&& power.allowHolding().getBoolean(context.forChild(".allow_holding"))
+				&& power.holdingCondition().test(context.forChild(".holding_condition"));
 		}
 
 	}

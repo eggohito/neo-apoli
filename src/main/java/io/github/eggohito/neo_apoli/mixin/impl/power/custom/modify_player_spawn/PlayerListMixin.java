@@ -31,11 +31,11 @@ public abstract class PlayerListMixin {
 			}
 
 			catch (ExecutionException | InterruptedException e) {
-				NeoApoli.LOGGER.error("Error trying to search for a valid respawn point with {}", instance.getId().asDisplayString(false), e);
+				NeoApoli.LOGGER.error("Error trying to search for a valid respawn point with {}", instance.id().asDisplayString(false), e);
 			}
 
 			catch (TimeoutException e) {
-				NeoApoli.LOGGER.warn("{} timed out searching for a valid respawn point!", instance.getId().asDisplayString());
+				NeoApoli.LOGGER.warn("{} timed out searching for a valid respawn point!", instance.id().asDisplayString());
 			}
 
 		}

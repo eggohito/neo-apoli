@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.api.key.KeyState;
 import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
@@ -102,7 +102,7 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 	@Override
 	public void validate(Context.Validator validator) {
 		Condition.super.validate(validator);
-		ContextHelper.validateAll(keys(), validator.forChild(".keys"), index -> ".keys[" + index + "]");
+		ContextValidatable.validate(keys(), validator.forChild(".keys"), index -> ".keys[" + index + "]");
 		offset().validate(validator.forChild(".time_window"));
 		entity().validate(validator.forChild(".entity"));
 	}

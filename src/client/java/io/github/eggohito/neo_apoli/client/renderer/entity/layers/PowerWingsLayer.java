@@ -64,20 +64,20 @@ public class PowerWingsLayer<S extends HumanoidRenderState, M extends EntityMode
 		for (var instance : instances) {
 
 			Context context = instance.createHolderContext(entity);
-			ResourceKey<EquipmentAsset> assetId = instance.getAssetId();
+			ResourceKey<EquipmentAsset> assetId = instance.assetId();
 
 			if (!instance.isActive(context)) {
 				continue;
 			}
 
 			Context colorContext = context.forChild(".color");
-			Optional<DyedItemColor> color = instance.getDyedColor(colorContext);
+			Optional<DyedItemColor> color = instance.colorAsDye(colorContext);
 
 			ItemStack stack = Items.ELYTRA.getDefaultInstance();
 			DataComponentPatch.Builder componentPatch = DataComponentPatch.builder();
 
 			color.ifPresent(dyedColor -> componentPatch.set(DataComponents.DYED_COLOR, dyedColor));
-			instance.getTrim().ifPresent(trim -> componentPatch.set(DataComponents.TRIM, trim));
+			instance.trim().ifPresent(trim -> componentPatch.set(DataComponents.TRIM, trim));
 
 			stack.applyComponentsAndValidate(componentPatch.build());
 

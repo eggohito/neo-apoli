@@ -16,7 +16,7 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 
 	public static final String ID_KEY = "id";
 
-	private static final MapCodec<PowerHolder<?>> FULL_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	private static final MapCodec<PowerHolder<?>> DIRECT_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		PowerIdentifier.CODEC.fieldOf(ID_KEY).forGetter(PowerHolder::id),
 		Power.MAP_CODEC.forGetter(PowerHolder::value),
 		ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerHolder::name),
@@ -24,7 +24,7 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 		Codec.BOOL.optionalFieldOf("hidden", false).forGetter(PowerHolder::hidden)
 	).apply(instance, PowerHolder::new));
 
-	public static final MapCodec<PowerHolder<?>> MAP_CODEC = FULL_MAP_CODEC.mapResult(new MapCodec.ResultFunction<>() {
+	public static final MapCodec<PowerHolder<?>> MAP_CODEC = DIRECT_MAP_CODEC.mapResult(new MapCodec.ResultFunction<>() {
 
 		@Override
 		public <T> DataResult<PowerHolder<?>> apply(DynamicOps<T> ops, MapLike<T> mapInput, DataResult<PowerHolder<?>> result) {

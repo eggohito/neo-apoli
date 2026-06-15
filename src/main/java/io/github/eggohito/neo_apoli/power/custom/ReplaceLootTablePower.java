@@ -15,8 +15,6 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -41,36 +39,27 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@EqualsAndHashCode
-@Getter
-public class ReplaceLootTablePower extends Power implements PrioritizedPower<ReplaceLootTablePower> {
+public record ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pattern, String> replacements, int priority) implements PrioritizedPower<ReplaceLootTablePower> {
 
 	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, NeoApoli.id("replaced_loot_table"));
 	public static final Context.Parameter<ItemStack> TOOL_ITEM = NeoApoliContextParams.registerInternal("tool_item", ItemContextParameter::new);
 
-	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(NeoApoliCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::getReplacements))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::getPriority))
-		.apply(instance, ReplaceLootTablePower::new));
+	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(NeoApoliCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::replacements))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::priority))
+		.apply(instance, ReplaceLootTablePower::new)
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReplaceLootTablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		NeoApoliStreamCodecs.REPLACEMENT_MAP, ReplaceLootTablePower::getReplacements,
-		ByteBufCodecs.INT, ReplaceLootTablePower::getPriority,
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		NeoApoliStreamCodecs.REPLACEMENT_MAP, ReplaceLootTablePower::replacements,
+		ByteBufCodecs.INT, ReplaceLootTablePower::priority,
 		ReplaceLootTablePower::new
 	);
 
 	private static final Stack<LootTable> REPLACEMENT_STACK = new Stack<>();
 	private static final Stack<LootTable> BACKTRACK_STACK = new Stack<>();
-
-	private final Map<Pattern, String> replacements;
-	private final int priority;
-
-	public ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pattern, String> replacements, int priority) {
-		super(activeCondition);
-		this.replacements = replacements;
-		this.priority = priority;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -112,7 +101,7 @@ public class ReplaceLootTablePower extends Power implements PrioritizedPower<Rep
 			String tableId = key.location().toString();
 			ResourceLocationUtil.setCurrent(this.id.value());
 
-			for (Map.Entry<Pattern, String> entry : power.getReplacements().entrySet()) {
+			for (Map.Entry<Pattern, String> entry : power.replacements().entrySet()) {
 
 				Pattern regex = entry.getKey();
 				String replacement = entry.getValue();

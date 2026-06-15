@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.Case;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -28,9 +26,7 @@ import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyItemWearablePower extends Power {
+public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final Context.Parameter<ItemStack> WORN_ITEM = NeoApoliContextParams.registerInternal("worn_item", ItemContextParameter::new);
@@ -39,20 +35,14 @@ public class ModifyItemWearablePower extends Power {
 	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Case.streamCodec(Condition.STREAM_CODEC, BooleanProvider.STREAM_CODEC));
 
 	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::getSlots))
+		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::slots))
 		.apply(instance, ModifyItemWearablePower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemWearablePower> STREAM_CODEC = StreamCodec.composite(
-		SLOTS_STREAM_CODEC, ModifyItemWearablePower::getSlots,
+		SLOTS_STREAM_CODEC, ModifyItemWearablePower::slots,
 		ModifyItemWearablePower::new
 	);
-
-	private final EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots;
-
-	public ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots) {
-		this.slots = slots;
-	}
 
 	@Override
 	public Type<?> getType() {
@@ -67,10 +57,10 @@ public class ModifyItemWearablePower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		Power.super.validate(validator);
 		Context.Validator slotsValidator = validator.forChild(".slots");
 
-		for (var entry : this.getSlots().entrySet()) {
+		for (var entry : this.slots().entrySet()) {
 
 			Context.Validator caseValidator = slotsValidator.forChild("." + entry.getKey().getSerializedName());
 			Case<Condition, BooleanProvider> aCase = entry.getValue();
@@ -95,8 +85,8 @@ public class ModifyItemWearablePower extends Power {
 				.build(holder.level());
 		}
 
-		public EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> getSlots() {
-			return power.getSlots();
+		public EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots() {
+			return power.slots();
 		}
 
 	}
@@ -114,7 +104,7 @@ public class ModifyItemWearablePower extends Power {
 					continue;
 				}
 
-				for (var entry : instance.getSlots().entrySet()) {
+				for (var entry : instance.slots().entrySet()) {
 
 					EquipmentSlot slot = entry.getKey();
 					Case<Condition, BooleanProvider> aCase = entry.getValue();

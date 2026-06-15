@@ -9,12 +9,12 @@ import io.github.eggohito.neo_apoli.api.event.PowerModifyEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,79 +23,73 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public abstract class DamageModifyingPower extends Power {
+public interface DamageModifyingPower extends Power {
 
-	public static final ClearableVisitor<Instance<?>> VISITOR = ClearableVisitor.createThreadLocalized();
+	ClearableVisitor<Instance<?>> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	private final List<Modifier> modifiers;
-	private final Action onModifyAction;
+	List<Modifier> modifiers();
 
-	public DamageModifyingPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-		this.onModifyAction = onModifyAction;
-	}
+	Action onModifyAction();
 
 	@Override
-	public void validate(Context.Validator validator) {
+	default void validate(Context.Validator validator) {
 
-		super.validate(validator);
-		ListIterator<Modifier> listIterator = this.getModifiers().listIterator();
+		Power.super.validate(validator);
 
-		while (listIterator.hasNext()) {
-
-			Context.Validator modifierValidator = validator.forChild(".modifiers[" + listIterator.nextIndex() + "]");
-
-			listIterator.next().validate(modifierValidator);
-
-		}
-
-		getOnModifyAction().validate(validator.forChild(".on_modify_action"));
+		ContextValidatable.validate(this.modifiers(), validator, index -> ".modifiers[" + index + "]");
+		onModifyAction().validate(validator.forChild(".on_modify_action"));
 
 	}
 
-	protected static <P extends DamageModifyingPower> MapCodec<P> createDamageModifyingCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-			.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(DamageModifyingPower::getModifiers))
-			.and(Action.CODEC.optionalFieldOf("on_modify_action", NothingAction.INSTANCE).forGetter(DamageModifyingPower::getOnModifyAction))
-			.apply(instance, constructor));
+	static <P extends DamageModifyingPower> MapCodec<P> codec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> Power.addActiveConditionField(instance)
+			.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(DamageModifyingPower::modifiers))
+			.and(Action.CODEC.optionalFieldOf("on_modify_action", NothingAction.INSTANCE).forGetter(DamageModifyingPower::onModifyAction))
+			.apply(instance, constructor)
+		);
 	}
 
-	protected static <P extends DamageModifyingPower> StreamCodec<RegistryFriendlyByteBuf, P> createDamageModifyingStreamCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
+	static <P extends DamageModifyingPower> StreamCodec<RegistryFriendlyByteBuf, P> streamCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
 		return StreamCodec.composite(
-			ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-			ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), DamageModifyingPower::getModifiers,
-			Action.STREAM_CODEC, DamageModifyingPower::getOnModifyAction,
+			ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+			ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), DamageModifyingPower::modifiers,
+			Action.STREAM_CODEC, DamageModifyingPower::onModifyAction,
 			constructor
 		);
 	}
 
-	public static abstract class Instance<P extends DamageModifyingPower> extends Power.Instance<P> {
+	abstract class Instance<P extends DamageModifyingPower> extends Power.Instance<P> {
 
-		protected Instance(@NotNull P power) {
+		public Instance(@NotNull P power) {
 			super(power);
 		}
 
 		public abstract Context createDamageContext(Entity actor, Entity target, DamageSource source, float amount);
 
-		public List<Modifier> getModifiers() {
-			return power.getModifiers();
+		public List<Modifier> modifiers() {
+			return power.modifiers();
+		}
+
+		public List<Modifier.Operation> operations(Context context) {
+
+			List<Modifier.Operation> result = new ObjectArrayList<>();
+			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
+
+			return result;
+
 		}
 
 		public void execute(Context context) {
-			power.getOnModifyAction().execute(context.forChild(".on_modify_action"));
+			power.onModifyAction().execute(context.forChild(".on_modify_action"));
 		}
 
 	}
 
-	public static <P extends DamageModifyingPower, I extends DamageModifyingPower.Instance<P>> float modify(Type<P> type, Class<I> instanceClass, Entity holder, Entity actor, Entity target, DamageSource source, float amount) {
+	static <P extends DamageModifyingPower, I extends DamageModifyingPower.Instance<P>> float modify(Type<P> type, Class<I> instanceClass, Entity holder, Entity actor, Entity target, DamageSource source, float amount) {
 
-		List<Modifier.Operation> entries = new ObjectArrayList<>();
+		List<Modifier.Operation> operations = new ObjectArrayList<>();
 
 		for (var instance : Powers.getInstances(holder, instanceClass)) {
 
@@ -103,20 +97,8 @@ public abstract class DamageModifyingPower extends Power {
 
 			try {
 
-				if (!VISITOR.push(instance) || !instance.isActive(context)) {
-					continue;
-				}
-
-				ListIterator<Modifier> listIterator = instance.getModifiers().listIterator();
-				instance.execute(context);
-
-				while (listIterator.hasNext()) {
-
-					Context modifierContext = context.forChild(".modifiers[" + listIterator.nextIndex() + "]");
-					Modifier modifier = listIterator.next();
-
-					entries.add(Modifier.operation(modifier, modifierContext));
-
+				if (VISITOR.push(instance) && instance.isActive(context)) {
+					operations.addAll(instance.operations(context));
 				}
 
 			}
@@ -127,8 +109,8 @@ public abstract class DamageModifyingPower extends Power {
 
 		}
 
-		PowerModifyEvents.NUMBER.invoker().beforeModified(type, entries, amount);
-		return (float) Modifier.applyAll(entries, amount);
+		PowerModifyEvents.NUMBER.invoker().beforeModified(type, operations, amount);
+		return (float) Modifier.applyAll(operations, amount);
 
 	}
 

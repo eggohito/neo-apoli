@@ -6,8 +6,8 @@ import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLaye
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.custom.CooldownPower;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
+import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
@@ -58,7 +58,7 @@ public class PowerClientIntegrations {
 		}
 
 		Context context = instance.createHolderContext(holder);
-		ListIterator<HudElement> listIterator = hudRender.getHudElements().listIterator();
+		ListIterator<HudElement> listIterator = hudRender.hudElements().listIterator();
 
 		while (listIterator.hasNext()) {
 
@@ -75,12 +75,12 @@ public class PowerClientIntegrations {
 
 	private static void prepareCooldownElements(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
 
-		if (!(instance instanceof CooldownPower.Instance cooldown)) {
+		if (!(instance instanceof CooldownPower.Instance<?> cooldown)) {
 			return;
 		}
 
 		Context hudContext = cooldown.createContext(holder).forChild(".hud_element");
-		HudElement hudElement = cooldown.getHudElement();
+		HudElement hudElement = cooldown.hudElement();
 
 		if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {
 			adder.accept(hudContext, hudElement);

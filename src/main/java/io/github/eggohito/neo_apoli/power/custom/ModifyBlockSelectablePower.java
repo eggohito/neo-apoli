@@ -12,8 +12,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -26,32 +24,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyBlockSelectablePower extends Power implements PrioritizedPower<ModifyBlockSelectablePower> {
+public record ModifyBlockSelectablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) implements PrioritizedPower<ModifyBlockSelectablePower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::getAllow))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::getPriority))
-		.apply(instance, ModifyBlockSelectablePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockSelectablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		BooleanProvider.STREAM_CODEC, ModifyBlockSelectablePower::getAllow,
-		ByteBufCodecs.INT, ModifyBlockSelectablePower::getPriority,
-		ModifyBlockSelectablePower::new
+	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::allow))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::priority))
+		.apply(instance, ModifyBlockSelectablePower::new)
 	);
 
-	private final BooleanProvider allow;
-	private final int priority;
-
-	public ModifyBlockSelectablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) {
-		super(activeCondition);
-		this.allow = allow;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockSelectablePower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		BooleanProvider.STREAM_CODEC, ModifyBlockSelectablePower::allow,
+		ByteBufCodecs.INT, ModifyBlockSelectablePower::priority,
+		ModifyBlockSelectablePower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -65,8 +54,8 @@ public class ModifyBlockSelectablePower extends Power implements PrioritizedPowe
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		getAllow().validate(validator.forChild(".allow"));
+		PrioritizedPower.super.validate(validator);
+		allow().validate(validator.forChild(".allow"));
 	}
 
 	public static class Instance extends Power.Instance<ModifyBlockSelectablePower> {
@@ -82,7 +71,7 @@ public class ModifyBlockSelectablePower extends Power implements PrioritizedPowe
 		}
 
 		public boolean isAllowed(Context context) {
-			return power.getAllow().getBoolean(context.forChild(".allow"));
+			return power.allow().getBoolean(context.forChild(".allow"));
 		}
 
 	}

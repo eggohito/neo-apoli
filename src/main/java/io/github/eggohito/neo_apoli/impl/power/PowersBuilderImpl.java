@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.impl.power;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.power.Powers;
@@ -7,6 +8,7 @@ import io.github.eggohito.neo_apoli.api.power.PowersBuilder;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
@@ -118,9 +120,9 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 		Power power = PowerManager.get(id).value();
 		Power.Instance<?> instance = instances.computeIfAbsent(id, k -> power.createInstance());
 
-		if (power instanceof MultiplePower multiplePower) {
+		if (power instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
-			for (var subPower : multiplePower.getSubPowers()) {
+			for (var subPower : subPowers) {
 				this.grantRecursively(subPower.id(), source, onAdded, onGranted, invokeCallbacks);
 			}
 
@@ -167,9 +169,9 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 		Power.Instance<?> instance = instances.get(id);
 		boolean revoked = sources.get(id).isEmpty();
 
-		if (instance.getPower() instanceof MultiplePower multiplePower) {
+		if (instance.power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
-			for (var subPower : multiplePower.getSubPowers()) {
+			for (var subPower : subPowers) {
 				this.revokeRecursively(subPower.id(), source, onRevoked, invokeCallbacks);
 			}
 
@@ -233,7 +235,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 			else {
 
 				Power.Instance<?> oldInstance = powers.getInstance(reference);
-				Power.Type<?> oldType = oldInstance.getPower().getType();
+				Power.Type<?> oldType = oldInstance.power().getType();
 
 				oldTypes.put(reference, oldType);
 				MiscUtil.handleResult(
@@ -260,7 +262,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 				Tag oldData = pendingDataSync.get(reference);
 				Power.Instance<?> newInstance = powers.getInstance(reference);
 
-				if (Objects.equals(oldTypes.get(reference), newInstance.getPower().getType())) {
+				if (Objects.equals(oldTypes.get(reference), newInstance.power().getType())) {
 					MiscUtil.handleResult(
 						newInstance.decodeData(ops, oldData),
 						Consumers.nop(),

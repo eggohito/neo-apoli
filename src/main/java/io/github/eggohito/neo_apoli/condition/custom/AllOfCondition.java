@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.condition.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -52,7 +52,7 @@ public record AllOfCondition(List<Condition> conditions) implements Condition {
 	@Override
 	public void validate(Context.Validator validator) {
 		Condition.super.validate(validator);
-		ContextHelper.validateAll(conditions(), validator, index -> ".conditions[" + index + "]");
+		ContextValidatable.validate(conditions(), validator, index -> ".conditions[" + index + "]");
 	}
 
 }

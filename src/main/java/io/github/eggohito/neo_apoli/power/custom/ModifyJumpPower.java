@@ -6,15 +6,13 @@ import io.github.eggohito.neo_apoli.api.event.PowerModifyEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextHelper;
+import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,28 +23,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyJumpPower extends Power {
+public record ModifyJumpPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyJumpPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyJumpPower::getModifiers))
-		.apply(instance, ModifyJumpPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyJumpPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyJumpPower::getModifiers,
-		ModifyJumpPower::new
+	public static final MapCodec<ModifyJumpPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyJumpPower::modifiers))
+		.apply(instance, ModifyJumpPower::new)
 	);
 
-	private final List<Modifier> modifiers;
-
-	public ModifyJumpPower(Optional<Condition> activeCondition, List<Modifier> modifiers) {
-		super(activeCondition);
-		this.modifiers = modifiers;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyJumpPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyJumpPower::modifiers,
+		ModifyJumpPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -60,8 +51,8 @@ public class ModifyJumpPower extends Power {
 
 	@Override
 	public void validate(Context.Validator validator) {
-		super.validate(validator);
-		ContextHelper.validateAll(getModifiers(), validator, index -> ".modifiers[" + index + "]");
+		Power.super.validate(validator);
+		ContextValidatable.validate(modifiers(), validator, index -> ".modifiers[" + index + "]");
 	}
 
 	public static class Instance extends Power.Instance<ModifyJumpPower> {
@@ -73,7 +64,7 @@ public class ModifyJumpPower extends Power {
 		public List<Modifier.Operation> getModifiers(Context context) {
 
 			List<Modifier.Operation> result = new ObjectArrayList<>();
-			MiscUtil.iterateList(power.getModifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
+			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 
 			return result;
 

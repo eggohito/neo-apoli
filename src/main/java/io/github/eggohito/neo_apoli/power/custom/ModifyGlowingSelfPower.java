@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,32 +22,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class ModifyGlowingSelfPower extends Power {
+public record ModifyGlowingSelfPower(Optional<Condition> activeCondition, BooleanProvider useTeamColors, Color color) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::getUseTeamColors))
-		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::getColor))
-		.apply(instance, ModifyGlowingSelfPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyGlowingSelfPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		BooleanProvider.STREAM_CODEC, ModifyGlowingSelfPower::getUseTeamColors,
-		Color.STREAM_CODEC, ModifyGlowingSelfPower::getColor,
-		ModifyGlowingSelfPower::new
+	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::useTeamColors))
+		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::color))
+		.apply(instance, ModifyGlowingSelfPower::new)
 	);
 
-	private final BooleanProvider useTeamColors;
-	private final Color color;
-
-	public ModifyGlowingSelfPower(Optional<Condition> activeCondition, BooleanProvider useTeamColors, Color color) {
-		super(activeCondition);
-		this.useTeamColors = useTeamColors;
-		this.color = color;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyGlowingSelfPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		BooleanProvider.STREAM_CODEC, ModifyGlowingSelfPower::useTeamColors,
+		Color.STREAM_CODEC, ModifyGlowingSelfPower::color,
+		ModifyGlowingSelfPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -64,10 +53,10 @@ public class ModifyGlowingSelfPower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		Power.super.validate(validator);
 
-		getUseTeamColors().validate(validator.forChild(".use_team_color"));
-		getColor().validate(validator.forChild(".color"));
+		useTeamColors().validate(validator.forChild(".use_team_color"));
+		color().validate(validator.forChild(".color"));
 
 	}
 
@@ -90,11 +79,11 @@ public class ModifyGlowingSelfPower extends Power {
 		}
 
 		public boolean shouldUseTeamColor(Context context) {
-			return power.getUseTeamColors().getBoolean(context.forChild(".use_team_color"));
+			return power.useTeamColors().getBoolean(context.forChild(".use_team_color"));
 		}
 
-		public int getColor(Context context) {
-			return power.getColor().intValue(context.forChild(".color"));
+		public int color(Context context) {
+			return power.color().intValue(context.forChild(".color"));
 		}
 
 	}
@@ -132,7 +121,7 @@ public class ModifyGlowingSelfPower extends Power {
 			try {
 
 				if (VISITOR.push(instance) && instance.doesApply(context, hasTeamColor)) {
-					color = Color.mix(color, instance.getColor(context));
+					color = Color.mix(color, instance.color(context));
 				}
 
 			}

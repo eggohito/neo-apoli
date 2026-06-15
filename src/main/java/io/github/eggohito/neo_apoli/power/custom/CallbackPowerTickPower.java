@@ -7,11 +7,10 @@ import io.github.eggohito.neo_apoli.action.custom.NothingAction;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,38 +19,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackPowerTickPower extends Power {
+public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action action, Action risingAction, Action fallingAction, NumberProvider interval) implements CallbackPower {
 
-	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("tick_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getTickAction))
-		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getRisingAction))
-		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::getFallingAction))
-		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::getInterval))
-		.apply(instance, CallbackPowerTickPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerTickPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, CallbackPowerTickPower::getTickAction,
-		Action.STREAM_CODEC, CallbackPowerTickPower::getRisingAction,
-		Action.STREAM_CODEC, CallbackPowerTickPower::getFallingAction,
-		NumberProvider.STREAM_CODEC, CallbackPowerTickPower::getInterval,
-		CallbackPowerTickPower::new
+	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(CallbackPower.addActionField(instance).t1())
+		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::risingAction))
+		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::fallingAction))
+		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::interval))
+		.apply(instance, CallbackPowerTickPower::new)
 	);
 
-	private final Action tickAction;
-	private final Action risingAction;
-	private final Action fallingAction;
-	private final NumberProvider interval;
-
-	public CallbackPowerTickPower(Optional<Condition> activeCondition, Action tickAction, Action risingAction, Action fallingAction, NumberProvider interval) {
-		super(activeCondition);
-		this.tickAction = tickAction;
-		this.risingAction = risingAction;
-		this.fallingAction = fallingAction;
-		this.interval = interval;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackPowerTickPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Action.STREAM_CODEC, CallbackPowerTickPower::action,
+		Action.STREAM_CODEC, CallbackPowerTickPower::risingAction,
+		Action.STREAM_CODEC, CallbackPowerTickPower::fallingAction,
+		NumberProvider.STREAM_CODEC, CallbackPowerTickPower::interval,
+		CallbackPowerTickPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -66,12 +52,11 @@ public class CallbackPowerTickPower extends Power {
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		CallbackPower.super.validate(validator);
 
-		getTickAction().validate(validator.forChild(".tick_action"));
-		getRisingAction().validate(validator.forChild(".rising_action"));
-		getFallingAction().validate(validator.forChild(".falling_action"));
-		getInterval().validate(validator.forChild(".interval"));
+		risingAction().validate(validator.forChild(".rising_action"));
+		fallingAction().validate(validator.forChild(".falling_action"));
+		interval().validate(validator.forChild(".interval"));
 
 	}
 
@@ -90,7 +75,7 @@ public class CallbackPowerTickPower extends Power {
 		public void onTick(Entity holder) {
 
 			Context context = createHolderContext(holder);
-			int interval = power.getInterval().getInt(context.forChild(".interval"));
+			int interval = power.interval().getInt(context.forChild(".interval"));
 
 			if (context.hasAnyErrors()) {
 
@@ -117,12 +102,12 @@ public class CallbackPowerTickPower extends Power {
 					else if (interval <= 0 || ticks == startTicks) {
 
 						if (!wasActive) {
-							power.getRisingAction().execute(context.forChild(".rising_action"));
+							power.risingAction().execute(context.forChild(".rising_action"));
 							this.wasActive = true;
 						}
 
 						else {
-							power.getTickAction().execute(context.forChild(".tick_action"));
+							power.action().execute(context.forChild(".action"));
 						}
 
 					}
@@ -137,7 +122,7 @@ public class CallbackPowerTickPower extends Power {
 					}
 
 					else if (interval <= 0 || ticks == endTicks) {
-						power.getFallingAction().execute(context.forChild(".falling_action"));
+						power.fallingAction().execute(context.forChild(".falling_action"));
 						this.wasActive = false;
 					}
 

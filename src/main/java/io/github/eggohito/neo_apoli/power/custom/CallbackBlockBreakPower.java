@@ -13,8 +13,6 @@ import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,34 +27,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-@EqualsAndHashCode
-@Getter
-public class CallbackBlockBreakPower extends Power implements PrioritizedPower<CallbackBlockBreakPower> {
+public record CallbackBlockBreakPower(Optional<Condition> activeCondition, Action onBreakAction, BooleanProvider onlyWhenHarvested, int priority) implements PrioritizedPower<CallbackBlockBreakPower> {
 
-	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::getOnBreakAction))
-		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::getOnlyWhenHarvested))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::getPriority))
-		.apply(instance, CallbackBlockBreakPower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackBlockBreakPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::getActiveCondition,
-		Action.STREAM_CODEC, CallbackBlockBreakPower::getOnBreakAction,
-		BooleanProvider.STREAM_CODEC, CallbackBlockBreakPower::getOnlyWhenHarvested,
-		ByteBufCodecs.INT, CallbackBlockBreakPower::getPriority,
-		CallbackBlockBreakPower::new
+	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+		.addActiveConditionField(instance)
+		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::onBreakAction))
+		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::onlyWhenHarvested))
+		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::priority))
+		.apply(instance, CallbackBlockBreakPower::new)
 	);
 
-	private final Action onBreakAction;
-	private final BooleanProvider onlyWhenHarvested;
-	private final int priority;
-
-	public CallbackBlockBreakPower(Optional<Condition> activeCondition, Action onBreakAction, BooleanProvider onlyWhenHarvested, int priority) {
-		super(activeCondition);
-		this.onBreakAction = onBreakAction;
-		this.onlyWhenHarvested = onlyWhenHarvested;
-		this.priority = priority;
-	}
+	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackBlockBreakPower> STREAM_CODEC = StreamCodec.composite(
+		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Action.STREAM_CODEC, CallbackBlockBreakPower::onBreakAction,
+		BooleanProvider.STREAM_CODEC, CallbackBlockBreakPower::onlyWhenHarvested,
+		ByteBufCodecs.INT, CallbackBlockBreakPower::priority,
+		CallbackBlockBreakPower::new
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -71,10 +58,10 @@ public class CallbackBlockBreakPower extends Power implements PrioritizedPower<C
 	@Override
 	public void validate(Context.Validator validator) {
 
-		super.validate(validator);
+		PrioritizedPower.super.validate(validator);
 
-		getOnBreakAction().validate(validator.forChild(".on_break_action"));
-		getOnlyWhenHarvested().validate(validator.forChild(".only_when_harvested"));
+		onBreakAction().validate(validator.forChild(".on_break_action"));
+		onlyWhenHarvested().validate(validator.forChild(".only_when_harvested"));
 
 	}
 
@@ -93,11 +80,11 @@ public class CallbackBlockBreakPower extends Power implements PrioritizedPower<C
 
 		public boolean doesApply(Context context, boolean harvested) {
 			return this.isActive(context)
-				&& (!power.getOnlyWhenHarvested().getBoolean(context.forChild(".only_when_harvested")) || harvested);
+				&& (!power.onlyWhenHarvested().getBoolean(context.forChild(".only_when_harvested")) || harvested);
 		}
 
 		public void execute(Context context) {
-			power.getOnBreakAction().execute(context.forChild(".on_break_action"));
+			power.onBreakAction().execute(context.forChild(".on_break_action"));
 		}
 
 	}
