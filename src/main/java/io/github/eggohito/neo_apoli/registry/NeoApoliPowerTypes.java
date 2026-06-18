@@ -145,10 +145,10 @@ public final class NeoApoliPowerTypes {
 		UnaryOperator.identity()
 	);
 
-	public static final Power.Type<ModifyAttributeLegacyPower> MODIFY_ATTRIBUTE_LEGACY = registerInternal(
-		"modify/attribute/legacy",
-		ModifyAttributeLegacyPower.CODEC,
-		ModifyAttributeLegacyPower.STREAM_CODEC,
+	public static final Power.Type<ModifyAttributeVanillaPower> MODIFY_ATTRIBUTE_VANILLA = registerInternal(
+		"modify/attribute/vanilla",
+		ModifyAttributeVanillaPower.CODEC,
+		ModifyAttributeVanillaPower.STREAM_CODEC,
 		UnaryOperator.identity()
 	);
 

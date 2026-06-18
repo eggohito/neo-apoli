@@ -21,26 +21,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public record ModifyAttributeLegacyPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) implements AttributeModifyingPower {
+public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) implements AttributeModifyingPower {
 
-	public static final MapCodec<ModifyAttributeLegacyPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
+	public static final MapCodec<ModifyAttributeVanillaPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
 		.and(AttributeModifyingPower.addFields(instance))
-		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeLegacyPower::tickRate))
-		.apply(instance, ModifyAttributeLegacyPower::new)
+		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeVanillaPower::tickRate))
+		.apply(instance, ModifyAttributeVanillaPower::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributeLegacyPower> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributeVanillaPower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		NeoApoliStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifyingPower::modifiers,
 		BooleanProvider.STREAM_CODEC, AttributeModifyingPower::sendUpdate,
-		NumberProvider.STREAM_CODEC, ModifyAttributeLegacyPower::tickRate,
-		ModifyAttributeLegacyPower::new
+		NumberProvider.STREAM_CODEC, ModifyAttributeVanillaPower::tickRate,
+		ModifyAttributeVanillaPower::new
 	);
 
 	@Override
 	public Type<?> getType() {
-		return NeoApoliPowerTypes.MODIFY_ATTRIBUTE_LEGACY;
+		return NeoApoliPowerTypes.MODIFY_ATTRIBUTE_VANILLA;
 	}
 
 	@Override
@@ -48,14 +48,14 @@ public record ModifyAttributeLegacyPower(Optional<Condition> activeCondition, Li
 		return new Instance(this);
 	}
 
-	public static class Instance extends AttributeModifyingPower.Instance<ModifyAttributeLegacyPower> {
+	public static class Instance extends AttributeModifyingPower.Instance<ModifyAttributeVanillaPower> {
 
 		private Integer startTicks;
 		private Integer endTicks;
 
 		private boolean wasActive;
 
-		protected Instance(@NotNull ModifyAttributeLegacyPower power) {
+		protected Instance(@NotNull ModifyAttributeVanillaPower power) {
 			super(power);
 		}
 
