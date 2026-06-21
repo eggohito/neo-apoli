@@ -28,6 +28,10 @@ public interface CallbackPower extends Power {
 		return instance.group(Action.CODEC.fieldOf("action").forGetter(CallbackPower::action));
 	}
 
+	static <P extends CallbackPower> Products.P1<RecordCodecBuilder.Mu<P>, Action> addOptionalActionField(RecordCodecBuilder.Instance<P> instance) {
+		return instance.group(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(CallbackPower::action));
+	}
+
 	static <P extends CallbackPower> MapCodec<P> codec(BiFunction<Optional<Condition>, Action, P> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> Power.addActiveConditionField(instance)
 			.and(addActionField(instance).t1())

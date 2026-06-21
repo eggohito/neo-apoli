@@ -23,7 +23,7 @@ public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action
 
 	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
-		.and(CallbackPower.addActionField(instance).t1())
+		.and(CallbackPower.addOptionalActionField(instance).t1())
 		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::risingAction))
 		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::fallingAction))
 		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::interval))
