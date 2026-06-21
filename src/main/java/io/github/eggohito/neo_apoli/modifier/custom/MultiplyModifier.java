@@ -13,6 +13,10 @@ public record MultiplyModifier(Modifier.Phase phase, int order, NumberProvider a
 	public static final MapCodec<MultiplyModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyModifier::new, 0);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MultiplyModifier::new);
 
+	public MultiplyModifier(Phase phase, NumberProvider amount) {
+		this(phase, 0, amount);
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliModifierTypes.MULTIPLY;

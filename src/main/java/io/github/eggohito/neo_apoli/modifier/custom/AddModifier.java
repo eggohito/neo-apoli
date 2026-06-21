@@ -13,6 +13,10 @@ public record AddModifier(Modifier.Phase phase, int order, NumberProvider amount
 	public static final MapCodec<AddModifier> CODEC = AmountBasedModifier.createValueBasedCodec(AddModifier::new, 4000);
 	public static final StreamCodec<RegistryFriendlyByteBuf, AddModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(AddModifier::new);
 
+	public AddModifier(Phase phase, NumberProvider amount) {
+		this(phase, 4000, amount);
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliModifierTypes.ADD;

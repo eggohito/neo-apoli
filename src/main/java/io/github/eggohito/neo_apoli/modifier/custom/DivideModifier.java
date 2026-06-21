@@ -13,6 +13,10 @@ public record DivideModifier(Modifier.Phase phase, int order, NumberProvider amo
 	public static final MapCodec<DivideModifier> CODEC = AmountBasedModifier.createValueBasedCodec(DivideModifier::new, 3000);
 	public static final StreamCodec<RegistryFriendlyByteBuf, DivideModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(DivideModifier::new);
 
+	public DivideModifier(Modifier.Phase phase, NumberProvider amount) {
+		this(phase, 3000, amount);
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliModifierTypes.DIVIDE;

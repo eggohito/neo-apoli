@@ -13,6 +13,10 @@ public record MaxModifier(Modifier.Phase phase, int order, NumberProvider amount
 	public static final MapCodec<MaxModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MaxModifier::new, 6000);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MaxModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MaxModifier::new);
 
+	public MaxModifier(Phase phase, NumberProvider amount) {
+		this(phase, 6000, amount);
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliModifierTypes.MAX;

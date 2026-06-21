@@ -7,6 +7,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
+import io.github.eggohito.neo_apoli.modifier.custom.AddModifier;
+import io.github.eggohito.neo_apoli.modifier.custom.MultiplyAdditiveModifier;
+import io.github.eggohito.neo_apoli.modifier.custom.MultiplyMultiplicativeModifier;
+import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
@@ -17,6 +21,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -48,11 +53,31 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	double apply(Context context, double base, double total);
 
+	default Operation asOperation(Context context) {
+		return new Operation(this, context);
+	}
+
 	static <M extends Modifier> Products.P2<RecordCodecBuilder.Mu<M>, Phase, Integer> addPhaseAndOrderFields(RecordCodecBuilder.Instance<M> instance, int defaultOrder) {
 		return instance.group(
 			Phase.CODEC.fieldOf("phase").forGetter(Modifier::phase),
 			Codec.INT.optionalFieldOf("order", defaultOrder).forGetter(Modifier::order)
 		);
+	}
+
+	static Modifier fromVanilla(AttributeModifier vanillaModifier) {
+
+		AttributeModifier.Operation operation = vanillaModifier.operation();
+		double amount = vanillaModifier.amount();
+
+		return switch (operation) {
+			case ADD_VALUE ->
+				new AddModifier(Modifier.Phase.BASE, new ConstantNumberProvider(amount));
+			case ADD_MULTIPLIED_BASE ->
+				new MultiplyAdditiveModifier(Modifier.Phase.BASE, new ConstantNumberProvider(amount));
+			case ADD_MULTIPLIED_TOTAL ->
+				new MultiplyMultiplicativeModifier(Modifier.Phase.TOTAL, new ConstantNumberProvider(amount));
+		};
+
 	}
 
 	static double applyAll(List<Operation> operations, double baseValue) {

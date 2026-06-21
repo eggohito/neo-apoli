@@ -33,7 +33,8 @@ public interface AmountBasedModifier extends Modifier {
 		return RecordCodecBuilder.mapCodec(instance -> Modifier
 			.addPhaseAndOrderFields(instance, defaultOrder)
 			.and(NumberProvider.CODEC.fieldOf("amount").forGetter(AmountBasedModifier::amount))
-			.apply(instance, constructor));
+			.apply(instance, constructor)
+		);
 	}
 
 	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> createValueBasedStreamCodec(Function3<Phase, Integer, NumberProvider, M> constructor) {

@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.modifier.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.modifier.AmountBasedModifier;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
+import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliModifierTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -12,6 +13,10 @@ public record MultiplyAdditiveModifier(Modifier.Phase phase, int order, NumberPr
 
 	public static final MapCodec<MultiplyAdditiveModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyAdditiveModifier::new, 1000);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyAdditiveModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MultiplyAdditiveModifier::new);
+
+	public MultiplyAdditiveModifier(Phase phase, ConstantNumberProvider amount) {
+		this(phase, 1000, amount);
+	}
 
 	@Override
 	public Type<?> getType() {

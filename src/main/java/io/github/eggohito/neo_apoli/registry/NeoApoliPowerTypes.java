@@ -144,6 +144,12 @@ public final class NeoApoliPowerTypes {
 		ModifyAirSpeedPower.STREAM_CODEC,
 		UnaryOperator.identity()
 	);
+	public static final Power.Type<ModifyAttributePower> MODIFY_ATTRIBUTE = registerInternal(
+		"modify/attribute",
+		ModifyAttributePower.CODEC,
+		ModifyAttributePower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
 
 	public static final Power.Type<ModifyAttributeVanillaPower> MODIFY_ATTRIBUTE_VANILLA = registerInternal(
 		"modify/attribute/vanilla",

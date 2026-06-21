@@ -290,6 +290,21 @@ public class MiscUtil {
 		iterateList(list, consumer, () -> true);
 	}
 
+	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer, BooleanSupplier continueCondition) {
+
+		Iterator<E> iterator = iterable.iterator();
+		int index = 0;
+
+		while (iterator.hasNext() && continueCondition.getAsBoolean()) {
+			consumer.accept(index++, iterator.next());
+		}
+
+	}
+
+	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer) {
+		iterate(iterable, consumer, () -> true);
+	}
+
 	public static <T, U extends T> Function<T, DataResult<U>> validateType(Class<U> typeClass, Supplier<String> errorSupplier) {
 		return type -> {
 

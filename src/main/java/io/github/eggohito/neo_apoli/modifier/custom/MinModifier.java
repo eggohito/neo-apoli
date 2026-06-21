@@ -13,6 +13,10 @@ public record MinModifier(Modifier.Phase phase, int order, NumberProvider amount
 	public static final MapCodec<MinModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MinModifier::new, 5000);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MinModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MinModifier::new);
 
+	public MinModifier(Phase phase, NumberProvider amount) {
+		this(phase, 5000, amount);
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliModifierTypes.MIN;

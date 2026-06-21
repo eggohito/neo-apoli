@@ -1,10 +1,12 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
+import io.github.eggohito.neo_apoli.api.misc.CustomClearable;
 import io.github.eggohito.neo_apoli.api.misc.EntityCache;
 import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.mixin.access.DefaultAttributesAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
 import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
@@ -28,11 +30,22 @@ import java.util.function.BiConsumer;
 public class PowerClientIntegrations {
 
 	public static void registerAll() {
-		ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> clearEntityTypeCache());
-		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, level) -> clearEntityTypeCache());
+
+		ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> {
+			clearEntityTypeCache();
+			clearAttributeEntityCache();
+		});
+
+		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, level) -> {
+			clearEntityTypeCache();
+			clearAttributeEntityCache();
+		});
+
 		HudElementRendererEvents.PREPARE.register(PowerClientIntegrations::prepareCooldownElements);
 		HudElementRendererEvents.PREPARE.register(PowerClientIntegrations::prepareHudElements);
+
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(PowerClientIntegrations::preparePowerWingLayer);
+
 	}
 
 	private static void preparePowerWingLayer(EntityType<? extends LivingEntity> type, LivingEntityRenderer<?, ?, ?> renderer, LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper helper, EntityRendererProvider.Context context) {
@@ -94,6 +107,18 @@ public class PowerClientIntegrations {
 
 			if (entityType instanceof EntityCache entityCache) {
 				entityCache.neo_apoli$setEntity(null);
+			}
+
+		}
+
+	}
+
+	private static void clearAttributeEntityCache() {
+
+		for (var supplier : DefaultAttributesAccessor.getSuppliers().values()) {
+
+			if (supplier instanceof CustomClearable clearable) {
+				clearable.neo_apoli$clear();
 			}
 
 		}
