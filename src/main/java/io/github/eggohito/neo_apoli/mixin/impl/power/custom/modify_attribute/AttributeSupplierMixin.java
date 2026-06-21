@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_attribute;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.api.misc.CustomClearable;
-import io.github.eggohito.neo_apoli.api.misc.EntityCache;
+import io.github.eggohito.neo_apoli.impl.misc.CustomClearable;
+import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;

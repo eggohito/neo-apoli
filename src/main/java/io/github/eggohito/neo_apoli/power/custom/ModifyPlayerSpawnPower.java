@@ -11,7 +11,7 @@ import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
-import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;

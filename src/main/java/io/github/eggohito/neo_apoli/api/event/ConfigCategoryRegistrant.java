@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.config;
+package io.github.eggohito.neo_apoli.api.event;
 
 import dev.isxander.yacl3.api.OptionGroup;
 import net.fabricmc.fabric.api.event.Event;

@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -21,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum HudElementLayer implements IdentifiedLayer {
 
 	ABOVE_HUD("hud_element/above_hud", HudElement.RenderPhase.ABOVE_HUD),

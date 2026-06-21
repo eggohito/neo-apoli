@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_attribute;
 
-import io.github.eggohito.neo_apoli.api.misc.EntityCache;
+import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.config;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
-import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.mixin.access.CommandSourceStackAccessor;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.misc;
+package io.github.eggohito.neo_apoli.impl.misc;
 
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;

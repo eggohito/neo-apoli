@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.registry;
 
-import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.power.custom.ModifyPlayerSpawnPower;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;

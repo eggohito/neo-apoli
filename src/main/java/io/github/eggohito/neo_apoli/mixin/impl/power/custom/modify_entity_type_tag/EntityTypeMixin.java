@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_entity_type_tag;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.api.misc.EntityCache;
+import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyEntityTypeTagPower;
 import net.minecraft.core.HolderSet;
 import net.minecraft.tags.TagKey;

@@ -1,11 +1,11 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
-import io.github.eggohito.neo_apoli.api.misc.CustomClearable;
-import io.github.eggohito.neo_apoli.api.misc.EntityCache;
 import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.impl.misc.CustomClearable;
+import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
 import io.github.eggohito.neo_apoli.mixin.access.DefaultAttributesAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;

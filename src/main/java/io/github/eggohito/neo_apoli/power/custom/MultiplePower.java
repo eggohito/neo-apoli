@@ -9,7 +9,7 @@ import com.mojang.serialization.*;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.config.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;

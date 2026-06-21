@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.impl.misc;
 
-import io.github.eggohito.neo_apoli.api.misc.EntityCache;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 
 public interface PowerCraftingInventory extends EntityCache {
