@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.event;
+package io.github.eggohito.neo_apoli.client.api.event;
 
 import dev.isxander.yacl3.api.OptionGroup;
 import net.fabricmc.fabric.api.event.Event;
@@ -18,21 +18,6 @@ public interface ConfigCategoryRegistrant {
 				for (var callback : callbacks) {
 					callback.addGroup(adder);
 				}
-
-			}
-
-			@Override
-			public boolean load() {
-
-				for (var callback : callbacks) {
-
-					if (!callback.load()) {
-						return false;
-					}
-
-				}
-
-				return true;
 
 			}
 
@@ -62,21 +47,6 @@ public interface ConfigCategoryRegistrant {
 			}
 
 			@Override
-			public boolean load() {
-
-				for (var callback : callbacks) {
-
-					if (!callback.load()) {
-						return false;
-					}
-
-				}
-
-				return true;
-
-			}
-
-			@Override
 			public void save() {
 
 				for (var callback : callbacks) {
@@ -91,8 +61,6 @@ public interface ConfigCategoryRegistrant {
 	interface Entry {
 
 		void addGroup(Consumer<OptionGroup> adder);
-
-		boolean load();
 
 		void save();
 

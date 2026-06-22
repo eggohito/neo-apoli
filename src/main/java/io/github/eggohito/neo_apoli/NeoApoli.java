@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
+import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.NeoApoliServerboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
@@ -104,10 +105,10 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliServerboundPacketListener.init();
 
-		PowerIntegrations.registerAll();
-
 		getConfig().loadFromFile();
-		NeoApoliConfigs.registerAll();
+
+		PowerIntegrations.init();
+		CommonConfigIntegrations.init();
 
 		NeoApoliContextParams.registerAll();
 		NeoApoliContextParamSets.registerAll();

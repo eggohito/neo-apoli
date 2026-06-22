@@ -5,13 +5,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.OptionGroup;
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
-import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
@@ -29,7 +23,6 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
@@ -51,7 +44,6 @@ import org.quiltmc.parsers.json.JsonFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 @SuppressWarnings("UnstableApiUsage")
 public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority) implements PrioritizedPower<ModifyPlayerSpawnPower> {
@@ -227,7 +219,7 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 
 	}
 
-	public static final class Config extends AbstractJsonCodecConfig<Config> implements ConfigCategoryRegistrant.Entry {
+	public static final class Config extends AbstractJsonCodecConfig<Config> {
 
 		public static final Config INSTANCE = new Config();
 		public static final int VERSION = 1;
@@ -241,56 +233,6 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 
 		Config() {
 			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/power/modify_player_spawn.json5"), JsonFormat.JSON5);
-		}
-
-		@Override
-		public void addGroup(Consumer<OptionGroup> adder) {
-
-			var horizontalStep = Option.<Integer>createBuilder()
-				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.horizontal_step.name"))
-				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.horizontal_step.description")))
-				.binding(this.horizontalStep.asBinding())
-				.controller(option -> IntegerFieldControllerBuilder.create(option)
-					.min(0));
-			var verticalStep = Option.<Integer>createBuilder()
-				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.vertical_step.name"))
-				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.vertical_step.description")))
-				.binding(this.verticalStep.asBinding())
-				.controller(option -> IntegerFieldControllerBuilder.create(option)
-					.min(0));
-			var radius = Option.<Integer>createBuilder()
-				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.radius.name"))
-				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.radius.description")))
-				.binding(this.radius.asBinding())
-				.controller(option -> IntegerFieldControllerBuilder.create(option)
-					.min(0));
-			var enabled = Option.<Boolean>createBuilder()
-				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.name"))
-				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.description")))
-				.binding(this.enabled.asBinding())
-				.controller(option -> BooleanControllerBuilder.create(option)
-					.onOffFormatter()
-					.coloured(true));
-
-			adder.accept(OptionGroup.createBuilder()
-				.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.name"))
-				.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.description")))
-				.option(horizontalStep.build())
-				.option(verticalStep.build())
-				.option(radius.build())
-				.option(enabled.build())
-				.build());
-
-		}
-
-		@Override
-		public boolean load() {
-			return this.loadFromFile();
-		}
-
-		@Override
-		public void save() {
-			this.saveToFile();
 		}
 
 	}

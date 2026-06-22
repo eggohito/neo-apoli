@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.config;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
-import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.mixin.access.CommandSourceStackAccessor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,23 +24,6 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 
 	private NeoApoliCommonConfig() {
 		super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5"), JsonFormat.JSON5);
-	}
-
-	@Override
-	public void saveToFile() {
-
-		super.saveToFile();
-
-		ConfigCategoryRegistrant.HUD_ELEMENT_TYPE.invoker().save();
-		ConfigCategoryRegistrant.POWER_TYPE.invoker().save();
-
-	}
-
-	@Override
-	public boolean loadFromFile() {
-		return super.loadFromFile()
-			&& ConfigCategoryRegistrant.HUD_ELEMENT_TYPE.invoker().load()
-			&& ConfigCategoryRegistrant.POWER_TYPE.invoker().load();
 	}
 
 	@AllArgsConstructor
@@ -77,7 +59,8 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 
 		public static final Codec<PlaceholderIdentifier> CODEC = RecordCodecBuilder.create(instance -> instance
 			.group(Codec.BOOL.fieldOf("enabled").forGetter(PlaceholderIdentifier::enabled))
-			.apply(instance, PlaceholderIdentifier::new));
+			.apply(instance, PlaceholderIdentifier::new)
+		);
 
 		private boolean enabled;
 

@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers
 import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
 import io.github.eggohito.neo_apoli.client.impl.log.NeoApoliClientLoggerImpl;
 import io.github.eggohito.neo_apoli.client.impl.tag.NestedTagCacheClientImpl;
+import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
 import io.github.eggohito.neo_apoli.client.power.manager.ClientPowerManager;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
@@ -22,7 +23,9 @@ public class NeoApoliClient implements ClientModInitializer {
 	public void onInitializeClient() {
 
 		NeoApoliClientboundPacketListener.init();
+
 		PowerClientIntegrations.registerAll();
+		ClientConfigIntegrations.init();
 
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();

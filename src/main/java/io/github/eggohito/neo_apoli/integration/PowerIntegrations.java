@@ -15,9 +15,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.gameevent.GameEvent;
 
-public class PowerIntegrations {
+public final class PowerIntegrations {
 
-	public static void registerAll() {
+	public static void init() {
 		ServerPlayerEvents.AFTER_RESPAWN.register(Powers.ID, PowerIntegrations::onRespawnCallback);
 		EntityElytraEvents.ALLOW.register(PowerIntegrations::allowPowerElytraFlight);
 		EntityElytraEvents.CUSTOM.register(PowerIntegrations::onPowerElytraFlight);

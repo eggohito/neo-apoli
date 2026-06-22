@@ -6,10 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
-import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.config.AbstractJsonCodecConfig;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
@@ -33,7 +31,6 @@ import org.quiltmc.parsers.json.JsonFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -258,7 +255,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	}
 
-	public static final class Config extends AbstractJsonCodecConfig<Config> implements ConfigCategoryRegistrant.Entry {
+	public static final class Config extends AbstractJsonCodecConfig<Config> {
 
 		public static final Config INSTANCE = new Config();
 		public static final int VERSION = 1;
@@ -286,23 +283,6 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 			return builder.build();
 
-		}
-
-		//  TODO: Re-add the option for being able to modify the list of ignored fields
-		//        (currently removed due to how list options are implemented in YACL's API)
-		@Override
-		public void addGroup(Consumer<OptionGroup> adder) {
-
-		}
-
-		@Override
-		public boolean load() {
-			return this.loadFromFile();
-		}
-
-		@Override
-		public void save() {
-			this.saveToFile();
 		}
 
 	}
