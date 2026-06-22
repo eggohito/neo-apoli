@@ -8,7 +8,21 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public record CachedBlock(BlockPos pos, BlockState state, @Nullable BlockEntity entity) {
+
+	public static Optional<CachedBlock> optionallyFromLoadedPos(Level level, BlockPos pos) {
+
+		try {
+			return Optional.of(fromLoadedPos(level, pos));
+		}
+
+		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+			return Optional.empty();
+		}
+
+	}
 
 	public static CachedBlock fromLoadedPos(Level level, BlockPos pos) {
 

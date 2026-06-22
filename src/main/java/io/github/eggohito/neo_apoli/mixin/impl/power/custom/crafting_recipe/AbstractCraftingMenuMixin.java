@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.crafting_recipe;
 
-import io.github.eggohito.neo_apoli.impl.misc.PowerCraftingInventory;
+import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -22,8 +22,8 @@ public abstract class AbstractCraftingMenuMixin {
 	@Inject(method = "addResultSlot", at = @At("TAIL"))
 	void cachePlayerWhenAddingResultSlot(Player player, int x, int y, CallbackInfoReturnable<Slot> cir) {
 
-		if (this.craftSlots instanceof PowerCraftingInventory powerCraftingInventory) {
-			powerCraftingInventory.neo_apoli$setEntity(player);
+		if (this.craftSlots instanceof PowerCrafting powerCrafting) {
+			powerCrafting.neo_apoli$setEntity(player);
 		}
 
 	}

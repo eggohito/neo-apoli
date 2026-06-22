@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.impl.misc.PowerCraftingInventory;
+import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
@@ -27,11 +27,11 @@ public record PowerCraftingRecipe(PowerIdentifier power, CraftingRecipe delegate
 	@Override
 	public boolean matches(CraftingInput input, Level world) {
 
-		if (!(input instanceof PowerCraftingInventory pci)) {
+		if (!(input instanceof PowerCrafting powerCrafting)) {
 			return false;
 		}
 
-		CraftingRecipe powerDefinedRecipe = Powers.getOptional(pci.neo_apoli$getEntity())
+		CraftingRecipe powerDefinedRecipe = Powers.getOptional(powerCrafting.neo_apoli$getEntity())
 			.flatMap(powers -> powers.getOptionalInstance(this.power()))
 			.filter(CraftingRecipePower.Instance.class::isInstance)
 			.map(CraftingRecipePower.Instance.class::cast)

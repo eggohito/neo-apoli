@@ -197,6 +197,16 @@ public final class NeoApoliPowerTypes {
 		params -> params.required(ModifyClimbingPower.CLIMBED_BLOCK)
 	);
 
+	public static final Power.Type<ModifyRecipeCraftingPower> MODIFY_RECIPE_CRAFTING = registerInternal(
+		"modify/recipe/crafting",
+		ModifyRecipeCraftingPower.CODEC,
+		ModifyRecipeCraftingPower.STREAM_CODEC,
+		keys -> keys
+			.optional(ModifyRecipeCraftingPower.CRAFTING_BLOCK)
+			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM_SLOT)
+			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM)
+	);
+
 	public static final Power.Type<ModifyDamageDealtPower> MODIFY_DAMAGE_DEALT = registerInternal(
 		"modify/damage/dealt",
 		ModifyDamageDealtPower.CODEC,
