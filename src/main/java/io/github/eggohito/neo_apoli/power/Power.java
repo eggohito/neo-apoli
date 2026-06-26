@@ -122,7 +122,7 @@ public interface Power extends ContextUser {
 			else {
 				MiscUtil.handleResult(
 					this.encodeData(ops),
-					tag -> MiscUtil.sendToTracking(holder, ClientboundPowerDataUpdatePacket.single(holder.getId(), ops, id, tag)),
+					tag -> MiscUtil.broadcastCustomToAll(holder, () -> ClientboundPowerDataUpdatePacket.single(holder.getId(), ops, id, tag)),
 					warning -> NeoApoli.LOGGER.warn("Couldn't fully encode instance data of {} to send to entity {} (sending partially encoded data): {}", id.asDisplayString(false), holder.getName().getString(), warning),
 					error -> NeoApoli.LOGGER.error("Couldn't encode instance data of {} to send to entity {}! (skipping): {}", id.asDisplayString(false), holder.getName().getString(), error)
 				);

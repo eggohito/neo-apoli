@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,6 +31,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
@@ -46,6 +48,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -319,19 +322,41 @@ public class MiscUtil {
 		};
 	}
 
-	public static void sendToTracking(Entity tracked, CustomPacketPayload payload) {
+	public static void broadcastCustomToAll(Entity tracked, Supplier<CustomPacketPayload> customPacket) {
+		broadcastCustom(null, tracked, customPacket);
+	}
+
+	public static void broadcastCustom(@Nullable Player except, Entity tracked, Supplier<CustomPacketPayload> customPacket) {
 
 		Set<ServerPlayer> trackers = getTrackingOrEmpty(tracked);
-		CustomPacketPayload.Type<?> type = payload.type();
+		Supplier<CustomPacketPayload> memoizedPacket = Suppliers.memoize(customPacket::get);
 
 		for (var tracker : trackers) {
 
-			if (ServerPlayNetworking.canSend(tracker, type)) {
-				ServerPlayNetworking.send(tracker, payload);
+			CustomPacketPayload actual = memoizedPacket.get();
+
+			if (except != tracker && ServerPlayNetworking.canSend(tracker, actual.type())) {
+				ServerPlayNetworking.send(tracker, actual);
 			}
 
-			else {
-				NeoApoli.LOGGER.debug("Couldn't send payload of type \"{}\" to entity {}!", type.id(), tracker.getName().getString());
+		}
+
+	}
+
+	public static void broadcastToAll(Entity tracked, Supplier<Packet<?>> packet) {
+		broadcast(null, tracked, packet);
+	}
+
+	public static void broadcast(@Nullable Player except, Entity tracked, Supplier<Packet<?>> packet) {
+
+		Set<ServerPlayer> trackers = getTrackingOrEmpty(tracked);
+		Supplier<Packet<?>> memoizedPacket = Suppliers.memoize(packet::get);
+
+		for (var tracker : trackers) {
+
+			//noinspection ConstantValue
+			if (tracker != except && tracker.connection != null) {
+				tracker.connection.send(memoizedPacket.get());
 			}
 
 		}

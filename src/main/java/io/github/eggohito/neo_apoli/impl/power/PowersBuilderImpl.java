@@ -74,11 +74,11 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 		if (revoked || granted) {
 
 			if (revoked) {
-				MiscUtil.sendToTracking(holder, new ClientboundRevokePowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.revokedPowers)));
+				MiscUtil.broadcastCustomToAll(holder, () -> new ClientboundRevokePowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.revokedPowers)));
 			}
 
 			if (granted) {
-				MiscUtil.sendToTracking(holder, new ClientboundGrantPowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.grantedPowers)));
+				MiscUtil.broadcastCustomToAll(holder, () -> new ClientboundGrantPowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.grantedPowers)));
 			}
 
 			this.holder.setAttached(NeoApoliEntityAttachments.POWERS, new PowersAttachment(instances, sources));
@@ -282,7 +282,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 		powers.build();
 
 		if (!pendingDataSync.isEmpty()) {
-			MiscUtil.sendToTracking(player, ClientboundPowerDataUpdatePacket.bulk(player.getId(), ops, pendingDataSync));
+			MiscUtil.broadcastCustomToAll(player, () -> ClientboundPowerDataUpdatePacket.bulk(player.getId(), ops, pendingDataSync));
 		}
 
 	}

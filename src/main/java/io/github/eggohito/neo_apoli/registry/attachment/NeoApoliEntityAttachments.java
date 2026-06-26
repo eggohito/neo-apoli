@@ -1,10 +1,13 @@
 package io.github.eggohito.neo_apoli.registry.attachment;
 
+import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import org.jetbrains.annotations.ApiStatus;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class NeoApoliEntityAttachments {
@@ -17,7 +20,14 @@ public final class NeoApoliEntityAttachments {
 		.persistent(PowersAttachment.CODEC)
 		.syncWith(PowersAttachment.STREAM_CODEC, AttachmentSyncPredicate.all())
 		.initializer(PowersAttachment::new)
-		.copyOnDeath());
+		.copyOnDeath()
+	);
+
+	/**
+	 *  An attachment specifically for tracking whether a player is riding another player.
+	 */
+	@ApiStatus.Internal
+	public static final AttachmentType<Boolean> IS_RIDING_PLAYER = AttachmentRegistry.createPersistent(NeoApoli.id("is_riding_player"), Codec.BOOL);
 
 	public static void registerAll() {
 

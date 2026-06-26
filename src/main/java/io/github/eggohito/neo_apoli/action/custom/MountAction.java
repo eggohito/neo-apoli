@@ -4,28 +4,29 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundMountEntityPacket;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 
-public record MountAction(BooleanProvider force, EntityProvider vehicle, EntityProvider passenger) implements Action {
+import java.util.Set;
+
+public record MountAction(EntityProvider vehicle, EntityProvider passenger, BooleanProvider force) implements Action {
 
 	public static final MapCodec<MountAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BooleanProvider.CODEC.optionalFieldOf("force", new ConstantBooleanProvider(false)).forGetter(MountAction::force),
 		EntityProvider.CODEC.fieldOf("vehicle").forGetter(MountAction::vehicle),
-		EntityProvider.CODEC.fieldOf("passenger").forGetter(MountAction::passenger)
+		EntityProvider.CODEC.fieldOf("passenger").forGetter(MountAction::passenger),
+		BooleanProvider.CODEC.optionalFieldOf("force", new ConstantBooleanProvider(false)).forGetter(MountAction::force)
 	).apply(instance, MountAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, MountAction> STREAM_CODEC = StreamCodec.composite(
-		BooleanProvider.STREAM_CODEC, MountAction::force,
 		EntityProvider.STREAM_CODEC, MountAction::vehicle,
 		EntityProvider.STREAM_CODEC, MountAction::passenger,
+		BooleanProvider.STREAM_CODEC, MountAction::force,
 		MountAction::new
 	);
 
@@ -44,15 +45,14 @@ public record MountAction(BooleanProvider force, EntityProvider vehicle, EntityP
 		Entity vehicle = vehicle().getEntity(context.forChild(".vehicle")).orElse(null);
 		Entity passenger = passenger().getEntity(context.forChild(".passenger")).orElse(null);
 
-		if (vehicle == null || passenger == null) {
-			return;
-		}
+		if (vehicle != null && passenger != null && passenger.getSelfAndPassengers().noneMatch(entity -> entity == vehicle)) {
 
-		boolean force = force().getBoolean(context.forChild(".force"));
-		boolean startedRiding = passenger.startRiding(vehicle, force);
+			if (vehicle.level() != passenger.level()) {
+				passenger.teleportTo((ServerLevel) vehicle.level(), vehicle.getX(), vehicle.getY(), vehicle.getZ(), Set.of(), 0.0F, 0.0F, true);
+			}
 
-		if (startedRiding) {
-			MiscUtil.sendToTracking(vehicle, new ClientboundMountEntityPacket(passenger, vehicle, force));
+			passenger.startRiding(vehicle, force().getBoolean(context.forChild(".force")));
+
 		}
 
 	}
@@ -60,9 +60,9 @@ public record MountAction(BooleanProvider force, EntityProvider vehicle, EntityP
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
-		force().validate(validator.forChild(".force"));
 		vehicle().validate(validator.forChild(".vehicle"));
 		passenger().validate(validator.forChild(".passenger"));
+		force().validate(validator.forChild(".force"));
 	}
 
 }
