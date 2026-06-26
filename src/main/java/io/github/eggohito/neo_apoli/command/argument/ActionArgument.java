@@ -59,8 +59,10 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 		}
 
 		catch (CommandSyntaxException ignored) {
-			reader.setCursor(prevCursor);
+
 		}
+
+		reader.setCursor(prevCursor);
 
 		try {
 
@@ -76,8 +78,10 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 		}
 
 		catch (CommandSyntaxException ignored) {
-			reader.setCursor(prevCursor);
+
 		}
+
+		reader.setCursor(prevCursor);
 
 		try {
 
@@ -90,9 +94,10 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 		}
 
 		catch (CommandSyntaxException ignored) {
-			reader.setCursor(prevCursor);
+
 		}
 
+		reader.setCursor(prevCursor);
 		throw INVALID_REFERENCE_INLINE_OR_TAG.createWithContext(reader);
 
 	}
@@ -108,11 +113,15 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 
 	}
 
-	public static ActionArgument action(HolderLookup.Provider registries) {
+	public static ActionArgument id(HolderLookup.Provider registries) {
 		return new ActionArgument(registries, false, false);
 	}
 
-	public static ActionArgument inlineAction(HolderLookup.Provider registries) {
+	public static ActionArgument idOrTag(HolderLookup.Provider registries) {
+		return new ActionArgument(registries, false, true);
+	}
+
+	public static ActionArgument idOrTagOrInline(HolderLookup.Provider registries) {
 		return new ActionArgument(registries, true, true);
 	}
 

@@ -46,7 +46,7 @@ public class ActionCommand {
 		public static CommandNode<CommandSourceStack> node(CommandBuildContext buildContext) {
 
 			var node = literal("dump")
-				.then(argument("action", ActionArgument.action(buildContext))
+				.then(argument("action", ActionArgument.id(buildContext))
 					.executes(Dump::withDefaultIndent)
 					.then(argument("indent", IntegerArgumentType.integer(0))
 						.executes(Dump::withSpecificIndent)));
@@ -92,7 +92,7 @@ public class ActionCommand {
 			var executeNode = literal("execute").build();
 			var withNode = literal("with").build();
 			var forNode = literal("for").build();
-			var actionNode = argument("action", ActionArgument.inlineAction(buildContext)).executes(Execute::execute).build();
+			var actionNode = argument("action", ActionArgument.idOrTagOrInline(buildContext)).executes(Execute::execute).build();
 
 			NeoApoliContextParams.addAsArguments(buildContext, executeNode, withNode);
 
