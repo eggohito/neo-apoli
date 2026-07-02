@@ -14,6 +14,7 @@ public final class NeoApoliDirectionProviderTypes {
 	public static final DirectionProvider.Type<ConditionalDirectionProvider> CONDITIONAL = registerInternal("conditional", ConditionalDirectionProvider.CODEC, ConditionalDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<ConstantDirectionProvider> CONSTANT = registerInternal("constant", ConstantDirectionProvider.CODEC, ConstantDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<ContextDirectionProvider> CONTEXT = registerInternal("context", ContextDirectionProvider.CODEC, ContextDirectionProvider.STREAM_CODEC);
+	public static final DirectionProvider.Type<OppositeDirectionProvider> OPPOSITE = registerInternal("opposite", OppositeDirectionProvider.CODEC, OppositeDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<RotateDirectionProvider> ROTATE = registerInternal("rotate", RotateDirectionProvider.CODEC, RotateDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<SwitchDirectionProvider> SWITCH = registerInternal("switch", SwitchDirectionProvider.CODEC, SwitchDirectionProvider.STREAM_CODEC);
 
