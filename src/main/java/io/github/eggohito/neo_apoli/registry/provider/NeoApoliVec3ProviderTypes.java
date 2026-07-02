@@ -14,6 +14,7 @@ public final class NeoApoliVec3ProviderTypes {
 	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConditionalVec3Provider> CONDITIONAL = registerInternal("conditional", ConditionalVec3Provider.CODEC, ConditionalVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<DirectionVec3Provider> DIRECTION = registerInternal("direction", DirectionVec3Provider.CODEC, DirectionVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.CODEC, DynamicVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<EntityPositionVec3Provider> ENTITY_POSITION = registerInternal("entity/position", EntityPositionVec3Provider.CODEC, EntityPositionVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<EntityVelocityVec3Provider> ENTITY_VELOCITY = registerInternal("entity/velocity", EntityVelocityVec3Provider.CODEC, EntityVelocityVec3Provider.STREAM_CODEC);
