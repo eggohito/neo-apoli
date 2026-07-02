@@ -105,8 +105,6 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliServerboundPacketListener.init();
 
-		getConfig().loadFromFile();
-
 		PowerIntegrations.init();
 		CommonConfigIntegrations.init();
 
@@ -124,14 +122,6 @@ public class NeoApoli implements ModInitializer {
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).neo_apoli$sendAll(player));
-
-		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-
-			if (success) {
-				getConfig().loadFromFile();
-			}
-
-		});
 
 	}
 

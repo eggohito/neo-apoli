@@ -20,10 +20,9 @@ public final class ClientConfigIntegrations {
 
 		ResourceBarHudElement.Config.INSTANCE.loadFromFile();
 
-		ConfigCategoryRegistrant.POWER_TYPE.register(multipleConfigCategory());
-		ConfigCategoryRegistrant.POWER_TYPE.register(modifyPlayerSpawnCategory());
-
 		ConfigCategoryRegistrant.HUD_ELEMENT_TYPE.register(resourceBarCategory());
+		ConfigCategoryRegistrant.POWER_TYPE.register(modifyPlayerSpawnCategory());
+		ConfigCategoryRegistrant.POWER_TYPE.register(multipleConfigCategory());
 
 	}
 
