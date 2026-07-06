@@ -25,6 +25,17 @@ public final class NeoApoliPowerTypes {
 			.optional(NeoApoliContextParams.BROKEN_SIDE)
 	);
 
+	public static final Power.Type<CallbackBlockPlacePower> CALLBACK_BLOCK_PLACE = registerInternal(
+		"callback/block/place",
+		CallbackBlockPlacePower.CODEC,
+		CallbackBlockPlacePower.STREAM_CODEC,
+		builder -> builder
+			.required(CallbackBlockPlacePower.PLACED_ON_BLOCK)
+			.required(CallbackBlockPlacePower.PLACED_SIDE)
+			.required(NeoApoliContextParams.USED_ITEM)
+			.required(NeoApoliContextParams.USED_ITEM_SLOT)
+	);
+
 	public static final Power.Type<CallbackDamageDealtPower> CALLBACK_DAMAGE_DEALT = registerInternal(
 		"callback/damage/dealt",
 		CallbackDamageDealtPower.CODEC,
@@ -144,6 +155,7 @@ public final class NeoApoliPowerTypes {
 		ModifyAirSpeedPower.STREAM_CODEC,
 		UnaryOperator.identity()
 	);
+
 	public static final Power.Type<ModifyAttributePower> MODIFY_ATTRIBUTE = registerInternal(
 		"modify/attribute",
 		ModifyAttributePower.CODEC,
@@ -195,16 +207,6 @@ public final class NeoApoliPowerTypes {
 		ModifyClimbingPower.CODEC,
 		ModifyClimbingPower.STREAM_CODEC,
 		params -> params.required(ModifyClimbingPower.CLIMBED_BLOCK)
-	);
-
-	public static final Power.Type<ModifyRecipeCraftingPower> MODIFY_RECIPE_CRAFTING = registerInternal(
-		"modify/recipe/crafting",
-		ModifyRecipeCraftingPower.CODEC,
-		ModifyRecipeCraftingPower.STREAM_CODEC,
-		keys -> keys
-			.optional(ModifyRecipeCraftingPower.CRAFTING_BLOCK)
-			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM_SLOT)
-			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM)
 	);
 
 	public static final Power.Type<ModifyDamageDealtPower> MODIFY_DAMAGE_DEALT = registerInternal(
@@ -380,6 +382,16 @@ public final class NeoApoliPowerTypes {
 		ModifyPlayerSpawnPower.CODEC,
 		ModifyPlayerSpawnPower.STREAM_CODEC,
 		UnaryOperator.identity()
+	);
+
+	public static final Power.Type<ModifyRecipeCraftingPower> MODIFY_RECIPE_CRAFTING = registerInternal(
+		"modify/recipe/crafting",
+		ModifyRecipeCraftingPower.CODEC,
+		ModifyRecipeCraftingPower.STREAM_CODEC,
+		keys -> keys
+			.optional(ModifyRecipeCraftingPower.CRAFTING_BLOCK)
+			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM_SLOT)
+			.optional(ModifyRecipeCraftingPower.CRAFTED_ITEM)
 	);
 
 	public static final Power.Type<MultiplePower> MULTIPLE = registerInternal(
