@@ -99,7 +99,7 @@ public final class StreamCodecUtil {
 	}
 
 	public static <B extends ByteBuf, A> StreamCodec<B, A> lazy(Supplier<StreamCodec<B, A>> delegate) {
-		return lazy(delegate.toString(), delegate);
+		return lazy(delegate.toString(), Suppliers.memoize(delegate::get));
 	}
 
 	public static <B extends ByteBuf, A> StreamCodec<B, A> lazy(String name, Supplier<StreamCodec<B, A>> delegate) {

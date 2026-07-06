@@ -5,6 +5,8 @@
 	"mixins": [
 		"access.AABBAccessor",
 		"access.BlockInputAccessor",
+		"access.BlockInWorldAccessor",
+		"access.BlockPatternAccessor",
 		"access.CommandSourceStackAccessor",
 		"access.CommandStorageAccessor",
 		"access.CommandStorageAccessor$ContainerAccessor",

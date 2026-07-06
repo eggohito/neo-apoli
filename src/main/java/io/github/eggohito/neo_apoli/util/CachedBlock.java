@@ -2,10 +2,12 @@ package io.github.eggohito.neo_apoli.util;
 
 import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
 import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
+import io.github.eggohito.neo_apoli.mixin.access.BlockInWorldAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -22,6 +24,13 @@ public record CachedBlock(BlockPos pos, BlockState state, @Nullable BlockEntity 
 			return Optional.empty();
 		}
 
+	}
+
+	@SuppressWarnings("ConstantValue")
+	public static Optional<CachedBlock> optionallyFromWorld(BlockInWorld block) {
+		return (((BlockInWorldAccessor) block).doesLoadChunks() || block.getState() != null)
+			? Optional.of(new CachedBlock(block.getPos(), block.getState(), block.getEntity()))
+			: Optional.empty();
 	}
 
 	public static CachedBlock fromLoadedPos(Level level, BlockPos pos) {

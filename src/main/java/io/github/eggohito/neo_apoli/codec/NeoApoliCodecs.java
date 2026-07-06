@@ -214,5 +214,6 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = Codec.either(STRUCTURE_KEY, STRUCTURE_TAG);
 
+	public static final Codec<Character> CHARACTER = Codec.STRING.comapFlatMap(MiscUtil::validateStringAsCharacter, String::valueOf);
 
 }

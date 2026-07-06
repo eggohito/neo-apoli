@@ -150,4 +150,6 @@ public class NeoApoliStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = ByteBufCodecs.either(STRUCTURE_KEY, STRUCTURE_TAG);
 
+	public static final StreamCodec<ByteBuf, Character> CHARACTER = ByteBufCodecs.STRING_UTF8.map(MiscUtil::unsafelyAssumeStringAsCharacter, String::valueOf);
+
 }

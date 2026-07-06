@@ -37,8 +37,8 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<IsEntityClimbingCondition> IS_ENTITY_CLIMBING = registerInternal("is_entity_climbing", IsEntityClimbingCondition.CODEC, IsEntityClimbingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityFallFlyingCondition> IS_ENTITY_FALL_FLYING = registerInternal("is_entity_fall_flying", IsEntityFallFlyingCondition.CODEC, IsEntityFallFlyingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityHorizontallyCollidingCondition> IS_ENTITY_HORIZONTALLY_COLLIDING = registerInternal("is_entity_horizontally_colliding", IsEntityHorizontallyCollidingCondition.CODEC, IsEntityHorizontallyCollidingCondition.STREAM_CODEC);
-	public static final Condition.Type<IsEntityInTagCondition> IS_ENTITY_IN_TAG = registerInternal("is_entity_in_tag", IsEntityInTagCondition.CODEC, IsEntityInTagCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityInvisibleCondition> IS_ENTITY_INVISIBLE = registerInternal("is_entity_invisible", IsEntityInvisibleCondition.CODEC, IsEntityInvisibleCondition.STREAM_CODEC);
+	public static final Condition.Type<IsEntityInTagCondition> IS_ENTITY_IN_TAG = registerInternal("is_entity_in_tag", IsEntityInTagCondition.CODEC, IsEntityInTagCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityOfTypeCondition> IS_ENTITY_OF_TYPE = registerInternal("is_entity_of_type", IsEntityOfTypeCondition.CODEC, IsEntityOfTypeCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityOnFireCondition> IS_ENTITY_ON_FIRE = registerInternal("is_entity_on_fire", IsEntityOnFireCondition.CODEC, IsEntityOnFireCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityOwnedByOtherCondition> IS_ENTITY_OWNED_BY_OTHER = registerInternal("is_entity_owned_by_other", IsEntityOwnedByOtherCondition.CODEC, IsEntityOwnedByOtherCondition.STREAM_CODEC);
@@ -49,6 +49,7 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<IsExposedToSkyCondition> IS_EXPOSED_TO_SKY = registerInternal("is_exposed_to_sky", IsExposedToSkyCondition.CODEC, IsExposedToSkyCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesIngredientCondition> ITEM_MATCHES_INGREDIENT = registerInternal("item_matches_ingredient", ItemMatchesIngredientCondition.CODEC, ItemMatchesIngredientCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesPredicateCondition> ITEM_MATCHES_PREDICATE = registerInternal("item_matches_predicate", ItemMatchesPredicateCondition.CODEC, ItemMatchesPredicateCondition.STREAM_CODEC);
+	public static final Condition.Type<MatchesBlockPatternCondition> MATCHES_BLOCK_PATTERN = registerInternal("matches_block_pattern", MatchesBlockPatternCondition.CODEC, MatchesBlockPatternCondition.STREAM_CODEC);
 	public static final Condition.Type<ReferenceCondition> REFERENCE = registerInternal("reference", ReferenceCondition.CODEC, ReferenceCondition.STREAM_CODEC);
 
 	public static void registerAll() {

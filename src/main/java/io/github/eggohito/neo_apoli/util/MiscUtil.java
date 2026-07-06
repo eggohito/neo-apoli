@@ -526,4 +526,14 @@ public class MiscUtil {
 
 	}
 
+	public static DataResult<Character> validateStringAsCharacter(String string) {
+		return string.length() == 1
+			? DataResult.success(string.charAt(0))
+			: DataResult.error(() -> "'" + string + "' is an invalid symbol! (must be 1 character only)");
+	}
+
+	public static char unsafelyAssumeStringAsCharacter(String string) {
+		return validateStringAsCharacter(string).getOrThrow();
+	}
+
 }
