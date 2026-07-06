@@ -167,7 +167,7 @@ public final class ContextBlockPattern implements ContextValidatable {
 		Char2ObjectMap<Condition> whereCopy = new Char2ObjectArrayMap<>(this.where);
 		whereCopy.remove(RESERVED_SYMBOL);
 
-		return DataResult.success(new Data(pattern, this.where));
+		return DataResult.success(new Data(pattern, whereCopy));
 
 	}
 
