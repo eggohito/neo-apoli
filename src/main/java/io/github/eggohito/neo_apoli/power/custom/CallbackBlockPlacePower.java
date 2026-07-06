@@ -64,6 +64,12 @@ public record CallbackBlockPlacePower(Optional<Condition> activeCondition, Actio
 		return new Instance(this);
 	}
 
+	@Override
+	public void validate(Context.Validator validator) {
+		PrioritizedPower.super.validate(validator);
+		onPlaceAction().validate(validator.forChild(".on_place_action"));
+	}
+
 	public static final class Instance extends Power.Instance<CallbackBlockPlacePower> {
 
 		Instance(@NotNull CallbackBlockPlacePower power) {
