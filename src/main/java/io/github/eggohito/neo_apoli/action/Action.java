@@ -15,7 +15,9 @@ import net.minecraft.network.codec.StreamCodec;
 
 public interface Action extends ContextExecutor {
 
-	Codec<Action> CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(Action::getType, Type::mapCodec), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions)));
+	MapCodec<Action> MAP_CODEC = Type.CODEC.dispatchMap(Action::getType, Type::mapCodec);
+
+	Codec<Action> CODEC = Codec.recursive(Action.class.getSimpleName(), codec -> new MultiAlternativeCodec<>(MAP_CODEC.codec(), codec.listOf().xmap(SequenceAction::new, SequenceAction::actions)));
 
 	StreamCodec<RegistryFriendlyByteBuf, Action> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Action::getType, Type::streamCodec);
 

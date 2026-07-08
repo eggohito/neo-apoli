@@ -13,17 +13,14 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.NotNull;
@@ -88,18 +85,10 @@ public final class ServerConditionManager extends ConditionManager implements Id
 
 	}
 
-	private static void onConfigure(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
-
-		if (ServerConfigurationNetworking.canSend(handler, ClientboundUpdateConditionsPacket.TYPE)) {
-			handler.addTask(new SynchronizeTask(server.registryAccess()));
-		}
-
-	}
-
-	private static void onReload(ServerPlayer player, boolean joined) {
+	private static void sync(ServerPlayer player, boolean joined) {
 
 		if (!joined) {
-			send(player.registryAccess(), packet -> ServerPlayNetworking.send(player, packet));
+			send(packet -> ServerPlayNetworking.send(player, packet));
 		}
 
 	}
@@ -112,8 +101,8 @@ public final class ServerConditionManager extends ConditionManager implements Id
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ServerConditionManager::new);
 
-		ServerConfigurationConnectionEvents.CONFIGURE.register(ID, ServerConditionManager::onConfigure);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerConditionManager::onReload);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerConditionManager::sync);
+		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> sync(handler.player, false));
 
 	}
 

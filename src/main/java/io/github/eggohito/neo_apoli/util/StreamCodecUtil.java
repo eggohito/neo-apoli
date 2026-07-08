@@ -169,4 +169,34 @@ public final class StreamCodecUtil {
 		return streamCodec -> ByteBufCodecs.collection(ObjectOpenHashSet::new, streamCodec);
 	}
 
+	public static <B extends ByteBuf, T> StreamCodec.CodecOperation<B, T, T> handled(Consumer<Exception> onDecode, Consumer<Exception> onEncode) {
+		return streamCodec -> new StreamCodec<>() {
+
+			@Override
+			public @NotNull T decode(B object) {
+
+				try {
+					return streamCodec.decode(object);
+				} catch (Exception e) {
+					onDecode.accept(e);
+					throw e;
+				}
+
+			}
+
+			@Override
+			public void encode(B object, T object2) {
+
+				try {
+					streamCodec.encode(object, object2);
+				} catch (Exception e) {
+					onEncode.accept(e);
+					throw e;
+				}
+
+			}
+
+		};
+	}
+
 }

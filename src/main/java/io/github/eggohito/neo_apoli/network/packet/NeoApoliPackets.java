@@ -14,23 +14,9 @@ public final class NeoApoliPackets {
 
 	public static void registerAll() {
 
-		PayloadTypeRegistry.configurationC2S().register(PowerManager.ServerboundSyncAcknowledgedPacket.TYPE, PowerManager.ServerboundSyncAcknowledgedPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(PowerManager.ClientboundSyncInitiatedPacket.TYPE, PowerManager.ClientboundSyncInitiatedPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(PowerManager.ClientboundUpdatePowerTagsPacket.TYPE, PowerManager.ClientboundUpdatePowerTagsPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(PowerManager.ClientboundUpdatePowersPacket.TYPE, PowerManager.ClientboundUpdatePowersPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(PowerManager.ClientboundUpdatePowerTagsPacket.TYPE, PowerManager.ClientboundUpdatePowerTagsPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(PowerManager.ClientboundUpdatePowersPacket.TYPE, PowerManager.ClientboundUpdatePowersPacket.CODEC);
-
-		PayloadTypeRegistry.configurationC2S().register(ActionManager.ServerboundSyncAcknowledgedPacket.TYPE, ActionManager.ServerboundSyncAcknowledgedPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(ActionManager.ClientboundSyncInitiatedPacket.TYPE, ActionManager.ClientboundSyncInitiatedPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(ActionManager.ClientboundUpdateActionTagsPacket.TYPE, ActionManager.ClientboundUpdateActionTagsPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(ActionManager.ClientboundUpdateActionsPacket.TYPE, ActionManager.ClientboundUpdateActionsPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(ActionManager.ClientboundUpdateActionTagsPacket.TYPE, ActionManager.ClientboundUpdateActionTagsPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(ActionManager.ClientboundUpdateActionsPacket.TYPE, ActionManager.ClientboundUpdateActionsPacket.CODEC);
-
-		PayloadTypeRegistry.configurationC2S().register(ConditionManager.ServerboundSyncAcknowledgedPacket.TYPE, ConditionManager.ServerboundSyncAcknowledgedPacket.CODEC);
-		PayloadTypeRegistry.configurationS2C().register(ConditionManager.ClientboundUpdateConditionsPacket.TYPE, ConditionManager.ClientboundUpdateConditionsPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(ConditionManager.ClientboundUpdateConditionsPacket.TYPE, ConditionManager.ClientboundUpdateConditionsPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ActionManager.ClientboundUpdatePacket.TYPE, ActionManager.ClientboundUpdatePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ConditionManager.ClientboundUpdatePacket.TYPE, ConditionManager.ClientboundUpdatePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(PowerManager.ClientboundUpdatePacket.TYPE,  PowerManager.ClientboundUpdatePacket.CODEC);
 
 		PayloadTypeRegistry.playS2C().register(ClientboundCommandStorageUpdatePacket.TYPE, ClientboundCommandStorageUpdatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundPowerDataUpdatePacket.TYPE, ClientboundPowerDataUpdatePacket.CODEC);

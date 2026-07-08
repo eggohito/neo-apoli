@@ -7,6 +7,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -15,8 +16,7 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -24,9 +24,7 @@ import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
@@ -42,7 +40,7 @@ import java.util.concurrent.Executor;
 
 public final class ServerActionManager extends ActionManager implements IdentifiableResourceReloadListener {
 
-	private static final TagLoader<Action> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
+	private static final TagLoader<ActionHolder<?>> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
 	private static final JsonFileToIdConverter JSON_LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerActionManager.class);
@@ -81,14 +79,14 @@ public final class ServerActionManager extends ActionManager implements Identifi
 	private void applyAll(Map<ResourceLocation, JsonWithSource> unparsedActions, Map<ResourceLocation, List<TagLoader.EntryWithSource>> unparsedTags) {
 
 		LOGGER.info("Parsing actions from data packs...");
-		ImmutableMap.Builder<ResourceLocation, Action> parsedActions = ImmutableMap.builder();
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> parsedActions = ImmutableMap.builder();
 
 		unparsedActions.forEach((id, jsonWithSource) -> {
 
 			ResourceLocationUtil.setCurrent(id);
 			MiscUtil.handleResult(
 				Action.CODEC.parse(ops, jsonWithSource.json()),
-				action -> parsedActions.put(id, action),
+				action -> parsedActions.put(id, new ActionHolder<>(id, action)),
 				warning -> LOGGER.warn("Found warnings while parsing action \"{}\" from data pack [{}]: {}", id, jsonWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error)
 			);
@@ -101,7 +99,7 @@ public final class ServerActionManager extends ActionManager implements Identifi
 		LOGGER.info("Finished parsing actions from data packs. Action manager contains {} action(s)", actions.size());
 
 		LOGGER.info("Parsing action tags from data packs...");
-		Map<ResourceLocation, List<Action>> parsedTags = TAG_LOADER.build(unparsedTags);
+		Map<ResourceLocation, List<ActionHolder<?>>> parsedTags = TAG_LOADER.build(unparsedTags);
 
 		tags = ImmutableMap.copyOf(parsedTags);
 		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
@@ -112,18 +110,10 @@ public final class ServerActionManager extends ActionManager implements Identifi
 
 	}
 
-	private static void onConfigure(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
-
-		if (ServerConfigurationNetworking.canSend(handler, ClientboundSyncInitiatedPacket.TYPE)) {
-			handler.addTask(new SynchronizeTask(server.registryAccess()));
-		}
-
-	}
-
-	private static void onReload(ServerPlayer player, boolean joined) {
+	private static void sync(ServerPlayer player, boolean joined) {
 
 		if (!joined) {
-			send(player.registryAccess(), packet -> ServerPlayNetworking.send(player, packet));
+			ServerPlayNetworking.send(player, new ClientboundUpdatePacket(actions, tags));
 		}
 
 	}
@@ -133,11 +123,11 @@ public final class ServerActionManager extends ActionManager implements Identifi
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ServerActionManager::new);
 		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
 
-		ServerConfigurationConnectionEvents.CONFIGURE.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerConfigurationConnectionEvents.CONFIGURE.register(ID, ServerActionManager::onConfigure);
-
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerActionManager::onReload);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerActionManager::sync);
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> sync(handler.player, false));
 
 	}
 

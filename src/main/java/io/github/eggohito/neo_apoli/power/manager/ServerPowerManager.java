@@ -25,8 +25,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -34,10 +33,8 @@ import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
@@ -116,7 +113,7 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 
 			MiscUtil.handleResult(
 				wrappedParse(PowerHolder.CODEC.parse(ops, jsonWithSource.json())),
-				powerHolder -> register(powersBuilder::put, powerHolder),
+				powerHolder -> handle(powerHolder, powersBuilder::put),
 				warning -> LOGGER.warn("Found warnings while parsing {} from data pack [{}]: {}", powerId.asDisplayString(false), jsonWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerId.asDisplayString(false), jsonWithSource.source(), error)
 			);
@@ -199,18 +196,10 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 		);
 	}
 
-	private static void onConfigure(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
-
-		if (ServerConfigurationNetworking.canSend(handler, ClientboundSyncInitiatedPacket.TYPE)) {
-			handler.addTask(new SynchronizeTask(server.registryAccess()));
-		}
-
-	}
-
-	private static void onReload(ServerPlayer player, boolean joined) {
+	private static void sync(ServerPlayer player, boolean joined) {
 
 		if (!joined) {
-			send(player.registryAccess(), packet -> ServerPlayNetworking.send(player, packet));
+			ServerPlayNetworking.send(player, new ClientboundUpdatePacket(powers, tags));
 		}
 
 	}
@@ -220,11 +209,11 @@ public final class ServerPowerManager extends PowerManager implements Identifiab
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ServerPowerManager::new);
 		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
 
-		ServerConfigurationConnectionEvents.CONFIGURE.addPhaseOrdering(ActionManager.ID, ID);
-		ServerConfigurationConnectionEvents.CONFIGURE.register(ID, ServerPowerManager::onConfigure);
-
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerPowerManager::onReload);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerPowerManager::sync);
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ActionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register((handler, server) -> sync(handler.player, false));
 
 		PowerPreparation.EVENT.addPhaseOrdering(ID, MultiplePower.ID);
 		PowerPreparation.EVENT.register(ID, (id, jsonWithSource, directoryPath, ops) -> {

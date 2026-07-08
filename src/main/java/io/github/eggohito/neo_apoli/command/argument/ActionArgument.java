@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -137,7 +138,11 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 
 			@Override
 			public List<Action> get() throws CommandSyntaxException {
-				return ActionManager.getTag(tag().location()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+				return ActionManager.getTag(tag().location())
+					.getOrThrow(error -> MiscUtil.createCommandException(() -> error))
+					.stream()
+					.map(ActionHolder::valueGeneric)
+					.toList();
 			}
 
 		}
@@ -147,6 +152,7 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 			@Override
 			public List<Action> get() throws CommandSyntaxException {
 				return ActionManager.getAsResult(id())
+					.map(ActionHolder::valueGeneric)
 					.map(List::of)
 					.getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}

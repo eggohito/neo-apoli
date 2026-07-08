@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.action.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
@@ -36,7 +37,7 @@ public record ReferenceAction(ResourceLocation value) implements Action {
 			return;
 		}
 
-		Action action = ActionManager.get(this.value());
+		Action action = ActionManager.get(this.value()).value();
 		var visitor = context.visitor();
 
 		try {
@@ -71,6 +72,7 @@ public record ReferenceAction(ResourceLocation value) implements Action {
 
 		else {
 			ActionManager.getAsResult(this.value())
+				.map(ActionHolder::valueGeneric)
 				.ifSuccess(action -> action.validate(validator.visitChild(".{\"" + actionKey.location() + "\"}", actionKey)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 		}
