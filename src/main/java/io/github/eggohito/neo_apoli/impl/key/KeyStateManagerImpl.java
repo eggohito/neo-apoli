@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -70,8 +71,14 @@ public class KeyStateManagerImpl implements KeyStateManager {
 
 	public static void init() {
 
+	}
+
+	static {
+
+		ServerPlayNetworking.registerGlobalReceiver(ServerboundKeyStatesUpdatePacket.TYPE, (payload, context) -> payload.handle(context.player()));
+
 		ServerTickEvents.END_SERVER_TICK.register(KeyStateManagerImpl::serverTick);
-		ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> serverDisconnect(listener));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> serverDisconnect(handler));
 
 	}
 

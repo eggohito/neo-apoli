@@ -13,7 +13,6 @@ import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
-import io.github.eggohito.neo_apoli.network.NeoApoliServerboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
@@ -103,7 +102,6 @@ public class NeoApoli implements ModInitializer {
 		GlobalPowerSetManager.init();
 
 		NeoApoliPackets.registerAll();
-		NeoApoliServerboundPacketListener.init();
 
 		PowerIntegrations.init();
 		CommonConfigIntegrations.init();
