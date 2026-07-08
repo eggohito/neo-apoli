@@ -10,34 +10,31 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 public class ComponentUtil {
 
 	/**
-	 * 	<p>Forcefully constructs a translatable text out of the {@code translationKey} and {@code altText} arguments.
+	 * 	<p>Constructs a translatable text out of the {@code translationKey} and {@code text} arguments.
 	 * 	The resulting translatable text may differ according to the following scenarios:</p>
 	 *
 	 * 	<ol>
 	 * 	    <li>
-	 * 	        If {@code altText} is empty, a traditional translatable text will be constructed
+	 * 	        If the contents of {@code text} is empty, a traditional translatable text will be constructed
 	 * 	        (via {@link Component#translatable(String)}.)
 	 * 	    </li>
 	 * 	    <li>
-	 * 	        If {@code altText} is already a translatable text, it will be used as is.
+	 * 	        If {@code text} is already a translatable text, it will be used as is.
 	 * 	    </li>
 	 * 	    <li>
-	 * 	        If {@code altText} is a literal string, the string will be used as a fallback translation for the
+	 * 	        If {@code text} is a literal string, the string will be used as a fallback translation for the
 	 * 	        translatable text (constructed via {@link Component#translatableWithFallback(String, String)}.)
 	 * 	    </li>
 	 * 	    <li>
-	 * 	        If neither of the above scenarios are inapplicable, a {@linkplain TranslatableContentsWithTextFallback forced
-	 * 	        translatable text} will be constructed with {@code altText} serving as its fallback text.
+	 * 	        If neither of the above scenarios are applicable, a {@link TranslatableContentsWithTextFallback} will
+	 * 	        be constructed with {@code text} serving as its fallback text.
 	 * 	    </li>
 	 * 	</ol>
 	 *
 	 * @param translationKey	the key of the translatable text that will be translated
 	 * @param text			the text to use as a fallback if a traditional translatable text can't be constructed
-	 *
-	 * @return	either a traditional translatable text (if {@code altText} is not null, and a literal string, or a
-	 * 			translatable text), or a {@link TranslatableContentsWithTextFallback}.
 	 */
-	public static Component forceTranslatable(String translationKey, Component text) {
+	public static Component translatable(String translationKey, Component text) {
 
 		ComponentContents content = text.getContents();
 		String literal = text.tryCollapseToString();

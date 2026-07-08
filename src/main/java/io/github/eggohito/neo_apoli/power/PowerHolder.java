@@ -54,8 +54,8 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 
 		String translationKey = id.createTranslationKey();
 
-		name = ComponentUtil.forceTranslatable(translationKey + ".name", name);
-		description = ComponentUtil.forceTranslatable(translationKey + ".description", description);
+		name = ComponentUtil.translatable(translationKey + ".name", name);
+		description = ComponentUtil.translatable(translationKey + ".description", description);
 		hidden = hidden || id.isSubPower();
 
 	}
