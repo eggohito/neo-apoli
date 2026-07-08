@@ -47,12 +47,9 @@ public final class ContextBlockPattern implements ContextValidatable {
 	
 	private static final Joiner COMMA_JOINED = Joiner.on(", ");
 	private static final char RESERVED_SYMBOL = ' ';
-	
-	private static final Codec<Character> SYMBOL_CODEC = NeoApoliCodecs.CHARACTER.validate(ContextBlockPattern::validateSymbol);
-	private static final StreamCodec<ByteBuf, Character> SYMBOL_STREAM_CODEC = NeoApoliStreamCodecs.CHARACTER.map(ContextBlockPattern::ensureSymbolIsValid, Function.identity());
 
-	private static final Codec<Char2ObjectMap<Condition>> LOOKUP_CODEC = Codec.unboundedMap(SYMBOL_CODEC, Condition.CODEC).xmap(Char2ObjectArrayMap::new, Function.identity());
-	private static final StreamCodec<RegistryFriendlyByteBuf, Char2ObjectMap<Condition>> LOOKUP_STREAM_CODEC = ByteBufCodecs.map(Char2ObjectArrayMap::new, SYMBOL_STREAM_CODEC, Condition.STREAM_CODEC);
+	private static final Codec<Char2ObjectMap<Condition>> LOOKUP_CODEC = Codec.unboundedMap(NeoApoliCodecs.CHARACTER.validate(ContextBlockPattern::validateSymbol), Condition.CODEC).xmap(Char2ObjectArrayMap::new, Function.identity());
+	private static final StreamCodec<RegistryFriendlyByteBuf, Char2ObjectMap<Condition>> LOOKUP_STREAM_CODEC = ByteBufCodecs.map(Char2ObjectArrayMap::new, NeoApoliStreamCodecs.CHARACTER, Condition.STREAM_CODEC);
 
 	private static final StreamCodec<ByteBuf, char[][][]> CHAR_ARRAY_STREAM_CODEC = new StreamCodec<>() {
 
@@ -163,7 +160,7 @@ public final class ContextBlockPattern implements ContextValidatable {
 			pattern.add(aisle);
 
 		}
-		
+
 		Char2ObjectMap<Condition> whereCopy = new Char2ObjectArrayMap<>(this.where);
 		whereCopy.remove(RESERVED_SYMBOL);
 
@@ -246,8 +243,8 @@ public final class ContextBlockPattern implements ContextValidatable {
 			: DataResult.success(ch);
 	}
 
-	private static char ensureSymbolIsValid(char ch) {
-		return validateSymbol(ch).getOrThrow();
+	private static void ensureSymbolIsValid(char ch) {
+		validateSymbol(ch).getOrThrow();
 	}
 
 	public static final class Builder {
