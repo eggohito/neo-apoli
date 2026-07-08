@@ -124,7 +124,9 @@ public class ConditionCommand {
 			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
 			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
 
-			Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), new Reporter(path)).withResolver(source.registryAccess());
+			Reporter reporter = new Reporter(path);
+			Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), reporter).withResolver(source.registryAccess());
+
 			condition.validate(validator);
 
 			var validationException = validator.reporter().getErrorsFlattened()
@@ -135,7 +137,7 @@ public class ConditionCommand {
 				throw validationException.get();
 			}
 
-			Context context = contextBuilder.withReporter(new Reporter(path)).build(source.getLevel());
+			Context context = contextBuilder.withReporter(reporter).build(source.getLevel());
 			boolean result = condition.test(context);
 
 			var testException = context.reporter().getErrorsFlattened()

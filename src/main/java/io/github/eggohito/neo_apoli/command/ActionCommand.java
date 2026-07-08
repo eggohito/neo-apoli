@@ -115,19 +115,20 @@ public class ActionCommand {
 			for (var action : actions) {
 
 				String path = ActionManager.getIdAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
+				Reporter reporter = new Reporter(path);
 
-				Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), new Reporter(path)).withResolver(source.registryAccess());
+				Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), reporter).withResolver(source.registryAccess());
 				action.validate(validator);
 
 				var validationException = validator.reporter().getErrorsFlattened()
-					.map(error -> Component.literal("Found errors while validation action ").append(error))
+					.map(error -> Component.literal("Found errors while validating action ").append(error))
 					.map(MiscUtil::createCommandException);
 
 				if (validationException.isPresent()) {
 					throw validationException.get();
 				}
 
-				Context context = contextBuilder.build(source.getLevel());
+				Context context = contextBuilder.withReporter(reporter).build(source.getLevel());
 				action.execute(context);
 
 				var executionException = context.reporter().getErrorsFlattened()

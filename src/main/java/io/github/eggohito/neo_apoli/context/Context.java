@@ -5,7 +5,6 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CommandParameter;
@@ -36,8 +35,6 @@ import java.util.function.Supplier;
 
 public final class Context implements ContextParamsHolder {
 
-	public static final ClearableVisitor<ContextUser> GLOBAL_VISITOR = ClearableVisitor.createThreadLocalized();
-
 	@Getter
 	private final Level level;
 	@Getter
@@ -51,6 +48,11 @@ public final class Context implements ContextParamsHolder {
 		this.reporter = reporter;
 		this.params = params;
 		this.visited = visited;
+	}
+
+	@Override
+	public ContextKeySet toKeySet() {
+		return params.toKeySet();
 	}
 
 	@Override
@@ -77,10 +79,6 @@ public final class Context implements ContextParamsHolder {
 			}
 
 		};
-	}
-
-	public ContextKeySet toKeySet() {
-		return params.toKeySet();
 	}
 
 	public Context forChild(String path) {
@@ -120,6 +118,11 @@ public final class Context implements ContextParamsHolder {
 		}
 
 		@Override
+		public ContextKeySet toKeySet() {
+			return params.toKeySet();
+		}
+
+		@Override
 		public @Nullable <T> T getNullable(ContextKey<T> parameter) {
 			return params.getNullable(parameter);
 		}
@@ -156,10 +159,6 @@ public final class Context implements ContextParamsHolder {
 		public Builder withReporter(Reporter reporter) {
 			this.reporter = reporter;
 			return this;
-		}
-
-		public ContextKeySet toKeySet() {
-			return params.toKeySet();
 		}
 
 		public Context buildWithRequirements(Level level, ContextKeySet keySet) {

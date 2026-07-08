@@ -25,12 +25,13 @@ public class ContextParams implements ContextParamsHolder {
 	}
 
 	@Override
-	public @Nullable <T> T getNullable(ContextKey<T> parameter) {
-		return (T) params.get(parameter);
+	public ContextKeySet toKeySet() {
+		return ContextHelper.toKeySet(params.keySet(), optional);
 	}
 
-	public ContextKeySet toKeySet() {
-		return toBuilder().toKeySet();
+	@Override
+	public @Nullable <T> T getNullable(ContextKey<T> parameter) {
+		return (T) params.get(parameter);
 	}
 
 	public Builder toBuilder() {
@@ -49,6 +50,11 @@ public class ContextParams implements ContextParamsHolder {
 
 		public Builder() {
 			this(new IdentityHashMap<>(), new ObjectOpenHashSet<>());
+		}
+
+		@Override
+		public ContextKeySet toKeySet() {
+			return ContextHelper.toKeySet(params.keySet(), optional);
 		}
 
 		@Override
@@ -86,18 +92,6 @@ public class ContextParams implements ContextParamsHolder {
 
 		public <T> Builder withOptionalIfAbsent(Context.Parameter<T> key, Supplier<Optional<T>> value) {
 			return  hasParameter(key) ? this : withOptional(key, value.get());
-		}
-
-		public ContextKeySet toKeySet() {
-
-			ContextKeySet.Builder builder = new ContextKeySet.Builder();
-			params.keySet().forEach(builder::required);
-
-			Set<ContextKey<?>> optional = Sets.difference(this.optional, params.keySet());
-			optional.forEach(builder::optional);
-
-			return builder.build();
-
 		}
 
 		public ContextParams buildWithRequirements(ContextKeySet keySet) {

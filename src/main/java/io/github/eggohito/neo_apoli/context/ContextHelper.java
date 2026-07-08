@@ -31,4 +31,16 @@ public class ContextHelper {
 			.orElseThrow(() -> new IllegalArgumentException("Couldn't merge without context key sets!"));
 	}
 
+	public static ContextKeySet toKeySet(Set<ContextKey<?>> required, Set<ContextKey<?>> optional) {
+
+		ContextKeySet.Builder builder = new ContextKeySet.Builder();
+		required.forEach(builder::required);
+
+		Set<ContextKey<?>> diff = Sets.difference(optional, required);
+		diff.forEach(builder::optional);
+
+		return builder.build();
+
+	}
+
 }

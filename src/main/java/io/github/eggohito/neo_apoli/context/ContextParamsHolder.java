@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.context;
 
 import net.minecraft.util.context.ContextKey;
+import net.minecraft.util.context.ContextKeySet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -8,6 +9,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public interface ContextParamsHolder {
+
+	ContextKeySet toKeySet();
 
 	@Nullable
 	<T> T getNullable(ContextKey<T> parameter);
