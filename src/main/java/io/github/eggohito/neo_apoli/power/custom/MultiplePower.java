@@ -13,10 +13,8 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.fabricmc.loader.api.FabricLoader;
@@ -40,7 +38,10 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	public static final ResourceLocation ID = NeoApoli.id("multiple");
 
-	public static final MapCodec<ImmutableSet<PowerHolder<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
+	private static final MapCodec<Power> DISALLOWED_MULTIPLE_DISPATCH_CODEC = Type.CODEC.validate(MultiplePower::disallowRecursiveMultiple).dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
+	private static final MapCodec<PowerHolder<?>> DISALLOWED_MULTIPLE_MAP_CODEC = PowerHolder.mapCodec(DISALLOWED_MULTIPLE_DISPATCH_CODEC);
+
+	private static final MapCodec<ImmutableSet<PowerHolder<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
 
 		@Override
 		public <T> Stream<T> keys(DynamicOps<T> ops) {
@@ -55,43 +56,32 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
 				(identity, keyAndValue) -> {
 
-					DataResult<String> keyResult = ops.getStringValue(keyAndValue.getFirst());
+					DataResult<String> keyResult = Codec.STRING.parse(ops, keyAndValue.getFirst());
+					DataResult<String> subPowerNameResult = keyResult.flatMap(MultiplePower::validateSubPowerName);
+
 					if (keyResult.mapOrElse(MultiplePower::isFieldIgnored, error -> false)) {
 						return identity;
 					}
 
-					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond());
+					if (subPowerNameResult.isError()) {
+						return identity.apply2stable((unit, o) -> unit, subPowerNameResult);
+					}
+
+					String subPowerName = subPowerNameResult.getOrThrow();
+					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond()).mapError(error -> "Sub-power \"" + subPowerName + "\" errored: " + error);
+
 					if (valueResult.isError()) {
 						return identity.apply2stable((unit, o) -> unit, valueResult);
 					}
 
-					String subPowerKey = keyResult.getOrThrow();
-					DataResult<PowerIdentifier> powerIdResult = PowerIdentifier.parseAsResult(subPowerKey)
-						.flatMap(powerId -> powerId.isSubPower()
-							? DataResult.success(powerId)
-							: DataResult.error(() -> "The key for sub-power \"" + subPowerKey + "\" wasn't pre-processed!"));
-
-					if (powerIdResult.isError()) {
-						return identity.apply2stable((unit, o) -> unit, powerIdResult);
-					}
-
-					DataResult<Type<?>> typeResult = Type.CODEC.fieldOf(Power.TYPE_KEY).decode(ops, valueResult.getOrThrow())
-						.flatMap(type -> type == NeoApoliPowerTypes.MULTIPLE
-							? DataResult.error(() -> "Sub-power \"" + subPowerKey + "\" uses the \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, NeoApoliPowerTypes.MULTIPLE) + "\" power type, which isn't allowed!'")
-							: DataResult.success(type));
-
-					if (typeResult.isError()) {
-						return identity.apply2stable((unit, o) -> unit, typeResult);
-					}
-
-					DataResult<PowerHolder<?>> subPowerResult = PowerHolder.MAP_CODEC.decode(ops, valueResult.getOrThrow());
+					MapLike<I> value = valueResult.getOrThrow();
+					DataResult<PowerHolder<?>> subPowerResult = DISALLOWED_MULTIPLE_MAP_CODEC.decode(ops, value).mapError(error -> "Sub-power \"" + subPowerName + "\" errored: " + error);
 
 					if (subPowerResult.isSuccess() && !succeeded.add(subPowerResult.getOrThrow())) {
-						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate entry for key: \"" + subPowerKey + "\""));
+						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate key: \"" + subPowerName + "\""));
 					}
 
 					return identity.apply2stable((unit, o) -> unit, subPowerResult);
-
 
 				},
 				(r1, r2) ->
@@ -116,13 +106,13 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	};
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerHolder<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
+	private static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerHolder<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
 
 		@Override
 		public @NotNull ImmutableSet<PowerHolder<?>> decode(RegistryFriendlyByteBuf buf) {
 
 			ImmutableSet.Builder<PowerHolder<?>> holders = ImmutableSet.builder();
-			int size = buf.readVarInt();
+			int size = buf.readInt();
 
 			for (int i = 0; i < size; i++) {
 
@@ -145,7 +135,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 		@Override
 		public void encode(RegistryFriendlyByteBuf buf, ImmutableSet<PowerHolder<?>> holders) {
 
-			buf.writeVarInt(holders.size());
+			buf.writeInt(holders.size());
 
 			for (var holder : holders) {
 				PowerHolder.STREAM_CODEC.encode(buf, holder);
@@ -165,6 +155,14 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 		MultiplePower::subPowers
 	);
 
+	public MultiplePower {
+
+		for (var subPower : subPowers) {
+			disallowRecursiveMultiple(subPower.value().getType()).getOrThrow();
+		}
+
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliPowerTypes.MULTIPLE;
@@ -181,14 +179,11 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 	}
 
 	/**
-	 * 	<p>Pre-process the sub-powers of a multiple power to prepare the sub-powers for proper parsing. This takes care
-	 * 	of two things:</p>
-	 * 	<ul>
-	 * 	    <li>Creates a sub-power ID (by prepending the super-power's ID to the keys of the JSON object) to
-	 * 	    ensure the sub-power will be recognized.</li>
-	 * 	    <li>Adds the sub-power ID to the JSON objects of certain keys so the sub-powers will be parsed
-	 * 	    as sub-power entries.</li>
-	 * 	</ul>
+	 *  <p>Pre-processes the objects [whose keys aren't ignored] of the JSON of a power that uses the {@code multiple}
+	 *  power type to prepare the objects to be parsed as "sub-powers".</p>
+	 *
+	 *  <p>In order for the sub-power to be recognized as a power, the ID of the super-power will have to be added
+	 *  to the JSON object for the sub-power. The separator and the name of the key will be then used a suffix.</p>
 	 */
 	@ApiStatus.Internal
 	public static void preProcessSubPowers(ResourceLocation id, JsonWithSource jsonWithSource, String directoryPath, DynamicOps<JsonElement> ops) {
@@ -198,25 +193,13 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 		}
 
 		Map<String, JsonElement> powerJsonMap = powerJson.asMap();
-		String separator = Character.toString(PowerIdentifier.SEPARATOR);
-
 		JsonObject copy = powerJson.deepCopy();
-		powerJsonMap.clear();
 
+		powerJsonMap.clear();
 		copy.asMap().forEach((key, value) -> {
 
-			if (!isFieldIgnored(key)) {
-
-				if (!MiscUtil.isResourceConditionFulfilled(id, value, directoryPath, ops)) {
-					return;
-				}
-
-				key = id + separator + key;
-
-				if (value instanceof JsonObject jsonObject) {
-					jsonObject.addProperty(PowerHolder.ID_KEY, key);
-				}
-
+			if (value instanceof JsonObject jsonObject && !isFieldIgnored(key) && MiscUtil.isResourceConditionFulfilled(id, jsonObject, directoryPath, ops)) {
+				jsonObject.addProperty(PowerHolder.ID_KEY, id + String.valueOf(PowerIdentifier.SEPARATOR) + key);
 			}
 
 			powerJson.add(key, value);
@@ -245,13 +228,25 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 		for (var ignoredField : Config.INSTANCE.ignoredFields.get()) {
 
-			if (ignoredField.matcher(key).find()) {
+			if (ignoredField.matcher(key).matches()) {
 				return true;
 			}
 
 		}
 
 		return false;
+
+	}
+
+	private static DataResult<Type<?>> disallowRecursiveMultiple(Power.Type<?> type) {
+
+		if (type == NeoApoliPowerTypes.MULTIPLE) {
+			return DataResult.error(() -> "The '" + ID + "' power type is not allowed in sub-powers!");
+		}
+
+		else {
+			return DataResult.success(type);
+		}
 
 	}
 

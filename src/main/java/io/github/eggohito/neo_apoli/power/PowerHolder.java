@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
@@ -16,29 +17,7 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 
 	public static final String ID_KEY = "id";
 
-	private static final MapCodec<PowerHolder<?>> DIRECT_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		PowerIdentifier.CODEC.fieldOf(ID_KEY).forGetter(PowerHolder::id),
-		Power.MAP_CODEC.forGetter(PowerHolder::value),
-		ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerHolder::name),
-		ComponentSerialization.CODEC.optionalFieldOf("description", Component.empty()).forGetter(PowerHolder::description),
-		Codec.BOOL.optionalFieldOf("hidden", false).forGetter(PowerHolder::hidden)
-	).apply(instance, PowerHolder::new));
-
-	public static final MapCodec<PowerHolder<?>> MAP_CODEC = DIRECT_MAP_CODEC.mapResult(new MapCodec.ResultFunction<>() {
-
-		@Override
-		public <T> DataResult<PowerHolder<?>> apply(DynamicOps<T> ops, MapLike<T> mapInput, DataResult<PowerHolder<?>> result) {
-			return result.ifSuccess(entry -> PowerParsingEvents.DECODING.invoker().decode(entry, ops, mapInput));
-		}
-
-		@Override
-		public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, PowerHolder<?> powerHolder, RecordBuilder<T> prefix) {
-			PowerParsingEvents.ENCODING.invoker().encode(powerHolder, ops, prefix);
-			return prefix;
-		}
-
-	});
-
+	public static final MapCodec<PowerHolder<?>> MAP_CODEC = mapCodec(Power.MAP_CODEC);
 	public static final Codec<PowerHolder<?>> CODEC = MAP_CODEC.codec();
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PowerHolder<?>> STREAM_CODEC = StreamCodec.composite(
@@ -88,6 +67,33 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(this.id());
+	}
+
+	public static MapCodec<PowerHolder<?>> mapCodecWithId(ResourceLocation id, MapCodec<Power> powerCodec) {
+
+		MapCodec<PowerHolder<?>> direct = RecordCodecBuilder.mapCodec(instance -> instance.group(
+			powerCodec.forGetter(PowerHolder::value),
+			ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerHolder::name),
+			ComponentSerialization.CODEC.optionalFieldOf("description", Component.empty()).forGetter(PowerHolder::description),
+			Codec.BOOL.optionalFieldOf("hidden", false).forGetter(PowerHolder::hidden)
+		).apply(instance, (power, name, description, hidden) -> new PowerHolder<>(PowerIdentifier.of(id), power, name, description, hidden)));
+
+		return direct.mapResult(PowerParsingEvents.RESULT_MAPPER);
+
+	}
+
+	public static MapCodec<PowerHolder<?>> mapCodec(MapCodec<Power> powerCodec) {
+
+		MapCodec<PowerHolder<?>> direct = RecordCodecBuilder.mapCodec(instance -> instance.group(
+			PowerIdentifier.CODEC.fieldOf(ID_KEY).forGetter(PowerHolder::id),
+			powerCodec.forGetter(PowerHolder::value),
+			ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(PowerHolder::name),
+			ComponentSerialization.CODEC.optionalFieldOf("description", Component.empty()).forGetter(PowerHolder::description),
+			Codec.BOOL.optionalFieldOf("hidden", false).forGetter(PowerHolder::hidden)
+		).apply(instance, PowerHolder::new));
+
+		return direct.mapResult(PowerParsingEvents.RESULT_MAPPER);
+
 	}
 
 }

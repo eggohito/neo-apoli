@@ -1,11 +1,10 @@
 package io.github.eggohito.neo_apoli.api.event;
 
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapLike;
-import com.mojang.serialization.RecordBuilder;
+import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import org.jetbrains.annotations.ApiStatus;
 
 public final class PowerParsingEvents {
 
@@ -40,6 +39,22 @@ public final class PowerParsingEvents {
 
 		}
 	);
+
+	@ApiStatus.Internal
+	public static final MapCodec.ResultFunction<PowerHolder<?>> RESULT_MAPPER = new MapCodec.ResultFunction<>() {
+
+		@Override
+		public <T> DataResult<PowerHolder<?>> apply(DynamicOps<T> ops, MapLike<T> input, DataResult<PowerHolder<?>> result) {
+			return result.ifSuccess(holder -> DECODING.invoker().decode(holder, ops, input));
+		}
+
+		@Override
+		public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, PowerHolder<?> input, RecordBuilder<T> prefix) {
+			ENCODING.invoker().encode(input, ops, prefix);
+			return prefix;
+		}
+
+	};
 
 	public interface Decoding {
 		<I> void decode(PowerHolder<?> power, DynamicOps<I> ops, MapLike<I> mapInput);

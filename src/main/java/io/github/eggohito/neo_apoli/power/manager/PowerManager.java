@@ -1,14 +1,13 @@
 package io.github.eggohito.neo_apoli.power.manager;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
-import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -123,14 +122,14 @@ public class PowerManager {
 
 		handler.accept(powerHolder.id(), powerHolder);
 
-		if (powerHolder.value() instanceof MultiplePower multiplePower) {
+		if (powerHolder.value() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
 			if (powerHolder.id().isSubPower()) {
-				throw new IllegalStateException("Tried to register " + powerHolder.id().asDisplayString(false) + " with \"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, multiplePower.getType()) + "\" power type, which is not allowed!");
+				throw new IllegalStateException("Tried to register " + powerHolder.id().asDisplayString(false) + " with \"" + MultiplePower.ID + "\" power type, which is not allowed!");
 			}
 
 			else {
-				multiplePower.subPowers().forEach(subPowerHolder -> handle(subPowerHolder, handler));
+				subPowers.forEach(subPower -> handle(subPower, handler));
 			}
 
 		}
