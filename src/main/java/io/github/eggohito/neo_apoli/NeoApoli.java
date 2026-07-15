@@ -7,13 +7,13 @@ import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
-import io.github.eggohito.neo_apoli.impl.log.NeoApoliLoggerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
 import io.github.eggohito.neo_apoli.registry.*;
@@ -23,10 +23,13 @@ import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.*;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeSerializers;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -39,7 +42,8 @@ public class NeoApoli implements ModInitializer {
 	public static final String MOD_NAMESPACE = "neo-apoli";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	private static MinecraftServer server;
+	static final IntSet CACHED_LOGS = new IntOpenHashSet();
+	static MinecraftServer server;
 
 	@Override
 	public void onInitialize() {
@@ -110,7 +114,6 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliContextParamSets.registerAll();
 
 		KeyStateManagerImpl.init();
-		NeoApoliLoggerImpl.init();
 
 		NeoApoliNestedTagCaches.registerAll();
 		NestedTagCacheImpl.init();
@@ -120,6 +123,11 @@ public class NeoApoli implements ModInitializer {
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).neo_apoli$sendAll(player));
+
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server1, resourceManager) -> {
+			CACHED_LOGS.clear();
+			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClientboundClearCachedLogsPacket.INSTANCE));
+		});
 
 	}
 
@@ -138,7 +146,7 @@ public class NeoApoli implements ModInitializer {
 
 	public static void logOnce(Level level, String message) {
 
-		if (NeoApoliLoggerImpl.CACHE.add(message)) {
+		if (CACHED_LOGS.add(message.hashCode())) {
 			LOGGER.atLevel(level).log(message);
 		}
 

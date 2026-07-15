@@ -1,10 +1,9 @@
-package io.github.eggohito.neo_apoli.client;
+package io.github.eggohito.neo_apoli;
 
 import io.github.eggohito.neo_apoli.client.action.manager.ClientActionManager;
 import io.github.eggohito.neo_apoli.client.condition.manager.ClientConditionManager;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
-import io.github.eggohito.neo_apoli.client.impl.log.NeoApoliClientLoggerImpl;
 import io.github.eggohito.neo_apoli.client.impl.tag.NestedTagCacheClientImpl;
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
@@ -13,9 +12,11 @@ import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 public class NeoApoliClient implements ClientModInitializer {
 
@@ -35,7 +36,6 @@ public class NeoApoliClient implements ClientModInitializer {
 		ClientPowerManager.init();
 
 		KeyStateClientManagerImpl.init();
-		NeoApoliClientLoggerImpl.init();
 		NestedTagCacheClientImpl.init();
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
@@ -43,6 +43,13 @@ public class NeoApoliClient implements ClientModInitializer {
 			((PowerRecipeDisplayHolder) client).neo_apoli$setPowerIdsByIndex(new Int2ObjectOpenHashMap<>());
 		});
 
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundClearCachedLogsPacket.TYPE, (payload, context) -> clearCachedLogs());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> clearCachedLogs());
+
+	}
+
+	public static void clearCachedLogs() {
+		NeoApoli.CACHED_LOGS.clear();
 	}
 
 }
