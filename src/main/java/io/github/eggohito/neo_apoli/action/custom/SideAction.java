@@ -31,7 +31,7 @@ public record SideAction(Environment side, Action action) implements Action {
 	@Override
 	public void execute(Context context) {
 
-		if ((side() == Environment.CLIENT) != NeoApoli.serverSide()) {
+		if ((side() == Environment.CLIENT) != NeoApoli.onServerThread()) {
 			action().execute(context.forChild(".action"));
 		}
 

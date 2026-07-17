@@ -54,7 +54,7 @@ public final class PowerIdentifier implements StringDisplayable, ContextValidata
 
 	@Override
 	public void validate(Context.Validator validator) {
-		PowerManager.getAsResult(this).resultOrPartial(validator::reportProblem);
+		PowerManager.INSTANCE.getAsResult(this).resultOrPartial(validator::reportProblem);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public final class PowerIdentifier implements StringDisplayable, ContextValidata
 	}
 
 	public void validate(Context.Validator validator, Class<? extends Power> powerClass, Supplier<String> errorSupplier) {
-		PowerManager.getAsResult(this)
+		PowerManager.INSTANCE.getAsResult(this)
 			.map(PowerHolder::value)
 			.flatMap(MiscUtil.validateType(powerClass, errorSupplier))
 			.resultOrPartial(validator::reportProblem);

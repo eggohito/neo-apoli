@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
+import io.github.eggohito.neo_apoli.action.manager.ActionManagerHandler;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
-import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
+import io.github.eggohito.neo_apoli.condition.manager.ConditionManagerHandler;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
@@ -14,8 +14,8 @@ import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
-import io.github.eggohito.neo_apoli.power.global.GlobalPowerSetManager;
-import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
+import io.github.eggohito.neo_apoli.power.global.manager.GlobalPowerSetManagerHandler;
+import io.github.eggohito.neo_apoli.power.manager.PowerManagerHandler;
 import io.github.eggohito.neo_apoli.registry.*;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
@@ -100,10 +100,10 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliConditionTypes.registerAll();
 		NeoApoliPowerTypes.registerAll();
 
-		ServerActionManager.init();
-		ServerConditionManager.init();
-		ServerPowerManager.init();
-		GlobalPowerSetManager.init();
+		ActionManagerHandler.init();
+		ConditionManagerHandler.init();
+		GlobalPowerSetManagerHandler.init();
+		PowerManagerHandler.init();
 
 		NeoApoliPackets.registerAll();
 
@@ -124,7 +124,7 @@ public class NeoApoli implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).neo_apoli$sendAll(player));
 
-		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server1, resourceManager) -> {
+		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
 			CACHED_LOGS.clear();
 			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClientboundClearCachedLogsPacket.INSTANCE));
 		});
@@ -139,7 +139,7 @@ public class NeoApoli implements ModInitializer {
 		return NeoApoliCommonConfig.INSTANCE;
 	}
 
-	public static boolean serverSide() {
+	public static boolean onServerThread() {
 		return server != null
 			&& server.isSameThread();
 	}

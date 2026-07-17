@@ -1,96 +1,220 @@
 package io.github.eggohito.neo_apoli.action.manager;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionHolder;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import io.github.eggohito.neo_apoli.util.manager.AbstractContentAndTagManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.ApiStatus;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagEntry;
+import net.minecraft.tags.TagLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
-@ApiStatus.NonExtendable
-public class ActionManager {
+public final class ActionManager extends AbstractContentAndTagManager<ResourceLocation, ActionHolder<?>> implements IdentifiableResourceReloadListener {
+
+	public static final TagEntry.Lookup<ActionHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
+
+		@Override
+		public @Nullable ActionHolder<?> element(ResourceLocation id, boolean required) {
+			return INSTANCE.getAsResult(id).result().orElse(null);
+		}
+
+		@Override
+		public @Nullable Collection<ActionHolder<?>> tag(ResourceLocation id) {
+			return INSTANCE.getTagAsResult(id).result().orElse(null);
+		}
+
+		@Override
+		public String toString() {
+			return "Action manager";
+		}
+
+	};
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/action");
+	public static final ActionManager INSTANCE = new ActionManager();
 
-	protected static volatile ImmutableMap<ResourceLocation, ActionHolder<?>> actions = ImmutableMap.of();
-	protected static volatile ImmutableMap<ResourceLocation, List<ActionHolder<?>>> tags = ImmutableMap.of();
+	private static final Logger LOGGER = LoggerFactory.getLogger(ActionManager.class);
+	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
 
-	public ActionManager() {
-		//  Disallow extending non-internal classes
-		var ignored = (ServerActionManager) this;
+	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
+	private final TagLoader<ActionHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
+
+	private volatile Map<ResourceLocation, JsonWithSource> pendingContents = Map.of();
+	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
+
+	private DynamicOps<JsonElement> ops;
+
+	private ActionManager() {
+
 	}
 
-	public static DataResult<ActionHolder<?>> getAsResult(ResourceLocation id) {
-		var candidate = actions.get(id);
-		return candidate != null
-			? DataResult.success(candidate)
-			: DataResult.error(() -> "Unknown action: \"" + id + "\"");
+	@Override
+	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
+
+		CompletableFuture<Void> pendingActions = CompletableFuture
+			.runAsync(() -> this.prepareActions(manager), backgroundExecutor);
+		CompletableFuture<Void> pendingTags = CompletableFuture
+			.runAsync(() -> this.prepareTags(manager), backgroundExecutor);
+
+		return CompletableFuture.allOf(pendingActions, pendingTags)
+			.thenCompose(barrier::wait)
+			.thenAcceptAsync(unused -> this.applyAll(), gameExecutor);
+
 	}
 
-	public static ActionHolder<?> get(ResourceLocation id) {
-		return getAsResult(id).getOrThrow();
+	@Override
+	public DataResult<ActionHolder<?>> getAsResult(ResourceLocation key) {
+		return this.getAsResult(key, k -> "Unknown action: \"" + k + "\"");
 	}
 
-	public static DataResult<ResourceLocation> getIdAsResult(Action action) {
+	@Override
+	public DataResult<ResourceLocation> getKeyAsResult(ActionHolder<?> value) {
+		return this.getKeyAsResult(value, v -> "Unregistered action: " + value);
+	}
 
-		for (var candidate : actions.entrySet()) {
+	@Override
+	public DataResult<List<ActionHolder<?>>> getTagAsResult(ResourceLocation id) {
+		return this.getTagAsResult(id, i -> "Unknown action tag: \"" + i + "\"");
+	}
 
-			if (candidate.getValue().value() == action) {
-				return DataResult.success(candidate.getKey());
+	@Override
+	public ResourceLocation getFabricId() {
+		return ID;
+	}
+
+	@Override
+	public ImmutableSet<ResourceLocation> getFabricDependencies() {
+		return DEPENDENCIES;
+	}
+
+	public DataResult<ResourceLocation> getKeyAsResult(Action action) {
+
+		for (var candidate : contents.values()) {
+
+			if (candidate.value() == action) {
+				return DataResult.success(candidate.id());
 			}
 
 		}
 
-		return DataResult.error(() -> "No ID found for " + action);
+		return DataResult.error(() -> "Unregistered action: " + action);
 
 	}
 
-	public static ResourceLocation getId(Action action) {
-		return getIdAsResult(action).getOrThrow();
+	public ResourceLocation getKey(Action action) {
+		return this.getKeyAsResult(action).getOrThrow();
 	}
 
-	public static DataResult<List<ActionHolder<?>>> getTag(ResourceLocation id) {
-		var candidates = tags.get(id);
-		return candidates != null
-			? DataResult.success(candidates)
-			: DataResult.error(() -> "Unknown action tag: \"" + id + "\"");
+	ActionManager withContext(@NotNull HolderLookup.Provider context) {
+		this.ops = context.createSerializationContext(JsonOps.INSTANCE);
+		return this;
 	}
 
-	public static List<ActionHolder<?>> getTagOrEmpty(ResourceLocation id) {
-		return getTag(id)
-			.result()
-			.orElseGet(List::of);
+	void prepareActions(ResourceManager manager) {
+
+		if (ops != null) {
+			this.pendingContents = MiscUtil.collectJson(manager, contentLoader, ops, LOGGER::error);
+		}
+
 	}
 
-	public static Iterable<ResourceLocation> ids() {
-		return actions.keySet();
+	void prepareTags(ResourceManager manager) {
+		this.pendingTags = tagLoader.load(manager);
 	}
 
-	public static Iterable<ActionHolder<?>> actions() {
-		return actions.values();
+	void applyActions() {
+
+		if (ops == null) {
+			return;
+		}
+
+		LOGGER.info("Parsing actions from data packs...");
+
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> builder = ImmutableMap.builder();
+		this.contents = ImmutableMap.of();
+
+		pendingContents.forEach((id, jsonWithSource) -> {
+
+			ResourceLocationUtil.setCurrent(id);
+			MiscUtil.handleResult(
+				Action.CODEC.parse(ops, jsonWithSource.json()),
+				action -> builder.put(id, new ActionHolder<>(id, action)),
+				warning -> LOGGER.warn("Found warning(s) while parsing action \"{}\" from data pack [{}]: {}", id, jsonWithSource.source(), warning),
+				error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error)
+			);
+
+			ResourceLocationUtil.setCurrent(null);
+
+		});
+
+		this.contents = builder.build();
+		this.pendingContents = Map.of();
+
+		LOGGER.info("Finished parsing actions from data packs. Action manager contains {} action(s)", contents.size());
+
 	}
 
-	public static Iterable<ResourceLocation> tags() {
-		return tags.keySet();
+	void applyTags() {
+
+		LOGGER.info("Parsing action tags from data packs...");
+
+		this.tags = ImmutableMap.copyOf(tagLoader.build(pendingTags));
+		this.pendingTags = Map.of();
+
+		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
+
 	}
 
-	public static boolean contains(ResourceLocation id) {
-		return getAsResult(id).isSuccess();
+	void applyAll() {
+		this.applyActions();
+		this.applyTags();
 	}
 
-	public static boolean containsId(Action action) {
-		return getIdAsResult(action).isSuccess();
+	void update(Map<ResourceLocation, ActionHolder<?>> actions, Map<ResourceLocation, List<ActionHolder<?>>> tags) {
+		this.contents = ImmutableMap.copyOf(actions);
+		this.tags = ImmutableMap.copyOf(tags);
+	}
+
+	void send(ServerPlayer player, boolean joined) {
+
+		if (!joined) {
+			ServerPlayNetworking.send(player, new ClientboundUpdatePacket(contents, tags));
+		}
+
 	}
 
 	public record ClientboundUpdatePacket(Map<ResourceLocation, ActionHolder<?>> actions, Map<ResourceLocation, List<ActionHolder<?>>> tags) implements CustomPacketPayload {

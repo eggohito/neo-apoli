@@ -1,18 +1,18 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.client.action.manager.ClientActionManager;
-import io.github.eggohito.neo_apoli.client.condition.manager.ClientConditionManager;
+import io.github.eggohito.neo_apoli.action.manager.ActionManagerClientHandler;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
 import io.github.eggohito.neo_apoli.client.impl.tag.NestedTagCacheClientImpl;
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
-import io.github.eggohito.neo_apoli.client.power.manager.ClientPowerManager;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
+import io.github.eggohito.neo_apoli.condition.manager.ConditionManagerClientHandler;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
+import io.github.eggohito.neo_apoli.power.manager.PowerManagerClientHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -31,9 +31,9 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
-		ClientActionManager.init();
-		ClientConditionManager.init();
-		ClientPowerManager.init();
+		ActionManagerClientHandler.init();
+		ConditionManagerClientHandler.init();
+		PowerManagerClientHandler.init();
 
 		KeyStateClientManagerImpl.init();
 		NestedTagCacheClientImpl.init();

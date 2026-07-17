@@ -33,11 +33,11 @@ public record ReferenceAction(ResourceLocation value) implements Action {
 	@Override
 	public void execute(Context context) {
 
-		if (!ActionManager.contains(this.value())) {
+		if (!ActionManager.INSTANCE.contains(this.value())) {
 			return;
 		}
 
-		Action action = ActionManager.get(this.value()).value();
+		Action action = ActionManager.INSTANCE.get(this.value()).value();
 		var visitor = context.visitor();
 
 		try {
@@ -71,7 +71,7 @@ public record ReferenceAction(ResourceLocation value) implements Action {
 		}
 
 		else {
-			ActionManager.getAsResult(this.value())
+			ActionManager.INSTANCE.getAsResult(this.value())
 				.map(ActionHolder::valueGeneric)
 				.ifSuccess(action -> action.validate(validator.visitChild(".{\"" + actionKey.location() + "\"}", actionKey)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
