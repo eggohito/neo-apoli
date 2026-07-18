@@ -4,11 +4,7 @@ import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.power.PowersBuilderImpl;
-import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
-import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
-import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;
-import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerRecipeDisplaysUpdatePacket;
-import io.github.eggohito.neo_apoli.power.manager.PowerManager;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.*;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public final class NeoApoliPackets {
@@ -17,7 +13,7 @@ public final class NeoApoliPackets {
 
 		PayloadTypeRegistry.playS2C().register(ActionManager.ClientboundUpdatePacket.TYPE, ActionManager.ClientboundUpdatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ConditionManager.ClientboundUpdatePacket.TYPE, ConditionManager.ClientboundUpdatePacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(PowerManager.ClientboundUpdatePacket.TYPE,  PowerManager.ClientboundUpdatePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ClientboundUpdatePowersPacket.TYPE,  ClientboundUpdatePowersPacket.CODEC);
 
 		PayloadTypeRegistry.playS2C().register(ClientboundClearCachedLogsPacket.TYPE, ClientboundClearCachedLogsPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundCommandStorageUpdatePacket.TYPE, ClientboundCommandStorageUpdatePacket.CODEC);

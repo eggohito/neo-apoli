@@ -15,7 +15,7 @@ import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
 import io.github.eggohito.neo_apoli.power.global.manager.GlobalPowerSetManagerHandler;
-import io.github.eggohito.neo_apoli.power.manager.PowerManagerHandler;
+import io.github.eggohito.neo_apoli.power.manager.ServerPowerManager;
 import io.github.eggohito.neo_apoli.registry.*;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
@@ -103,7 +103,7 @@ public class NeoApoli implements ModInitializer {
 		ActionManagerHandler.init();
 		ConditionManagerHandler.init();
 		GlobalPowerSetManagerHandler.init();
-		PowerManagerHandler.init();
+		ServerPowerManager.init();
 
 		NeoApoliPackets.registerAll();
 
