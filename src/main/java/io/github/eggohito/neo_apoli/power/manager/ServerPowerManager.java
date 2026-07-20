@@ -206,6 +206,8 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 		});
 
 		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ActionManager.ID, ID);
 		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverPowerManager::finalize);
 
 	}

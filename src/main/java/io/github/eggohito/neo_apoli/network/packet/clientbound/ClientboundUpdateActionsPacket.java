@@ -36,7 +36,9 @@ public record ClientboundUpdateActionsPacket(Map<ResourceLocation, ActionHolder<
 
 			try {
 				powers.put(id, ActionHolder.STREAM_CODEC.decode(buf));
-			} catch (Exception e) {
+			}
+
+			catch (Exception e) {
 				NeoApoli.LOGGER.error("Couldn't decode {} during the syncing process", id, e);
 				throw e;
 			}
@@ -62,7 +64,9 @@ public record ClientboundUpdateActionsPacket(Map<ResourceLocation, ActionHolder<
 						.computeIfAbsent(id, k -> new ObjectArrayList<>())
 						.add(holder);
 
-				} catch (Exception e) {
+				}
+
+				catch (Exception e) {
 					NeoApoli.LOGGER.error("Couldn't decode action tag \"{}\" during the syncing process", id, e);
 					throw e;
 				}
@@ -86,7 +90,9 @@ public record ClientboundUpdateActionsPacket(Map<ResourceLocation, ActionHolder<
 
 			try {
 				ActionHolder.STREAM_CODEC.encode(buf, actionEntry.getValue());
-			} catch (Exception e) {
+			}
+
+			catch (Exception e) {
 				NeoApoli.LOGGER.error("Couldn't encode action \"{}\" during the syncing process", id, e);
 				throw e;
 			}

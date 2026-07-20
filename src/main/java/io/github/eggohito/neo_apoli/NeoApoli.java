@@ -4,7 +4,7 @@ import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
-import io.github.eggohito.neo_apoli.condition.manager.ConditionManagerHandler;
+import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
@@ -101,7 +101,7 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPowerTypes.registerAll();
 
 		ServerActionManager.init();
-		ConditionManagerHandler.init();
+		ServerConditionManager.init();
 		GlobalPowerSetManagerHandler.init();
 		ServerPowerManager.init();
 

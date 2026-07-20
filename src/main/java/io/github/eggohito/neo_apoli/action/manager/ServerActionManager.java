@@ -184,6 +184,7 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerPlayConnectionEvents.INIT.register(ActionManager.ID, (handler, server) -> serverActionManager.send(handler.player));
 
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ConditionManager.ID, ID);
 		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverActionManager::finalize);
 
 	}
