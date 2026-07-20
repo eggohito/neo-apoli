@@ -5,7 +5,7 @@ import net.minecraft.util.context.ContextKeySet;
 
 public final class NeoApoliContextParamSets {
 
-	public static ContextKeySet any() {
+	public static ContextKeySet all() {
 
 		ContextKeySet.Builder builder = new ContextKeySet.Builder();
 		NeoApoliRegistries.CONTEXT_PARAMETER.forEach(builder::optional);

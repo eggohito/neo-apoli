@@ -205,7 +205,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 			GlobalPowerSet set = entry.getValue();
 
 			Reporter reporter = new Reporter("{\"" + id + "\"}");
-			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.any(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
 
 			set.validate(validator);
 			reporter.getErrorsFlattened().ifPresentOrElse(

@@ -1,0 +1,191 @@
+package io.github.eggohito.neo_apoli.action.manager;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonElement;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
+import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.action.ActionHolder;
+import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
+import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdateActionsPacket;
+import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
+import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
+import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
+import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.Reporter;
+import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import io.github.eggohito.neo_apoli.util.manager.AbstractContentAndTagManager;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
+@ApiStatus.Internal
+@ApiStatus.NonExtendable
+public class ServerActionManager extends AbstractContentAndTagManager<ResourceLocation, ActionHolder<?>> implements ActionManager, IdentifiableResourceReloadListener {
+
+	private static final Logger LOGGER = LogUtils.getLogger();
+	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
+
+	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
+	private final TagLoader<ActionHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
+
+	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
+	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
+
+	public ServerActionManager() {
+
+		if (INSTANCE != null) {
+			throw new IllegalStateException("Action manager is already initialized!");
+		}
+
+	}
+
+	@Override
+	public ResourceLocation getFabricId() {
+		return ID;
+	}
+
+	@Override
+	public Collection<ResourceLocation> getFabricDependencies() {
+		return DEPENDENCIES;
+	}
+
+	@Override
+	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
+
+		CompletableFuture<Map<ResourceLocation, JsonWithSource>> pendingActions = CompletableFuture
+			.supplyAsync(() -> MiscUtil.collectJson(manager, contentLoader, ops, LOGGER::error), backgroundExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> pendingTags = CompletableFuture
+			.supplyAsync(() -> tagLoader.load(manager), backgroundExecutor);
+
+		return pendingActions.thenCombine(pendingTags, Pair::of)
+			.thenCompose(barrier::wait)
+			.thenAcceptAsync(pair -> this.apply(manager, Profiler.get(), pair.getFirst(), pair.getSecond()), gameExecutor);
+
+	}
+
+	public void send(ServerPlayer recipient) {
+		ServerPlayNetworking.send(recipient, new ClientboundUpdateActionsPacket(this.contents, this.tags));
+	}
+
+	private ServerActionManager withOps(@NotNull HolderLookup.Provider provider) {
+		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
+		return this;
+	}
+
+	private void apply(ResourceManager manager, ProfilerFiller profiler, Map<ResourceLocation, JsonWithSource> pendingActions, Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags) {
+
+		LOGGER.info("Parsing actions from data packs...");
+
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> builder = ImmutableMap.builder();
+		this.contents = ImmutableMap.of();
+
+		pendingActions.forEach((id, jsonWithSource) -> {
+
+			ResourceLocationUtil.setCurrent(id);
+			MiscUtil.handleResult(
+				Action.CODEC.parse(ops, jsonWithSource.json()),
+				action -> builder.put(id, new ActionHolder<>(id, action)),
+				warning -> LOGGER.warn("Found warning(s) while parsing action \"{}\" from data pack [{}]: {}", id, jsonWithSource.source(), warning),
+				error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error)
+			);
+
+			ResourceLocationUtil.setCurrent(null);
+
+		});
+
+		this.contents = builder.build();
+		this.pendingTags = pendingTags;
+
+		LOGGER.info("Finished parsing actions from data packs. Action manager contains {} action(s)", contents.size());
+
+	}
+
+	private void finalize(ReloadableServerResources resources) {
+
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> validatedContents = ImmutableMap.builder();
+		int prevSize = contents.size();
+
+		LOGGER.info("Validating {} action(s)...", prevSize);
+
+		for (var holder : contents.values()) {
+
+			Action action = holder.value();
+			Reporter reporter = new Reporter("{\"" + holder.id() + "\"}");
+
+			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+			action.validate(validator);
+
+			reporter.getErrorsFlattened().ifPresentOrElse(
+				error -> LOGGER.error("Found error(s) while validating action \"{}\" {}", holder.id(), error),
+				() -> validatedContents.put(holder.id(), holder)
+			);
+
+		}
+
+		this.contents = validatedContents.build();
+		LOGGER.info("Finished validating {} action(s). Action manager contains {} action(s)", prevSize, contents.size());
+
+		LOGGER.info("Parsing action tags from data packs...");
+		this.tags = ImmutableMap.copyOf(tagLoader.build(pendingTags));
+
+		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
+		this.pendingTags = Map.of();
+
+	}
+
+	public static void init() {
+
+		if (!(INSTANCE instanceof ServerActionManager serverActionManager)) {
+			throw new IllegalStateException("Instantiated action manager doesn't match the server environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ServerActionManager.class.getName() + ")");
+		}
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverActionManager::withOps);
+		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+
+			if (!joined) {
+				serverActionManager.send(player);
+			}
+
+		});
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register(ActionManager.ID, (handler, server) -> serverActionManager.send(handler.player));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverActionManager::finalize);
+
+	}
+
+}

@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.network.packet;
 
-import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.power.PowersBuilderImpl;
@@ -11,7 +10,7 @@ public final class NeoApoliPackets {
 
 	public static void registerAll() {
 
-		PayloadTypeRegistry.playS2C().register(ActionManager.ClientboundUpdatePacket.TYPE, ActionManager.ClientboundUpdatePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ClientboundUpdateActionsPacket.TYPE, ClientboundUpdateActionsPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ConditionManager.ClientboundUpdatePacket.TYPE, ConditionManager.ClientboundUpdatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundUpdatePowersPacket.TYPE,  ClientboundUpdatePowersPacket.CODEC);
 

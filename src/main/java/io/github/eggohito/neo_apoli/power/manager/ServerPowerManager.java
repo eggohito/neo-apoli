@@ -63,7 +63,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	private final TagLoader<PowerHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(PowerIdentifier.of(id)).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.POWER));
 
 	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
-	private DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
+	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
 	public ServerPowerManager() {
 
@@ -144,7 +144,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	private void finalize(ReloadableServerResources resources) {
 
 		ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> validatedContents = ImmutableMap.builder();
-		int prevSize = this.contents.size();
+		int prevSize = contents.size();
 
 		LOGGER.info("Validating {} power(s)...", prevSize);
 
@@ -166,11 +166,11 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 		this.contents = validatedContents.build();
 		LOGGER.info("Finished validating {} power(s). Power manager contains {} power(s)", prevSize, contents.size());
 
-		this.tags = ImmutableMap.copyOf(tagLoader.build(pendingTags));
 		LOGGER.info("Parsing power tags from data packs...");
+		this.tags = ImmutableMap.copyOf(tagLoader.build(pendingTags));
 
-		this.pendingTags = Map.of();
 		LOGGER.info("Finished parsing power tags from data packs. Power manager contains {} power tag(s)", tags.size());
+		this.pendingTags = Map.of();
 
 	}
 

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.action.manager.ActionManagerClientHandler;
+import io.github.eggohito.neo_apoli.client.action.manager.ClientActionManager;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
 import io.github.eggohito.neo_apoli.client.impl.tag.NestedTagCacheClientImpl;
@@ -31,7 +31,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		HudElementRenderers.registerAll();
 
-		ActionManagerClientHandler.init();
+		ClientActionManager.init();
 		ConditionManagerClientHandler.init();
 		ClientPowerManager.init();
 
