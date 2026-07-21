@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.api.event;
 
-import io.github.eggohito.neo_apoli.api.key.KeyState;
+import io.github.eggohito.neo_apoli.key.KeyState;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.player.Player;

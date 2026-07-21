@@ -3,10 +3,10 @@ package io.github.eggohito.neo_apoli;
 import io.github.eggohito.neo_apoli.client.action.manager.ClientActionManager;
 import io.github.eggohito.neo_apoli.client.condition.manager.ClientConditionManager;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
-import io.github.eggohito.neo_apoli.client.impl.key.KeyStateClientManagerImpl;
 import io.github.eggohito.neo_apoli.client.impl.tag.NestedTagCacheClientImpl;
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
+import io.github.eggohito.neo_apoli.client.key.manager.ClientKeyStateManager;
 import io.github.eggohito.neo_apoli.client.power.manager.ClientPowerManager;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
@@ -35,7 +35,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		ClientConditionManager.init();
 		ClientPowerManager.init();
 
-		KeyStateClientManagerImpl.init();
+		ClientKeyStateManager.init();
 		NestedTagCacheClientImpl.init();
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {

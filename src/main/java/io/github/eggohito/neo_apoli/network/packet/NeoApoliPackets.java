@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.network.packet;
 
-import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.power.PowersBuilderImpl;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.*;
+import io.github.eggohito.neo_apoli.network.packet.serverbound.ServerboundUpdateKeyStatesPacket;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public final class NeoApoliPackets {
@@ -20,7 +20,7 @@ public final class NeoApoliPackets {
 		PayloadTypeRegistry.playS2C().register(PowersBuilderImpl.ClientboundGrantPowersPacket.TYPE, PowersBuilderImpl.ClientboundGrantPowersPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(PowersBuilderImpl.ClientboundRevokePowersPacket.TYPE, PowersBuilderImpl.ClientboundRevokePowersPacket.CODEC);
 
-		PayloadTypeRegistry.playC2S().register(KeyStateManagerImpl.ServerboundKeyStatesUpdatePacket.TYPE, KeyStateManagerImpl.ServerboundKeyStatesUpdatePacket.CODEC);
+		PayloadTypeRegistry.playC2S().register(ServerboundUpdateKeyStatesPacket.TYPE, ServerboundUpdateKeyStatesPacket.CODEC);
 
 	}
 

@@ -6,12 +6,12 @@ import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
-import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
+import io.github.eggohito.neo_apoli.key.manager.ServerKeyStateManager;
 import io.github.eggohito.neo_apoli.network.packet.NeoApoliPackets;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
 import io.github.eggohito.neo_apoli.power.global.manager.GlobalPowerSetManagerHandler;
@@ -113,8 +113,7 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliContextParams.registerAll();
 		NeoApoliContextParamSets.registerAll();
 
-		KeyStateManagerImpl.init();
-
+		ServerKeyStateManager.init();
 		NeoApoliNestedTagCaches.registerAll();
 		NestedTagCacheImpl.init();
 

@@ -1,8 +1,9 @@
-package io.github.eggohito.neo_apoli.client.impl.key;
+package io.github.eggohito.neo_apoli.client.key.manager;
 
 import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
-import io.github.eggohito.neo_apoli.api.key.KeyState;
-import io.github.eggohito.neo_apoli.impl.key.KeyStateManagerImpl;
+import io.github.eggohito.neo_apoli.key.KeyState;
+import io.github.eggohito.neo_apoli.key.manager.ServerKeyStateManager;
+import io.github.eggohito.neo_apoli.network.packet.serverbound.ServerboundUpdateKeyStatesPacket;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
@@ -12,13 +13,20 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 import java.util.UUID;
 
-public class KeyStateClientManagerImpl extends KeyStateManagerImpl {
+@ApiStatus.Internal
+public final class ClientKeyStateManager extends ServerKeyStateManager {
 
-	private static void clientTick(Minecraft client) {
+	private void disconnect() {
+		this.previousStates.remove();
+		this.currentStates.remove();
+	}
+
+	private void tick(Minecraft client) {
 
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
@@ -28,10 +36,10 @@ public class KeyStateClientManagerImpl extends KeyStateManagerImpl {
 		}
 
 		UUID uuid = player.getUUID();
-		Object2BooleanMap<String> updated = new Object2BooleanOpenHashMap<>();
+		Object2BooleanMap<String> updates = new Object2BooleanOpenHashMap<>();
 
-		Map<String, KeyState> previous = PREVIOUS_STATES.get().computeIfAbsent(uuid, k -> new Object2ObjectLinkedOpenHashMap<>());
-		Map<String, KeyState> current = CURRENT_STATES.get().computeIfAbsent(uuid, k -> new Object2ObjectLinkedOpenHashMap<>());
+		Map<String, KeyState> previous = previousStates.get().computeIfAbsent(uuid, k -> new Object2ObjectLinkedOpenHashMap<>());
+		Map<String, KeyState> current = currentStates.get().computeIfAbsent(uuid, k -> new Object2ObjectLinkedOpenHashMap<>());
 
 		for (var keyMapping : client.options.keyMappings) {
 
@@ -48,7 +56,7 @@ public class KeyStateClientManagerImpl extends KeyStateManagerImpl {
 				long pressedTime = pressed ? level.getGameTime() : 0;
 				currentState = new KeyState(id, pressedTime);
 
-				updated.put(id, pressed);
+				updates.put(id, pressed);
 
 			}
 
@@ -73,26 +81,27 @@ public class KeyStateClientManagerImpl extends KeyStateManagerImpl {
 		}
 
 		previous.putAll(current);
-		send(updated);
+		send(updates);
 
 	}
 
-	private static void clientDisconnect() {
-		PREVIOUS_STATES.get().clear();
-		CURRENT_STATES.get().clear();
-	}
+	private void send(Object2BooleanMap<String> updates) {
 
-	private static void send(Object2BooleanMap<String> updated) {
-
-		if (!updated.isEmpty()) {
-			ClientPlayNetworking.send(new ServerboundKeyStatesUpdatePacket(updated));
+		if (!updates.isEmpty()) {
+			ClientPlayNetworking.send(new ServerboundUpdateKeyStatesPacket(updates));
 		}
 
 	}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(KeyStateClientManagerImpl::clientTick);
-		ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> clientDisconnect());
+
+		if (!(INSTANCE instanceof ClientKeyStateManager clientStates)) {
+			throw new IllegalStateException("Expected '" + ClientKeyStateManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
+		}
+
+		ClientTickEvents.END_CLIENT_TICK.register(ID, clientStates::tick);
+		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> clientStates.disconnect());
+
 	}
 
 }
