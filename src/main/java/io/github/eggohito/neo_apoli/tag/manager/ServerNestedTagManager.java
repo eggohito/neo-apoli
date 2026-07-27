@@ -87,7 +87,7 @@ public class ServerNestedTagManager implements NestedTagManager {
 	public static void init() {
 
 		if (!(INSTANCE instanceof ServerNestedTagManager serverNestedTagManager)) {
-			throw new IllegalStateException("Instantiated nested tag manager doesn't match the server environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ServerNestedTagManager.class.getName() + ")");
+			throw new IllegalStateException("Expected '" + ServerNestedTagManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> serverNestedTagManager.send(player));

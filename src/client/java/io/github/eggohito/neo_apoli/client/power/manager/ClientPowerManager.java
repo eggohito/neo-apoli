@@ -23,8 +23,8 @@ public final class ClientPowerManager extends ServerPowerManager {
 
 	public static void init() {
 
-		if (!(PowerManager.INSTANCE instanceof ClientPowerManager clientPowerManager)) {
-			throw new IllegalStateException("Instantiated power manager doesn't match the client environment! (Is " + PowerManager.INSTANCE.getClass().getName() + ", must be " + ClientPowerManager.class.getName() + ")");
+		if (!(INSTANCE instanceof ClientPowerManager clientPowerManager)) {
+			throw new IllegalStateException("Expected '" + ClientPowerManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdatePowersPacket.TYPE, (payload, context) -> clientPowerManager.receive(payload));

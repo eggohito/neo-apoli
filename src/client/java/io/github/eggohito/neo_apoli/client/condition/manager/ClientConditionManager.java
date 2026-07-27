@@ -21,7 +21,7 @@ public final class ClientConditionManager extends ServerConditionManager {
 	public static void init() {
 
 		if (!(INSTANCE instanceof ClientConditionManager clientConditionManager)) {
-			throw new IllegalStateException("Instantiated condition manager doesn't match the client environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ClientConditionManager.class.getName());
+			throw new IllegalStateException("Expected '" + ClientConditionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateConditionsPacket.TYPE, (payload, context) -> clientConditionManager.receive(payload));

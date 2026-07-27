@@ -20,7 +20,7 @@ public final class ClientNestedTagManager extends ServerNestedTagManager {
 	public static void init() {
 
 		if (!(INSTANCE instanceof ClientNestedTagManager clientNestedTagManager)) {
-			throw new IllegalStateException("Instantiated nested tag manager doesn't match the client environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ServerNestedTagManager.class.getName() + ")");
+			throw new IllegalStateException("Expected '" + ClientNestedTagManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateNestedTagPacket.TYPE, (payload, context) -> clientNestedTagManager.receive(payload));

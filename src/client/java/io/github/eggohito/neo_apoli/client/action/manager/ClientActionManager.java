@@ -23,7 +23,7 @@ public final class ClientActionManager extends ServerActionManager {
 	public static void init() {
 
 		if (!(INSTANCE instanceof ClientActionManager clientActionManager)) {
-			throw new IllegalStateException("Instantiated action manager doesn't match the client environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ClientActionManager.class.getName() + ")");
+			throw new IllegalStateException("Expected '" + ClientActionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateActionsPacket.TYPE, (payload, context) -> clientActionManager.receive(payload));

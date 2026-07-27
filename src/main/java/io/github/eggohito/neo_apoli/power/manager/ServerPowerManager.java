@@ -179,8 +179,8 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	@ApiStatus.Internal
 	public static void init() {
 
-		if (!(PowerManager.INSTANCE instanceof ServerPowerManager serverPowerManager)) {
-			throw new IllegalStateException("Instantiated power manager doesn't match the server environment! (Is " + PowerManager.INSTANCE.getClass().getName() + ", must be " + ServerPowerManager.class.getName() + ")");
+		if (!(INSTANCE instanceof ServerPowerManager serverPowerManager)) {
+			throw new IllegalStateException("Expected '" + ServerPowerManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverPowerManager::withOps);

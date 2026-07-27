@@ -143,7 +143,7 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 	public static void init() {
 
 		if (!(INSTANCE instanceof ServerConditionManager serverConditionManager)) {
-			throw new IllegalStateException("Instantiated condition manager doesn't match the server environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ServerConditionManager.class.getName());
+			throw new IllegalStateException("Expected '" + ServerConditionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverConditionManager::withOps);

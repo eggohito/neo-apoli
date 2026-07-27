@@ -168,7 +168,7 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 	public static void init() {
 
 		if (!(INSTANCE instanceof ServerActionManager serverActionManager)) {
-			throw new IllegalStateException("Instantiated action manager doesn't match the server environment! (Is " + INSTANCE.getClass().getName() + ", must be " + ServerActionManager.class.getName() + ")");
+			throw new IllegalStateException("Expected '" + ServerActionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
 		}
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverActionManager::withOps);
