@@ -1,5 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.manager;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
@@ -46,7 +48,7 @@ import java.util.concurrent.Executor;
 public class ServerConditionManager extends AbstractContentManager<ResourceLocation, Condition> implements ConditionManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build();
+	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build());
 
 	private final JsonFileToIdConverter loader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.CONDITION);
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
@@ -66,7 +68,7 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES;
+		return DEPENDENCIES.get();
 	}
 
 	@Override

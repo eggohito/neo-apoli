@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.action.manager;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
@@ -47,13 +48,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 @ApiStatus.Internal
 @ApiStatus.NonExtendable
 public class ServerActionManager extends AbstractContentAndTagManager<ResourceLocation, ActionHolder<?>> implements ActionManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
+	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build());
 
 	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
 	private final TagLoader<ActionHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
@@ -76,7 +78,7 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES;
+		return DEPENDENCIES.get();
 	}
 
 	@Override
