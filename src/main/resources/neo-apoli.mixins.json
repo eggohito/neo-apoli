@@ -18,6 +18,7 @@
 		"access.RegistryOpsAccessor$HolderLookupAdapterAccessor",
 		"access.ReloadableServerRegistriesAccessor",
 		"access.ReloadableServerRegistriesAccessor$HolderAccessor",
+		"access.ResourceKeyAccessor",
 		"access.ResourceLocationAccessor",
 		"access.ServerPlayerAccessor",
 		"access.TagEntryAccessor",

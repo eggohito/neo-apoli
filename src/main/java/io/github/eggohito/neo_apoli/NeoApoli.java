@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.condition.manager.ServerConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.impl.tag.NestedTagCacheImpl;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.key.manager.ServerKeyStateManager;
@@ -23,6 +22,7 @@ import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.registry.provider.*;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeSerializers;
+import io.github.eggohito.neo_apoli.tag.manager.ServerNestedTagManager;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.fabricmc.api.ModInitializer;
@@ -114,8 +114,9 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliContextParamSets.registerAll();
 
 		ServerKeyStateManager.init();
+		ServerNestedTagManager.init();
+
 		NeoApoliNestedTagCaches.registerAll();
-		NestedTagCacheImpl.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
