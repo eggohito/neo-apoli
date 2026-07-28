@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.google.common.base.Predicates;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.Gson;
@@ -66,10 +67,7 @@ import org.quiltmc.parsers.json.gson.GsonReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class MiscUtil {
 
@@ -363,24 +361,17 @@ public class MiscUtil {
 
 	}
 
-	public static <T> DataResult<T> handleResult(DataResult<T> result, Consumer<T> resultOrPartial, Consumer<String> onPartial, Consumer<String> onError) {
+	public static <T> DataResult<T> handleResult(DataResult<T> result, Consumer<T> onSuccessOrPartial, Consumer<String> onPartial, Consumer<String> onError) {
+		return handleResult(result, onSuccessOrPartial, Predicates.alwaysTrue(), onPartial, onError);
+	}
 
-		result.resultOrPartial().ifPresent(resultOrPartial);
-
-		result.ifError(error -> {
-
-			if (error.hasResultOrPartial()) {
-				onPartial.accept(error.message());
-			}
-
-			else {
-				onError.accept(error.message());
-			}
-
-		});
-
-		return result;
-
+	public static <T> DataResult<T> handleResult(DataResult<T> result, Consumer<T> onSuccessOrPartial, Predicate<T> partialFilter, Consumer<String> onPartial, Consumer<String> onError) {
+		return result
+			.ifSuccess(onSuccessOrPartial)
+			.ifError(error -> error
+				.resultOrPartial()
+				.filter(partialFilter)
+				.ifPresentOrElse(onSuccessOrPartial.andThen(t -> onPartial.accept(error.message())), () -> onError.accept(error.message())));
 	}
 
 	public static Map<ResourceLocation, JsonWithSource> collectJson(ResourceManager manager, JsonFileToIdConverter converter, DynamicOps<JsonElement> ops, Consumer<String> errorHandler) {

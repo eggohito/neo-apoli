@@ -2,9 +2,9 @@ package io.github.eggohito.neo_apoli.provider.custom.number;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.key.KeyState;
-import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.key.KeyState;
+import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
@@ -62,7 +62,7 @@ public record KeyPressedTicksNumberProvider(StringProvider id, EntityProvider en
 			return 0L;
 		}
 
-		return KeyStateManager.getState(uuid, id)
+		return KeyStateManager.INSTANCE.getState(uuid, id)
 			.filter(KeyState::pressed)
 			.map(KeyState::pressedTime)
 			.map(pressedTime -> level.getGameTime() - pressedTime)

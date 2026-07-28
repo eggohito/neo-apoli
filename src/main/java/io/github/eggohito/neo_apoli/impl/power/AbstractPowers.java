@@ -44,7 +44,7 @@ public sealed class AbstractPowers implements Powers permits PowersImpl, PowersB
 	public List<PowerHolder<?>> getAll(boolean includeSubPowers) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		instances.keySet().forEach(reference -> PowerManager.getAsResult(reference)
+		instances.keySet().forEach(reference -> PowerManager.INSTANCE.getAsResult(reference)
 			.result()
 			.filter(entry -> includeSubPowers || !entry.isSubPower())
 			.ifPresent(result::add));
@@ -57,7 +57,7 @@ public sealed class AbstractPowers implements Powers permits PowersImpl, PowersB
 	public List<PowerHolder<?>> getAllFromSource(ResourceLocation source) {
 
 		List<PowerHolder<?>> result = new ObjectArrayList<>();
-		sources.asMap().forEach((reference, sources) -> PowerManager.getAsResult(reference)
+		sources.asMap().forEach((reference, sources) -> PowerManager.INSTANCE.getAsResult(reference)
 			.result()
 			.filter(entry -> sources.contains(source))
 			.ifPresent(result::add));

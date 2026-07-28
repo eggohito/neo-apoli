@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.key;
+package io.github.eggohito.neo_apoli.key;
 
 import net.minecraft.util.Mth;
 

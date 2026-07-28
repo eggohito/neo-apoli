@@ -106,7 +106,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 
 	private boolean grantRecursively(PowerIdentifier id, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
 
-		if (!PowerManager.contains(id)) {
+		if (!PowerManager.INSTANCE.contains(id)) {
 			return false;
 		}
 
@@ -117,7 +117,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 			return false;
 		}
 
-		Power power = PowerManager.get(id).value();
+		Power power = PowerManager.INSTANCE.get(id).value();
 		Power.Instance<?> instance = instances.computeIfAbsent(id, k -> power.createInstance());
 
 		if (power instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
@@ -222,7 +222,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 		//  Revoke all unregistered powers, and cache the old data of those that are on the entity
 		for (var reference : powers.getAllIds()) {
 
-			if (!PowerManager.contains(reference)) {
+			if (!PowerManager.INSTANCE.contains(reference)) {
 
 				for (var source : powers.getSources(reference)) {
 					powers.revokeWithCallback(reference, source);

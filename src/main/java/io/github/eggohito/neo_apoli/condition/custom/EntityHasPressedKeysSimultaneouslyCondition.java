@@ -2,11 +2,11 @@ package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.key.KeyState;
-import io.github.eggohito.neo_apoli.api.key.KeyStateManager;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
+import io.github.eggohito.neo_apoli.key.KeyState;
+import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
@@ -68,7 +68,7 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 			StringProvider key = listIterator.next();
 
 			String id = key.getString(keyContext);
-			Optional<KeyState> optState = KeyStateManager.getState(uuid, id);
+			Optional<KeyState> optState = KeyStateManager.INSTANCE.getState(uuid, id);
 
 			if (keyContext.hasErrors() || optState.isEmpty()) {
 				continue;

@@ -158,7 +158,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 	public MultiplePower {
 
 		for (var subPower : subPowers) {
-			disallowRecursiveMultiple(subPower.value().getType()).getOrThrow();
+			validateNonRecursiveMultiple(subPower);
 		}
 
 	}
@@ -219,7 +219,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 		}
 
 		else {
-			return DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: " + name);
+			return DataResult.error(() -> "Non [a-z0-9/._-] character in sub-power name: \"" + name + "\"");
 		}
 
 	}
@@ -238,7 +238,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	}
 
-	private static DataResult<Type<?>> disallowRecursiveMultiple(Power.Type<?> type) {
+	public static DataResult<Type<?>> disallowRecursiveMultiple(Power.Type<?> type) {
 
 		if (type == NeoApoliPowerTypes.MULTIPLE) {
 			return DataResult.error(() -> "The '" + ID + "' power type is not allowed in sub-powers!");
@@ -248,6 +248,11 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 			return DataResult.success(type);
 		}
 
+	}
+
+	public static PowerHolder<?> validateNonRecursiveMultiple(PowerHolder<?> holder) {
+		disallowRecursiveMultiple(holder.value().getType()).getOrThrow();
+		return holder;
 	}
 
 	public static final class Config extends AbstractJsonCodecConfig<Config> {

@@ -134,7 +134,7 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		for (var entry : entries) {
 
 			PowerIdentifier powerId = entry.id();
-			DataResult<PowerHolder<?>> powerResult = PowerManager.getAsResult(powerId);
+			DataResult<PowerHolder<?>> powerResult = PowerManager.INSTANCE.getAsResult(powerId);
 
 			identity = identity.apply2stable((unit, power) -> unit, powerResult);
 

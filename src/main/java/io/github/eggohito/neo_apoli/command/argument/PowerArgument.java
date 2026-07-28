@@ -53,10 +53,10 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
 
 		if (allowTags()) {
-			SharedSuggestionProvider.suggestResource(PowerManager.tags(), builder, "#");
+			SharedSuggestionProvider.suggestResource(PowerManager.INSTANCE.tags(), builder, "#");
 		}
 
-		return SharedSuggestionProvider.suggest(PowerManager.ids(), builder, PowerIdentifier::toString, id -> Component.literal(id.toString()));
+		return SharedSuggestionProvider.suggest(PowerManager.INSTANCE.keys(), builder, PowerIdentifier::toString, id -> Component.literal(id.toString()));
 
 	}
 
@@ -111,7 +111,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 			@Override
 			public List<PowerHolder<?>> get() throws CommandSyntaxException {
-				return List.of(PowerManager.getAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
+				return List.of(PowerManager.INSTANCE.getAsResult(id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error)));
 			}
 
 			@Override
@@ -125,12 +125,12 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 			@Override
 			public List<PowerHolder<?>> get() throws CommandSyntaxException {
-				return PowerManager.getTag(this.id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+				return PowerManager.INSTANCE.getTagAsResult(this.id()).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
 			@Override
 			public void validate(Context.Validator validator) {
-				PowerManager.getTag(this.id()).ifError(error -> validator.reportProblem(error.message()));
+				PowerManager.INSTANCE.getTagAsResult(this.id()).ifError(error -> validator.reportProblem(error.message()));
 			}
 
 			public ResourceLocation id() {

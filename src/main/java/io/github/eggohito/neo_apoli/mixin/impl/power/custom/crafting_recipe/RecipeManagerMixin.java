@@ -44,7 +44,7 @@ public abstract class RecipeManagerMixin implements PowerRecipeDisplayHolder {
 		ObjectCollection<RecipeHolder<?>> recipeEntries = new ObjectOpenHashSet<>(this.recipes.values());
 		Object2IntMap<ResourceKey<Recipe<?>>> replacedRecipes = Util.make(new Object2IntOpenHashMap<>(), map -> recipeEntries.forEach(recipeEntry -> map.put(recipeEntry.id(), 0)));
 
-		for (PowerHolder<?> powerHolder : PowerManager.powers()) {
+		for (PowerHolder<?> powerHolder : PowerManager.INSTANCE.values()) {
 
 			if (!(powerHolder.value() instanceof CraftingRecipePower(RecipeHolder<CraftingRecipe> recipeHolder, int priority))) {
 				continue;

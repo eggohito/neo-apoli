@@ -122,7 +122,7 @@ public class ConditionCommand {
 			Context.Builder contextBuilder = source.neo_apoli$getContextBuilder();
 
 			Condition condition = ConditionArgument.getCondition(commandContext, "condition");
-			String path = ConditionManager.getIdAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
+			String path = ConditionManager.INSTANCE.getKeyAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
 			Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), reporter).withResolver(source.registryAccess());

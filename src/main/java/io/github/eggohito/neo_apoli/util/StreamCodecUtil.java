@@ -3,11 +3,15 @@ package io.github.eggohito.neo_apoli.util;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import io.github.eggohito.neo_apoli.mixin.access.ResourceKeyAccessor;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ByIdMap;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.util.random.WeightedList;
@@ -160,6 +164,28 @@ public final class StreamCodecUtil {
 					buf.writeInt(weighted.weight());
 				}
 
+			}
+
+		};
+	}
+
+	public static <B extends ByteBuf, T> StreamCodec<B, ResourceKey<? extends Registry<T>>> registryKey() {
+		return new StreamCodec<>() {
+
+			@Override
+			public @NotNull ResourceKey<? extends Registry<T>> decode(B buf) {
+
+				ResourceLocation registry = ResourceLocation.STREAM_CODEC.decode(buf);
+				ResourceLocation location = ResourceLocation.STREAM_CODEC.decode(buf);
+
+				return ResourceKeyAccessor.callCreate(registry, location);
+
+			}
+
+			@Override
+			public void encode(B buf, ResourceKey<? extends Registry<T>> input) {
+				ResourceLocation.STREAM_CODEC.encode(buf, input.registry());
+				ResourceLocation.STREAM_CODEC.encode(buf, input.location());
 			}
 
 		};

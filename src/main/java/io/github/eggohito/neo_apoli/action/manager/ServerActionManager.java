@@ -1,20 +1,28 @@
 package io.github.eggohito.neo_apoli.action.manager;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdateActionsPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParamSets;
 import io.github.eggohito.neo_apoli.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
+import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import io.github.eggohito.neo_apoli.util.manager.AbstractContentAndTagManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -24,32 +32,43 @@ import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
-public final class ServerActionManager extends ActionManager implements IdentifiableResourceReloadListener {
+@ApiStatus.Internal
+@ApiStatus.NonExtendable
+public class ServerActionManager extends AbstractContentAndTagManager<ResourceLocation, ActionHolder<?>> implements ActionManager, IdentifiableResourceReloadListener {
 
-	private static final TagLoader<ActionHolder<?>> TAG_LOADER = new TagLoader<>((id, required) -> getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
-	private static final JsonFileToIdConverter JSON_LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
+	private static final Logger LOGGER = LogUtils.getLogger();
+	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build());
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerActionManager.class);
-	private static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build();
+	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.ACTION);
+	private final TagLoader<ActionHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(id).result(), Registries.tagsDirPath(NeoApoliRegistryKeys.ACTION));
 
-	private final DynamicOps<JsonElement> ops;
+	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
+	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
-	ServerActionManager(HolderLookup.Provider provider) {
-		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
+	public ServerActionManager() {
+
+		if (INSTANCE != null) {
+			throw new IllegalStateException("Action manager is already initialized!");
+		}
+
 	}
 
 	@Override
@@ -59,35 +78,69 @@ public final class ServerActionManager extends ActionManager implements Identifi
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES;
+		return DEPENDENCIES.get();
 	}
 
 	@Override
 	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
 
-		CompletableFuture<Map<ResourceLocation, JsonWithSource>> actionsFuture = CompletableFuture
-			.supplyAsync(() -> MiscUtil.collectJson(manager, JSON_LOADER, ops, LOGGER::error), backgroundExecutor);
-		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> tagsFuture = CompletableFuture
-			.supplyAsync(() -> TAG_LOADER.load(manager), backgroundExecutor);
+		CompletableFuture<Map<ResourceLocation, JsonWithSource>> pendingActions = CompletableFuture
+			.supplyAsync(() -> MiscUtil.collectJson(manager, contentLoader, ops, LOGGER::error), backgroundExecutor);
+		CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> pendingTags = CompletableFuture
+			.supplyAsync(() -> tagLoader.load(manager), backgroundExecutor);
 
-		return actionsFuture.thenCombine(tagsFuture, Pair::of)
+		return pendingActions.thenCombine(pendingTags, Pair::of)
 			.thenCompose(barrier::wait)
-			.thenAcceptAsync(pair -> this.applyAll(pair.getFirst(), pair.getSecond()), gameExecutor);
+			.thenAcceptAsync(pair -> this.apply(manager, Profiler.get(), pair.getFirst(), pair.getSecond()), gameExecutor);
 
 	}
 
-	private void applyAll(Map<ResourceLocation, JsonWithSource> unparsedActions, Map<ResourceLocation, List<TagLoader.EntryWithSource>> unparsedTags) {
+	@Override
+	public void init() {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
+		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+
+			if (!joined) {
+				this.send(player);
+			}
+
+		});
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register(ActionManager.ID, (handler, server) -> this.send(handler.player));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ConditionManager.ID, ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
+
+	}
+
+	private ServerActionManager withOps(@NotNull HolderLookup.Provider provider) {
+		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
+		return this;
+	}
+
+	private void send(ServerPlayer recipient) {
+		ServerPlayNetworking.send(recipient, new ClientboundUpdateActionsPacket(this.contents, this.tags));
+	}
+
+	private void apply(ResourceManager manager, ProfilerFiller profiler, Map<ResourceLocation, JsonWithSource> pendingActions, Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags) {
 
 		LOGGER.info("Parsing actions from data packs...");
-		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> parsedActions = ImmutableMap.builder();
 
-		unparsedActions.forEach((id, jsonWithSource) -> {
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> builder = ImmutableMap.builder();
+		this.contents = ImmutableMap.of();
+
+		pendingActions.forEach((id, jsonWithSource) -> {
 
 			ResourceLocationUtil.setCurrent(id);
 			MiscUtil.handleResult(
 				Action.CODEC.parse(ops, jsonWithSource.json()),
-				action -> parsedActions.put(id, new ActionHolder<>(id, action)),
-				warning -> LOGGER.warn("Found warnings while parsing action \"{}\" from data pack [{}]: {}", id, jsonWithSource.source(), warning),
+				action -> builder.put(id, new ActionHolder<>(id, action)),
+				warning -> LOGGER.warn("Found warning(s) while parsing action \"{}\" from data pack [{}]: {}", id, jsonWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse action \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error)
 			);
 
@@ -95,39 +148,43 @@ public final class ServerActionManager extends ActionManager implements Identifi
 
 		});
 
-		actions = parsedActions.build();
-		LOGGER.info("Finished parsing actions from data packs. Action manager contains {} action(s)", actions.size());
+		this.contents = builder.build();
+		this.pendingTags = pendingTags;
 
-		LOGGER.info("Parsing action tags from data packs...");
-		Map<ResourceLocation, List<ActionHolder<?>>> parsedTags = TAG_LOADER.build(unparsedTags);
-
-		tags = ImmutableMap.copyOf(parsedTags);
-		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
+		LOGGER.info("Finished parsing actions from data packs. Action manager contains {} action(s)", contents.size());
 
 	}
 
-	public static void init() {
+	private void finalize(ReloadableServerResources resources) {
 
-	}
+		ImmutableMap.Builder<ResourceLocation, ActionHolder<?>> validatedContents = ImmutableMap.builder();
+		int prevSize = contents.size();
 
-	private static void sync(ServerPlayer player, boolean joined) {
+		LOGGER.info("Validating {} action(s)...", prevSize);
 
-		if (!joined) {
-			ServerPlayNetworking.send(player, new ClientboundUpdatePacket(actions, tags));
+		for (var holder : contents.values()) {
+
+			Action action = holder.value();
+			Reporter reporter = new Reporter("{\"" + holder.id() + "\"}");
+
+			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+			action.validate(validator);
+
+			reporter.getErrorsFlattened().ifPresentOrElse(
+				error -> LOGGER.error("Found error(s) while validating action \"{}\" {}", holder.id(), error),
+				() -> validatedContents.put(holder.id(), holder)
+			);
+
 		}
 
-	}
+		this.contents = validatedContents.build();
+		LOGGER.info("Finished validating {} action(s). Action manager contains {} action(s)", prevSize, contents.size());
 
-	static {
+		LOGGER.info("Parsing action tags from data packs...");
+		this.tags = ImmutableMap.copyOf(tagLoader.build(pendingTags));
 
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, ServerActionManager::new);
-		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
-
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, ServerActionManager::sync);
-
-		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> sync(handler.player, false));
+		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
+		this.pendingTags = Map.of();
 
 	}
 

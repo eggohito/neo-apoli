@@ -1,32 +1,33 @@
 package io.github.eggohito.neo_apoli.client.action.manager;
 
 import com.google.common.collect.ImmutableMap;
-import io.github.eggohito.neo_apoli.action.manager.ActionManager;
+import io.github.eggohito.neo_apoli.action.manager.ServerActionManager;
+import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdateActionsPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import org.jetbrains.annotations.ApiStatus;
 
-public final class ClientActionManager extends ActionManager {
+@ApiStatus.Internal
+public final class ClientActionManager extends ServerActionManager {
 
-	private ClientActionManager() {
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateActionsPacket.TYPE, (payload, context) -> this.receive(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> this.clear());
 
 	}
 
-	public static void init() {
-
+	private void receive(ClientboundUpdateActionsPacket payload) {
+		this.contents = ImmutableMap.copyOf(payload.actions());
+		this.tags = ImmutableMap.copyOf(payload.tags());
 	}
 
-	static {
-
-		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdatePacket.TYPE, (payload, context) -> {
-			actions = ImmutableMap.copyOf(payload.actions());
-			tags = ImmutableMap.copyOf(payload.tags());
-		});
-
-		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> {
-			actions = ImmutableMap.of();
-			tags = ImmutableMap.of();
-		});
-
+	private void clear() {
+		this.contents = ImmutableMap.of();
+		this.tags = ImmutableMap.of();
 	}
 
 }

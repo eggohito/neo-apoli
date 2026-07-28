@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.key;
+package io.github.eggohito.neo_apoli.key;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
