@@ -23,6 +23,7 @@ import io.github.eggohito.neo_apoli.provider.custom.slot.SlotProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
@@ -55,7 +56,9 @@ public final class NeoApoliRegistries {
 	public static final Registry<Context.Parameter<?>> CONTEXT_PARAMETER = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER);
 
 	private static <T> Registry<T> create(ResourceKey<Registry<T>> key) {
-		return FabricRegistryBuilder.createSimple(key).buildAndRegister();
+		return FabricRegistryBuilder.createSimple(key)
+			.attribute(RegistryAttribute.SYNCED)
+			.buildAndRegister();
 	}
 
 }
