@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
+import io.github.eggohito.neo_apoli.api.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.api.power.PowersBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -24,7 +25,9 @@ import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,6 +35,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -220,6 +224,10 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	}
 
+	public static void init() {
+
+	}
+
 	private static GlobalPowerSet.WithSource merge(ResourceLocation id, GlobalPowerSet.WithSource first, GlobalPowerSet.WithSource second) {
 
 		LazyTagLike.Builder<EntityType<?>> entityTypes = new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE);
@@ -252,6 +260,19 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 		);
 
 		return new GlobalPowerSet.WithSource(set, second.source());
+
+	}
+
+	static {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::withContext);
+		DependencyManager.GLOBAL_POWER_SETS.register(GlobalPowerSetManager.ID, dependencies -> dependencies.add(PowerManager.ID));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(PowerManager.ID, GlobalPowerSetManager.ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::finalize);
+
+		ServerEntityEvents.ENTITY_LOAD.addPhaseOrdering(PowerManager.ID, GlobalPowerSetManager.ID);
+		ServerEntityEvents.ENTITY_LOAD.register(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::grant);
 
 	}
 
