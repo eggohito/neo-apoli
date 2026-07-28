@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.color.custom.Argb;
 import io.github.eggohito.neo_apoli.color.custom.Hsv;
 import io.github.eggohito.neo_apoli.color.custom.Rgba;
+import io.github.eggohito.neo_apoli.color.custom.BiomeWaterColor;
 import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicArgb;
 import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicHsv;
 import io.github.eggohito.neo_apoli.color.custom.dynamic.DynamicRgba;
@@ -23,6 +24,8 @@ public final class NeoApoliColorTypes {
 	public static final Color.Type<DynamicArgb> DYNAMIC_ARGB = registerInternal("dynamic/argb", DynamicArgb.CODEC, DynamicArgb.STREAM_CODEC);
 	public static final Color.Type<DynamicHsv> DYNAMIC_HSV = registerInternal("dynamic/hsv", DynamicHsv.CODEC, DynamicHsv.STREAM_CODEC);
 	public static final Color.Type<DynamicRgba> DYNAMIC_RGBA = registerInternal("dynamic/rgba", DynamicRgba.CODEC, DynamicRgba.STREAM_CODEC);
+
+	public static final Color.Type<BiomeWaterColor> BIOME_WATER = registerInternal("biome/water", BiomeWaterColor.CODEC, BiomeWaterColor.STREAM_CODEC);
 
 	public static void registerAll() {
 
