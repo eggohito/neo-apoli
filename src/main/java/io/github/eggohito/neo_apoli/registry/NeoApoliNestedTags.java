@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.tag.manager.NestedTagManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 
-public final class NeoApoliNestedTagCaches {
+public final class NeoApoliNestedTags {
 
 	public static final NestedTag<EntityType<?>> ENTITY_TYPE = NestedTagManager.INSTANCE.getOrCreate(Registries.ENTITY_TYPE);
 

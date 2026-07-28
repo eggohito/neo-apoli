@@ -10,6 +10,16 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public final class ClientActionManager extends ServerActionManager {
 
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateActionsPacket.TYPE, (payload, context) -> this.receive(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> this.clear());
+
+	}
+
 	private void receive(ClientboundUpdateActionsPacket payload) {
 		this.contents = ImmutableMap.copyOf(payload.actions());
 		this.tags = ImmutableMap.copyOf(payload.tags());
@@ -18,17 +28,6 @@ public final class ClientActionManager extends ServerActionManager {
 	private void clear() {
 		this.contents = ImmutableMap.of();
 		this.tags = ImmutableMap.of();
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ClientActionManager clientActionManager)) {
-			throw new IllegalStateException("Expected '" + ClientActionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateActionsPacket.TYPE, (payload, context) -> clientActionManager.receive(payload));
-		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> clientActionManager.clear());
-
 	}
 
 }

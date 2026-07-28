@@ -78,13 +78,23 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 			.thenAcceptAsync(pending -> this.apply(manager, Profiler.get(), pending), gameExecutor);
 	}
 
-	public void send(ServerPlayer recipient) {
-		ServerPlayNetworking.send(recipient, new ClientboundUpdateConditionsPacket(this.contents));
+	@Override
+	public void init() {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
+		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> this.send(handler.player));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
+
 	}
 
 	private ServerConditionManager withOps(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
+	}
+
+	private void send(ServerPlayer recipient) {
+		ServerPlayNetworking.send(recipient, new ClientboundUpdateConditionsPacket(this.contents));
 	}
 
 	private void apply(ResourceManager manager, ProfilerFiller profiler, Map<ResourceLocation, JsonWithSource> pending) {
@@ -137,19 +147,6 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 
 		this.contents = validated.build();
 		LOGGER.info("Finished validating {} condition(s). Condition manager contains {} condition(s)", prevSize, contents.size());
-
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ServerConditionManager serverConditionManager)) {
-			throw new IllegalStateException("Expected '" + ServerConditionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverConditionManager::withOps);
-		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> serverConditionManager.send(handler.player));
-
-		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverConditionManager::finalize);
 
 	}
 

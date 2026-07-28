@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.tag;
+package io.github.eggohito.neo_apoli.client.tag.manager;
 
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdateNestedTagPacket;
 import io.github.eggohito.neo_apoli.tag.NestedTag;
@@ -8,6 +8,16 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 public final class ClientNestedTagManager extends ServerNestedTagManager {
 
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateNestedTagPacket.TYPE, (payload, context) -> this.receive(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> this.clear());
+
+	}
+
 	private <T> void receive(ClientboundUpdateNestedTagPacket<T> payload) {
 		NestedTag<T> nestedTag = payload.nestedTag();
 		this.registry.put(nestedTag.registryKey(), nestedTag);
@@ -15,17 +25,6 @@ public final class ClientNestedTagManager extends ServerNestedTagManager {
 
 	private void clear() {
 		this.registry.clear();
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ClientNestedTagManager clientNestedTagManager)) {
-			throw new IllegalStateException("Expected '" + ClientNestedTagManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateNestedTagPacket.TYPE, (payload, context) -> clientNestedTagManager.receive(payload));
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> clientNestedTagManager.clear());
-
 	}
 
 }

@@ -76,6 +76,9 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 		return this.getKeyAsResult(power).getOrThrow();
 	}
 
+	@ApiStatus.Internal
+	void init();
+
 	static void handleSelfAndSubPowers(PowerHolder<?> holder, BiConsumer<PowerIdentifier, PowerHolder<?>> handler) {
 
 		handler.accept(holder.id(), holder);

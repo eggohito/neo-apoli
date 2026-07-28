@@ -7,7 +7,7 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTagCaches;
+import io.github.eggohito.neo_apoli.registry.NeoApoliNestedTags;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.HolderSet;
@@ -69,7 +69,7 @@ public record ModifyEntityTypeTagPower(Optional<Condition> activeCondition, TagK
 
 			else {
 
-				for (var nestedTag : NeoApoliNestedTagCaches.ENTITY_TYPE.getOrEmpty(tag)) {
+				for (var nestedTag : NeoApoliNestedTags.ENTITY_TYPE.getOrEmpty(tag)) {
 
 					if (this.doesApply(nestedTag)) {
 						return true;

@@ -21,6 +21,16 @@ import java.util.UUID;
 @ApiStatus.Internal
 public final class ClientKeyStateManager extends ServerKeyStateManager {
 
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientTickEvents.END_CLIENT_TICK.register(ID, this::tick);
+		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> this.disconnect());
+
+	}
+
 	private void disconnect() {
 		this.previousStates.remove();
 		this.currentStates.remove();
@@ -90,17 +100,6 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 		if (!updates.isEmpty()) {
 			ClientPlayNetworking.send(new ServerboundUpdateKeyStatesPacket(updates));
 		}
-
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ClientKeyStateManager clientStates)) {
-			throw new IllegalStateException("Expected '" + ClientKeyStateManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ClientTickEvents.END_CLIENT_TICK.register(ID, clientStates::tick);
-		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> clientStates.disconnect());
 
 	}
 

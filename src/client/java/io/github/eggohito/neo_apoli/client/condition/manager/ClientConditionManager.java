@@ -10,23 +10,22 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public final class ClientConditionManager extends ServerConditionManager {
 
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateConditionsPacket.TYPE, (payload, context) -> this.receive(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> this.clear());
+
+	}
+
 	private void receive(ClientboundUpdateConditionsPacket payload) {
 		this.contents = ImmutableMap.copyOf(payload.conditions());
 	}
 
 	private void clear() {
 		this.contents = ImmutableMap.of();
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ClientConditionManager clientConditionManager)) {
-			throw new IllegalStateException("Expected '" + ClientConditionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdateConditionsPacket.TYPE, (payload, context) -> clientConditionManager.receive(payload));
-		ClientPlayConnectionEvents.DISCONNECT.register(ID, (handler, client) -> clientConditionManager.clear());
-
 	}
 
 }

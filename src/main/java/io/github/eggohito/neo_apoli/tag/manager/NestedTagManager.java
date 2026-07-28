@@ -13,4 +13,7 @@ public interface NestedTagManager {
 
 	<T> NestedTag<T> getOrCreate(ResourceKey<? extends Registry<T>> registryKey);
 
+	@ApiStatus.Internal
+	void init();
+
 }

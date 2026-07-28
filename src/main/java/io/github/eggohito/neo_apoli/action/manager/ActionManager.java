@@ -18,6 +18,7 @@ import java.util.List;
 public interface ActionManager extends ContentAndTagManager<ResourceLocation, ActionHolder<?>> {
 
 	ResourceLocation ID = NeoApoli.id("manager/action");
+
 	ActionManager INSTANCE = Services.load(ActionManager.class);
 
 	TagEntry.Lookup<ActionHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
@@ -71,5 +72,8 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 	default ResourceLocation getKey(Action action) {
 		return this.getKeyAsResult(action).getOrThrow();
 	}
+
+	@ApiStatus.Internal
+	void init();
 
 }

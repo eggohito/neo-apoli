@@ -14,4 +14,7 @@ public interface ConditionManager extends ContentManager<ResourceLocation, Condi
 
 	ConditionManager INSTANCE = Services.load(ConditionManager.class);
 
+	@ApiStatus.Internal
+	void init();
+
 }

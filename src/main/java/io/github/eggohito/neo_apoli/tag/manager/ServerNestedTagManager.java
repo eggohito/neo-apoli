@@ -42,6 +42,11 @@ public class ServerNestedTagManager implements NestedTagManager {
 		return (NestedTag<T>) this.registry.computeIfAbsent(registryKey, k -> this.create(registryKey));
 	}
 
+	@Override
+	public void init() {
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> this.send(player));
+	}
+
 	private <T> NestedTag<T> create(ResourceKey<? extends Registry<T>> registryKey) {
 
 		NestedTag<T> nestedTag = new NestedTag<>(registryKey, ImmutableSetMultimap.of());
@@ -81,16 +86,6 @@ public class ServerNestedTagManager implements NestedTagManager {
 		for (var nestedTag : this.registry.values()) {
 			ServerPlayNetworking.send(recipient, new ClientboundUpdateNestedTagPacket<>(nestedTag));
 		}
-
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ServerNestedTagManager serverNestedTagManager)) {
-			throw new IllegalStateException("Expected '" + ServerNestedTagManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> serverNestedTagManager.send(player));
 
 	}
 

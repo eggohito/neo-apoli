@@ -40,6 +40,16 @@ public class ServerKeyStateManager implements KeyStateManager {
 			.flatMap(states -> Optional.ofNullable(states.get(key)));
 	}
 
+	@Override
+	public void init() {
+
+		ServerPlayNetworking.registerGlobalReceiver(ServerboundUpdateKeyStatesPacket.TYPE, this::receive);
+
+		ServerTickEvents.END_SERVER_TICK.register(ID, this::tick);
+		ServerPlayConnectionEvents.DISCONNECT.register(ID, (handler, server) -> this.disconnect(handler));
+
+	}
+
 	private void disconnect(ServerGamePacketListenerImpl handler) {
 
 		UUID uuid = handler.player.getUUID();
@@ -111,19 +121,6 @@ public class ServerKeyStateManager implements KeyStateManager {
 			previous.putAll(current);
 
 		}
-
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ServerKeyStateManager serverStates)) {
-			throw new IllegalStateException("Expected '" + ServerKeyStateManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ServerPlayNetworking.registerGlobalReceiver(ServerboundUpdateKeyStatesPacket.TYPE, serverStates::receive);
-
-		ServerTickEvents.END_SERVER_TICK.register(ID, serverStates::tick);
-		ServerPlayConnectionEvents.DISCONNECT.register(ID, (handler, server) -> serverStates.disconnect(handler));
 
 	}
 

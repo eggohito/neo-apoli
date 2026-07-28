@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.power.global.manager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.api.event.DependencyManager;
@@ -31,7 +32,6 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +39,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
-	private RegistryOps<JsonElement> ops;
+	private DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
 	private GlobalPowerSetManager() {
 
@@ -68,9 +69,9 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	@Override
 	public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
-		return CompletableFuture.supplyAsync(() -> this.prepareSets(manager), backgroundExecutor)
+		return CompletableFuture.supplyAsync(() -> MiscUtil.collectJsonStack(manager, LOADER, ops, LOGGER::error), backgroundExecutor)
 			.thenCompose(barrier::wait)
-			.thenAcceptAsync(this::applySets, gameExecutor);
+			.thenAcceptAsync(this::apply, gameExecutor);
 	}
 
 	@Override
@@ -100,12 +101,26 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	}
 
-	GlobalPowerSetManager withContext(@NotNull HolderLookup.Provider provider) {
+	@ApiStatus.Internal
+	public void init() {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withContext);
+		DependencyManager.GLOBAL_POWER_SETS.register(ID, dependencies -> dependencies.add(PowerManager.ID));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(PowerManager.ID, ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
+
+		ServerEntityEvents.ENTITY_LOAD.addPhaseOrdering(PowerManager.ID, ID);
+		ServerEntityEvents.ENTITY_LOAD.register(ID, this::grant);
+
+	}
+
+	private GlobalPowerSetManager withContext(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
 	}
 
-	Set<PowerHolder<?>> flattenPowers(Collection<GlobalPowerSet> sets) {
+	private Set<PowerHolder<?>> flattenPowers(Collection<GlobalPowerSet> sets) {
 
 		Set<PowerHolder<?>> holders = new ObjectOpenHashSet<>();
 		for (var set : sets) {
@@ -116,19 +131,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	}
 
-	Map<ResourceLocation, List<JsonWithSource>> prepareSets(ResourceManager manager) {
-
-		if (ops == null) {
-			return Map.of();
-		}
-
-		else {
-			return MiscUtil.collectJsonStack(manager, LOADER, ops, LOGGER::error);
-		}
-
-	}
-
-	void applySets(Map<ResourceLocation, List<JsonWithSource>> pending) {
+	private void apply(Map<ResourceLocation, List<JsonWithSource>> pending) {
 
 		if (ops == null) {
 			return;
@@ -163,7 +166,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	}
 
-	void grant(Entity entity, ServerLevel serverLevel) {
+	private void grant(Entity entity, ServerLevel serverLevel) {
 
 		PowersBuilder powersBuilder = Powers.builder(entity);
 
@@ -189,7 +192,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	}
 
-	void finalize(ReloadableServerResources resources) {
+	private void finalize(ReloadableServerResources resources) {
 
 		if (contents.isEmpty()) {
 			return;
@@ -221,10 +224,6 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 		this.contents = builder.build();
 		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, this.size());
-
-	}
-
-	public static void init() {
 
 	}
 
@@ -260,19 +259,6 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 		);
 
 		return new GlobalPowerSet.WithSource(set, second.source());
-
-	}
-
-	static {
-
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::withContext);
-		DependencyManager.GLOBAL_POWER_SETS.register(GlobalPowerSetManager.ID, dependencies -> dependencies.add(PowerManager.ID));
-
-		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(PowerManager.ID, GlobalPowerSetManager.ID);
-		ReloadableServerResourcesEvents.TAGS_UPDATED.register(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::finalize);
-
-		ServerEntityEvents.ENTITY_LOAD.addPhaseOrdering(PowerManager.ID, GlobalPowerSetManager.ID);
-		ServerEntityEvents.ENTITY_LOAD.register(GlobalPowerSetManager.ID, GlobalPowerSetManager.INSTANCE::grant);
 
 	}
 

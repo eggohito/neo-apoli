@@ -95,13 +95,36 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 	}
 
-	public void send(ServerPlayer recipient) {
-		ServerPlayNetworking.send(recipient, new ClientboundUpdateActionsPacket(this.contents, this.tags));
+	@Override
+	public void init() {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
+		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+
+			if (!joined) {
+				this.send(player);
+			}
+
+		});
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register(ActionManager.ID, (handler, server) -> this.send(handler.player));
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ConditionManager.ID, ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
+
 	}
 
 	private ServerActionManager withOps(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
+	}
+
+	private void send(ServerPlayer recipient) {
+		ServerPlayNetworking.send(recipient, new ClientboundUpdateActionsPacket(this.contents, this.tags));
 	}
 
 	private void apply(ResourceManager manager, ProfilerFiller profiler, Map<ResourceLocation, JsonWithSource> pendingActions, Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags) {
@@ -162,32 +185,6 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 		LOGGER.info("Finished parsing action tags from data packs. Action manager contains {} action tag(s)", tags.size());
 		this.pendingTags = Map.of();
-
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ServerActionManager serverActionManager)) {
-			throw new IllegalStateException("Expected '" + ServerActionManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverActionManager::withOps);
-		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
-
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
-
-			if (!joined) {
-				serverActionManager.send(player);
-			}
-
-		});
-
-		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ConditionManager.ID, ID);
-		ServerPlayConnectionEvents.INIT.register(ActionManager.ID, (handler, server) -> serverActionManager.send(handler.player));
-
-		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ConditionManager.ID, ID);
-		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverActionManager::finalize);
 
 	}
 

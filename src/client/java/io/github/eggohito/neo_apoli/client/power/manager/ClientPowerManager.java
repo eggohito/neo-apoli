@@ -11,6 +11,16 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public final class ClientPowerManager extends ServerPowerManager {
 
+	@Override
+	public void init() {
+
+		super.init();
+
+		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdatePowersPacket.TYPE, (payload, context) -> this.receive(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register(PowerManager.ID, (handler, client) -> this.clear());
+
+	}
+
 	private void receive(ClientboundUpdatePowersPacket payload) {
 		this.contents = ImmutableMap.copyOf(payload.powers());
 		this.tags = ImmutableMap.copyOf(payload.tags());
@@ -19,17 +29,6 @@ public final class ClientPowerManager extends ServerPowerManager {
 	private void clear() {
 		this.contents = ImmutableMap.of();
 		this.tags = ImmutableMap.of();
-	}
-
-	public static void init() {
-
-		if (!(INSTANCE instanceof ClientPowerManager clientPowerManager)) {
-			throw new IllegalStateException("Expected '" + ClientPowerManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ClientPlayNetworking.registerGlobalReceiver(ClientboundUpdatePowersPacket.TYPE, (payload, context) -> clientPowerManager.receive(payload));
-		ClientPlayConnectionEvents.DISCONNECT.register(PowerManager.ID, (handler, client) -> clientPowerManager.clear());
-
 	}
 
 }

@@ -18,4 +18,7 @@ public interface KeyStateManager {
 
 	Optional<KeyState> getState(UUID uuid, String key);
 
+	@ApiStatus.Internal
+	void init();
+
 }

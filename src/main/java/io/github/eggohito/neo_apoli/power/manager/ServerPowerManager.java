@@ -99,13 +99,47 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	}
 
-	public void send(ServerPlayer recipient) {
-		ServerPlayNetworking.send(recipient, new ClientboundUpdatePowersPacket(this.contents, this.tags));
+	@Override
+	public void init() {
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
+		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+
+			if (!joined) {
+				this.send(player);
+			}
+
+		});
+
+		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ActionManager.ID, ID);
+		ServerPlayConnectionEvents.INIT.register((handler, server) -> this.send(handler.player));
+
+		PowerPreparation.EVENT.addPhaseOrdering(PowerManager.ID, MultiplePower.ID);
+		PowerPreparation.EVENT.register(PowerManager.ID, (id, jsonWithSource, directoryPath, ops) -> {
+
+			if (jsonWithSource.json() instanceof JsonObject jsonObject) {
+				jsonObject.addProperty(PowerHolder.ID_KEY, id.toString());
+			}
+
+		});
+
+		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
+
+		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ActionManager.ID, ID);
+		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
+
 	}
 
 	private ServerPowerManager withOps(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
+	}
+
+	private void send(ServerPlayer recipient) {
+		ServerPlayNetworking.send(recipient, new ClientboundUpdatePowersPacket(this.contents, this.tags));
 	}
 
 	private void apply(ResourceManager manager, ProfilerFiller profiler, Map<ResourceLocation, JsonWithSource> pendingPowers, Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags) {
@@ -173,44 +207,6 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 		LOGGER.info("Finished parsing power tags from data packs. Power manager contains {} power tag(s)", tags.size());
 		this.pendingTags = Map.of();
-
-	}
-
-	@ApiStatus.Internal
-	public static void init() {
-
-		if (!(INSTANCE instanceof ServerPowerManager serverPowerManager)) {
-			throw new IllegalStateException("Expected '" + ServerPowerManager.class.getName() + "', got '" + INSTANCE.getClass().getName() + "'");
-		}
-
-		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, serverPowerManager::withOps);
-		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
-
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
-
-			if (!joined) {
-				serverPowerManager.send(player);
-			}
-
-		});
-
-		ServerPlayConnectionEvents.INIT.addPhaseOrdering(ActionManager.ID, ID);
-		ServerPlayConnectionEvents.INIT.register((handler, server) -> serverPowerManager.send(handler.player));
-
-		PowerPreparation.EVENT.addPhaseOrdering(PowerManager.ID, MultiplePower.ID);
-		PowerPreparation.EVENT.register(PowerManager.ID, (id, jsonWithSource, directoryPath, ops) -> {
-
-			if (jsonWithSource.json() instanceof JsonObject jsonObject) {
-				jsonObject.addProperty(PowerHolder.ID_KEY, id.toString());
-			}
-
-		});
-
-		PowerPreparation.EVENT.register(MultiplePower.ID, MultiplePower::preProcessSubPowers);
-
-		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(ActionManager.ID, ID);
-		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, serverPowerManager::finalize);
 
 	}
 
