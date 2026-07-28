@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ClientboundUpdateNestedTagPacket<T>(NestedTag<T> nestedTag) implements CustomPacketPayload {
 
-	public static final Type<ClientboundUpdateNestedTagPacket<?>> TYPE = new Type<>(NeoApoli.id("clientbound/nested_tag_cache/update"));
+	public static final Type<ClientboundUpdateNestedTagPacket<?>> TYPE = new Type<>(NeoApoli.id("clientbound/nested_tag/update"));
 	public static final StreamCodec<FriendlyByteBuf, ClientboundUpdateNestedTagPacket<?>> CODEC = NestedTag.STREAM_CODEC.map(ClientboundUpdateNestedTagPacket::new, ClientboundUpdateNestedTagPacket::nestedTag);
 
 	@Override
