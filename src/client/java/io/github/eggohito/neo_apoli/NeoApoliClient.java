@@ -8,10 +8,12 @@ import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
+import io.github.eggohito.neo_apoli.registry.NeoApoliColorResolvers;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorResolverRegistry;
 
 public class NeoApoliClient implements ClientModInitializer {
 
@@ -24,6 +26,8 @@ public class NeoApoliClient implements ClientModInitializer {
 		ClientConfigIntegrations.init();
 
 		NeoApoliAtlases.registerAll();
+		NeoApoliColorResolvers.registerAll(ColorResolverRegistry::register);
+
 		HudElementRenderers.registerAll();
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
