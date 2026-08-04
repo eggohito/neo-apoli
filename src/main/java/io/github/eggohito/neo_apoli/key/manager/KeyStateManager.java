@@ -8,17 +8,22 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface KeyStateManager {
 
 	ResourceLocation ID = NeoApoli.id("manager/key_state");
 
-	KeyStateManager INSTANCE = Services.load(KeyStateManager.class);
+	Supplier<KeyStateManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(KeyStateManager.class, ServerKeyStateManager::new);
 
 	Optional<KeyState> getState(UUID uuid, String key);
 
 	@ApiStatus.Internal
 	void init();
+
+	static KeyStateManager getInstance() {
+		return DEFERRED_INSTANCE.get();
+	}
 
 }

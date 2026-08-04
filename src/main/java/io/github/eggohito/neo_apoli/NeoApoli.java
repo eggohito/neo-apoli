@@ -102,20 +102,18 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliConditionTypes.registerAll();
 		NeoApoliPowerTypes.registerAll();
 
-		ActionManager.INSTANCE.init();
-		ConditionManager.INSTANCE.init();
-		GlobalPowerSetManager.INSTANCE.init();
-		KeyStateManager.INSTANCE.init();
-		NestedTagManager.INSTANCE.init();
-		PowerManager.INSTANCE.init();
+		ActionManager.getInstance().init();
+		ConditionManager.getInstance().init();
+		GlobalPowerSetManager.getInstance().init();
+		KeyStateManager.getInstance().init();
+		NestedTagManager.getInstance().init();
+		PowerManager.getInstance().init();
 
 		PowerIntegrations.init();
 		CommonConfigIntegrations.init();
 
 		NeoApoliContextParams.registerAll();
 		NeoApoliContextParamSets.registerAll();
-
-		NeoApoliNestedTags.registerAll();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);

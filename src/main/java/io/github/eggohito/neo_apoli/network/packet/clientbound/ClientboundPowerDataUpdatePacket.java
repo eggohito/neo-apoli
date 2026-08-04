@@ -56,7 +56,7 @@ public record ClientboundPowerDataUpdatePacket(int entityId, Map<PowerIdentifier
 				PowerIdentifier id = entry.getKey();
 				Dynamic<?> data = entry.getValue();
 
-				if (!PowerManager.INSTANCE.contains(id)) {
+				if (!PowerManager.getInstance().contains(id)) {
 					NeoApoli.LOGGER.warn("Couldn't sync data of unregistered {}!", id.asDisplayString(false));
 				}
 

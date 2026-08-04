@@ -62,7 +62,7 @@ public record KeyPressedTicksNumberProvider(StringProvider id, EntityProvider en
 			return 0L;
 		}
 
-		return KeyStateManager.INSTANCE.getState(uuid, id)
+		return KeyStateManager.getInstance().getState(uuid, id)
 			.filter(KeyState::pressed)
 			.map(KeyState::pressedTime)
 			.map(pressedTime -> level.getGameTime() - pressedTime)

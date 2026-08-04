@@ -31,7 +31,7 @@ public record ReferenceCondition(ResourceLocation value) implements Condition {
 
 	@Override
 	public boolean test(Context context) {
-		return ConditionManager.INSTANCE.getAsResult(this.value()).mapOrElse(
+		return ConditionManager.getInstance().getAsResult(this.value()).mapOrElse(
 			condition -> {
 
 				try {
@@ -70,7 +70,7 @@ public record ReferenceCondition(ResourceLocation value) implements Condition {
 		}
 
 		else {
-			ConditionManager.INSTANCE.getAsResult(this.value())
+			ConditionManager.getInstance().getAsResult(this.value())
 				.ifSuccess(condition -> condition.validate(validator.visitChild(".{\"" + valueKey.location() + "\"}", valueKey)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 		}

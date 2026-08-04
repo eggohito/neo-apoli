@@ -53,14 +53,6 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 	private final JsonFileToIdConverter loader = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.CONDITION);
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
-	public ServerConditionManager() {
-
-		if (INSTANCE != null) {
-			throw new IllegalStateException("Condition manager is already initialized!");
-		}
-
-	}
-
 	@Override
 	public ResourceLocation getFabricId() {
 		return ID;

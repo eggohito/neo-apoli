@@ -28,14 +28,6 @@ public class ServerNestedTagManager implements NestedTagManager {
 
 	protected final Map<ResourceKey<?>, NestedTag<?>> registry = new Object2ObjectOpenHashMap<>();
 
-	public ServerNestedTagManager() {
-
-		if (INSTANCE != null) {
-			throw new IllegalStateException("Nested tag manager is already initialized!");
-		}
-
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> NestedTag<T> getOrCreate(ResourceKey<? extends Registry<T>> registryKey) {

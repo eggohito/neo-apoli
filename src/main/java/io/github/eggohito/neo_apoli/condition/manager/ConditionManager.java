@@ -7,14 +7,20 @@ import io.github.eggohito.neo_apoli.util.services.Services;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.function.Supplier;
+
 @ApiStatus.NonExtendable
 public interface ConditionManager extends ContentManager<ResourceLocation, Condition> {
 
 	ResourceLocation ID = NeoApoli.id("manager/condition");
 
-	ConditionManager INSTANCE = Services.load(ConditionManager.class);
+	Supplier<ConditionManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(ConditionManager.class, ServerConditionManager::new);
 
 	@ApiStatus.Internal
 	void init();
+
+	static ConditionManager getInstance() {
+		return DEFERRED_INSTANCE.get();
+	}
 
 }

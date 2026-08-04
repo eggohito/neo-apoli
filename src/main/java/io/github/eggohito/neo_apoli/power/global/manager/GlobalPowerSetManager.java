@@ -53,7 +53,7 @@ import java.util.concurrent.Executor;
 
 public final class GlobalPowerSetManager extends AbstractContentManager<ResourceLocation, GlobalPowerSet> implements IdentifiableResourceReloadListener {
 
-	public static final GlobalPowerSetManager INSTANCE = new GlobalPowerSetManager();
+	private static final GlobalPowerSetManager INSTANCE = new GlobalPowerSetManager();
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/global_power_set");
 	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build();
@@ -225,6 +225,10 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 		this.contents = builder.build();
 		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, this.size());
 
+	}
+
+	public static GlobalPowerSetManager getInstance() {
+		return INSTANCE;
 	}
 
 	private static GlobalPowerSet.WithSource merge(ResourceLocation id, GlobalPowerSet.WithSource first, GlobalPowerSet.WithSource second) {

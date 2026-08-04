@@ -17,23 +17,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface PowerManager extends ContentAndTagManager<PowerIdentifier, PowerHolder<?>> {
 
 	ResourceLocation ID = NeoApoli.id("manager/power");
-	PowerManager INSTANCE = Services.load(PowerManager.class);
+
+	Supplier<PowerManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(PowerManager.class, ServerPowerManager::new);
 
 	TagEntry.Lookup<PowerHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
 
 		@Override
 		public @Nullable PowerHolder<?> element(ResourceLocation id, boolean required) {
-			return INSTANCE.getAsResult(PowerIdentifier.of(id)).result().orElse(null);
+			return getInstance().getAsResult(PowerIdentifier.of(id)).result().orElse(null);
 		}
 
 		@Override
 		public @Nullable Collection<PowerHolder<?>> tag(ResourceLocation id) {
-			return INSTANCE.getTagAsResult(id).result().orElse(null);
+			return getInstance().getTagAsResult(id).result().orElse(null);
 		}
 
 		@Override
@@ -78,6 +80,10 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 
 	@ApiStatus.Internal
 	void init();
+
+	static PowerManager getInstance() {
+		return DEFERRED_INSTANCE.get();
+	}
 
 	static void handleSelfAndSubPowers(PowerHolder<?> holder, BiConsumer<PowerIdentifier, PowerHolder<?>> handler) {
 

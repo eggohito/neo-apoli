@@ -107,10 +107,10 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
 
 		if (allowTags()) {
-			SharedSuggestionProvider.suggestResource(ActionManager.INSTANCE.tags(), builder, "#");
+			SharedSuggestionProvider.suggestResource(ActionManager.getInstance().tags(), builder, "#");
 		}
 
-		return SharedSuggestionProvider.suggestResource(ActionManager.INSTANCE.keys(), builder);
+		return SharedSuggestionProvider.suggestResource(ActionManager.getInstance().keys(), builder);
 
 	}
 
@@ -138,7 +138,7 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 
 			@Override
 			public List<Action> get() throws CommandSyntaxException {
-				return ActionManager.INSTANCE.getTagAsResult(tag().location())
+				return ActionManager.getInstance().getTagAsResult(tag().location())
 					.getOrThrow(error -> MiscUtil.createCommandException(() -> error))
 					.stream()
 					.map(ActionHolder::valueGeneric)
@@ -151,7 +151,7 @@ public record ActionArgument(HolderLookup.Provider registries, boolean allowInli
 
 			@Override
 			public List<Action> get() throws CommandSyntaxException {
-				return ActionManager.INSTANCE.getAsResult(id())
+				return ActionManager.getInstance().getAsResult(id())
 					.map(ActionHolder::valueGeneric)
 					.map(List::of)
 					.getOrThrow(error -> MiscUtil.createCommandException(() -> error));

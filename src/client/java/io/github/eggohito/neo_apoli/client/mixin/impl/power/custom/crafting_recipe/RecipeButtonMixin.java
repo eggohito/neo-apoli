@@ -39,12 +39,12 @@ public abstract class RecipeButtonMixin {
 		Int2ObjectMap<PowerIdentifier> powerIdsByIndex = ((PowerRecipeDisplayHolder) client).neo_apoli$getPowerIdsByIndex();
 		PowerIdentifier powerId = powerIdsByIndex.get(this.getCurrentRecipe().index());
 
-		if (powerId == null || !PowerManager.INSTANCE.contains(powerId) || powers.hasInstance(powerId)) {
+		if (powerId == null || !PowerManager.getInstance().contains(powerId) || powers.hasInstance(powerId)) {
 			return;
 		}
 
 		components.add(Component.empty());
-		components.add(Component.translatable("power.type.neo-apoli.crafting_recipe.missing_power", PowerManager.INSTANCE.get(powerId).name().copy().withStyle(ChatFormatting.RED)));
+		components.add(Component.translatable("power.type.neo-apoli.crafting_recipe.missing_power", PowerManager.getInstance().get(powerId).name().copy().withStyle(ChatFormatting.RED)));
 
 	}
 

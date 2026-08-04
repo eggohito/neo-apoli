@@ -60,7 +60,7 @@ public record KeyPressedTimeNumberProvider(StringProvider id, EntityProvider ent
 			return 0L;
 		}
 
-		return KeyStateManager.INSTANCE.getState(uuid, id)
+		return KeyStateManager.getInstance().getState(uuid, id)
 			.filter(KeyState::pressed)
 			.map(KeyState::pressedTime)
 			.orElse(0L);

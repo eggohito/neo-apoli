@@ -13,24 +13,25 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface ActionManager extends ContentAndTagManager<ResourceLocation, ActionHolder<?>> {
 
 	ResourceLocation ID = NeoApoli.id("manager/action");
 
-	ActionManager INSTANCE = Services.load(ActionManager.class);
+	Supplier<ActionManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(ActionManager.class, ServerActionManager::new);
 
 	TagEntry.Lookup<ActionHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
 
 		@Override
 		public @Nullable ActionHolder<?> element(ResourceLocation id, boolean required) {
-			return INSTANCE.getAsResult(id).result().orElse(null);
+			return getInstance().getAsResult(id).result().orElse(null);
 		}
 
 		@Override
 		public @Nullable Collection<ActionHolder<?>> tag(ResourceLocation id) {
-			return INSTANCE.getTagAsResult(id).result().orElse(null);
+			return getInstance().getTagAsResult(id).result().orElse(null);
 		}
 
 		@Override
@@ -75,5 +76,9 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 
 	@ApiStatus.Internal
 	void init();
+
+	static ActionManager getInstance() {
+		return DEFERRED_INSTANCE.get();
+	}
 
 }

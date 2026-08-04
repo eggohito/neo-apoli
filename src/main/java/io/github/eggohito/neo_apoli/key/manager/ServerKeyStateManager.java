@@ -25,14 +25,6 @@ public class ServerKeyStateManager implements KeyStateManager {
 	protected final ThreadLocal<Map<UUID, Map<String, KeyState>>> previousStates = ThreadLocal.withInitial(Object2ObjectLinkedOpenHashMap::new);
 	protected final ThreadLocal<Map<UUID, Map<String, KeyState>>> currentStates = ThreadLocal.withInitial(Object2ObjectLinkedOpenHashMap::new);
 
-	public ServerKeyStateManager() {
-
-		if (INSTANCE != null) {
-			throw new IllegalStateException("Key state manager is already initialized!");
-		}
-
-	}
-
 	@Override
 	public Optional<KeyState> getState(UUID uuid, String key) {
 		return Optional

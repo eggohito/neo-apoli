@@ -82,7 +82,7 @@ public interface Power extends ContextUser {
 		protected final P power;
 
 		protected Instance(@NotNull P power) {
-			this.id = PowerManager.INSTANCE.getKeyAsResult(power).getOrThrow(error -> new IllegalStateException("Tried to created an instance of an unregistered power!"));
+			this.id = PowerManager.getInstance().getKeyAsResult(power).getOrThrow(error -> new IllegalStateException("Tried to created an instance of an unregistered power!"));
 			this.power = power;
 		}
 
@@ -115,7 +115,7 @@ public interface Power extends ContextUser {
 				NeoApoli.LOGGER.warn("Couldn't initialize syncing data of {} from entity {} in the client!", id.asDisplayString(false), holder.getName().getString());
 			}
 
-			else if (!PowerManager.INSTANCE.contains(id)) {
+			else if (!PowerManager.getInstance().contains(id)) {
 				NeoApoli.LOGGER.warn("Tried syncing instance data of unregistered {} from entity {}!", id.asDisplayString(false), holder.getName().getString());
 			}
 

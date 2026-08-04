@@ -67,14 +67,6 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
-	public ServerPowerManager() {
-
-		if (INSTANCE != null) {
-			throw new IllegalStateException("Power manager is already initialized!");
-		}
-
-	}
-
 	@Override
 	public ResourceLocation getFabricId() {
 		return ID;

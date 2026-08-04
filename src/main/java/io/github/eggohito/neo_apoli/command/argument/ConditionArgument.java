@@ -31,7 +31,7 @@ public record ConditionArgument(HolderLookup.Provider registries, boolean allowI
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return SharedSuggestionProvider.suggestResource(ConditionManager.INSTANCE.keys(), builder);
+		return SharedSuggestionProvider.suggestResource(ConditionManager.getInstance().keys(), builder);
 	}
 
 	public static ConditionArgument condition(HolderLookup.Provider registries) {
@@ -54,7 +54,7 @@ public record ConditionArgument(HolderLookup.Provider registries, boolean allowI
 
 			@Override
 			public Condition get() throws CommandSyntaxException {
-				return ConditionManager.INSTANCE.getAsResult(id).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
+				return ConditionManager.getInstance().getAsResult(id).getOrThrow(error -> MiscUtil.createCommandException(() -> error));
 			}
 
 		}

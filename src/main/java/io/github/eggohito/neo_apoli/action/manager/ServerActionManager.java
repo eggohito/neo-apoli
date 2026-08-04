@@ -63,14 +63,6 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 	private volatile Map<ResourceLocation, List<TagLoader.EntryWithSource>> pendingTags = Map.of();
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
-	public ServerActionManager() {
-
-		if (INSTANCE != null) {
-			throw new IllegalStateException("Action manager is already initialized!");
-		}
-
-	}
-
 	@Override
 	public ResourceLocation getFabricId() {
 		return ID;
