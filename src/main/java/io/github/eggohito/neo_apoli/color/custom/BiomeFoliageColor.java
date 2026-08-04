@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.color.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.Color;
+import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
@@ -19,7 +20,7 @@ public record BiomeFoliageColor(Vec3Provider position, NumberProvider alpha, Boo
 
 	public static final MapCodec<BiomeFoliageColor> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("position").forGetter(BiomeFoliageColor::position),
-		NumberProvider.CODEC.fieldOf("alpha").forGetter(BiomeFoliageColor::alpha),
+		NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(BiomeFoliageColor::alpha),
 		BooleanProvider.CODEC.fieldOf("dry").forGetter(BiomeFoliageColor::dry)
 	).apply(instance, BiomeFoliageColor::new));
 
@@ -45,8 +46,8 @@ public record BiomeFoliageColor(Vec3Provider position, NumberProvider alpha, Boo
 			return 0;
 		}
 
+		float alphaFloat = DynamicColor.getValue(context.forChild(".alpha"), alpha()::getFloat, () -> 1.0F);
 		boolean dry = dry().getBoolean(context.forChild(".dry"));
-		float alphaFloat = Math.clamp(alpha().getFloat(context.forChild(".alpha")), 0.0F, 1.0F);
 
 		ColorResolver colorResolver = dry
 			? NeoApoliColorResolvers.BIOME_DRY_FOLIAGE_COLOR

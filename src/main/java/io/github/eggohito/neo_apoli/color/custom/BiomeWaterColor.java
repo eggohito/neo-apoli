@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.color.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.Color;
+import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
@@ -17,7 +18,7 @@ public record BiomeWaterColor(Vec3Provider position, NumberProvider alpha) imple
 
 	public static final MapCodec<BiomeWaterColor> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("position").forGetter(BiomeWaterColor::position),
-		NumberProvider.CODEC.fieldOf("alpha").forGetter(BiomeWaterColor::alpha)
+		NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(BiomeWaterColor::alpha)
 	).apply(instance, BiomeWaterColor::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BiomeWaterColor> STREAM_CODEC = StreamCodec.composite(
@@ -41,8 +42,8 @@ public record BiomeWaterColor(Vec3Provider position, NumberProvider alpha) imple
 			return 0;
 		}
 
+		float alphaFloat = DynamicColor.getValue(context.forChild(".alpha"), alpha()::getFloat, () -> 1.0F);
 		int blockTint = context.level().getBlockTint(position, NeoApoliColorResolvers.BIOME_WATER_COLOR);
-		float alphaFloat = Math.clamp(alpha().getFloat(context.forChild(".alpha")), 0.0F, 1.0F);
 
 		return ARGB.color(ARGB.as8BitChannel(alphaFloat), blockTint);
 
