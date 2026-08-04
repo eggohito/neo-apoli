@@ -3,6 +3,7 @@ package io.github.eggohito.neo_apoli.config;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.mixin.access.CommandSourceStackAccessor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.experimental.Accessors;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.util.TriState;
 import org.quiltmc.parsers.json.JsonFormat;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -19,6 +21,7 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 	public static final int VERSION = 1;
 
 	public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
+	public final ConfigEntry<TriState> performHandshake = register("perform_handshake", TriState.DEFAULT, Codec.lazyInitialized(() -> NeoApoliCodecs.TRI_STATE));
 	public final ConfigEntry<Command> command = register("command", Command.DEFAULT, Command.CODEC);
 	public final ConfigEntry<PlaceholderIdentifier> placeholderIdentifier = register("placeholder_identifier", PlaceholderIdentifier.DEFAULT, PlaceholderIdentifier.CODEC);
 

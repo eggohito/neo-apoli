@@ -35,6 +35,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.TriState;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -215,5 +216,7 @@ public class NeoApoliCodecs {
 	public static final Codec<Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = Codec.either(STRUCTURE_KEY, STRUCTURE_TAG);
 
 	public static final Codec<Character> CHARACTER = Codec.STRING.comapFlatMap(MiscUtil::validateStringAsCharacter, String::valueOf);
+
+	public static final Codec<TriState> TRI_STATE = CodecUtil.enumType(TriState.class);
 
 }

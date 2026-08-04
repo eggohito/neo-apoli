@@ -9,6 +9,9 @@ public final class NeoApoliPackets {
 
 	public static void registerAll() {
 
+		PayloadTypeRegistry.configurationC2S().register(HandshakePacket.TYPE, HandshakePacket.CODEC);
+		PayloadTypeRegistry.configurationS2C().register(HandshakePacket.TYPE, HandshakePacket.CODEC);
+
 		PayloadTypeRegistry.playS2C().register(ClientboundUpdateActionsPacket.TYPE, ClientboundUpdateActionsPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundUpdateConditionsPacket.TYPE, ClientboundUpdateConditionsPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundUpdatePowersPacket.TYPE,  ClientboundUpdatePowersPacket.CODEC);
