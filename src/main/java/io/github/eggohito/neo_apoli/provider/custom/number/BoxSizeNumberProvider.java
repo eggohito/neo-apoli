@@ -28,18 +28,9 @@ public record BoxSizeNumberProvider(BoxProvider box) implements NumberProvider {
 
 	@Override
 	public double getDouble(Context context) {
-
-		Context boxContext = context.forChild(".box");
-		AABB box = box().getBox(boxContext);
-
-		if (boxContext.hasErrors()) {
-			return 0.0D;
-		}
-
-		else {
-			return box.getSize();
-		}
-
+		return box().getBox(context.forChild(".box"))
+			.map(AABB::getSize)
+			.orElse(0.0D);
 	}
 
 	@Override

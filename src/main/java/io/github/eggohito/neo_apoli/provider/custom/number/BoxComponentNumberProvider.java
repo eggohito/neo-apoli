@@ -31,14 +31,18 @@ public record BoxComponentNumberProvider(BoxProvider box, Direction side) implem
 
 	@Override
 	public double getDouble(Context context) {
+		return box().getBox(context.forChild(".box"))
+			.map(this::getComponent)
+			.orElse(0.0);
+	}
 
-		Context boxContext = context.forChild(".box");
-		AABB box = box().getBox(boxContext);
+	@Override
+	public void validate(Context.Validator validator) {
+		NumberProvider.super.validate(validator);
+		box().validate(validator.forChild(".box"));
+	}
 
-		if (boxContext.hasErrors()) {
-			return 0.0;
-		}
-
+	private double getComponent(AABB box) {
 		return switch (side()) {
 			case DOWN ->
 				box.minY;
@@ -53,13 +57,6 @@ public record BoxComponentNumberProvider(BoxProvider box, Direction side) implem
 			case EAST ->
 				box.maxX;
 		};
-
-	}
-
-	@Override
-	public void validate(Context.Validator validator) {
-		NumberProvider.super.validate(validator);
-		box().validate(validator.forChild(".box"));
 	}
 
 }

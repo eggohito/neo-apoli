@@ -11,6 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements BoxProvider {
 
 	public static final MapCodec<OffsetBoxProvider> MAP_CODEC = MapCodecUtil.lazy(OffsetBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -30,20 +32,10 @@ public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements 
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
-
-		AABB box = box().getBox(context.forChild(".box"));
-		AABB offset = offset().getBox(context.forChild(".offset"));
-
-		return new AABB(
-			box.minX + offset.minX,
-			box.minY + offset.minY,
-			box.minZ + offset.minZ,
-			box.maxX + offset.maxX,
-			box.maxY + offset.maxY,
-			box.maxZ + offset.maxZ
-		);
-
+	public Optional<AABB> getBox(Context context) {
+		return box().getBox(context.forChild(".box"))
+			.flatMap(box -> offset().getBox(context.forChild(".offset"))
+				.map(offset -> this.offset(box, offset)));
 	}
 
 	@Override
@@ -54,6 +46,17 @@ public record OffsetBoxProvider(BoxProvider box, BoxProvider offset) implements 
 		box().validate(validator.forChild(".box"));
 		offset().validate(validator.forChild(".offset"));
 
+	}
+
+	private AABB offset(AABB box, AABB offset) {
+		return new AABB(
+			box.minX + offset.minX,
+			box.minY + offset.minY,
+			box.minZ + offset.minZ,
+			box.maxX + offset.maxX,
+			box.maxY + offset.maxY,
+			box.maxZ + offset.maxZ
+		);
 	}
 
 }

@@ -11,6 +11,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements BoxProvider {
 
 	public static final MapCodec<DynamicBoxProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -30,12 +32,23 @@ public record DynamicBoxProvider(Vec3Provider min, Vec3Provider max) implements 
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
+	public Optional<AABB> getBox(Context context) {
 
-		Vec3 min = min().getVec3(context.forChild(".min"));
-		Vec3 max = max().getVec3(context.forChild(".max"));
+		Context minContext = context.forChild(".min");
+		Vec3 min = min().getVec3(minContext);
 
-		return new AABB(min, max);
+		if (minContext.hasErrors()) {
+			return Optional.empty();
+		}
+
+		Context maxContext = context.forChild(".max");
+		Vec3 max = max().getVec3(maxContext);
+
+		if (maxContext.hasErrors()) {
+			return Optional.empty();
+		}
+
+		return Optional.of(new AABB(min, max));
 
 	}
 

@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
-import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -14,6 +13,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvider {
 
@@ -32,10 +33,10 @@ public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvi
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
-		return entity().getEntity(context.forChild(".entity"))
-			.map(Entity::getBoundingBox)
-			.orElse(AABBUtil.EMPTY);
+	public Optional<AABB> getBox(Context context) {
+		return entity()
+			.getEntity(context.forChild(".entity"))
+			.map(Entity::getBoundingBox);
 	}
 
 	@Override

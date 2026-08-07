@@ -20,6 +20,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.NoSuchElementException;
+
 public record BlocksCollidingBoxNumberProvider(Condition condition, BoxProvider box) implements NumberProvider {
 
 	public static final Context.Parameter<CachedBlock> BLOCK_COLLIDING_BOX = NeoApoliContextParams.registerSimpleInternal("block_colliding_box", CachedBlock.class);
@@ -47,35 +49,39 @@ public record BlocksCollidingBoxNumberProvider(Condition condition, BoxProvider 
 		Level level = context.level();
 		int matches = 0;
 
-		Context boxContext = context.forChild(".box");
-		AABB box = box().getBox(boxContext);
+		try {
 
-		if (boxContext.hasErrors()) {
-			return matches;
-		}
+			Context boxContext = context.forChild(".box");
+			AABB box = box().getBox(boxContext).orElseThrow();
 
-		CollisionContext collisionContext = box().getCollisionContext(boxContext);
-		BlockCollisions<BlockPos> spliterator = new BlockCollisions<>(level, collisionContext, box, false, (pos, shape) -> pos);
+			CollisionContext collisionContext = box().getCollisionContext(boxContext);
+			BlockCollisions<BlockPos> spliterator = new BlockCollisions<>(level, collisionContext, box, false, (pos, ignored) -> pos);
 
-		while (spliterator.hasNext()) {
+			while (spliterator.hasNext()) {
 
-			try {
+				try {
 
-				CachedBlock block = CachedBlock.fromLoadedPos(level, spliterator.next());
-				Context blockContext = new Context.Builder(context)
-					.withRequired(BLOCK_COLLIDING_BOX, block)
-					.build(level);
+					CachedBlock block = CachedBlock.fromLoadedPos(level, spliterator.next());
+					Context blockContext = new Context.Builder(context)
+						.withRequired(BLOCK_COLLIDING_BOX, block)
+						.build(level);
 
-				if (condition().test(blockContext.forChild(".condition"))) {
-					matches++;
+					if (condition().test(blockContext.forChild(".condition"))) {
+						matches++;
+					}
+
+				}
+
+				catch (PosUnloadedException | PosOutOfBoundsException ignored) {
+					//  No-op
 				}
 
 			}
 
-			catch (PosUnloadedException | PosOutOfBoundsException ignored) {
-				//  No-op
-			}
+		}
 
+		catch (NoSuchElementException ignored) {
+			//  No-op
 		}
 
 		return matches;

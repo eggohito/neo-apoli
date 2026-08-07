@@ -13,6 +13,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) implements BoxProvider {
 
 	public static final MapCodec<TranslateBoxProvider> MAP_CODEC = MapCodecUtil.lazy(TranslateBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -32,12 +34,20 @@ public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) im
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
+	public Optional<AABB> getBox(Context context) {
 
-		AABB box = box().getBox(context.forChild(".box"));
-		Vec3 translation = translation().getVec3(context.forChild(".translation"));
+		Context translationContext = context.forChild(".translation");
+		Vec3 translation = translation().getVec3(translationContext);
 
-		return new AABB(translation.subtract(box.getMinPosition()), translation.add(box.getMaxPosition()));
+		if (translationContext.hasErrors()) {
+			return Optional.empty();
+		}
+
+		else {
+			return box()
+				.getBox(context.forChild(".box"))
+				.map(box -> this.translate(box, translation));
+		}
 
 	}
 
@@ -49,6 +59,17 @@ public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) im
 		box().validate(validator.forChild(".box"));
 		translation().validate(validator.forChild(".translation"));
 
+	}
+
+	private AABB translate(AABB box, Vec3 translation) {
+		return new AABB(
+			box.minX - translation.x(),
+			box.minY - translation.y(),
+			box.minZ - translation.z(),
+			box.maxX + translation.x(),
+			box.maxY + translation.y(),
+			box.maxZ + translation.z()
+		);
 	}
 
 }

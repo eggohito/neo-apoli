@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
-import io.github.eggohito.neo_apoli.util.AABBUtil;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,6 +15,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record BlockBoundsBoxProvider(ClipContext.Block shapeType, BlockProvider block) implements BoxProvider {
 
@@ -36,26 +37,23 @@ public record BlockBoundsBoxProvider(ClipContext.Block shapeType, BlockProvider 
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
-
-		Context blockContext = context.forChild(".block");
-		CachedBlock block = block().getBlock(blockContext).orElse(null);
-
-		if (blockContext.hasErrors() || block == null) {
-			return AABBUtil.EMPTY;
-		}
-
-		VoxelShape shape = shapeType().get(block.state(), context.level(), block.pos(), CollisionContext.empty());
-		AABB bounds = shape.isEmpty() ? AABBUtil.EMPTY : shape.bounds();
-
-		return bounds.move(block.pos());
-
+	public Optional<AABB> getBox(Context context) {
+		return block()
+			.getBlock(context.forChild(".block"))
+			.flatMap(block -> this.getBlockBounds(context, block));
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		BoxProvider.super.validate(validator);
 		block().validate(validator.forChild(".block"));
+	}
+
+	private Optional<AABB> getBlockBounds(Context context, CachedBlock block) {
+		VoxelShape shape = shapeType().get(block.state(), context.level(), block.pos(), CollisionContext.empty());
+		return shape.isEmpty()
+			? Optional.empty()
+			: Optional.of(shape.bounds().move(block.pos()));
 	}
 
 }

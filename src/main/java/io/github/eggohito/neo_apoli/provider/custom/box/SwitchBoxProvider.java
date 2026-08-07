@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchBoxProvider(List<Case<Condition, BoxProvider>> cases, BoxProvider defaultValue) implements BoxProvider, SwitchValueProvider<BoxProvider> {
 
@@ -26,7 +27,7 @@ public record SwitchBoxProvider(List<Case<Condition, BoxProvider>> cases, BoxPro
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
+	public Optional<AABB> getBox(Context context) {
 		return getOrDefault(context, BoxProvider::getBox);
 	}
 

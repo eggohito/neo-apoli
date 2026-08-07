@@ -15,8 +15,9 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public record BlocksIntersectingBoxNumberProvider(Condition condition, BoxProvider box) implements NumberProvider {
 
@@ -45,18 +46,15 @@ public record BlocksIntersectingBoxNumberProvider(Condition condition, BoxProvid
 		Level level = context.level();
 		int matches = 0;
 
-		Context boxContext = context.forChild(".box");
-		AABB box = box().getBox(boxContext);
+		Iterable<BlockPos> positionsWithinBox = box().getBox(context.forChild(".box"))
+			.map(BlockPos::betweenClosed)
+			.orElse(List.of());
 
-		if (boxContext.hasErrors()) {
-			return matches;
-		}
-
-		for (var blockPos : BlockPos.betweenClosed(box)) {
+		for (var position : positionsWithinBox) {
 
 			try {
 
-				CachedBlock block = CachedBlock.fromLoadedPos(level, blockPos);
+				CachedBlock block = CachedBlock.fromLoadedPos(level, position);
 				Context blockContext = new Context.Builder(context)
 					.withRequired(BLOCK_INTERSECTING_BOX, block)
 					.build(level);

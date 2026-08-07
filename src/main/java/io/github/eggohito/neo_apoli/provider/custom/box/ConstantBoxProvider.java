@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 
@@ -43,8 +44,8 @@ public record ConstantBoxProvider(Vec3 min, Vec3 max) implements BoxProvider {
 	}
 
 	@Override
-	public @NotNull AABB getBox(Context context) {
-		return new AABB(min(), max());
+	public Optional<AABB> getBox(Context context) {
+		return Optional.of(new AABB(min(), max()));
 	}
 
 }
