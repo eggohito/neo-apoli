@@ -11,10 +11,11 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchCommandSourceProvider(List<Case<Condition, CommandSourceProvider>> cases, CommandSourceProvider defaultValue) implements CommandSourceProvider, SwitchValueProvider<CommandSourceProvider> {
 
@@ -27,8 +28,8 @@ public record SwitchCommandSourceProvider(List<Case<Condition, CommandSourceProv
 	}
 
 	@Override
-	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		return this.getOrDefault(context, (provider, ctx) -> provider.getSource(serverLevel, ctx));
+	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
+		return this.getOrDefault(context, (provider, ctx) -> provider.getSource(server, ctx));
 	}
 
 }

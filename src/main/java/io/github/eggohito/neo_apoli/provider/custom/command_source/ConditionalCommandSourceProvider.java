@@ -10,8 +10,10 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record ConditionalCommandSourceProvider(Condition condition, CommandSourceProvider ifValue, CommandSourceProvider elseValue) implements CommandSourceProvider, ConditionalValueProvider<CommandSourceProvider> {
 
@@ -24,8 +26,8 @@ public record ConditionalCommandSourceProvider(Condition condition, CommandSourc
 	}
 
 	@Override
-	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		return this.getOrElse(context, (provider, ctx) -> provider.getSource(serverLevel, ctx), serverLevel.getServer()::createCommandSourceStack);
+	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
+		return this.getOrElse(context, (provider, ctx) -> provider.getSource(server, ctx), Optional::empty);
 	}
 
 }

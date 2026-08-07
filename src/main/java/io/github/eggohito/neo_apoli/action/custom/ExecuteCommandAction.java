@@ -13,6 +13,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 
+import java.util.Optional;
+
 public record ExecuteCommandAction(CommandSourceProvider source, StringProvider command) implements Action {
 
 	public static final MapCodec<ExecuteCommandAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -39,13 +41,17 @@ public record ExecuteCommandAction(CommandSourceProvider source, StringProvider 
 		}
 
 		MinecraftServer server = serverLevel.getServer();
-		CommandSourceStack source = source().getSource(serverLevel, context.forChild(".source"));
+		Optional<CommandSourceStack> source = source().getSource(server, context.forChild(".source"));
+
+		if (source.isEmpty()) {
+			return;
+		}
 
 		Context commandContext = context.forChild(".command");
 		String command = command().getString(commandContext);
 
 		if (!commandContext.hasErrors()) {
-			server.getCommands().performPrefixedCommand(source, command);
+			server.getCommands().performPrefixedCommand(source.get(), command);
 		}
 
 	}

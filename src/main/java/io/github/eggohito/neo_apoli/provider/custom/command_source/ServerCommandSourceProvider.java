@@ -6,8 +6,9 @@ import io.github.eggohito.neo_apoli.context.Context;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.server.MinecraftServer;
+
+import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
 public enum ServerCommandSourceProvider implements SimpleCommandSourceProvider<ServerCommandSourceProvider> {
@@ -28,8 +29,8 @@ public enum ServerCommandSourceProvider implements SimpleCommandSourceProvider<S
 	}
 
 	@Override
-	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		return NeoApoliCommonConfig.INSTANCE.command.get().sanitize(serverLevel.getServer().createCommandSourceStack());
+	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
+		return Optional.of(NeoApoliCommonConfig.INSTANCE.command.get().sanitizeSource(server.createCommandSourceStack()));
 	}
 
 }

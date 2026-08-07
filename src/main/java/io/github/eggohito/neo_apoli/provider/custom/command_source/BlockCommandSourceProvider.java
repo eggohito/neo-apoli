@@ -12,10 +12,12 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
 public record BlockCommandSourceProvider(BlockProvider block) implements CommandSourceProvider {
@@ -36,9 +38,10 @@ public record BlockCommandSourceProvider(BlockProvider block) implements Command
 	}
 
 	@Override
-	public @NotNull CommandSourceStack getSource(ServerLevel serverLevel, Context context) {
-		CachedBlock block = block().getBlock(context.forChild(".block")).orElse(null);
-		return NeoApoliCommonConfig.INSTANCE.command.get().sanitize(this.getCommandSource(block, serverLevel));
+	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
+		return block().getBlock(context.forChild(".block"))
+			.map(block -> this.getCommandSource(context, block))
+			.map(NeoApoliCommonConfig.INSTANCE.command.get()::sanitizeSource);
 	}
 
 	@Override
@@ -47,26 +50,23 @@ public record BlockCommandSourceProvider(BlockProvider block) implements Command
 		block().validate(validator.forChild(".block"));
 	}
 
-	private CommandSourceStack getCommandSource(@Nullable CachedBlock block, ServerLevel serverLevel) {
+	private CommandSourceStack getCommandSource(Context context, CachedBlock block) {
 
-		if (block != null) {
-			Component blockName = Component.translatable(block.state().getBlock().getDescriptionId());
-			return new CommandSourceStack(
-				CommandSource.NULL,
-				block.pos().getCenter(),
-				Vec2.ZERO,
-				serverLevel,
-				0,
-				blockName.getString(),
-				blockName,
-				serverLevel.getServer(),
-				null
-			);
-		}
+		ServerLevel serverLevel = (ServerLevel) context.level();
+		Component blockName = Component.translatable(block.state().getBlock().getDescriptionId());
 
-		else {
-			return serverLevel.getServer().createCommandSourceStack();
-		}
+		return new CommandSourceStack(
+
+			CommandSource.NULL,
+			block.pos().getCenter(),
+			Vec2.ZERO,
+			serverLevel,
+			0,
+			blockName.getString(),
+			blockName,
+			serverLevel.getServer(),
+			null
+		);
 
 	}
 

@@ -43,9 +43,13 @@ public record CommandResultNumberProvider(CommandSourceProvider source, StringPr
 		MinecraftServer server = serverLevel.getServer();
 		AtomicInteger result = new AtomicInteger();
 
-		CommandSourceStack source = source()
-			.getSource(serverLevel, context.forChild(".source"))
-			.withCallback((successful, returnValue) -> result.set(returnValue));
+		CommandSourceStack source = source().getSource(server, context.forChild(".source"))
+			.map(self -> self.withCallback((ignored, resultValue) -> result.set(resultValue)))
+			.orElse(null);
+
+		if (source == null) {
+			return 0;
+		}
 
 		Context commandContext = context.forChild(".command");
 		String command = command().getString(commandContext);

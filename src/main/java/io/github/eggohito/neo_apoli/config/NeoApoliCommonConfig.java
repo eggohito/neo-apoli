@@ -44,7 +44,7 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 		private boolean showOutput;
 		private int permissionLevel;
 
-		public CommandSourceStack sanitize(CommandSourceStack commandSource) {
+		public CommandSourceStack sanitizeSource(CommandSourceStack commandSource) {
 			CommandSource output = ((CommandSourceStackAccessor) commandSource).getOutput();
 			return commandSource
 				.withSource(showOutput() ? output : CommandSource.NULL)
