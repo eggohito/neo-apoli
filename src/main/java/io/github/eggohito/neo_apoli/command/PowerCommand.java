@@ -132,11 +132,11 @@ public class PowerCommand {
 					if (processedTargets.isEmpty()) {
 
 						if (targets.size() == 1) {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.grant.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.grant.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source));
 						}
 
 						else {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.grant.single_power.fail.multiple_entities", targets.size(), powerName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.grant.single_power.fail.multiple_entities", targets.size(), powerName, source));
 						}
 
 					}
@@ -144,11 +144,11 @@ public class PowerCommand {
 					else {
 
 						if (processedTargets.size() == 1) {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.single_power.success.single_entity", processedTargets.keySet().iterator().next().getName(), powerName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.grant.single_power.success.single_entity", processedTargets.keySet().iterator().next().getName(), powerName, source), true);
 						}
 
 						else {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.single_power.success.multiple_entities", processedTargets.size(), powerName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.grant.single_power.success.multiple_entities", processedTargets.size(), powerName, source), true);
 						}
 
 					}
@@ -159,11 +159,11 @@ public class PowerCommand {
 					if (processedTargets.isEmpty()) {
 
 						if (targets.size() == 1) {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.grant.multiple_powers.fail.single_entity", targets.getFirst().getName(), collection.id().toString(), source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.grant.multiple_powers.fail.single_entity", targets.getFirst().getName(), collection.id(), source));
 						}
 
 						else {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.grant.multiple_powers.fail.multiple_entities", targets.size(), collection.id().toString(), source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.grant.multiple_powers.fail.multiple_entities", targets.size(), collection.id(), source));
 						}
 
 					}
@@ -174,11 +174,11 @@ public class PowerCommand {
 						long finalTotalGrantedPowers = totalGrantedPowers;
 
 						if (processedTargets.size() == 1) {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), collection.id().toString(), source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.grant.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), collection.id(), source), true);
 						}
 
 						else {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalGrantedPowers, collection.id().toString(), source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.grant.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalGrantedPowers, collection.id(), source), true);
 						}
 
 					}
@@ -279,11 +279,11 @@ public class PowerCommand {
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.all.fail.single_entity", targets.getFirst().getName(), source.toString()));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.all.fail.single_entity", targets.getFirst().getName(), source));
 				}
 
 				else {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.all.fail.multiple_entities", targets.size(), source.toString()));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.all.fail.multiple_entities", targets.size(), source));
 				}
 
 			}
@@ -292,7 +292,7 @@ public class PowerCommand {
 
 				if (processedTargets.size() == 1) {
 					var processedEntry = processedTargets.object2LongEntrySet().iterator().next();
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.single_entity", processedEntry.getKey(), processedEntry.getLongValue(), source.toString()), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.all.success.single_entity", processedEntry.getKey(), processedEntry.getLongValue(), source), true);
 				}
 
 				else {
@@ -301,7 +301,7 @@ public class PowerCommand {
 						.longStream()
 						.sum();
 
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.all.success.multiple_entities", processedTargets.size(), totalRevokedPowers, source.toString()), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.all.success.multiple_entities", processedTargets.size(), totalRevokedPowers, source), true);
 
 				}
 
@@ -356,11 +356,11 @@ public class PowerCommand {
 					if (processedTargets.isEmpty()) {
 
 						if (targets.size() == 1) {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.single_power.fail.single_entity", targets.getFirst().getName(), powerName, source));
 						}
 
 						else {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.single_power.fail.multiple_entities", targets.size(), powerName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.single_power.fail.multiple_entities", targets.size(), powerName, source));
 						}
 
 					}
@@ -368,11 +368,11 @@ public class PowerCommand {
 					else {
 
 						if (processedTargets.size() == 1) {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.single_entity", processedTargets.keySet().iterator().next(), powerName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.single_power.success.single_entity", processedTargets.keySet().iterator().next().getName(), powerName, source), true);
 						}
 
 						else {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.multiple_entities", processedTargets.size(), powerName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.single_power.success.multiple_entities", processedTargets.size(), powerName, source), true);
 						}
 
 					}
@@ -385,11 +385,11 @@ public class PowerCommand {
 					if (processedTargets.isEmpty()) {
 
 						if (targets.size() == 1) {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.fail.single_entity", targets.getFirst().getName(), tagName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.multiple_powers.fail.single_entity", targets.getFirst().getName(), tagName, source));
 						}
 
 						else {
-							commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.fail.multiple_entities", targets.size(), tagName, source.toString()));
+							commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.revoke.multiple_powers.fail.multiple_entities", targets.size(), tagName, source));
 						}
 
 					}
@@ -400,11 +400,11 @@ public class PowerCommand {
 						long finalTotalRevokedPowers = totalRevokedPowers;
 
 						if (processedTargets.size() == 1) {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), tagName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.multiple_powers.success.single_entity", processedTarget.getKey().getName(), processedTarget.getLongValue(), tagName, source), true);
 						}
 
 						else {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalRevokedPowers, tagName, source.toString()), true);
+							commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.revoke.multiple_powers.success.multiple_entities", processedTargets.size(), finalTotalRevokedPowers, tagName, source), true);
 						}
 
 					}
@@ -467,11 +467,11 @@ public class PowerCommand {
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.single_entity", targets.getFirst().getName(), powerName));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.remove.fail.single_entity", targets.getFirst().getName(), powerName));
 				}
 
 				else {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.remove.fail.multiple_entities", targets.size(), powerName));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.remove.fail.multiple_entities", targets.size(), powerName));
 				}
 
 			}
@@ -479,11 +479,11 @@ public class PowerCommand {
 			else {
 
 				if (processedTargets.size() == 1) {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.single_entity", processedTargets.getFirst().getName(), powerName), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.remove.success.single_entity", processedTargets.getFirst().getName(), powerName), true);
 				}
 
 				else {
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.remove.success.multiple_entities", processedTargets.size(), powerName), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.remove.success.multiple_entities", processedTargets.size(), powerName), true);
 				}
 
 			}
@@ -553,11 +553,11 @@ public class PowerCommand {
 			if (processedTargets.isEmpty()) {
 
 				if (targets.size() == 1) {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.clear.fail.single", targets.getFirst().getName()));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.clear.fail.single", targets.getFirst().getName()));
 				}
 
 				else {
-					commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.clear.fail.multiple", targets.size()));
+					commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.clear.fail.multiple", targets.size()));
 				}
 
 			}
@@ -568,7 +568,7 @@ public class PowerCommand {
 
 					var processedTarget = processedTargets.object2LongEntrySet().iterator().next();
 
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.single", processedTarget.getKey().getName(), processedTarget.getLongValue()), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.clear.success.single", processedTarget.getKey().getName(), processedTarget.getLongValue()), true);
 
 				}
 
@@ -578,7 +578,7 @@ public class PowerCommand {
 						.longStream()
 						.count();
 
-					commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.clear.success.multiple", processedTargets.size(), totalClearedPowers), true);
+					commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.clear.success.multiple", processedTargets.size(), totalClearedPowers), true);
 
 				}
 
@@ -642,7 +642,7 @@ public class PowerCommand {
 
 				Component idTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.id", Component.literal("\"" + powerHolder.id().toString() + "\"").withStyle(ChatFormatting.GREEN));
 				Component typeTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.type", Component.literal("\"" + RegistryUtil.getId(NeoApoliRegistries.POWER_TYPE, type) + "\"").withStyle(ChatFormatting.GOLD));
-				Component joinedSourcesTooltip = Component.translatable("commands.neo-apoli.power.list.info.sources", ComponentUtils.formatList(sourceTooltips, Component.nullToEmpty(", ")));
+				Component joinedSourcesTooltip = Component.translatableEscape("commands.neo-apoli.power.list.info.sources", ComponentUtils.formatList(sourceTooltips, Component.nullToEmpty(", ")));
 
 				Component hoverTooltip = Component.translatable("commands.neo-apoli.power.list.info", idTooltip, typeTooltip, joinedSourcesTooltip);
 				HoverEvent hoverEvent = new HoverEvent.ShowText(hoverTooltip);
@@ -652,11 +652,11 @@ public class PowerCommand {
 			}
 
 			if (powerTooltips.isEmpty()) {
-				commandSource.sendFailure(Component.translatable("commands.neo-apoli.power.list.fail", target.getName()));
+				commandSource.sendFailure(Component.translatableEscape("commands.neo-apoli.power.list.fail", target.getName()));
 			}
 
 			else {
-				commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.list.success", target.getName(), powerTooltips.size(), ComponentUtils.formatList(powerTooltips, Component.nullToEmpty(", "))), false);
+				commandSource.sendSuccess(() -> Component.translatableEscape("commands.neo-apoli.power.list.success", target.getName(), powerTooltips.size(), ComponentUtils.formatList(powerTooltips, Component.nullToEmpty(", "))), false);
 			}
 
 			return powerTooltips.size();
