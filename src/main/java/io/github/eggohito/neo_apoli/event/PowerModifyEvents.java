@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.event;
+package io.github.eggohito.neo_apoli.event;
 
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;

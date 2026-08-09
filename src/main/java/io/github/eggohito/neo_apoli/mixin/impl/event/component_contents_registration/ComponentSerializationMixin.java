@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.event.component_contents_registration;
 
 import com.google.common.collect.ImmutableList;
-import io.github.eggohito.neo_apoli.api.event.ComponentContentsRegistration;
+import io.github.eggohito.neo_apoli.event.ComponentContentsRegistration;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.util.StringRepresentable;
 import org.spongepowered.asm.mixin.Mixin;

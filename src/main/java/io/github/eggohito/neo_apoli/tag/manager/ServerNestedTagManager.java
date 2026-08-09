@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.tag.manager;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import io.github.eggohito.neo_apoli.api.event.TagsBuilt;
+import io.github.eggohito.neo_apoli.event.TagsBuilt;
 import io.github.eggohito.neo_apoli.mixin.access.TagEntryAccessor;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdateNestedTagPacket;
 import io.github.eggohito.neo_apoli.tag.NestedTag;

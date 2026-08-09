@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.event;
+package io.github.eggohito.neo_apoli.event;
 
 import com.mojang.serialization.*;
 import io.github.eggohito.neo_apoli.power.PowerHolder;

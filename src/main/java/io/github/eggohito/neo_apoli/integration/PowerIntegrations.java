@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.integration;
 
-import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.key.KeyState;
 import io.github.eggohito.neo_apoli.power.custom.InventoryPower;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraFlightPower;

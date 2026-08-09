@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.key.manager;
 
-import io.github.eggohito.neo_apoli.api.event.KeyStateEvents;
+import io.github.eggohito.neo_apoli.event.KeyStateEvents;
 import io.github.eggohito.neo_apoli.key.KeyState;
 import io.github.eggohito.neo_apoli.network.packet.serverbound.ServerboundUpdateKeyStatesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;

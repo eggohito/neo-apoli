@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.event;
+package io.github.eggohito.neo_apoli.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -9,7 +9,7 @@ import net.minecraft.util.DependencySorter;
 
 /**
  *  An event invoked when tags from a {@link TagLoader} instance are built.
- *  @see io.github.eggohito.neo_apoli.api.tag.NestedTagCache
+ *  @see io.github.eggohito.neo_apoli.tag.NestedTag
  */
 public interface TagsBuilt {
 

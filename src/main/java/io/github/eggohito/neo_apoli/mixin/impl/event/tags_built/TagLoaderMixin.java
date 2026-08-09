@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.event.tags_built;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.eggohito.neo_apoli.api.event.TagsBuilt;
+import io.github.eggohito.neo_apoli.event.TagsBuilt;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagLoader;
