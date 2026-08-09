@@ -1,6 +1,8 @@
 package io.github.eggohito.neo_apoli.power.entity.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
@@ -14,190 +16,97 @@ import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.function.Consumers;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class MutablePowersImpl extends AbstractPowers implements MutablePowers {
 
-	private static final StreamCodec<ByteBuf, Object2BooleanMap<PowerIdentifier>> ID_AND_CALLBACK_STREAM_CODEC = ByteBufCodecs.map(Object2BooleanOpenHashMap::new, PowerIdentifier.STREAM_CODEC, ByteBufCodecs.BOOL);
-	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ID_AND_CALLBACK_STREAM_CODEC);
-
-	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
-	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
+	private boolean changed = false;
 
 	MutablePowersImpl(Entity holder, PowersAttachment attachment) {
 		super(holder, new Object2ObjectLinkedOpenHashMap<>(attachment.instances()), LinkedHashMultimap.create(attachment.sources()));
 	}
 
 	@Override
-	public boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean grant(PowerIdentifier id, ResourceLocation source) {
 		return !holder.level().isClientSide()
-			&& this.grantInternal(id, source, invokeCallbacks);
+			&& this.grantInternal(id, source);
 	}
 
 	@Override
-	public boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
+	public boolean revoke(PowerIdentifier id, ResourceLocation source) {
 		return !holder.level().isClientSide()
-			&& this.revokeInternal(id, source, invokeCallbacks);
+			&& this.revokeInternal(id, source);
 	}
 
 	@Override
 	public void applyChanges() {
 
-		if (holder.level().isClientSide()) {
-			return;
-		}
+		if (!holder.level().isClientSide() && changed) {
 
-		boolean revoked = !this.revokedPowers.isEmpty();
-		boolean granted = !this.grantedPowers.isEmpty();
-
-		if (revoked || granted) {
-
-			if (revoked) {
-				MiscUtil.broadcastCustomToAll(holder, () -> new ClientboundRevokePowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.revokedPowers)));
+			if (instances.isEmpty() || sources.isEmpty()) {
+				this.holder.removeAttached(NeoApoliEntityAttachments.POWERS);
 			}
 
-			if (granted) {
-				MiscUtil.broadcastCustomToAll(holder, () -> new ClientboundGrantPowersPacket(holder.getId(), new Object2ObjectLinkedOpenHashMap<>(this.grantedPowers)));
+			else {
+				this.holder.setAttached(NeoApoliEntityAttachments.POWERS, new PowersAttachment(ImmutableMap.copyOf(this.instances), ImmutableSetMultimap.copyOf(this.sources)));
 			}
-
-			this.holder.setAttached(NeoApoliEntityAttachments.POWERS, new PowersAttachment(instances, sources));
 
 		}
 
-		this.revokedPowers.clear();
-		this.grantedPowers.clear();
+		this.changed = false;
 
 	}
 
-	private boolean grantInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
+	private boolean grantInternal(PowerIdentifier id, ResourceLocation source) {
 
-		List<Power.Instance<?>> addedPowers = new ObjectArrayList<>();
-		List<Power.Instance<?>> grantedPowers = new ObjectArrayList<>();
-
-		boolean granted = this.grantRecursively(id, source, addedPowers::add, grantedPowers::add, invokeCallbacks);
-
-		addedPowers.forEach(instance -> instance.onAdded(holder));
-		grantedPowers.forEach(instance -> instance.onGranted(holder));
-
-		return granted;
-
-	}
-
-	private boolean grantRecursively(PowerIdentifier id, ResourceLocation source, Consumer<Power.Instance<?>> onAdded, Consumer<Power.Instance<?>> onGranted, boolean invokeCallbacks) {
-
-		if (!PowerManager.getInstance().contains(id)) {
-			return false;
-		}
-
-		Set<ResourceLocation> sources = MutablePowersImpl.this.sources.get(id);
-		boolean firstTimeGranting = !instances.containsKey(id);
-
-		if (!sources.add(source)) {
+		if (!PowerManager.getInstance().contains(id) || !this.sources.put(id, source)) {
 			return false;
 		}
 
 		Power power = PowerManager.getInstance().get(id).value();
-		Power.Instance<?> instance = instances.computeIfAbsent(id, k -> power.createInstance());
+		this.instances.computeIfAbsent(id, k -> power.createInstance());
 
 		if (power instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
 			for (var subPower : subPowers) {
-				this.grantRecursively(subPower.id(), source, onAdded, onGranted, invokeCallbacks);
+				this.grantInternal(subPower.id(), source);
 			}
 
 		}
 
-		if (invokeCallbacks) {
-
-			if (firstTimeGranting) {
-				onGranted.accept(instance);
-			}
-
-			onAdded.accept(instance);
-
-		}
-
-		if (!holder.level().isClientSide()) {
-			this.grantedPowers
-				.computeIfAbsent(source, k -> new Object2BooleanLinkedOpenHashMap<>())
-				.put(id, invokeCallbacks);
-		}
-
-		return true;
+		return this.changed = true;
 
 	}
 
-	private boolean revokeInternal(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks) {
-
-		List<PowerIdentifier> revokedPowers = new ObjectArrayList<>();
-		boolean result = this.revokeRecursively(id, source, revokedPowers::add, invokeCallbacks);
-
-		instances.keySet().removeIf(revokedPowers::contains);
-		sources.keySet().removeIf(revokedPowers::contains);
-
-		return result;
-
-	}
-
-	private boolean revokeRecursively(PowerIdentifier id, ResourceLocation source, Consumer<PowerIdentifier> onRevoked, boolean invokeCallbacks) {
+	private boolean revokeInternal(PowerIdentifier id, ResourceLocation source) {
 
 		if (!sources.remove(id, source) || !instances.containsKey(id)) {
 			return false;
 		}
 
-		Power.Instance<?> instance = instances.get(id);
-		boolean revoked = sources.get(id).isEmpty();
-
-		if (instance.power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
+		if (instances.get(id).power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
 			for (var subPower : subPowers) {
-				this.revokeRecursively(subPower.id(), source, onRevoked, invokeCallbacks);
+				this.revokeInternal(subPower.id(), source);
 			}
 
 		}
 
-		if (revoked) {
-
-			onRevoked.accept(id);
-
-			if (invokeCallbacks) {
-				instance.onRevoked(holder);
-			}
-
-		}
-
-		if (invokeCallbacks) {
-			instance.onRemoved(holder);
-		}
-
-		if (!holder.level().isClientSide()) {
-			this.revokedPowers
-				.computeIfAbsent(source, k -> new Object2BooleanLinkedOpenHashMap<>())
-				.put(id, invokeCallbacks);
-		}
-
-		return true;
+		return this.changed = true;
 
 	}
 
@@ -225,7 +134,7 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 			if (!PowerManager.getInstance().contains(reference)) {
 
 				for (var source : powers.getSources(reference)) {
-					powers.revokeWithCallback(reference, source);
+					powers.revoke(reference, source);
 				}
 
 				NeoApoli.LOGGER.warn("Removed unregistered {} from entity {}!", reference.asDisplayString(false), player.getName().getString());
@@ -253,8 +162,8 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 		for (var reference : powers.getAllIds()) {
 
 			for (var source : powers.getSources(reference)) {
-				powers.revokeWithoutCallback(reference, source);
-				powers.grantWithoutCallback(reference, source);
+				powers.revoke(reference, source);
+				powers.grant(reference, source);
 			}
 
 			if (pendingDataSync.containsKey(reference)) {
@@ -287,78 +196,6 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 
 	}
 
-
-	public record ClientboundGrantPowersPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> powers) implements CustomPacketPayload {
-
-		public static final Type<ClientboundGrantPowersPacket> TYPE = new Type<>(NeoApoli.id("clientbound/grant_powers"));
-		public static final StreamCodec<ByteBuf, ClientboundGrantPowersPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT, ClientboundGrantPowersPacket::entityId,
-			UPDATE_STREAM_CODEC, ClientboundGrantPowersPacket::powers,
-			ClientboundGrantPowersPacket::new
-		);
-
-		@Override
-		public @NotNull Type<? extends CustomPacketPayload> type() {
-			return TYPE;
-		}
-
-		public void handle(Level level) {
-
-			Entity holder = level.getEntity(entityId());
-
-			if (holder == null) {
-				NeoApoli.LOGGER.warn("Received packet for granting {} power(s) to an unknown entity with ID {}!", powers.size(), entityId());
-			}
-
-			else {
-
-				MutablePowersImpl builderImpl = (MutablePowersImpl) of(holder);
-
-				powers().forEach((source, entries) ->
-					entries.forEach((id, invokeCallbacks) ->
-						builderImpl.grantInternal(id, source, invokeCallbacks)));
-
-			}
-
-		}
-
-	}
-
-	public record ClientboundRevokePowersPacket(int entityId, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> powers) implements CustomPacketPayload {
-
-		public static final Type<ClientboundRevokePowersPacket> TYPE = new Type<>(NeoApoli.id("clientbound/revoke_powers"));
-		public static final StreamCodec<ByteBuf, ClientboundRevokePowersPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT, ClientboundRevokePowersPacket::entityId,
-			UPDATE_STREAM_CODEC, ClientboundRevokePowersPacket::powers,
-			ClientboundRevokePowersPacket::new
-		);
-
-		@Override
-		public @NotNull Type<? extends CustomPacketPayload> type() {
-			return TYPE;
-		}
-
-		public void handle(Level level) {
-
-			Entity holder = level.getEntity(entityId());
-
-			if (holder == null) {
-				NeoApoli.LOGGER.warn("Received packet for revoking {} power(s) to an unknown entity with ID {}!", powers.size(), entityId());
-			}
-
-			else {
-
-				MutablePowersImpl builderImpl = (MutablePowersImpl) of(holder);
-
-				powers().forEach((source, entries) ->
-					entries.forEach((id, invokeCallbacks) ->
-						builderImpl.revokeInternal(id, source, invokeCallbacks)));
-
-			}
-
-		}
-
-	}
 
 	static {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, ID);

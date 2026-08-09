@@ -31,9 +31,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.event.Level;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -79,8 +81,8 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 
 	};
 
-	public PowersAttachment(Map<PowerIdentifier, Power.Instance<?>> instances, SetMultimap<PowerIdentifier, ResourceLocation> sources) {
-		this(ImmutableMap.copyOf(instances), ImmutableSetMultimap.copyOf(sources), Optional.empty());
+	public PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> instances, ImmutableSetMultimap<PowerIdentifier, ResourceLocation> sources) {
+		this(instances, sources, Optional.empty());
 	}
 
 	public PowersAttachment() {
@@ -112,6 +114,78 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		return identity.map(unit -> entriesAsList)
 			.setPartial(entriesAsList)
 			.map(Function.identity());
+
+	}
+
+	public static void onChanged(@NotNull Entity holder, @Nullable PowersAttachment oldValue, @Nullable PowersAttachment newValue) {
+
+		//  If there is no new value and an old value, it means the attachment was removed
+		if (newValue == null && oldValue != null) {
+
+			for (var instance : oldValue.instances().values()) {
+				instance.onRevoked(holder);
+				instance.onRemoved(holder);
+			}
+
+		}
+
+		//  If there is no old value and a new value, it means the attachment was initialized
+		else if (oldValue == null && newValue != null) {
+
+			for (var instance : newValue.instances().values()) {
+				instance.onGranted(holder);
+				instance.onAdded(holder);
+			}
+
+		}
+
+		//  If both old and new values are present, it means the attachment was changed
+		else if (oldValue != null) {
+
+			//  Get the difference between the old and new attachments (for initial callbacks)
+			Set<Map.Entry<PowerIdentifier, Power.Instance<?>>> revoked = Sets.difference(oldValue.instances().entrySet(), newValue.instances().entrySet());
+			Set<Map.Entry<PowerIdentifier, Power.Instance<?>>> granted = Sets.difference(newValue.instances().entrySet(), oldValue.instances().entrySet());
+
+			//  Iterate through all the powers that has been revoked
+			initial(revoked, instance -> instance.onRevoked(holder));
+
+			//  Iterate through all the powers that has been granted
+			initial(granted, instance -> instance.onGranted(holder));
+
+			//  Get the difference between the sources of the old and new attachments (for recurring callbacks)
+			Set<Map.Entry<PowerIdentifier, ResourceLocation>> removed = Sets.difference(oldValue.sources().entries(), newValue.sources().entries());
+			Set<Map.Entry<PowerIdentifier, ResourceLocation>> added = Sets.difference(newValue.sources().entries(), oldValue.sources().entries());
+
+			//  Iterate through all the powers that has been removed
+			recurring(oldValue, removed, instance -> instance.onRemoved(holder));
+
+			//  Iterate through all the powers that has been added
+			recurring(newValue, added, instance -> instance.onAdded(holder));
+
+		}
+
+	}
+
+	private static void initial(Set<Map.Entry<PowerIdentifier, Power.Instance<?>>> instances, Consumer<Power.Instance<?>> action) {
+
+		for (var entry : instances) {
+			action.accept(entry.getValue());
+		}
+
+	}
+
+	private static void recurring(PowersAttachment source, Set<Map.Entry<PowerIdentifier, ResourceLocation>> instances, Consumer<Power.Instance<?>> action) {
+
+		for (var entry : instances) {
+
+			var id = entry.getKey();
+			Power.Instance<?> instance = source.instances().get(id);
+
+			if (instance != null) {
+				action.accept(instance);
+			}
+
+		}
 
 	}
 

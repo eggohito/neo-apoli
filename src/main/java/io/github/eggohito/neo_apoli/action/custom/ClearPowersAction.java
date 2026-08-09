@@ -5,23 +5,18 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
-import io.github.eggohito.neo_apoli.power.entity.Powers;
-import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ClearPowersAction(BooleanProvider withCallback, EntityProvider entity) implements Action {
+public record ClearPowersAction(EntityProvider entity) implements Action {
 
 	public static final MapCodec<ClearPowersAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BooleanProvider.CODEC.optionalFieldOf("with_callback", new ConstantBooleanProvider(true)).forGetter(ClearPowersAction::withCallback),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(ClearPowersAction::entity)
 	).apply(instance, ClearPowersAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClearPowersAction> STREAM_CODEC = StreamCodec.composite(
-		BooleanProvider.STREAM_CODEC, ClearPowersAction::withCallback,
 		EntityProvider.STREAM_CODEC, ClearPowersAction::entity,
 		ClearPowersAction::new
 	);
@@ -35,20 +30,17 @@ public record ClearPowersAction(BooleanProvider withCallback, EntityProvider ent
 	public void execute(Context context) {
 
 		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
-			.filter(Powers::has)
-			.map(MutablePowers::create)
+			.flatMap(MutablePowers::getOptional)
 			.orElse(null);
 
 		if (mutablePowers == null) {
 			return;
 		}
 
-		boolean withCallback = withCallback().getBoolean(context.forChild(".with_callback"));
-
 		for (var holder : mutablePowers.getAll()) {
 
 			for (var source : mutablePowers.getSources(holder.id())) {
-				mutablePowers.revoke(holder.id(), source, withCallback);
+				mutablePowers.revoke(holder.id(), source);
 			}
 
 		}
@@ -58,7 +50,6 @@ public record ClearPowersAction(BooleanProvider withCallback, EntityProvider ent
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
-		withCallback().validate(validator.forChild(".with_callback"));
 		entity().validate(validator.forChild(".entity"));
 	}
 

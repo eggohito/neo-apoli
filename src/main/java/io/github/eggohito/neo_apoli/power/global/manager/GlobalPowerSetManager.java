@@ -177,14 +177,14 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 		for (var entryFromSource : mutablePowers.getAllFromSource(GlobalPowerSet.POWER_SOURCE)) {
 
 			if (!expectedHolders.contains(entryFromSource)) {
-				mutablePowers.revokeWithCallback(entryFromSource.id(), GlobalPowerSet.POWER_SOURCE);
+				mutablePowers.revoke(entryFromSource.id(), GlobalPowerSet.POWER_SOURCE);
 			}
 
 		}
 
 		//	Re-add all the expected powers collected from all global power sets
 		for (var expectedEntry : expectedHolders) {
-			mutablePowers.grantWithCallback(expectedEntry.id(), GlobalPowerSet.POWER_SOURCE);
+			mutablePowers.grant(expectedEntry.id(), GlobalPowerSet.POWER_SOURCE);
 		}
 
 		mutablePowers.applyChanges();

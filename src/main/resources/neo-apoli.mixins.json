@@ -102,6 +102,7 @@
 		"impl.power.custom.replace_loot_table.LootTableMixin",
 		"impl.power.custom.replace_loot_table.NestedLootTableMixin",
 		"impl.power.custom.replace_loot_table.ReloadableServerResourcesMixin",
+		"impl.power.misc.change_callbacks.EntityMixin",
 		"impl.power.misc.damage_modifying.LivingEntityMixin",
 		"impl.power.misc.damage_modifying.PlayerMixin"
 	],

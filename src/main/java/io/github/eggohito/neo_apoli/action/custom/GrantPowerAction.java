@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
-import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.ParsedArgument;
@@ -18,19 +16,17 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
-public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, ResourceLocation source, BooleanProvider withCallback, EntityProvider entity) implements Action {
+public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, ResourceLocation source, EntityProvider entity) implements Action {
 
 	public static final MapCodec<GrantPowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		NeoApoliCodecs.POWER_OR_TAG_ARGUMENT.fieldOf("power").forGetter(GrantPowerAction::power),
 		ResourceLocation.CODEC.fieldOf("source").forGetter(GrantPowerAction::source),
-		BooleanProvider.CODEC.optionalFieldOf("with_callback", new ConstantBooleanProvider(true)).forGetter(GrantPowerAction::withCallback),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(GrantPowerAction::entity)
 	).apply(instance, GrantPowerAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, GrantPowerAction> STREAM_CODEC = StreamCodec.composite(
 		NeoApoliStreamCodecs.POWER_OR_TAG_ARGUMENT, GrantPowerAction::power,
 		ResourceLocation.STREAM_CODEC, GrantPowerAction::source,
-		BooleanProvider.STREAM_CODEC, GrantPowerAction::withCallback,
 		EntityProvider.STREAM_CODEC, GrantPowerAction::entity,
 		GrantPowerAction::new
 	);
@@ -53,10 +49,8 @@ public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, Resou
 
 		try {
 
-			boolean withCallback = withCallback().getBoolean(context.forChild(".with_callback"));
-
 			for (var holder : power().argument().get()) {
-				mutablePowers.grant(holder.id(), source(), withCallback);
+				mutablePowers.grant(holder.id(), source());
 			}
 
 			mutablePowers.applyChanges();
@@ -73,7 +67,6 @@ public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, Resou
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		power().argument().validate(validator.forChild(".power"));
-		withCallback().validate(validator.forChild(".with_callback"));
 		entity().validate(validator.forChild(".entity"));
 	}
 

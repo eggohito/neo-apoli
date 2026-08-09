@@ -106,7 +106,7 @@ public class PowerCommand {
 
 				for (var powerHolder : powerHolders) {
 
-					if (mutablePowers.grantWithCallback(powerHolder.id(), source)) {
+					if (mutablePowers.grant(powerHolder.id(), source)) {
 						grantedPowers++;
 					}
 
@@ -261,7 +261,7 @@ public class PowerCommand {
 
 				for (var holder : mutablePowers.getAllFromSource(source)) {
 
-					if (mutablePowers.revokeWithCallback(holder.id(), source)) {
+					if (mutablePowers.revoke(holder.id(), source)) {
 						revokedPowers++;
 					}
 
@@ -330,7 +330,7 @@ public class PowerCommand {
 
 				for (var powerHolder : powerHolders) {
 
-					if (mutablePowers.revokeWithCallback(powerHolder.id(), source)) {
+					if (mutablePowers.revoke(powerHolder.id(), source)) {
 						revokedPowers++;
 					}
 
@@ -452,7 +452,7 @@ public class PowerCommand {
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> mutablePowers.revokeWithCallback(powerHolder.id(), source))
+					.filter(source -> mutablePowers.revoke(powerHolder.id(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -533,7 +533,7 @@ public class PowerCommand {
 
 					for (var source : mutablePowers.getSources(entry.id())) {
 
-						if (mutablePowers.revokeWithCallback(entry.id(), source)) {
+						if (mutablePowers.revoke(entry.id(), source)) {
 							clearedPowers++;
 						}
 

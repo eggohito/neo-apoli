@@ -13,26 +13,9 @@ import java.util.Optional;
 @SuppressWarnings("UnstableApiUsage")
 public interface MutablePowers extends Powers {
 
-	boolean grant(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
+	boolean grant(PowerIdentifier id, ResourceLocation source);
 
-	default boolean grantWithCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.grant(id, source, true);
-	}
-
-	default boolean grantWithoutCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.grant(id, source, false);
-	}
-
-
-	boolean revoke(PowerIdentifier id, ResourceLocation source, boolean invokeCallbacks);
-
-	default boolean revokeWithCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.revoke(id, source, true);
-	}
-
-	default boolean revokeWithoutCallback(PowerIdentifier id, ResourceLocation source) {
-		return this.revoke(id, source, false);
-	}
+	boolean revoke(PowerIdentifier id, ResourceLocation source);
 
 
 	void applyChanges();
