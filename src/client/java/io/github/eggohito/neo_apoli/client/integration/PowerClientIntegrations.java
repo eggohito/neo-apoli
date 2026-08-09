@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
-import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
+import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;

@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.client.mixin.impl.event.texture_atlas_regis
 import com.google.common.collect.ImmutableMap;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.eggohito.neo_apoli.client.api.event.TextureAtlasRegistrationEvents;
+import io.github.eggohito.neo_apoli.client.event.TextureAtlasRegistrationEvents;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.model.AtlasSet;
 import net.minecraft.client.resources.model.ModelManager;

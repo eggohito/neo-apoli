@@ -5,7 +5,7 @@ import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
-import io.github.eggohito.neo_apoli.client.api.event.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.client.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.power.custom.ModifyPlayerSpawnPower;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;

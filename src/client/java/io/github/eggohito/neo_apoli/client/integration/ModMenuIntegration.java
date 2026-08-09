@@ -5,7 +5,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
-import io.github.eggohito.neo_apoli.client.api.event.ConfigCategoryRegistrant;
+import io.github.eggohito.neo_apoli.client.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

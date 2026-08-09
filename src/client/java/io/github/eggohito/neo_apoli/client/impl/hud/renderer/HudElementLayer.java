@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
+import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
