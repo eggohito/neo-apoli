@@ -15,8 +15,8 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
-import io.github.eggohito.neo_apoli.power.entity.PowersBuilder;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.util.JsonTextFormatter;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -101,12 +101,12 @@ public class PowerCommand {
 
 			for (var target : targets) {
 
-				PowersBuilder powersBuilder = Powers.builder(target);
+				MutablePowers mutablePowers = MutablePowers.create(target);
 				long grantedPowers = 0;
 
 				for (var powerHolder : powerHolders) {
 
-					if (powersBuilder.grantWithCallback(powerHolder.id(), source)) {
+					if (mutablePowers.grantWithCallback(powerHolder.id(), source)) {
 						grantedPowers++;
 					}
 
@@ -117,7 +117,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, grantedPowers);
-				powersBuilder.build();
+				mutablePowers.applyChanges();
 
 				totalGrantedPowers += grantedPowers;
 
@@ -256,12 +256,12 @@ public class PowerCommand {
 					continue;
 				}
 
-				PowersBuilder powersBuilder = Powers.builder(target);
+				MutablePowers mutablePowers = MutablePowers.create(target);
 				long revokedPowers = 0;
 
-				for (var holder : powersBuilder.getAllFromSource(source)) {
+				for (var holder : mutablePowers.getAllFromSource(source)) {
 
-					if (powersBuilder.revokeWithCallback(holder.id(), source)) {
+					if (mutablePowers.revokeWithCallback(holder.id(), source)) {
 						revokedPowers++;
 					}
 
@@ -272,7 +272,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, revokedPowers);
-				powersBuilder.build();
+				mutablePowers.applyChanges();
 
 			}
 
@@ -325,12 +325,12 @@ public class PowerCommand {
 					continue;
 				}
 
-				PowersBuilder powersBuilder = Powers.builder(target);
+				MutablePowers mutablePowers = MutablePowers.create(target);
 				long revokedPowers = 0;
 
 				for (var powerHolder : powerHolders) {
 
-					if (powersBuilder.revokeWithCallback(powerHolder.id(), source)) {
+					if (mutablePowers.revokeWithCallback(powerHolder.id(), source)) {
 						revokedPowers++;
 					}
 
@@ -341,7 +341,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, revokedPowers);
-				powersBuilder.build();
+				mutablePowers.applyChanges();
 
 				totalRevokedPowers += revokedPowers;
 
@@ -447,12 +447,12 @@ public class PowerCommand {
 					continue;
 				}
 
-				PowersBuilder powersBuilder = Powers.builder(target);
-				Set<ResourceLocation> sources = powersBuilder.getSources(powerHolder.id());
+				MutablePowers mutablePowers = MutablePowers.create(target);
+				Set<ResourceLocation> sources = mutablePowers.getSources(powerHolder.id());
 
 				long removedPowers = sources
 					.stream()
-					.filter(source -> powersBuilder.revokeWithCallback(powerHolder.id(), source))
+					.filter(source -> mutablePowers.revokeWithCallback(powerHolder.id(), source))
 					.count();
 
 				if (removedPowers <= 0) {
@@ -460,7 +460,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.add(target);
-				powersBuilder.build();
+				mutablePowers.applyChanges();
 
 			}
 
@@ -526,14 +526,14 @@ public class PowerCommand {
 					continue;
 				}
 
-				PowersBuilder powersBuilder = Powers.builder(target);
+				MutablePowers mutablePowers = MutablePowers.create(target);
 				long clearedPowers = 0;
 
-				for (var entry : powersBuilder.getAll()) {
+				for (var entry : mutablePowers.getAll()) {
 
-					for (var source : powersBuilder.getSources(entry.id())) {
+					for (var source : mutablePowers.getSources(entry.id())) {
 
-						if (powersBuilder.revokeWithCallback(entry.id(), source)) {
+						if (mutablePowers.revokeWithCallback(entry.id(), source)) {
 							clearedPowers++;
 						}
 
@@ -546,7 +546,7 @@ public class PowerCommand {
 				}
 
 				processedTargets.put(target, clearedPowers);
-				powersBuilder.build();
+				mutablePowers.applyChanges();
 
 			}
 

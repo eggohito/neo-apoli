@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public sealed class AbstractPowers implements Powers permits PowersImpl, PowersBuilderImpl {
+public sealed class AbstractPowers implements Powers permits PowersImpl, MutablePowersImpl {
 
 	protected final Entity holder;
 	protected final Map<PowerIdentifier, Power.Instance<?>> instances;

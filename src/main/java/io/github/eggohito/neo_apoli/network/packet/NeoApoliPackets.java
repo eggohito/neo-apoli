@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.network.packet;
 
 import io.github.eggohito.neo_apoli.network.packet.clientbound.*;
 import io.github.eggohito.neo_apoli.network.packet.serverbound.ServerboundUpdateKeyStatesPacket;
-import io.github.eggohito.neo_apoli.power.entity.impl.PowersBuilderImpl;
+import io.github.eggohito.neo_apoli.power.entity.impl.MutablePowersImpl;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public final class NeoApoliPackets {
@@ -21,8 +21,8 @@ public final class NeoApoliPackets {
 		PayloadTypeRegistry.playS2C().register(ClientboundPowerDataUpdatePacket.TYPE, ClientboundPowerDataUpdatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundPowerRecipeDisplaysUpdatePacket.TYPE, ClientboundPowerRecipeDisplaysUpdatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientboundUpdateNestedTagPacket.TYPE, ClientboundUpdateNestedTagPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(PowersBuilderImpl.ClientboundGrantPowersPacket.TYPE, PowersBuilderImpl.ClientboundGrantPowersPacket.CODEC);
-		PayloadTypeRegistry.playS2C().register(PowersBuilderImpl.ClientboundRevokePowersPacket.TYPE, PowersBuilderImpl.ClientboundRevokePowersPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(MutablePowersImpl.ClientboundGrantPowersPacket.TYPE, MutablePowersImpl.ClientboundGrantPowersPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(MutablePowersImpl.ClientboundRevokePowersPacket.TYPE, MutablePowersImpl.ClientboundRevokePowersPacket.CODEC);
 
 		PayloadTypeRegistry.playC2S().register(ServerboundUpdateKeyStatesPacket.TYPE, ServerboundUpdateKeyStatesPacket.CODEC);
 

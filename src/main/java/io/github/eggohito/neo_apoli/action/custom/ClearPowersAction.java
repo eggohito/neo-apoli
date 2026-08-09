@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
-import io.github.eggohito.neo_apoli.power.entity.PowersBuilder;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
@@ -34,21 +34,21 @@ public record ClearPowersAction(BooleanProvider withCallback, EntityProvider ent
 	@Override
 	public void execute(Context context) {
 
-		PowersBuilder powersBuilder = entity().getEntity(context.forChild(".entity"))
+		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
 			.filter(Powers::has)
-			.map(Powers::builder)
+			.map(MutablePowers::create)
 			.orElse(null);
 
-		if (powersBuilder == null) {
+		if (mutablePowers == null) {
 			return;
 		}
 
 		boolean withCallback = withCallback().getBoolean(context.forChild(".with_callback"));
 
-		for (var holder : powersBuilder.getAll()) {
+		for (var holder : mutablePowers.getAll()) {
 
-			for (var source : powersBuilder.getSources(holder.id())) {
-				powersBuilder.revoke(holder.id(), source, withCallback);
+			for (var source : mutablePowers.getSources(holder.id())) {
+				mutablePowers.revoke(holder.id(), source, withCallback);
 			}
 
 		}

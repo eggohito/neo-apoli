@@ -9,8 +9,8 @@ import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
-import io.github.eggohito.neo_apoli.power.entity.PowersBuilder;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @SuppressWarnings("UnstableApiUsage")
-public final class PowersBuilderImpl extends AbstractPowers implements PowersBuilder {
+public final class MutablePowersImpl extends AbstractPowers implements MutablePowers {
 
 	private static final StreamCodec<ByteBuf, Object2BooleanMap<PowerIdentifier>> ID_AND_CALLBACK_STREAM_CODEC = ByteBufCodecs.map(Object2BooleanOpenHashMap::new, PowerIdentifier.STREAM_CODEC, ByteBufCodecs.BOOL);
 	private static final StreamCodec<ByteBuf, Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>>> UPDATE_STREAM_CODEC = ByteBufCodecs.map(Object2ObjectOpenHashMap::new, ResourceLocation.STREAM_CODEC, ID_AND_CALLBACK_STREAM_CODEC);
@@ -45,7 +45,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> grantedPowers = new Object2ObjectLinkedOpenHashMap<>();
 	private final Object2ObjectMap<ResourceLocation, Object2BooleanMap<PowerIdentifier>> revokedPowers = new Object2ObjectLinkedOpenHashMap<>();
 
-	PowersBuilderImpl(Entity holder, PowersAttachment attachment) {
+	MutablePowersImpl(Entity holder, PowersAttachment attachment) {
 		super(holder, new Object2ObjectLinkedOpenHashMap<>(attachment.instances()), LinkedHashMultimap.create(attachment.sources()));
 	}
 
@@ -62,7 +62,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 	}
 
 	@Override
-	public void build() {
+	public void applyChanges() {
 
 		if (holder.level().isClientSide()) {
 			return;
@@ -110,7 +110,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 			return false;
 		}
 
-		Set<ResourceLocation> sources = PowersBuilderImpl.this.sources.get(id);
+		Set<ResourceLocation> sources = MutablePowersImpl.this.sources.get(id);
 		boolean firstTimeGranting = !instances.containsKey(id);
 
 		if (!sources.add(source)) {
@@ -202,8 +202,8 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 	}
 
 
-	public static PowersBuilder of(@NotNull Entity holder) {
-		return new PowersBuilderImpl(holder, holder.getAttachedOrCreate(NeoApoliEntityAttachments.POWERS));
+	public static MutablePowers of(@NotNull Entity holder) {
+		return new MutablePowersImpl(holder, holder.getAttachedOrCreate(NeoApoliEntityAttachments.POWERS));
 	}
 
 
@@ -213,7 +213,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 			return;
 		}
 
-		PowersBuilder powers = of(player);
+		MutablePowers powers = of(player);
 		RegistryOps<Tag> ops = player.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 		Map<PowerIdentifier, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
@@ -279,7 +279,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 
 		}
 
-		powers.build();
+		powers.applyChanges();
 
 		if (!pendingDataSync.isEmpty()) {
 			MiscUtil.broadcastCustomToAll(player, () -> ClientboundPowerDataUpdatePacket.bulk(player.getId(), ops, pendingDataSync));
@@ -312,7 +312,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 
 			else {
 
-				PowersBuilderImpl builderImpl = (PowersBuilderImpl) of(holder);
+				MutablePowersImpl builderImpl = (MutablePowersImpl) of(holder);
 
 				powers().forEach((source, entries) ->
 					entries.forEach((id, invokeCallbacks) ->
@@ -348,7 +348,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 
 			else {
 
-				PowersBuilderImpl builderImpl = (PowersBuilderImpl) of(holder);
+				MutablePowersImpl builderImpl = (MutablePowersImpl) of(holder);
 
 				powers().forEach((source, entries) ->
 					entries.forEach((id, invokeCallbacks) ->
@@ -362,7 +362,7 @@ public final class PowersBuilderImpl extends AbstractPowers implements PowersBui
 
 	static {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(PowerManager.ID, ID);
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, PowersBuilderImpl::onReload);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, MutablePowersImpl::onReload);
 	}
 
 }

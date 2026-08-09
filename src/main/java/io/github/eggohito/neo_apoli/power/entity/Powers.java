@@ -4,7 +4,6 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.entity.impl.PowersBuilderImpl;
 import io.github.eggohito.neo_apoli.power.entity.impl.PowersImpl;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -98,11 +97,6 @@ public interface Powers {
 
 	static Powers getOrCreate(@NotNull Entity holder) {
 		return PowersImpl.of(holder);
-	}
-
-
-	static PowersBuilder builder(@NotNull Entity holder) {
-		return PowersBuilderImpl.of(holder);
 	}
 
 

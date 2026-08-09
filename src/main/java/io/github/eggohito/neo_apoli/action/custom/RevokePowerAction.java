@@ -8,8 +8,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.power.entity.MutablePowers;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
-import io.github.eggohito.neo_apoli.power.entity.PowersBuilder;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
@@ -44,12 +44,12 @@ public record RevokePowerAction(ParsedArgument<PowerArgument.Result> power, Reso
 	@Override
 	public void execute(Context context) {
 
-		PowersBuilder powersBuilder = entity().getEntity(context.forChild(".entity"))
+		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
 			.filter(Powers::has)
-			.map(Powers::builder)
+			.map(MutablePowers::create)
 			.orElse(null);
 
-		if (powersBuilder == null) {
+		if (mutablePowers == null) {
 			return;
 		}
 
@@ -58,10 +58,10 @@ public record RevokePowerAction(ParsedArgument<PowerArgument.Result> power, Reso
 			boolean withCallback = withCallback().getBoolean(context.forChild(".with_callback"));
 
 			for (var holder : power.argument().get()) {
-				powersBuilder.revoke(holder.id(), source(), withCallback);
+				mutablePowers.revoke(holder.id(), source(), withCallback);
 			}
 
-			powersBuilder.build();
+			mutablePowers.applyChanges();
 
 		}
 
