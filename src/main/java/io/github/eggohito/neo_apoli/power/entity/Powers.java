@@ -1,11 +1,11 @@
-package io.github.eggohito.neo_apoli.api.power;
+package io.github.eggohito.neo_apoli.power.entity;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.impl.power.PowersBuilderImpl;
-import io.github.eggohito.neo_apoli.impl.power.PowersImpl;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
+import io.github.eggohito.neo_apoli.power.entity.impl.PowersBuilderImpl;
+import io.github.eggohito.neo_apoli.power.entity.impl.PowersImpl;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;

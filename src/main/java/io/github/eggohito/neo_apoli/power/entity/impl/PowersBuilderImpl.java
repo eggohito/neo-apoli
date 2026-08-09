@@ -1,16 +1,16 @@
-package io.github.eggohito.neo_apoli.impl.power;
+package io.github.eggohito.neo_apoli.power.entity.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.power.Powers;
-import io.github.eggohito.neo_apoli.api.power.PowersBuilder;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
+import io.github.eggohito.neo_apoli.power.entity.PowersBuilder;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.util.MiscUtil;

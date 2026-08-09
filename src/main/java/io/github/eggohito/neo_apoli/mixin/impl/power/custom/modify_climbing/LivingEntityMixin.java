@@ -2,9 +2,9 @@ package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_climbing;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.ModifyClimbingPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.inventory;
 
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.InventoryPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;

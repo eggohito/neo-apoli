@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.power.custom.misc;
 
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.util.PriorityPhase;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;

@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_damage_dealt
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.ModifyDamageDealtPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;

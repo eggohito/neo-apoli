@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;

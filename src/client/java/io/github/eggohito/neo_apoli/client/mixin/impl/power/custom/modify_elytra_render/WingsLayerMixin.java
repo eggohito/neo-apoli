@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.power.custom.modify_elytra_render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.ModifyElytraRenderPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;

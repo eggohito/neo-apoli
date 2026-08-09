@@ -1,7 +1,7 @@
-package io.github.eggohito.neo_apoli.impl.power;
+package io.github.eggohito.neo_apoli.power.entity.impl;
 
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;

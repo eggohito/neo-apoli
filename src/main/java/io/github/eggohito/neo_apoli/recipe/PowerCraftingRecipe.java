@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.codec.NeoApoliMapCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeSerializers;
 import net.minecraft.core.HolderLookup;

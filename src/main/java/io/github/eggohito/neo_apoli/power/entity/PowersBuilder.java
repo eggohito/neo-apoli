@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.power;
+package io.github.eggohito.neo_apoli.power.entity;
 
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import net.minecraft.resources.ResourceLocation;

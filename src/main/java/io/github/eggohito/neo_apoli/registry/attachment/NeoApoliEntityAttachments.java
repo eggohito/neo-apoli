@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.registry.attachment;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.attachment.entity.PowersAttachment;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;

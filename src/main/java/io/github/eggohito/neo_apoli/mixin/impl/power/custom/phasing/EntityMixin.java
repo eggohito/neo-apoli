@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.mixin.impl.power.custom.phasing;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.PhasingPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;

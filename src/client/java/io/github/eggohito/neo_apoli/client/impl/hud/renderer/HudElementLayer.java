@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.client.api.event.HudElementRendererEvents;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.HudElement;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;

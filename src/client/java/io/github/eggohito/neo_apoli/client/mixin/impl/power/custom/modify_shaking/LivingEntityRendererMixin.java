@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.power.custom.modify_shaking;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.api.power.Powers;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelShakingPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
