@@ -372,7 +372,7 @@ public class PowerCommand {
 						}
 
 						else {
-							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.multiple_entities"), true);
+							commandSource.sendSuccess(() -> Component.translatable("commands.neo-apoli.power.revoke.single_power.success.multiple_entities", processedTargets.size(), powerName, source.toString()), true);
 						}
 
 					}
