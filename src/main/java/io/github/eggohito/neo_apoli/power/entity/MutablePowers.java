@@ -11,14 +11,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
-public interface MutablePowers extends Powers {
+public interface MutablePowers extends Powers, AutoCloseable {
 
 	boolean grant(PowerIdentifier id, ResourceLocation source);
 
 	boolean revoke(PowerIdentifier id, ResourceLocation source);
 
 
-	void applyChanges();
+	@Override
+	void close();
 
 
 	static MutablePowers create(@NotNull Entity holder) {

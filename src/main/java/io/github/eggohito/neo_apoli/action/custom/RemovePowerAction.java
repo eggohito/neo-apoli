@@ -15,6 +15,8 @@ import io.github.eggohito.neo_apoli.util.ParsedArgument;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.function.Consumer;
+
 public record RemovePowerAction(ParsedArgument<PowerArgument.Result> power, EntityProvider entity) implements Action {
 
 	public static final MapCodec<RemovePowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -35,33 +37,9 @@ public record RemovePowerAction(ParsedArgument<PowerArgument.Result> power, Enti
 
 	@Override
 	public void execute(Context context) {
-
-		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
+		entity().getEntity(context.forChild(".entity"))
 			.flatMap(MutablePowers::getOptional)
-			.orElse(null);
-
-		if (mutablePowers == null) {
-			return;
-		}
-
-		try {
-
-			for (var holder : power().argument().get()) {
-
-				for (var source : mutablePowers.getSources(holder.id())) {
-					mutablePowers.revoke(holder.id(), source);
-				}
-
-			}
-
-			mutablePowers.applyChanges();
-
-		}
-
-		catch (CommandSyntaxException e) {
-			context.reportProblem(e.getMessage());
-		}
-
+			.ifPresent(mutable -> this.remove(mutable, context::reportProblem));
 	}
 
 	@Override
@@ -69,6 +47,26 @@ public record RemovePowerAction(ParsedArgument<PowerArgument.Result> power, Enti
 		Action.super.validate(validator);
 		power().argument().validate(validator.forChild(".power"));
 		entity().validate(validator.forChild(".entity"));
+	}
+
+	private void remove(MutablePowers mutable, Consumer<String> errorHandler) {
+
+		try (mutable) {
+
+			for (var holder : power().argument().get()) {
+
+				for (var source : mutable.getSources(holder.id())) {
+					mutable.revoke(holder.id(), source);
+				}
+
+			}
+
+		}
+
+		catch (CommandSyntaxException e) {
+			errorHandler.accept(e.getMessage());
+		}
+
 	}
 
 }

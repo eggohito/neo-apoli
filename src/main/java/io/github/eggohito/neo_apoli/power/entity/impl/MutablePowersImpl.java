@@ -53,7 +53,7 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 	}
 
 	@Override
-	public void applyChanges() {
+	public void close() {
 
 		if (!holder.level().isClientSide() && changed) {
 
@@ -122,73 +122,74 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 			return;
 		}
 
-		MutablePowers powers = of(player);
 		RegistryOps<Tag> ops = player.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
 		Map<PowerIdentifier, Tag> pendingDataSync = new Object2ObjectOpenHashMap<>();
 		Map<PowerIdentifier, Power.Type<?>> oldTypes = new Object2ObjectOpenHashMap<>();
 
-		//  Revoke all unregistered powers, and cache the old data of those that are on the entity
-		for (var reference : powers.getAllIds()) {
+		try (MutablePowers mutable = MutablePowers.create(player)) {
 
-			if (!PowerManager.getInstance().contains(reference)) {
+			//  Revoke all unregistered powers, and cache the old data of those that are on the entity
+			for (var id : mutable.getAllIds()) {
 
-				for (var source : powers.getSources(reference)) {
-					powers.revoke(reference, source);
-				}
+				if (!PowerManager.getInstance().contains(id)) {
 
-				NeoApoli.LOGGER.warn("Removed unregistered {} from entity {}!", reference.asDisplayString(false), player.getName().getString());
+					for (var source : mutable.getSources(id)) {
+						mutable.revoke(id, source);
+					}
 
-			}
+					NeoApoli.LOGGER.warn("Removed unregistered {} from entity {}!", id.asDisplayString(false), player.getName().getString());
 
-			else {
-
-				Power.Instance<?> oldInstance = powers.getInstance(reference);
-				Power.Type<?> oldType = oldInstance.power().getType();
-
-				oldTypes.put(reference, oldType);
-				MiscUtil.handleResult(
-					oldInstance.encodeData(ops),
-					tag -> pendingDataSync.put(reference, tag),
-					warning -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the update process (proceeding with partial result): {}", reference.asDisplayString(false), player.getName().getString(), warning),
-					error -> NeoApoli.LOGGER.warn("Couldn't encode old data of {} from entity {} during the update process (skipping): {}", reference.asDisplayString(false), player.getName().getString(), error)
-				);
-
-			}
-
-		}
-
-		//  Re-grant all the existing powers and restore its old data
-		for (var reference : powers.getAllIds()) {
-
-			for (var source : powers.getSources(reference)) {
-				powers.revoke(reference, source);
-				powers.grant(reference, source);
-			}
-
-			if (pendingDataSync.containsKey(reference)) {
-
-				Tag oldData = pendingDataSync.get(reference);
-				Power.Instance<?> newInstance = powers.getInstance(reference);
-
-				if (Objects.equals(oldTypes.get(reference), newInstance.power().getType())) {
-					MiscUtil.handleResult(
-						newInstance.decodeData(ops, oldData),
-						Consumers.nop(),
-						warning -> NeoApoli.LOGGER.warn("Couldn't fully decode old data of {} from entity {} during the update process (proceeding with partial result): {}", reference.asDisplayString(false), player.getName().getString(), warning),
-						error -> NeoApoli.LOGGER.warn("Couldn't decode old data of {} from entity {} during the update process (skipping): {}", reference.asDisplayString(false), player.getName().getString(), error)
-					);
 				}
 
 				else {
-					NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", reference.asDisplayString(false), player.getName().getString());
+
+					Power.Instance<?> oldInstance = mutable.getInstance(id);
+					Power.Type<?> oldType = oldInstance.power().getType();
+
+					oldTypes.put(id, oldType);
+					MiscUtil.handleResult(
+						oldInstance.encodeData(ops),
+						tag -> pendingDataSync.put(id, tag),
+						warning -> NeoApoli.LOGGER.warn("Couldn't fully encode old data of {} from entity {} during the update process (proceeding with partial result): {}", id.asDisplayString(false), player.getName().getString(), warning),
+						error -> NeoApoli.LOGGER.warn("Couldn't encode old data of {} from entity {} during the update process (skipping): {}", id.asDisplayString(false), player.getName().getString(), error)
+					);
+
+				}
+
+			}
+
+			//  Re-grant all the existing powers and restore its old data
+			for (var id : mutable.getAllIds()) {
+
+				for (var source : mutable.getSources(id)) {
+					mutable.revoke(id, source);
+					mutable.grant(id, source);
+				}
+
+				if (pendingDataSync.containsKey(id)) {
+
+					Tag oldData = pendingDataSync.get(id);
+					Power.Instance<?> newInstance = mutable.getInstance(id);
+
+					if (Objects.equals(oldTypes.get(id), newInstance.power().getType())) {
+						MiscUtil.handleResult(
+							newInstance.decodeData(ops, oldData),
+							Consumers.nop(),
+							warning -> NeoApoli.LOGGER.warn("Couldn't fully decode old data of {} from entity {} during the update process (proceeding with partial result): {}", id.asDisplayString(false), player.getName().getString(), warning),
+							error -> NeoApoli.LOGGER.warn("Couldn't decode old data of {} from entity {} during the update process (skipping): {}", id.asDisplayString(false), player.getName().getString(), error)
+						);
+					}
+
+					else {
+						NeoApoli.LOGGER.warn("Couldn't transfer old data of {} from entity {}, as it's now using a different power type!", id.asDisplayString(false), player.getName().getString());
+					}
+
 				}
 
 			}
 
 		}
-
-		powers.applyChanges();
 
 		if (!pendingDataSync.isEmpty()) {
 			MiscUtil.broadcastCustomToAll(player, () -> ClientboundPowerDataUpdatePacket.bulk(player.getId(), ops, pendingDataSync));

@@ -167,27 +167,27 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	private void grant(Entity entity, ServerLevel serverLevel) {
 
-		MutablePowers mutablePowers = MutablePowers.create(entity);
+		try (MutablePowers mutable = MutablePowers.create(entity)) {
 
-		List<GlobalPowerSet> applicableSets = getApplicableSets(entity);
-		Set<PowerHolder<?>> expectedHolders = flattenPowers(applicableSets);
+			List<GlobalPowerSet> applicableSets = this.getApplicableSets(entity);
+			Set<PowerHolder<?>> expectedHolders = this.flattenPowers(applicableSets);
 
-		//	Revoke all powers that are from the global power source, but not within the expected
-		//	set of powers collected from all global power sets
-		for (var entryFromSource : mutablePowers.getAllFromSource(GlobalPowerSet.POWER_SOURCE)) {
+			//  Revoke all powers that are from the global power source, but not without the expected
+			//  set of powers collected from all global power sets
+			for (var holder : mutable.getAllFromSource(GlobalPowerSet.POWER_SOURCE)) {
 
-			if (!expectedHolders.contains(entryFromSource)) {
-				mutablePowers.revoke(entryFromSource.id(), GlobalPowerSet.POWER_SOURCE);
+				if (!expectedHolders.contains(holder)) {
+					mutable.revoke(holder.id(), GlobalPowerSet.POWER_SOURCE);
+				}
+
+			}
+
+			//  Re-grant all the expected powers collected from all global power sets
+			for (var expectedHolder : expectedHolders) {
+				mutable.grant(expectedHolder.id(), GlobalPowerSet.POWER_SOURCE);
 			}
 
 		}
-
-		//	Re-add all the expected powers collected from all global power sets
-		for (var expectedEntry : expectedHolders) {
-			mutablePowers.grant(expectedEntry.id(), GlobalPowerSet.POWER_SOURCE);
-		}
-
-		mutablePowers.applyChanges();
 
 	}
 

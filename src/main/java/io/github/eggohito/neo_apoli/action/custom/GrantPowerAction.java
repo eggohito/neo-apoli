@@ -16,6 +16,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.function.Consumer;
+
 public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, ResourceLocation source, EntityProvider entity) implements Action {
 
 	public static final MapCodec<GrantPowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -38,29 +40,9 @@ public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, Resou
 
 	@Override
 	public void execute(Context context) {
-
-		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
+		entity().getEntity(context.forChild(".entity"))
 			.map(MutablePowers::create)
-			.orElse(null);
-
-		if (mutablePowers == null) {
-			return;
-		}
-
-		try {
-
-			for (var holder : power().argument().get()) {
-				mutablePowers.grant(holder.id(), source());
-			}
-
-			mutablePowers.applyChanges();
-
-		}
-
-		catch (CommandSyntaxException e) {
-			context.reportProblem(e.getMessage());
-		}
-
+			.ifPresent(mutable -> this.grant(mutable, context::reportProblem));
 	}
 
 	@Override
@@ -68,6 +50,22 @@ public record GrantPowerAction(ParsedArgument<PowerArgument.Result> power, Resou
 		Action.super.validate(validator);
 		power().argument().validate(validator.forChild(".power"));
 		entity().validate(validator.forChild(".entity"));
+	}
+
+	private void grant(MutablePowers mutable, Consumer<String> errorHandler) {
+
+		try (mutable) {
+
+			for (var holder : power().argument().get()) {
+				mutable.grant(holder.id(), source());
+			}
+
+		}
+
+		catch (CommandSyntaxException e) {
+			errorHandler.accept(e.getMessage());
+		}
+
 	}
 
 }

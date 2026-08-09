@@ -96,30 +96,30 @@ public class PowerCommand {
 
 			PowerArgument.Result result = PowerArgument.getResult(commandContext, "power");
 
-			List<PowerHolder<?>> powerHolders = result.get();
+			List<PowerHolder<?>> holders = result.get();
 			long totalGrantedPowers = 0;
 
 			for (var target : targets) {
 
-				MutablePowers mutablePowers = MutablePowers.create(target);
-				long grantedPowers = 0;
+				try (MutablePowers mutable = MutablePowers.create(target)) {
 
-				for (var powerHolder : powerHolders) {
+					long grantedPowers = 0;
 
-					if (mutablePowers.grant(powerHolder.id(), source)) {
-						grantedPowers++;
+					for (var holder : holders) {
+
+						if (mutable.grant(holder.id(), source)) {
+							grantedPowers++;
+						}
+
 					}
 
+					if (grantedPowers > 0) {
+						processedTargets.put(target, grantedPowers);
+					}
+
+					totalGrantedPowers += grantedPowers;
+
 				}
-
-				if (grantedPowers <= 0) {
-					continue;
-				}
-
-				processedTargets.put(target, grantedPowers);
-				mutablePowers.applyChanges();
-
-				totalGrantedPowers += grantedPowers;
 
 			}
 
@@ -127,7 +127,7 @@ public class PowerCommand {
 				case PowerArgument.Result.Singleton singleton -> {
 
 					HoverEvent hoverEvent = new HoverEvent.ShowText(Component.nullToEmpty(singleton.id().toString()));
-					Component powerName = powerHolders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
+					Component powerName = holders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
 
 					if (processedTargets.isEmpty()) {
 
@@ -256,23 +256,24 @@ public class PowerCommand {
 					continue;
 				}
 
-				MutablePowers mutablePowers = MutablePowers.create(target);
-				long revokedPowers = 0;
+				try (MutablePowers mutable = MutablePowers.create(target)) {
 
-				for (var holder : mutablePowers.getAllFromSource(source)) {
+					var holders = mutable.getAllFromSource(source);
+					long revokedPowers = 0;
 
-					if (mutablePowers.revoke(holder.id(), source)) {
-						revokedPowers++;
+					for (var holder : holders) {
+
+						if (mutable.revoke(holder.id(), source)) {
+							revokedPowers++;
+						}
+
+					}
+
+					if (revokedPowers > 0) {
+						processedTargets.put(target, revokedPowers);
 					}
 
 				}
-
-				if (revokedPowers <= 0) {
-					continue;
-				}
-
-				processedTargets.put(target, revokedPowers);
-				mutablePowers.applyChanges();
 
 			}
 
@@ -316,7 +317,7 @@ public class PowerCommand {
 			CommandSourceStack commandSource = commandContext.getSource();
 			Object2LongMap<Entity> processedTargets = new Object2LongOpenHashMap<>();
 
-			List<PowerHolder<?>> powerHolders = result.get();
+			List<PowerHolder<?>> holders = result.get();
 			long totalRevokedPowers = 0;
 
 			for (var target : targets) {
@@ -325,25 +326,25 @@ public class PowerCommand {
 					continue;
 				}
 
-				MutablePowers mutablePowers = MutablePowers.create(target);
-				long revokedPowers = 0;
+				try (MutablePowers mutable = MutablePowers.create(target)) {
 
-				for (var powerHolder : powerHolders) {
+					long revokedPowers = 0;
 
-					if (mutablePowers.revoke(powerHolder.id(), source)) {
-						revokedPowers++;
+					for (var holder : holders) {
+
+						if (mutable.revoke(holder.id(), source)) {
+							revokedPowers++;
+						}
+
 					}
 
+					if (revokedPowers > 0) {
+						processedTargets.put(target, revokedPowers);
+					}
+
+					totalRevokedPowers += revokedPowers;
+
 				}
-
-				if (revokedPowers <= 0) {
-					continue;
-				}
-
-				processedTargets.put(target, revokedPowers);
-				mutablePowers.applyChanges();
-
-				totalRevokedPowers += revokedPowers;
 
 			}
 
@@ -351,7 +352,7 @@ public class PowerCommand {
 				case PowerArgument.Result.Singleton(PowerIdentifier id) -> {
 
 					HoverEvent hoverEvent = new HoverEvent.ShowText(Component.nullToEmpty(id.toString()));
-					Component powerName = powerHolders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
+					Component powerName = holders.getFirst().name().copy().withStyle(style -> style.withHoverEvent(hoverEvent));
 
 					if (processedTargets.isEmpty()) {
 
@@ -436,10 +437,10 @@ public class PowerCommand {
 			List<Entity> targets = new ObjectArrayList<>(EntityArgument.getEntities(commandContext, "targets"));
 			List<Entity> processedTargets = new ObjectArrayList<>();
 
-			PowerHolder<?> powerHolder = PowerArgument.getPower(commandContext, "power");
+			PowerHolder<?> holder = PowerArgument.getPower(commandContext, "power");
 			CommandSourceStack commandSource = commandContext.getSource();
 
-			Component powerName = powerHolder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(powerHolder.toString()))));
+			Component powerName = holder.name().copy().withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.literal(holder.toString()))));
 
 			for (Entity target : targets) {
 
@@ -447,20 +448,24 @@ public class PowerCommand {
 					continue;
 				}
 
-				MutablePowers mutablePowers = MutablePowers.create(target);
-				Set<ResourceLocation> sources = mutablePowers.getSources(powerHolder.id());
+				try (MutablePowers mutable = MutablePowers.create(target)) {
 
-				long removedPowers = sources
-					.stream()
-					.filter(source -> mutablePowers.revoke(powerHolder.id(), source))
-					.count();
+					Set<ResourceLocation> sources = mutable.getSources(holder.id());
+					long removedPowers = 0;
 
-				if (removedPowers <= 0) {
-					continue;
+					for (var source : sources) {
+
+						if (mutable.revoke(holder.id(), source)) {
+							removedPowers++;
+						}
+
+					}
+
+					if (removedPowers > 0) {
+						processedTargets.add(target);
+					}
+
 				}
-
-				processedTargets.add(target);
-				mutablePowers.applyChanges();
 
 			}
 
@@ -526,27 +531,27 @@ public class PowerCommand {
 					continue;
 				}
 
-				MutablePowers mutablePowers = MutablePowers.create(target);
-				long clearedPowers = 0;
+				try (MutablePowers mutable = MutablePowers.create(target)) {
 
-				for (var entry : mutablePowers.getAll()) {
+					long clearedPowers = 0;
 
-					for (var source : mutablePowers.getSources(entry.id())) {
+					for (var holder : mutable.getAll()) {
 
-						if (mutablePowers.revoke(entry.id(), source)) {
-							clearedPowers++;
+						for (var source : mutable.getSources(holder.id())) {
+
+							if (mutable.revoke(holder.id(), source)) {
+								clearedPowers++;
+							}
+
 						}
 
 					}
 
-				}
+					if (clearedPowers > 0) {
+						processedTargets.put(target, clearedPowers);
+					}
 
-				if (clearedPowers <= 0) {
-					continue;
 				}
-
-				processedTargets.put(target, clearedPowers);
-				mutablePowers.applyChanges();
 
 			}
 

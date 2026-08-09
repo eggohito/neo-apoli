@@ -16,6 +16,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.function.Consumer;
+
 public record RevokePowerAction(ParsedArgument<PowerArgument.Result> power, ResourceLocation source, EntityProvider entity) implements Action {
 
 	public static final MapCodec<RevokePowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -38,29 +40,9 @@ public record RevokePowerAction(ParsedArgument<PowerArgument.Result> power, Reso
 
 	@Override
 	public void execute(Context context) {
-
-		MutablePowers mutable = entity().getEntity(context.forChild(".entity"))
+		entity().getEntity(context.forChild(".entity"))
 			.flatMap(MutablePowers::getOptional)
-			.orElse(null);
-
-		if (mutable == null) {
-			return;
-		}
-
-		try {
-
-			for (var holder : power.argument().get()) {
-				mutable.revoke(holder.id(), source());
-			}
-
-			mutable.applyChanges();
-
-		}
-
-		catch (CommandSyntaxException e) {
-			context.reportProblem(e.getMessage());
-		}
-
+			.ifPresent(mutable -> this.revoke(mutable, context::reportProblem));
 	}
 
 	@Override
@@ -68,6 +50,22 @@ public record RevokePowerAction(ParsedArgument<PowerArgument.Result> power, Reso
 		Action.super.validate(validator);
 		power().argument().validate(validator.forChild(".power"));
 		entity().validate(validator.forChild(".entity"));
+	}
+
+	private void revoke(MutablePowers mutable, Consumer<String> errorHandler) {
+
+		try (mutable) {
+
+			for (var holder : power.argument().get()) {
+				mutable.revoke(holder.id(), source());
+			}
+
+		}
+
+		catch (CommandSyntaxException e) {
+			errorHandler.accept(e.getMessage());
+		}
+
 	}
 
 }
