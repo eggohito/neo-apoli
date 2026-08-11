@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalDirectionProvider(Condition condition, DirectionProvider ifValue, DirectionProvider elseValue) implements DirectionProvider, ConditionalValueProvider<DirectionProvider> {
+public record ConditionalDirectionProvider(Condition condition, DirectionProvider onTrue, DirectionProvider onFalse) implements DirectionProvider, ConditionalValueProvider<DirectionProvider> {
 
 	public static final MapCodec<ConditionalDirectionProvider> CODEC = MapCodecUtil.lazy(ConditionalDirectionProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(DirectionProvider.CODEC, ConditionalDirectionProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalDirectionProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalDirectionProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(DirectionProvider.STREAM_CODEC, ConditionalDirectionProvider::new));
@@ -26,7 +26,7 @@ public record ConditionalDirectionProvider(Condition condition, DirectionProvide
 
 	@Override
 	public Optional<Direction> getDirection(Context context) {
-		return this.getOrElse(context, DirectionProvider::getDirection, Optional::empty);
+		return this.getValue(context, DirectionProvider::getDirection, Optional.empty());
 	}
 
 }

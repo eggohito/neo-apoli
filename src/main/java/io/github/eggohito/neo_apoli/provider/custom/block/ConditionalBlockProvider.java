@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalBlockProvider(Condition condition, BlockProvider ifValue, BlockProvider elseValue) implements BlockProvider, ConditionalValueProvider<BlockProvider> {
+public record ConditionalBlockProvider(Condition condition, BlockProvider onTrue, BlockProvider onFalse) implements BlockProvider, ConditionalValueProvider<BlockProvider> {
 
 	public static final MapCodec<ConditionalBlockProvider> CODEC = MapCodecUtil.lazy(ConditionalBlockProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(BlockProvider.CODEC, ConditionalBlockProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBlockProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBlockProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BlockProvider.STREAM_CODEC, ConditionalBlockProvider::new));
@@ -26,7 +26,7 @@ public record ConditionalBlockProvider(Condition condition, BlockProvider ifValu
 
 	@Override
 	public Optional<CachedBlock> getBlock(Context context) {
-		return this.getOrElse(context, BlockProvider::getBlock, Optional::empty);
+		return this.getValue(context, BlockProvider::getBlock, Optional.empty());
 	}
 
 }

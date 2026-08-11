@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalCommandSourceProvider(Condition condition, CommandSourceProvider ifValue, CommandSourceProvider elseValue) implements CommandSourceProvider, ConditionalValueProvider<CommandSourceProvider> {
+public record ConditionalCommandSourceProvider(Condition condition, CommandSourceProvider onTrue, CommandSourceProvider onFalse) implements CommandSourceProvider, ConditionalValueProvider<CommandSourceProvider> {
 
 	public static final MapCodec<ConditionalCommandSourceProvider> CODEC = MapCodecUtil.lazy(ConditionalCommandSourceProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(CommandSourceProvider.CODEC, ConditionalCommandSourceProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalCommandSourceProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalCommandSourceProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(CommandSourceProvider.STREAM_CODEC, ConditionalCommandSourceProvider::new));
@@ -27,7 +27,7 @@ public record ConditionalCommandSourceProvider(Condition condition, CommandSourc
 
 	@Override
 	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
-		return this.getOrElse(context, (provider, ctx) -> provider.getSource(server, ctx), Optional::empty);
+		return this.getValue(context, (provider, ctx) -> provider.getSource(server, ctx), Optional.empty());
 	}
 
 }

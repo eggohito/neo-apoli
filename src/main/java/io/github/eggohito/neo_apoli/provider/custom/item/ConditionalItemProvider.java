@@ -12,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalItemProvider(Condition condition, ItemProvider ifValue, ItemProvider elseValue) implements ItemProvider, ConditionalValueProvider<ItemProvider> {
+public record ConditionalItemProvider(Condition condition, ItemProvider onTrue, ItemProvider onFalse) implements ItemProvider, ConditionalValueProvider<ItemProvider> {
 
 	public static final MapCodec<ConditionalItemProvider> CODEC = MapCodecUtil.lazy(ConditionalItemProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(ItemProvider.CODEC, ConditionalItemProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalItemProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalItemProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(ItemProvider.STREAM_CODEC, ConditionalItemProvider::new));
@@ -24,7 +24,7 @@ public record ConditionalItemProvider(Condition condition, ItemProvider ifValue,
 
 	@Override
 	public @NotNull ItemStack getItem(Context context) {
-		return this.getOrElse(context, ItemProvider::getItem, () -> ItemStack.EMPTY);
+		return this.getValue(context, ItemProvider::getItem, ItemStack.EMPTY);
 	}
 
 }

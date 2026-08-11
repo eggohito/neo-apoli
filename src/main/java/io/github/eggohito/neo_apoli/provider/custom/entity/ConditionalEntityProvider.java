@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalEntityProvider(Condition condition, EntityProvider ifValue, EntityProvider elseValue) implements EntityProvider, ConditionalValueProvider<EntityProvider> {
+public record ConditionalEntityProvider(Condition condition, EntityProvider onTrue, EntityProvider onFalse) implements EntityProvider, ConditionalValueProvider<EntityProvider> {
 
 	public static final MapCodec<ConditionalEntityProvider> CODEC = MapCodecUtil.lazy(ConditionalEntityProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(EntityProvider.CODEC, ConditionalEntityProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEntityProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEntityProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(EntityProvider.STREAM_CODEC, ConditionalEntityProvider::new));
@@ -26,7 +26,7 @@ public record ConditionalEntityProvider(Condition condition, EntityProvider ifVa
 
 	@Override
 	public Optional<Entity> getEntity(Context context) {
-		return this.getOrElse(context, EntityProvider::getEntity, Optional::empty);
+		return this.getValue(context, EntityProvider::getEntity, Optional.empty());
 	}
 
 }

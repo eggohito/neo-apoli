@@ -6,21 +6,22 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
+import io.github.eggohito.neo_apoli.util.Conditional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record ConditionalAction(Condition condition, Action ifAction, Action elseAction) implements Action {
+public record ConditionalAction(Condition condition, Action onTrue, Action onFalse) implements Action, Conditional<Action> {
 
 	public static final MapCodec<ConditionalAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Condition.CODEC.fieldOf("condition").forGetter(ConditionalAction::condition),
-		Action.CODEC.fieldOf("if_action").forGetter(ConditionalAction::ifAction),
-		Action.CODEC.optionalFieldOf("else_action", NothingAction.INSTANCE).forGetter(ConditionalAction::elseAction)
+		Action.CODEC.fieldOf("on_true").forGetter(ConditionalAction::onTrue),
+		Action.CODEC.optionalFieldOf("on_false", NothingAction.INSTANCE).forGetter(ConditionalAction::onFalse)
 	).apply(instance, ConditionalAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalAction> STREAM_CODEC = StreamCodec.composite(
 		Condition.STREAM_CODEC, ConditionalAction::condition,
-		Action.STREAM_CODEC, ConditionalAction::ifAction,
-		Action.STREAM_CODEC, ConditionalAction::elseAction,
+		Action.STREAM_CODEC, ConditionalAction::onTrue,
+		Action.STREAM_CODEC, ConditionalAction::onFalse,
 		ConditionalAction::new
 	);
 
@@ -33,11 +34,11 @@ public record ConditionalAction(Condition condition, Action ifAction, Action els
 	public void execute(Context context) {
 
 		if (condition().test(context.forChild(".condition"))) {
-			ifAction().execute(context.forChild(".if_action"));
+			onTrue().execute(context.forChild(".on_true"));
 		}
 
 		else {
-			elseAction().execute(context.forChild(".else_action"));
+			onFalse().execute(context.forChild(".on_false"));
 		}
 
 	}
@@ -46,8 +47,8 @@ public record ConditionalAction(Condition condition, Action ifAction, Action els
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		condition().validate(validator.forChild(".condition"));
-		ifAction().validate(validator.forChild(".if_action"));
-		elseAction().validate(validator.forChild(".else_action"));
+		onTrue().validate(validator.forChild(".on_true"));
+		onFalse().validate(validator.forChild(".on_false"));
 	}
 
 }

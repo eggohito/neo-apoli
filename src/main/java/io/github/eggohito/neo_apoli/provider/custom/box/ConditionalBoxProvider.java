@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalBoxProvider(Condition condition, BoxProvider ifValue, BoxProvider elseValue) implements BoxProvider, ConditionalValueProvider<BoxProvider> {
+public record ConditionalBoxProvider(Condition condition, BoxProvider onTrue, BoxProvider onFalse) implements BoxProvider, ConditionalValueProvider<BoxProvider> {
 
 	public static final MapCodec<ConditionalBoxProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalBoxProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(BoxProvider.CODEC, ConditionalBoxProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalBoxProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(BoxProvider.STREAM_CODEC, ConditionalBoxProvider::new));
@@ -26,7 +26,7 @@ public record ConditionalBoxProvider(Condition condition, BoxProvider ifValue, B
 
 	@Override
 	public Optional<AABB> getBox(Context context) {
-		return getOrElse(context, BoxProvider::getBox, Optional::empty);
+		return getValue(context, BoxProvider::getBox, Optional.empty());
 	}
 
 }

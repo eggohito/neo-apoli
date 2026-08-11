@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ConditionalEffectProvider(Condition condition, EffectProvider ifValue, EffectProvider elseValue) implements EffectProvider, ConditionalValueProvider<EffectProvider> {
+public record ConditionalEffectProvider(Condition condition, EffectProvider onTrue, EffectProvider onFalse) implements EffectProvider, ConditionalValueProvider<EffectProvider> {
 
 	public static final MapCodec<ConditionalEffectProvider> CODEC = MapCodecUtil.lazy(ConditionalEffectProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(EffectProvider.CODEC, ConditionalEffectProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalEffectProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalEffectProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(EffectProvider.STREAM_CODEC, ConditionalEffectProvider::new));
@@ -26,7 +26,7 @@ public record ConditionalEffectProvider(Condition condition, EffectProvider ifVa
 
 	@Override
 	public Optional<MobEffectInstance> getEffect(Context context) {
-		return this.getOrElse(context, EffectProvider::getEffect, Optional::empty);
+		return this.getValue(context, EffectProvider::getEffect, Optional.empty());
 	}
 
 }

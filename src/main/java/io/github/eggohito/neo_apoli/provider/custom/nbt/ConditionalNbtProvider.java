@@ -13,7 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
-public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, NbtProvider elseValue) implements NbtProvider, ConditionalValueProvider<NbtProvider> {
+public record ConditionalNbtProvider(Condition condition, NbtProvider onTrue, NbtProvider onFalse) implements NbtProvider, ConditionalValueProvider<NbtProvider> {
 
 	public static final MapCodec<ConditionalNbtProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(NbtProvider.CODEC, ConditionalNbtProvider::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ConditionalNbtProvider> STREAM_CODEC = StreamCodecUtil.lazy(ConditionalNbtProvider.class.getSimpleName(), () -> ConditionalValueProvider.streamCodec(NbtProvider.STREAM_CODEC, ConditionalNbtProvider::new));
@@ -25,7 +25,7 @@ public record ConditionalNbtProvider(Condition condition, NbtProvider ifValue, N
 
 	@Override
 	public @NotNull Tag getTag(Context context) {
-		return getOrElse(context, NbtProvider::getTag, CompoundTag::new);
+		return getValue(context, NbtProvider::getTag, new CompoundTag());
 	}
 
 }
