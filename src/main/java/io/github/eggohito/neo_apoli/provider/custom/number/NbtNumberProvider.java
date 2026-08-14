@@ -38,11 +38,12 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	@Override
 	public double getDouble(Context context) {
 
-		Context sourceContext = context.forChild(".source");
-		Tag source = source().getTag(sourceContext);
+		Tag source = source()
+			.getTag(context.forChild(".source"))
+			.orElse(null);
 
-		if (sourceContext.hasErrors()) {
-			return 0;
+		if (source == null) {
+			return 0.0D;
 		}
 
 		try {
