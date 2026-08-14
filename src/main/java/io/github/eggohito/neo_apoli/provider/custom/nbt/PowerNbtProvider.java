@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,11 +35,10 @@ public record PowerNbtProvider(PowerIdentifier power, EntityProvider entity) imp
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
+	public Optional<Tag> getTag(Context context) {
 		return entity().getEntity(context.forChild(".entity"))
 			.flatMap(Powers::getOptional)
-			.flatMap(powers -> this.getAndCreate(context, powers))
-			.orElseGet(CompoundTag::new);
+			.flatMap(powers -> this.getAndCreate(context, powers));
 	}
 
 	@Override

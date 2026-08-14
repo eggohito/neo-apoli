@@ -14,6 +14,7 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtProvider defaultValue) implements NbtProvider, SwitchValueProvider<NbtProvider> {
 
@@ -26,7 +27,7 @@ public record SwitchNbtProvider(List<Case<Condition, NbtProvider>> cases, NbtPro
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
+	public Optional<Tag> getTag(Context context) {
 		return getOrDefault(context, NbtProvider::getTag);
 	}
 

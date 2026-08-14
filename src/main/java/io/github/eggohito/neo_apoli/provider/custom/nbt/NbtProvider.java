@@ -15,6 +15,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public interface NbtProvider extends ValueProvider {
 
 	Codec<NbtProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NbtProvider::getType, Type::mapCodec), ConstantNbtProvider.INLINE_CODEC));
@@ -24,8 +26,7 @@ public interface NbtProvider extends ValueProvider {
 	@NotNull
 	NbtProvider.Type<?> getType();
 
-	@NotNull
-	Tag getTag(Context context);
+	Optional<Tag> getTag(Context context);
 
 	record Type<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

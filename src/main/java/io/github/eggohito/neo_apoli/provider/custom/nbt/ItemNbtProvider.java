@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.item.ItemProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,6 +12,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record ItemNbtProvider(ItemProvider item) implements NbtProvider {
 
@@ -32,19 +33,19 @@ public record ItemNbtProvider(ItemProvider item) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
+	public Optional<Tag> getTag(Context context) {
 
 		Context itemContext = context.forChild(".item");
 		ItemStack item = item().getItem(itemContext);
 
 		if (itemContext.hasErrors()) {
-			return new CompoundTag();
+			return Optional.empty();
 		}
 
 		RegistryOps<Tag> ops = context.level().registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		return ItemStack.OPTIONAL_CODEC.encodeStart(ops, item)
-			.resultOrPartial(context::reportProblem)
-			.orElseGet(CompoundTag::new);
+			.mapError(error -> "Error providing item as NBT: " + error)
+			.resultOrPartial(context::reportProblem);
 
 	}
 

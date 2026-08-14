@@ -6,11 +6,12 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import net.minecraft.advancements.critereon.NbtPredicate;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record EntityNbtProvider(EntityProvider entity) implements NbtProvider {
 
@@ -29,10 +30,10 @@ public record EntityNbtProvider(EntityProvider entity) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
-		return entity().getEntity(context.forChild(".entity"))
-			.map(NbtPredicate::getEntityTagToCompare)
-			.orElseGet(CompoundTag::new);
+	public Optional<Tag> getTag(Context context) {
+		return entity()
+			.getEntity(context.forChild(".entity"))
+			.map(NbtPredicate::getEntityTagToCompare);
 	}
 
 	@Override

@@ -12,7 +12,6 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,19 +35,10 @@ public record BlockNbtProvider(BlockProvider block) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
-
-		RegistryAccess registryAccess = context.level().registryAccess();
-		Optional<CachedBlock> block = block().getBlock(context.forChild(".block"));
-
-		if (block.isEmpty()) {
-			context.forChild(".block").reportProblem("Block doesn't exist!");
-		}
-
-		return block
-			.map(self -> this.serialize(registryAccess, self))
-			.orElseGet(CompoundTag::new);
-
+	public Optional<Tag> getTag(Context context) {
+		return block()
+			.getBlock(context.forChild(".block"))
+			.map(block -> this.serialize(context, block));
 	}
 
 	@Override
@@ -57,29 +47,17 @@ public record BlockNbtProvider(BlockProvider block) implements NbtProvider {
 		block().validate(validator.forChild(".block"));
 	}
 
-	private CompoundTag serialize(RegistryAccess registryAccess, CachedBlock block) {
+	private CompoundTag serialize(Context context, CachedBlock block) {
 
-		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+		RegistryAccess registryAccess = context.level().registryAccess();
 		CompoundTag compoundTag = new CompoundTag();
 
-		Tag stateTag = BlockState.CODEC.encodeStart(ops, block.state()).result().orElse(null);
-		CompoundTag entityTag = Optional.ofNullable(block.entity()).map(self -> self.saveWithFullMetadata(registryAccess)).orElse(null);
-
-		if (stateTag != null) {
-			compoundTag.put("state", stateTag);
-		}
-
-		if (entityTag != null) {
-
-			if (!compoundTag.contains("state")) {
-				compoundTag = entityTag;
-			}
-
-			else {
-				compoundTag.put("entity", entityTag);
-			}
-
-		}
+		BlockState.CODEC.encodeStart(registryAccess.createSerializationContext(NbtOps.INSTANCE), block.state())
+			.result()
+			.ifPresent(stateTag -> compoundTag.put("state", stateTag));
+		Optional.ofNullable(block.entity())
+			.map(entity -> entity.saveWithFullMetadata(registryAccess))
+			.ifPresent(entityTag -> compoundTag.put("entity", entityTag));
 
 		return compoundTag;
 

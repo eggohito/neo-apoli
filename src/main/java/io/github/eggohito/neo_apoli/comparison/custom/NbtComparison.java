@@ -32,21 +32,12 @@ public record NbtComparison(NbtProvider first, NbtProvider second) implements Co
 	@Override
 	public boolean compare(Context context) {
 
-		Context firstContext = context.forChild(".first");
-		Tag first = first().getTag(firstContext);
+		Tag first = first().getTag(context.forChild(".first")).orElse(null);
+		Tag second = second().getTag(context.forChild(".second")).orElse(null);
 
-		if (firstContext.hasErrors()) {
-			return false;
-		}
-
-		Context secondContext = context.forChild(".second");
-		Tag second = second().getTag(secondContext);
-
-		if (secondContext.hasErrors()) {
-			return false;
-		}
-
-		return NbtUtils.compareNbt(first, second, true);
+		return first != null
+			&& second != null
+			&& NbtUtils.compareNbt(first, second, true);
 
 	}
 

@@ -15,7 +15,6 @@ import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -87,10 +86,12 @@ public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3P
 				continue;
 			}
 
-			Context tagContext = context.forChild(".tag");
-			Tag tag = tag().getTag(tagContext);
+			CompoundTag entityTag = tag().getTag(context.forChild(".tag"))
+				.filter(CompoundTag.class::isInstance)
+				.map(CompoundTag.class::cast)
+				.orElse(null);
 
-			if (tagContext.hasErrors() || !(tag instanceof CompoundTag entityTag)) {
+			if (entityTag == null) {
 				continue;
 			}
 

@@ -7,11 +7,12 @@ import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvide
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 public record ConditionalNbtProvider(Condition condition, NbtProvider onTrue, NbtProvider onFalse) implements NbtProvider, ConditionalValueProvider<NbtProvider> {
 
@@ -24,8 +25,8 @@ public record ConditionalNbtProvider(Condition condition, NbtProvider onTrue, Nb
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
-		return getValue(context, NbtProvider::getTag, new CompoundTag());
+	public Optional<Tag> getTag(Context context) {
+		return getValue(context, NbtProvider::getTag, Optional.empty());
 	}
 
 }

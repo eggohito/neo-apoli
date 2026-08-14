@@ -12,6 +12,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record ConstantNbtProvider(Tag value) implements NbtProvider {
 
 	public static final MapCodec<ConstantNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -34,8 +36,8 @@ public record ConstantNbtProvider(Tag value) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
-		return value();
+	public Optional<Tag> getTag(Context context) {
+		return Optional.of(this.value());
 	}
 
 }

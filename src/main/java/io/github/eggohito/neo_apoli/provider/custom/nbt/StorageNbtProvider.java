@@ -11,6 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 
 	public static final MapCodec<StorageNbtProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -29,8 +31,11 @@ public record StorageNbtProvider(ResourceLocation id) implements NbtProvider {
 	}
 
 	@Override
-	public @NotNull Tag getTag(Context context) {
-		return ((CommandStorageHolder) context.level()).neo_apoli$getStorage(this.id());
+	public Optional<Tag> getTag(Context context) {
+		CommandStorageHolder holder = (CommandStorageHolder) context.level();
+		return holder.neo_apoli$contains(this.id())
+			? Optional.of(holder.neo_apoli$getStorage(this.id()))
+			: Optional.empty();
 	}
 
 }
