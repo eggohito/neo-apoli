@@ -63,7 +63,9 @@ public final class SlotAccessContextParameter extends Context.Parameter<SlotAcce
 
 		if (level.getBlockEntity(blockPos) instanceof Container container) {
 
-			SlotAccess slotAccess = MiscUtil.createContainerSlotSafely(container, slot);
+			SlotAccess slotAccess = MiscUtil
+				.createContainerSlotSafely(container, slot)
+				.orElse(SlotAccess.NULL);
 
 			if (slotAccess == SlotAccess.NULL) {
 				throw MiscUtil.createCommandException(Component.translatable("commands.item.target.no_such_slot"));

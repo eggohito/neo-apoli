@@ -493,14 +493,14 @@ public class MiscUtil {
 
 	}
 
-	public static SlotAccess createContainerSlotSafely(Container container, int slot) {
+	public static Optional<SlotAccess> createContainerSlotSafely(Container container, int slot) {
 
 		if (slot >= 0 && slot < container.getContainerSize()) {
-			return SlotAccess.forContainer(container, slot);
+			return Optional.of(SlotAccess.forContainer(container, slot));
 		}
 
 		else {
-			return SlotAccess.NULL;
+			return Optional.empty();
 		}
 
 	}

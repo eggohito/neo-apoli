@@ -37,7 +37,9 @@ public record ConsumeItemAction(NumberProvider amount, SlotProvider slot) implem
 		}
 
 		int amount = Math.abs(amount().getInt(context.forChild(".amount")));
-		slot().getSlot(context.forChild(".slot")).get().shrink(amount);
+		slot()
+			.getSlot(context.forChild(".slot"))
+			.ifPresent(slot -> slot.get().shrink(amount));
 
 	}
 

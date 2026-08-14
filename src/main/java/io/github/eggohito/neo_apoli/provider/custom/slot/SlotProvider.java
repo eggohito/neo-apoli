@@ -15,6 +15,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public interface SlotProvider extends ValueProvider {
 
 	Codec<SlotProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(SlotProvider::getType, Type::mapCodec), ContextSlotProvider.INLINE_CODEC));
@@ -24,8 +26,7 @@ public interface SlotProvider extends ValueProvider {
 	@Override
 	SlotProvider.@NotNull Type<?> getType();
 
-	@NotNull
-	SlotAccess getSlot(Context context);
+	Optional<SlotAccess> getSlot(Context context);
 
 	record Type<P extends SlotProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

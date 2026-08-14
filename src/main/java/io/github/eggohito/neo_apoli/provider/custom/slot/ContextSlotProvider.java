@@ -12,6 +12,7 @@ import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.SlotAccess;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 
 public record ContextSlotProvider(Context.Parameter<SlotAccess> parameter) implements SlotProvider {
@@ -37,8 +38,8 @@ public record ContextSlotProvider(Context.Parameter<SlotAccess> parameter) imple
 	}
 
 	@Override
-	public @NotNull SlotAccess getSlot(Context context) {
-		return context.getOptional(parameter()).orElse(SlotAccess.NULL);
+	public Optional<SlotAccess> getSlot(Context context) {
+		return context.getOptional(parameter());
 	}
 
 	@Override

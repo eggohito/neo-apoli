@@ -14,6 +14,7 @@ import net.minecraft.world.entity.SlotAccess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchSlotProvider(List<Case<Condition, SlotProvider>> cases, SlotProvider defaultValue) implements SlotProvider, SwitchValueProvider<SlotProvider> {
 
@@ -26,7 +27,7 @@ public record SwitchSlotProvider(List<Case<Condition, SlotProvider>> cases, Slot
 	}
 
 	@Override
-	public @NotNull SlotAccess getSlot(Context context) {
+	public Optional<SlotAccess> getSlot(Context context) {
 		return this.getOrDefault(context, SlotProvider::getSlot);
 	}
 

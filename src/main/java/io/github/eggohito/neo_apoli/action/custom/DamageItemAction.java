@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.function.Consumers;
 
 import java.util.Optional;
 
@@ -50,10 +51,11 @@ public record DamageItemAction(NumberProvider amount, SlotProvider slot, Boolean
 			return;
 		}
 
-		SlotAccess slotAccess = slot().getSlot(context.forChild(".slot"));
-		ItemStack stack = slotAccess.get();
+		ItemStack stack = slot().getSlot(context.forChild(".slot"))
+			.map(SlotAccess::get)
+			.orElse(ItemStack.EMPTY);
 
-		if (slotAccess == SlotAccess.NULL || stack.isEmpty() || !stack.isDamageableItem()) {
+		if (stack.isEmpty() || !stack.isDamageableItem()) {
 			return;
 		}
 
@@ -75,12 +77,12 @@ public record DamageItemAction(NumberProvider amount, SlotProvider slot, Boolean
 		else {
 
 			ServerPlayer itemHolder = itemHolder()
-				.flatMap(p -> p.getEntity(context.forChild(".entity")))
+				.flatMap(self -> self.getEntity(context.forChild(".entity")))
 				.filter(ServerPlayer.class::isInstance)
 				.map(ServerPlayer.class::cast)
 				.orElse(null);
 
-			stack.hurtAndBreak(amount, serverLevel, itemHolder, item -> {});
+			stack.hurtAndBreak(amount, serverLevel, itemHolder, Consumers.nop());
 
 		}
 

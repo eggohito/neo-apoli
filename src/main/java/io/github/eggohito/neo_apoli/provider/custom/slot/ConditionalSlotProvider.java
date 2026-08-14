@@ -12,6 +12,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record ConditionalSlotProvider(Condition condition, SlotProvider onTrue, SlotProvider onFalse) implements SlotProvider, ConditionalValueProvider<SlotProvider> {
 
 	public static final MapCodec<ConditionalSlotProvider> CODEC = MapCodecUtil.lazy(ConditionalSlotProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(SlotProvider.CODEC, ConditionalSlotProvider::new));
@@ -23,8 +25,8 @@ public record ConditionalSlotProvider(Condition condition, SlotProvider onTrue, 
 	}
 
 	@Override
-	public @NotNull SlotAccess getSlot(Context context) {
-		return this.getValue(context, SlotProvider::getSlot, SlotAccess.NULL);
+	public Optional<SlotAccess> getSlot(Context context) {
+		return this.getValue(context, SlotProvider::getSlot, Optional.empty());
 	}
 
 }

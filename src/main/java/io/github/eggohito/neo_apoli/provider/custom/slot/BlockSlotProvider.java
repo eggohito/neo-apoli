@@ -35,30 +35,30 @@ public record BlockSlotProvider(BlockProvider block, NumberProvider slot) implem
 	}
 
 	@Override
-	public @NotNull SlotAccess getSlot(Context context) {
+	public Optional<SlotAccess> getSlot(Context context) {
 
 		Context slotContext = context.forChild(".slot");
 		int slot = slot().getInt(slotContext);
 
 		if (slotContext.hasErrors()) {
-			return SlotAccess.NULL;
+			return Optional.empty();
 		}
 
 		else {
 
-			Optional<CachedBlock> block = block().getBlock(context.forChild(".block"));
+			Context blockContext = context.forChild(".block");
+			Optional<CachedBlock> block = block().getBlock(blockContext);
+
 			Optional<Container> container = block
 				.flatMap(self -> Optional.ofNullable(self.entity()))
 				.filter(Container.class::isInstance)
 				.map(Container.class::cast);
 
 			if (block.isPresent() && container.isEmpty()) {
-				context.forChild(".block").reportProblem("Block is not a container!");
+				blockContext.reportProblem("Block is not a container!");
 			}
 
-			return container
-				.map(self -> MiscUtil.createContainerSlotSafely(self, slot))
-				.orElse(SlotAccess.NULL);
+			return container.flatMap(self -> MiscUtil.createContainerSlotSafely(self, slot));
 
 		}
 

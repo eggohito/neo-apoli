@@ -56,7 +56,7 @@ public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, SlotProvi
 			return;
 		}
 
-		SlotAccess slotAccess = slot().getSlot(context.forChild(".slot"));
+		SlotAccess slotAccess = slot().getSlot(context.forChild(".slot")).orElse(SlotAccess.NULL);
 		ItemStack stack = slotAccess.get();
 
 		if (slotAccess == SlotAccess.NULL || stack.isEmpty()) {

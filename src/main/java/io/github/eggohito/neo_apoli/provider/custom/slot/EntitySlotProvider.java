@@ -11,6 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.SlotAccess;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record EntitySlotProvider(EntityProvider entity, NumberProvider slot) implements SlotProvider {
 
 	public static final MapCodec<EntitySlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -30,19 +32,19 @@ public record EntitySlotProvider(EntityProvider entity, NumberProvider slot) imp
 	}
 
 	@Override
-	public @NotNull SlotAccess getSlot(Context context) {
+	public Optional<SlotAccess> getSlot(Context context) {
 
 		Context slotContext = context.forChild(".slot");
 		int slot = slot().getInt(slotContext);
 
 		if (slotContext.hasErrors()) {
-			return SlotAccess.NULL;
+			return Optional.empty();
 		}
 
 		else {
-			return entity().getEntity(context.forChild(".entity"))
-				.map(entity -> entity.getSlot(slot))
-				.orElse(SlotAccess.NULL);
+			return entity()
+				.getEntity(context.forChild(".entity"))
+				.map(entity -> entity.getSlot(slot));
 		}
 
 	}
