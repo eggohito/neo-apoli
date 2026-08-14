@@ -12,7 +12,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +37,18 @@ public record BlockCommandSourceProvider(BlockProvider block) implements Command
 	}
 
 	@Override
-	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
-		return block().getBlock(context.forChild(".block"))
-			.map(block -> this.getCommandSource(context, block))
-			.map(NeoApoliCommonConfig.INSTANCE.command.get()::sanitizeSource);
+	public Optional<CommandSourceStack> getSource(Context context) {
+
+		if (context.level() instanceof ServerLevel serverLevel) {
+			return block().getBlock(context.forChild(".block"))
+				.map(block -> this.getCommandSource(serverLevel, block))
+				.map(NeoApoliCommonConfig.INSTANCE.command.get()::sanitizeSource);
+		}
+
+		else {
+			return Optional.empty();
+		}
+
 	}
 
 	@Override
@@ -50,24 +57,19 @@ public record BlockCommandSourceProvider(BlockProvider block) implements Command
 		block().validate(validator.forChild(".block"));
 	}
 
-	private CommandSourceStack getCommandSource(Context context, CachedBlock block) {
-
-		ServerLevel serverLevel = (ServerLevel) context.level();
+	private CommandSourceStack getCommandSource(ServerLevel level, CachedBlock block) {
 		Component blockName = Component.translatable(block.state().getBlock().getDescriptionId());
-
 		return new CommandSourceStack(
-
 			CommandSource.NULL,
 			block.pos().getCenter(),
 			Vec2.ZERO,
-			serverLevel,
+			level,
 			0,
 			blockName.getString(),
 			blockName,
-			serverLevel.getServer(),
+			level.getServer(),
 			null
 		);
-
 	}
 
 }

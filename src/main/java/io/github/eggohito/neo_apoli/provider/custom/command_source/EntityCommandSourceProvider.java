@@ -9,14 +9,14 @@ import io.github.eggohito.neo_apoli.registry.provider.NeoApoliCommandSourceProvi
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-@SuppressWarnings({"UnstableApiUsage", "ConstantValue"})
+@SuppressWarnings({"UnstableApiUsage"})
 public record EntityCommandSourceProvider(EntityProvider entity) implements CommandSourceProvider {
 
 	public static final MapCodec<EntityCommandSourceProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -35,7 +35,7 @@ public record EntityCommandSourceProvider(EntityProvider entity) implements Comm
 	}
 
 	@Override
-	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
+	public Optional<CommandSourceStack> getSource(Context context) {
 		return entity().getEntity(context.forChild(".entity"))
 			.flatMap(this::getCommandSource)
 			.map(NeoApoliCommonConfig.INSTANCE.command.get()::sanitizeSource);
@@ -48,9 +48,19 @@ public record EntityCommandSourceProvider(EntityProvider entity) implements Comm
 	}
 
 	private Optional<CommandSourceStack> getCommandSource(Entity entity) {
-		return entity instanceof ServerPlayer serverPlayer && serverPlayer.connection != null
-			? Optional.of(serverPlayer.createCommandSourceStack())
-			: Optional.empty();
+
+		if (entity instanceof ServerPlayer serverPlayer) {
+			return Optional.of(serverPlayer.createCommandSourceStack());
+		}
+
+		else if (entity.level() instanceof ServerLevel serverLevel) {
+			return Optional.of(entity.createCommandSourceStackForNameResolution(serverLevel));
+		}
+
+		else {
+			return Optional.empty();
+		}
+
 	}
 
 }

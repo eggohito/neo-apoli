@@ -97,7 +97,7 @@ public final class Context implements ContextParamsHolder {
 		return reporter().hasAnyErrors();
 	}
 
-	public static class Builder implements ContextParamsHolder {
+	public static final class Builder implements ContextParamsHolder {
 
 		private final ContextParams.Builder params;
 		private final Set<ContextUser> visited;
@@ -162,11 +162,15 @@ public final class Context implements ContextParamsHolder {
 		}
 
 		public Context buildWithRequirements(Level level, ContextKeySet keySet) {
-			return new Context(level, reporter, params.buildWithRequirements(keySet), visited);
+			return build(level, params.buildWithRequirements(keySet));
 		}
 
 		public Context build(Level level) {
-			return new Context(level, reporter, params.build(), visited);
+			return build(level, params.build());
+		}
+
+		private Context build(Level level, ContextParams params) {
+			return new Context(level, reporter, params, visited);
 		}
 
 	}

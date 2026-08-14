@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderType
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,26 +34,20 @@ public record CommandResultNumberProvider(CommandSourceProvider source, StringPr
 	@Override
 	public double getDouble(Context context) {
 
-		if (!(context.level() instanceof ServerLevel serverLevel)) {
-			return 0;
-		}
-
-		MinecraftServer server = serverLevel.getServer();
 		AtomicInteger result = new AtomicInteger();
-
-		CommandSourceStack source = source().getSource(server, context.forChild(".source"))
+		CommandSourceStack source = source().getSource(context.forChild(".source"))
 			.map(self -> self.withCallback((ignored, resultValue) -> result.set(resultValue)))
 			.orElse(null);
 
-		if (source == null) {
-			return 0;
-		}
+		if (source != null) {
 
-		Context commandContext = context.forChild(".command");
-		String command = command().getString(commandContext);
+			Context commandContext = context.forChild(".command");
+			String command = command().getString(commandContext);
 
-		if (!commandContext.hasErrors()) {
-			server.getCommands().performPrefixedCommand(source, command);
+			if (!commandContext.hasErrors()) {
+				source.getServer().getCommands().performPrefixedCommand(source, command);
+			}
+
 		}
 
 		return result.get();

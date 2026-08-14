@@ -29,8 +29,10 @@ public enum ServerCommandSourceProvider implements SimpleCommandSourceProvider<S
 	}
 
 	@Override
-	public Optional<CommandSourceStack> getSource(MinecraftServer server, Context context) {
-		return Optional.of(NeoApoliCommonConfig.INSTANCE.command.get().sanitizeSource(server.createCommandSourceStack()));
+	public Optional<CommandSourceStack> getSource(Context context) {
+		return Optional.ofNullable(context.level().getServer())
+			.map(MinecraftServer::createCommandSourceStack)
+			.map(NeoApoliCommonConfig.INSTANCE.command.get()::sanitizeSource);
 	}
 
 }

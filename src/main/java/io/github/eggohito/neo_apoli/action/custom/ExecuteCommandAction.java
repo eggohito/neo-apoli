@@ -10,10 +10,6 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-
-import java.util.Optional;
 
 public record ExecuteCommandAction(CommandSourceProvider source, StringProvider command) implements Action {
 
@@ -36,14 +32,11 @@ public record ExecuteCommandAction(CommandSourceProvider source, StringProvider 
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.level() instanceof ServerLevel serverLevel)) {
-			return;
-		}
+		CommandSourceStack source = source()
+			.getSource(context.forChild(".source"))
+			.orElse(null);
 
-		MinecraftServer server = serverLevel.getServer();
-		Optional<CommandSourceStack> source = source().getSource(server, context.forChild(".source"));
-
-		if (source.isEmpty()) {
+		if (source == null) {
 			return;
 		}
 
@@ -51,7 +44,7 @@ public record ExecuteCommandAction(CommandSourceProvider source, StringProvider 
 		String command = command().getString(commandContext);
 
 		if (!commandContext.hasErrors()) {
-			server.getCommands().performPrefixedCommand(source.get(), command);
+			source.getServer().getCommands().performPrefixedCommand(source, command);
 		}
 
 	}

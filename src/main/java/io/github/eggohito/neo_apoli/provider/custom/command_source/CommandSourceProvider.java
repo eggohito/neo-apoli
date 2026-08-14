@@ -12,7 +12,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -26,7 +25,7 @@ public interface CommandSourceProvider extends ValueProvider {
 	@Override
 	CommandSourceProvider.@NotNull Type<?> getType();
 
-	Optional<CommandSourceStack> getSource(MinecraftServer server, Context context);
+	Optional<CommandSourceStack> getSource(Context context);
 
 	interface Type<P extends CommandSourceProvider> extends ValueProvider.Type<P> {
 
