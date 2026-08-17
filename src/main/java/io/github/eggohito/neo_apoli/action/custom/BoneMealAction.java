@@ -14,11 +14,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LevelEvent;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Optional;
 
@@ -45,30 +43,10 @@ public record BoneMealAction(Vec3Provider position, BooleanProvider showEffects,
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.level() instanceof ServerLevel serverLevel)) {
-			return;
-		}
-
-		Context positionContext = context.forChild(".position");
-		BlockPos pos = BlockPos.containing(position().getVec3(positionContext));
-
-		if (!positionContext.hasErrors()) {
-
-			if (BoneMealItem.growCrop(ItemStack.EMPTY, serverLevel, pos)) {
-				this.showEffects(context, pos);
-			}
-
-			else {
-
-				Direction offsetDirection = offsetDirection().flatMap(self -> self.getDirection(context.forChild(".offset_direction"))).orElse(null);
-				BlockState state = serverLevel.getBlockState(pos);
-
-				if (offsetDirection != null && state.isFaceSturdy(serverLevel, pos, offsetDirection) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, serverLevel, pos.relative(offsetDirection), offsetDirection)) {
-					this.showEffects(context, pos);
-				}
-
-			}
-
+		if (!context.level().isClientSide()) {
+			position().getVec3(context.forChild(".position"))
+				.map(BlockPos::containing)
+				.ifPresent(position -> this.apply(context, position));
 		}
 
 	}
@@ -81,10 +59,30 @@ public record BoneMealAction(Vec3Provider position, BooleanProvider showEffects,
 		offsetDirection().ifPresent(offsetDirection -> offsetDirection.validate(validator.forChild(".offset_direction")));
 	}
 
-	private void showEffects(Context context, BlockPos blockPos) {
+	private void apply(Context context, BlockPos position) {
+
+		if (BoneMealItem.growCrop(ItemStack.EMPTY, context.level(), position)) {
+			this.showEffects(context, position);
+		}
+
+		else {
+
+			Direction offsetDirection = offsetDirection()
+				.flatMap(self -> self.getDirection(context.forChild(".offset_direction")))
+				.orElse(null);
+
+			if (offsetDirection != null && context.level().getBlockState(position).isFaceSturdy(context.level(), position, offsetDirection) && BoneMealItem.growWaterPlant(ItemStack.EMPTY, context.level(), position.relative(offsetDirection), offsetDirection)) {
+				this.showEffects(context, position);
+			}
+
+		}
+
+	}
+
+	private void showEffects(Context context, BlockPos position) {
 
 		if (showEffects().getBoolean(context.forChild(".show_effects"))) {
-			context.level().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, blockPos, 15);
+			context.level().levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, position, 15);
 		}
 
 	}

@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderType
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis axis) implements NumberProvider {
@@ -32,18 +31,9 @@ public record VectorComponentNumberProvider(Vec3Provider vector, Direction.Axis 
 
 	@Override
 	public double getDouble(Context context) {
-
-		Context vectorContext = context.forChild(".vector");
-		Vec3 vector = vector().getVec3(vectorContext);
-
-		if (vectorContext.hasErrors()) {
-			return 0.0D;
-		}
-
-		else {
-			return vector.get(this.axis());
-		}
-
+		return vector().getVec3(context.forChild(".vector"))
+			.map(vector -> vector.get(this.axis()))
+			.orElse(0.0D);
 	}
 
 	@Override

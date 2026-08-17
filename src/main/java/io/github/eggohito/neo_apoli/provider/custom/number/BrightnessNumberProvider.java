@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderType
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record BrightnessNumberProvider(Vec3Provider position) implements NumberProvider {
@@ -29,18 +28,11 @@ public record BrightnessNumberProvider(Vec3Provider position) implements NumberP
 
 	@Override
 	public double getDouble(Context context) {
-
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
-
-		if (positionContext.hasErrors()) {
-			return 0.0D;
-		}
-
-		else {
-			return context.level().getLightLevelDependentMagicValue(BlockPos.containing(position));
-		}
-
+		//noinspection deprecation
+		return position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.map(context.level()::getLightLevelDependentMagicValue)
+			.orElse(0.0F);
 	}
 
 	@Override

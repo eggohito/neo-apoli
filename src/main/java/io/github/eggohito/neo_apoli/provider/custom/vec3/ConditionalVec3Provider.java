@@ -12,6 +12,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record ConditionalVec3Provider(Condition condition, Vec3Provider onTrue, Vec3Provider onFalse) implements Vec3Provider, ConditionalValueProvider<Vec3Provider> {
 
 	public static final MapCodec<ConditionalVec3Provider> CODEC = MapCodecUtil.lazy(ConditionalVec3Provider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(Vec3Provider.CODEC, ConditionalVec3Provider::new));
@@ -23,8 +25,8 @@ public record ConditionalVec3Provider(Condition condition, Vec3Provider onTrue, 
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
-		return this.getValue(context, Vec3Provider::getVec3, Vec3.ZERO);
+	public Optional<Vec3> getVec3(Context context) {
+		return this.getValue(context, Vec3Provider::getVec3, Optional.empty());
 	}
 
 }

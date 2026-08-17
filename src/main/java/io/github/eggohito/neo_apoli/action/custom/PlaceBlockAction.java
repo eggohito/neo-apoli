@@ -56,10 +56,11 @@ public record PlaceBlockAction(Vec3Provider position, BlockInput block, Mode mod
 			return;
 		}
 
-		Context positionContext = context.forChild(".position");
-		BlockPos blockPos = BlockPos.containing(position().getVec3(positionContext));
+		BlockPos position = position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return;
 		}
 
@@ -68,19 +69,19 @@ public record PlaceBlockAction(Vec3Provider position, BlockInput block, Mode mod
 
 		switch (mode()) {
 			case DESTROY -> {
-				serverLevel.destroyBlock(blockPos, true);
-				placeBlock = !block().getState().isAir() || !serverLevel.isEmptyBlock(blockPos);
+				serverLevel.destroyBlock(position, true);
+				placeBlock = !block().getState().isAir() || !serverLevel.isEmptyBlock(position);
 			}
 			case KEEP ->
-				placeBlock = serverLevel.isEmptyBlock(blockPos);
+				placeBlock = serverLevel.isEmptyBlock(position);
 			case DEFAULT -> {
 
 				Direction offsetDirection = offsetDirection().flatMap(self -> self.getDirection(context.forChild(".offset_direction"))).orElse(null);
-				placeBlock = serverLevel.isEmptyBlock(blockPos);
+				placeBlock = serverLevel.isEmptyBlock(position);
 
 				if (!placeBlock && offsetDirection != null) {
-					blockPos = blockPos.relative(offsetDirection);
-					placeBlock = serverLevel.isEmptyBlock(blockPos);
+					position = position.relative(offsetDirection);
+					placeBlock = serverLevel.isEmptyBlock(position);
 				}
 
 			}
@@ -88,8 +89,8 @@ public record PlaceBlockAction(Vec3Provider position, BlockInput block, Mode mod
 				updateNeighbors = false;
 		}
 
-		if (placeBlock && block().place(serverLevel, blockPos, mode().flag()) && updateNeighbors) {
-			serverLevel.updateNeighborsAt(blockPos, block().getState().getBlock());
+		if (placeBlock && block().place(serverLevel, position, mode().flag()) && updateNeighbors) {
+			serverLevel.updateNeighborsAt(position, block().getState().getBlock());
 		}
 
 	}

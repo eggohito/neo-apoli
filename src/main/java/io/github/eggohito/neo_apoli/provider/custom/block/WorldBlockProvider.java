@@ -11,7 +11,6 @@ import io.github.eggohito.neo_apoli.util.CachedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -37,21 +36,14 @@ public record WorldBlockProvider(Vec3Provider position) implements BlockProvider
 	public Optional<CachedBlock> getBlock(Context context) {
 
 		try {
-
-			Context positionContext = context.forChild(".position");
-			Vec3 position = position().getVec3(positionContext);
-
-			if (!positionContext.hasErrors()) {
-				return Optional.of(CachedBlock.fromLoadedPos(context.level(), BlockPos.containing(position)));
-			}
-
+			return position().getVec3(context.forChild(".position"))
+				.map(BlockPos::containing)
+				.map(position -> CachedBlock.fromLoadedPos(context.level(), position));
 		}
 
 		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
-			//  No-op
+			return Optional.empty();
 		}
-
-		return Optional.empty();
 
 	}
 

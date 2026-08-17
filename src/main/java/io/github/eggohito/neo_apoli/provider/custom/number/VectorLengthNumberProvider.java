@@ -28,18 +28,9 @@ public record VectorLengthNumberProvider(Vec3Provider vector) implements NumberP
 
     @Override
     public double getDouble(Context context) {
-
-        Context vectorContext = context.forChild(".vector");
-        Vec3 vector = vector().getVec3(vectorContext);
-
-        if (vectorContext.hasErrors()) {
-            return 0.0D;
-        }
-
-        else {
-            return vector.length();
-        }
-
+        return vector().getVec3(context.forChild(".vector"))
+            .map(Vec3::length)
+            .orElse(0.0D);
     }
 
     @Override

@@ -45,10 +45,11 @@ public record AdjacentBlocksNumberProvider(Condition condition, Vec3Provider pos
 		Level level = context.level();
 		long matches = 0;
 
-		Context positionContext = context.forChild(".position");
-		BlockPos pos = BlockPos.containing(position().getVec3(positionContext));
+		BlockPos position = position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return matches;
 		}
 
@@ -56,7 +57,7 @@ public record AdjacentBlocksNumberProvider(Condition condition, Vec3Provider pos
 
 			try {
 
-				CachedBlock block = CachedBlock.fromLoadedPos(level, pos.relative(direction));
+				CachedBlock block = CachedBlock.fromLoadedPos(level, position.relative(direction));
 				Context blockContext = new Context.Builder(context)
 					.withRequired(ADJACENT_BLOCK, block)
 					.build(level);

@@ -11,6 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) implements Vec3Provider {
 
 	public static final MapCodec<OffsetVec3Provider> CODEC = MapCodecUtil.lazy(OffsetVec3Provider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -30,13 +32,10 @@ public record OffsetVec3Provider(Vec3Provider vector, Vec3Provider offset) imple
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
-
-		Vec3 vector = vector().getVec3(context.forChild(".vector"));
-		Vec3 offset = offset().getVec3(context.forChild(".offset"));
-
-		return vector.add(offset);
-
+	public Optional<Vec3> getVec3(Context context) {
+		return vector().getVec3(context.forChild(".vector"))
+			.flatMap(vector -> offset().getVec3(context.forChild(".offset"))
+				.map(vector::add));
 	}
 
 	@Override

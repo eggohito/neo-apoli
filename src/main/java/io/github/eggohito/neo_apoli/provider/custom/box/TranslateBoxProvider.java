@@ -35,20 +35,9 @@ public record TranslateBoxProvider(BoxProvider box, Vec3Provider translation) im
 
 	@Override
 	public Optional<AABB> getBox(Context context) {
-
-		Context translationContext = context.forChild(".translation");
-		Vec3 translation = translation().getVec3(translationContext);
-
-		if (translationContext.hasErrors()) {
-			return Optional.empty();
-		}
-
-		else {
-			return box()
-				.getBox(context.forChild(".box"))
-				.map(box -> this.translate(box, translation));
-		}
-
+		return box().getBox(context.forChild(".box"))
+			.flatMap(box -> translation().getVec3(context.forChild(".translation"))
+				.map(translation -> this.translate(box, translation)));
 	}
 
 	@Override

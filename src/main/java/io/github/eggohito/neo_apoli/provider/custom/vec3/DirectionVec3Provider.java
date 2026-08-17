@@ -11,6 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record DirectionVec3Provider(DirectionProvider direction) implements Vec3Provider {
 
 	public static final MapCodec<DirectionVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -29,10 +31,10 @@ public record DirectionVec3Provider(DirectionProvider direction) implements Vec3
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
-		return direction().getDirection(context.forChild(".direction"))
-			.map(Direction::getUnitVec3)
-			.orElse(Vec3.ZERO);
+	public Optional<Vec3> getVec3(Context context) {
+		return direction()
+			.getDirection(context.forChild(".direction"))
+			.map(Direction::getUnitVec3);
 	}
 
 	@Override

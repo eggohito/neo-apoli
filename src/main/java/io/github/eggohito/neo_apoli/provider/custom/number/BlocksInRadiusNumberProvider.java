@@ -52,10 +52,11 @@ public record BlocksInRadiusNumberProvider(Condition condition, Vec3Provider pos
 		Level level = context.level();
 		int matches = 0;
 
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
+		Vec3 position = position()
+			.getVec3(context.forChild(".position"))
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return matches;
 		}
 

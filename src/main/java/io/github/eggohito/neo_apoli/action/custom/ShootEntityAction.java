@@ -72,17 +72,19 @@ public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3P
 
 		for (int i = 0; i < count; i++) {
 
-			Context positionContext = context.forChild(".position");
-			Vec3 position = position().getVec3(positionContext);
+			Vec3 position = position()
+				.getVec3(context.forChild(".position"))
+				.orElse(null);
 
-			if (positionContext.hasErrors()) {
+			if (position == null) {
 				continue;
 			}
 
-			Context directionContext = context.forChild(".direction");
-			Vec3 direction = direction().getVec3(directionContext);
+			Vec3 direction = direction()
+				.getVec3(context.forChild(".direction"))
+				.orElse(null);
 
-			if (directionContext.hasErrors()) {
+			if (direction == null) {
 				continue;
 			}
 

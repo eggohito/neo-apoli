@@ -46,10 +46,11 @@ public record EmitGameEventAction(Holder<GameEvent> gameEvent, Vec3Provider posi
 	@Override
 	public void execute(Context context) {
 
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
+		Vec3 position = position()
+			.getVec3(context.forChild(".position"))
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return;
 		}
 

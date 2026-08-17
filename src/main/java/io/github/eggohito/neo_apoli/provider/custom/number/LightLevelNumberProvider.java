@@ -13,7 +13,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -38,21 +37,12 @@ public record LightLevelNumberProvider(Optional<LightLayer> lightType, Vec3Provi
 
 	@Override
 	public double getDouble(Context context) {
-
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
-
-		if (positionContext.hasErrors()) {
-			return 0;
-		}
-
-		Level world = context.level();
-		BlockPos blockPos = BlockPos.containing(position);
-
-		return this.lightType()
-			.map(lightType -> world.getBrightness(lightType, blockPos))
-			.orElseGet(() -> world.getMaxLocalRawBrightness(blockPos));
-
+		Level level = context.level();
+		return this.position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.map(position -> this.lightType()
+				.map(lightType -> level.getBrightness(lightType, position))
+				.orElseGet(() -> level.getMaxLocalRawBrightness(position))).orElse(0);
 	}
 
 	@Override

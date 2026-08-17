@@ -63,14 +63,9 @@ public record AreaOfEffectAction(AreaTarget areaTarget, Action areaAction, Condi
 
 	@Override
 	public void execute(Context context) {
-
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
-
-		if (!positionContext.hasErrors()) {
-			areaTarget().run(context, shape(), areaAction(), areaCondition(), position, radius().getDouble(context.forChild(".radius")));
-		}
-
+		position()
+			.getVec3(context.forChild(".position"))
+			.ifPresent(position -> areaTarget().run(context, shape(), areaAction(), areaCondition(), position, radius().getDouble(context.forChild(".radius"))));
 	}
 
 	@Override
@@ -86,6 +81,7 @@ public record AreaOfEffectAction(AreaTarget areaTarget, Action areaAction, Condi
 
 	}
 
+	//  TODO: Maybe expose and convert this enum as an interface?
 	public enum AreaTarget {
 
 		ENTITY {

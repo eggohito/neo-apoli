@@ -12,6 +12,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record BlockPositionVec3Provider(BlockProvider block) implements Vec3Provider {
 
 	public static final MapCodec<BlockPositionVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -30,11 +32,10 @@ public record BlockPositionVec3Provider(BlockProvider block) implements Vec3Prov
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
+	public Optional<Vec3> getVec3(Context context) {
 		return block().getBlock(context.forChild(".block"))
 			.map(CachedBlock::pos)
-			.map(BlockPos::getCenter)
-			.orElse(Vec3.ZERO);
+			.map(BlockPos::getCenter);
 	}
 
 	@Override

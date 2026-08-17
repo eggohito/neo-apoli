@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchVec3Provider(List<Case<Condition, Vec3Provider>> cases, Vec3Provider defaultValue) implements Vec3Provider, SwitchValueProvider<Vec3Provider> {
 
@@ -26,7 +27,7 @@ public record SwitchVec3Provider(List<Case<Condition, Vec3Provider>> cases, Vec3
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
+	public Optional<Vec3> getVec3(Context context) {
 		return this.getOrDefault(context, Vec3Provider::getVec3);
 	}
 

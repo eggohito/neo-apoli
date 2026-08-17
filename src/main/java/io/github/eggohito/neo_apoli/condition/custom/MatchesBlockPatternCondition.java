@@ -42,10 +42,11 @@ public record MatchesBlockPatternCondition(ContextBlockPattern pattern, Vec3Prov
 	@Override
 	public boolean test(Context context) {
 
-		Context frontTopLeftContext = context.forChild(".front_top_left");
-		BlockPos frontTopLeft = BlockPos.containing(frontTopLeft().getVec3(frontTopLeftContext));
+		BlockPos frontTopLeft = frontTopLeft().getVec3(context.forChild(".front_top_left"))
+			.map(BlockPos::containing)
+			.orElse(null);
 
-		if (frontTopLeftContext.hasErrors()) {
+		if (frontTopLeft == null) {
 			return false;
 		}
 

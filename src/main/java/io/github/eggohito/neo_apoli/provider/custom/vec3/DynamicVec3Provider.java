@@ -10,6 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProvider z) implements Vec3Provider {
 
 	public static final MapCodec<DynamicVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -31,12 +33,12 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
-		return new Vec3(
+	public Optional<Vec3> getVec3(Context context) {
+		return Optional.of(new Vec3(
 			x().getDouble(context.forChild(".x")),
 			y().getDouble(context.forChild(".y")),
 			z().getDouble(context.forChild(".z"))
-		);
+		));
 	}
 
 	@Override

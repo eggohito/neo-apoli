@@ -93,10 +93,11 @@ public record ExplodeAction(Condition damageableCondition, Condition destructibl
 			return;
 		}
 
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
+		Vec3 position = position()
+			.getVec3(context.forChild(".position"))
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return;
 		}
 

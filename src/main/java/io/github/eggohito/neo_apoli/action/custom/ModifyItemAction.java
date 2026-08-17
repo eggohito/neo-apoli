@@ -68,7 +68,7 @@ public record ModifyItemAction(ResourceKey<LootItemFunction> modifier, SlotProvi
 			.orElse(null);
 		LootParams lootParams = new LootParams.Builder(serverLevel)
 			.withOptionalParameter(LootContextParams.THIS_ENTITY, entity().flatMap(p -> p.getEntity(context.forChild(".entity"))).orElse(null))
-			.withParameter(LootContextParams.ORIGIN, position().map(p -> p.getVec3(context.forChild(".position"))).orElse(Vec3.ZERO))
+			.withParameter(LootContextParams.ORIGIN, position().flatMap(p -> p.getVec3(context.forChild(".position"))).orElse(Vec3.ZERO))
 			.create(LootContextParamSets.COMMAND);
 
 		if (modifier == null) {

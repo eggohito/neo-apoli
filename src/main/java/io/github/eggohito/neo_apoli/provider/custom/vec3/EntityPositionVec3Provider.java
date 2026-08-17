@@ -13,6 +13,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record EntityPositionVec3Provider(EntityProvider entity, EntityAnchorArgument.Anchor anchor) implements Vec3Provider {
 
 	public static final MapCodec<EntityPositionVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -32,10 +34,10 @@ public record EntityPositionVec3Provider(EntityProvider entity, EntityAnchorArgu
 	}
 
 	@Override
-	public @NotNull Vec3 getVec3(Context context) {
-		return entity().getEntity(context.forChild(".entity"))
-			.map(anchor()::apply)
-			.orElse(Vec3.ZERO);
+	public Optional<Vec3> getVec3(Context context) {
+		return entity()
+			.getEntity(context.forChild(".entity"))
+			.map(anchor()::apply);
 	}
 
 	@Override

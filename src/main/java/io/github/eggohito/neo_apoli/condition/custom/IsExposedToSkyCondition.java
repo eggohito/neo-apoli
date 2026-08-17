@@ -36,10 +36,11 @@ public record IsExposedToSkyCondition(Vec3Provider position) implements Conditio
 
 		exposureCheck: try {
 
-			Context positionContext = context.forChild(".position");
-			BlockPos position = BlockPos.containing(position().getVec3(positionContext));
+			BlockPos position = position().getVec3(context.forChild(".position"))
+				.map(BlockPos::containing)
+				.orElse(null);
 
-			if (positionContext.hasErrors()) {
+			if (position == null) {
 				break exposureCheck;
 			}
 

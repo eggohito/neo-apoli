@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Provider second) implements NumberProvider {
@@ -30,23 +29,9 @@ public record DistanceBetweenPositionsNumberProvider(Vec3Provider first, Vec3Pro
 
 	@Override
 	public double getDouble(Context context) {
-
-		Context firstContext = context.forChild(".first");
-		Vec3 first = first().getVec3(firstContext);
-
-		if (firstContext.hasErrors()) {
-			return 0.0d;
-		}
-
-		Context secondContext = context.forChild(".second");
-		Vec3 second = second().getVec3(secondContext);
-
-		if (secondContext.hasErrors()) {
-			return 0.0d;
-		}
-
-		return first.distanceTo(second);
-
+		return first().getVec3(context.forChild(".first"))
+			.flatMap(first -> second().getVec3(context.forChild(".second"))
+				.map(first::distanceTo)).orElse(0.0D);
 	}
 
 	@Override

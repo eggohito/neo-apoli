@@ -63,14 +63,22 @@ public record SpawnParticlesAction(ParticleOptions particle, Condition viewCondi
 			return;
 		}
 
-		Context positionContext = context.forChild(".position");
-		Vec3 position = position().getVec3(positionContext);
+		Vec3 position = position()
+			.getVec3(context.forChild(".position"))
+			.orElse(null);
 
-		if (positionContext.hasErrors()) {
+		if (position == null) {
 			return;
 		}
 
-		Vec3 spread = spread().getVec3(context.forChild(".spread"));
+		Vec3 spread = spread()
+			.getVec3(context.forChild(".spread"))
+			.orElse(null);
+
+		if (spread == null) {
+			return;
+		}
+
 		boolean force = force().getBoolean(context.forChild(".force"));
 		float speed = speed().getFloat(context.forChild(".speed"));
 		int count = count().getInt(context.forChild(".count"));

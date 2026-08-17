@@ -15,6 +15,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public interface Vec3Provider extends ValueProvider {
 
 	Codec<Vec3Provider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(Vec3Provider::getType, Type::mapCodec), ConstantVec3Provider.INLINE_CODEC));
@@ -24,8 +26,7 @@ public interface Vec3Provider extends ValueProvider {
 	@NotNull
 	Vec3Provider.Type<?> getType();
 
-	@NotNull
-	Vec3 getVec3(Context context);
+	Optional<Vec3> getVec3(Context context);
 
 	record Type<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

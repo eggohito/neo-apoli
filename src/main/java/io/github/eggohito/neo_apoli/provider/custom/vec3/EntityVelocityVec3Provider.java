@@ -12,6 +12,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record EntityVelocityVec3Provider(EntityProvider entity) implements Vec3Provider {
 
     public static final MapCodec<EntityVelocityVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -29,14 +31,14 @@ public record EntityVelocityVec3Provider(EntityProvider entity) implements Vec3P
     }
 
     @Override
-    public @NotNull Vec3 getVec3(Context context) {
+    public Optional<Vec3> getVec3(Context context) {
 
         Context entityContext = context.forChild(".entity");
         Entity entity = entity().getEntity(entityContext).orElse(null);
 
         switch (entity) {
             case MovingEntity movingEntity -> {
-                return movingEntity.neo_apoli$getVelocity();
+                return Optional.of(movingEntity.neo_apoli$getVelocity());
             }
             case null ->
                 entityContext.reportProblem("Entity doesn't exist!");
@@ -44,7 +46,7 @@ public record EntityVelocityVec3Provider(EntityProvider entity) implements Vec3P
                 entityContext.reportProblem("Entity is not considered a moving entity!");
         }
 
-        return Vec3.ZERO;
+        return Optional.empty();
 
     }
 

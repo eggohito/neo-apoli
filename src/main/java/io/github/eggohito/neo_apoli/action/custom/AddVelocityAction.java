@@ -43,14 +43,9 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 
 	@Override
 	public void execute(Context context) {
-
-		Context velocityContext = context.forChild(".velocity");
-		Vector3f velocity = velocity().getVec3(velocityContext).toVector3f();
-
-		if (!velocityContext.hasErrors()) {
-			method().apply(context, velocity);
-		}
-
+		velocity().getVec3(context.forChild(".velocity"))
+			.map(Vec3::toVector3f)
+			.ifPresent(velocity -> method().apply(context, velocity));
 	}
 
 	@Override
@@ -60,6 +55,7 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 		velocity().validate(validator.forChild(".velocity"));
 	}
 
+	//  TODO: Expose this interface for addon developers
 	public sealed interface Method extends ContextUser {
 
 		MapCodec<Method> CODEC = Type.CODEC.dispatchMap("method", Method::getType, Type::mapCodec);
