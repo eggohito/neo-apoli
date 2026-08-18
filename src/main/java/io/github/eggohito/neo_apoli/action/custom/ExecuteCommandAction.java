@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.command_source.CommandSourceProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
@@ -31,22 +30,9 @@ public record ExecuteCommandAction(CommandSourceProvider source, StringProvider 
 
 	@Override
 	public void execute(Context context) {
-
-		CommandSourceStack source = source()
-			.getSource(context.forChild(".source"))
-			.orElse(null);
-
-		if (source == null) {
-			return;
-		}
-
-		Context commandContext = context.forChild(".command");
-		String command = command().getString(commandContext);
-
-		if (!commandContext.hasErrors()) {
-			source.getServer().getCommands().performPrefixedCommand(source, command);
-		}
-
+		source().getSource(context.forChild(".source"))
+			.ifPresent(source -> command().getString(context.forChild(".command"))
+				.ifPresent(command -> source.getServer().getCommands().performPrefixedCommand(source, command)));
 	}
 
 	@Override

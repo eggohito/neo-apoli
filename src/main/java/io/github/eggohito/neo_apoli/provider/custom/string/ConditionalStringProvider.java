@@ -11,6 +11,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record ConditionalStringProvider(Condition condition, StringProvider onTrue, StringProvider onFalse) implements StringProvider, ConditionalValueProvider<StringProvider> {
 
 	public static final MapCodec<ConditionalStringProvider> MAP_CODEC = MapCodecUtil.lazy(ConditionalStringProvider.class.getSimpleName(), () -> ConditionalValueProvider.mapCodec(StringProvider.CODEC, ConditionalStringProvider::new));
@@ -22,8 +24,8 @@ public record ConditionalStringProvider(Condition condition, StringProvider onTr
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
-		return getValue(context, StringProvider::getString, "");
+	public Optional<String> getString(Context context) {
+		return getValue(context, StringProvider::getString, Optional.empty());
 	}
 
 }

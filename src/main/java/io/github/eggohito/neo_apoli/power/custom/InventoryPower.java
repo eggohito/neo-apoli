@@ -214,17 +214,10 @@ public record InventoryPower(Optional<Condition> activeCondition, Component titl
 		}
 
 		public boolean shouldOpen(Context context, KeyState previous, KeyState current) {
-
-			if (!current.pressed() || !this.isActive(context)) {
-				return false;
-			}
-
-			String id = power.key().id(context);
-			boolean continuous = power.key().continuous(context);
-
-			return current.id().equals(id)
-				&& (continuous || !previous.pressed());
-
+			return previous.equals(current)
+				&& current.pressed()
+				&& this.isActive(context)
+				&& power.key().continuouslyPressed(context, previous, current);
 		}
 
 		public boolean open(Player holder) {

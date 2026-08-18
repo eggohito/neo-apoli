@@ -8,28 +8,25 @@ import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import io.github.eggohito.neo_apoli.util.RegistryUtil;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
 
-import java.util.Optional;
-
-public record BlockStatePropertyCondition(StringProvider property, StringProvider value, BlockProvider block) implements Condition {
+public record BlockStatePropertyCondition(StringProvider property, BlockProvider block, StringProvider value) implements Condition {
 
 	public static final MapCodec<BlockStatePropertyCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("property").forGetter(BlockStatePropertyCondition::property),
-		StringProvider.CODEC.fieldOf("value").forGetter(BlockStatePropertyCondition::value),
-		BlockProvider.CODEC.fieldOf("block").forGetter(BlockStatePropertyCondition::block)
+		BlockProvider.CODEC.fieldOf("block").forGetter(BlockStatePropertyCondition::block),
+		StringProvider.CODEC.fieldOf("value").forGetter(BlockStatePropertyCondition::value)
 	).apply(instance, BlockStatePropertyCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockStatePropertyCondition> STREAM_CODEC = StreamCodec.composite(
 		StringProvider.STREAM_CODEC, BlockStatePropertyCondition::property,
-		StringProvider.STREAM_CODEC, BlockStatePropertyCondition::value,
 		BlockProvider.STREAM_CODEC, BlockStatePropertyCondition::block,
+		StringProvider.STREAM_CODEC, BlockStatePropertyCondition::value,
 		BlockStatePropertyCondition::new
 	);
 
@@ -41,17 +38,19 @@ public record BlockStatePropertyCondition(StringProvider property, StringProvide
 	@Override
 	public boolean test(Context context) {
 
-		Context blockContext = context.forChild(".block");
-		CachedBlock block = block().getBlock(blockContext).orElse(null);
+		String propertyName = property()
+			.getString(context.forChild(".property"))
+			.orElse(null);
 
-		if (blockContext.hasErrors() || block == null) {
+		if (propertyName == null) {
 			return false;
 		}
 
-		Context propertyContext = context.forChild(".property");
-		String propertyName = property().getString(propertyContext);
+		CachedBlock block = block()
+			.getBlock(context.forChild(".block"))
+			.orElse(null);
 
-		if (propertyContext.hasErrors() || propertyName.isEmpty()) {
+		if (block == null) {
 			return false;
 		}
 
@@ -59,7 +58,7 @@ public record BlockStatePropertyCondition(StringProvider property, StringProvide
 		Property<?> property = state.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
-			context.reportProblem("Block \"" + RegistryUtil.getId(BuiltInRegistries.BLOCK, state.getBlock()) + "\" doesn't have the block state property with name \"" + propertyName + "\"!");
+			context.reportProblem("Block \"" + Util.getRegisteredName(BuiltInRegistries.BLOCK, state.getBlock()) + "\" didn't have the \"" + propertyName + "\" state property!");
 		}
 
 		return property != null
@@ -71,24 +70,19 @@ public record BlockStatePropertyCondition(StringProvider property, StringProvide
 	public void validate(Context.Validator validator) {
 		Condition.super.validate(validator);
 		property().validate(validator.forChild(".property"));
-		value().validate(validator.forChild(".value"));
 		block().validate(validator.forChild(".block"));
+		value().validate(validator.forChild(".value"));
 	}
 
-	private <T extends Comparable<T>> boolean testProperty(Context context, StateHolder<?, ?> state, Property<T> property) {
+	private <T extends Comparable<T>> boolean testProperty(Context context, BlockState state, Property<T> property) {
 
-		Context valueContext = context.forChild(".value");
-		String unparsedValue = value().getString(valueContext);
+		T currentValue = state.getValue(property);
+		T queryValue = value().getString(context.forChild(".value"))
+			.flatMap(property::getValue)
+			.orElse(null);
 
-		if (valueContext.hasErrors()) {
-			return false;
-		}
-
-		T value = state.getValue(property);
-		Optional<T> parsedValue = property.getValue(unparsedValue);
-
-		return parsedValue.isPresent()
-			&& parsedValue.get().compareTo(value) == 0;
+		return queryValue != null
+			&& currentValue.compareTo(queryValue) == 0;
 
 	}
 

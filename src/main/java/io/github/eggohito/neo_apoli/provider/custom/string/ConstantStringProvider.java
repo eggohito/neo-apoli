@@ -10,6 +10,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record ConstantStringProvider(String value) implements StringProvider {
 
 	public static final MapCodec<ConstantStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -32,8 +34,8 @@ public record ConstantStringProvider(String value) implements StringProvider {
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
-		return value();
+	public Optional<String> getString(Context context) {
+		return Optional.of(value());
 	}
 
 }

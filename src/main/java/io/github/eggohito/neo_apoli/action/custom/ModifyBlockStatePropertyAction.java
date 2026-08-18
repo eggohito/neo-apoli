@@ -15,19 +15,18 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
 
-public record ModifyBlockStatePropertyAction(StringProvider property, Optional<StringProvider> value, Optional<BooleanProvider> cycle, BlockProvider block) implements Action {
+public record ModifyBlockStatePropertyAction(StringProvider property, BlockProvider block, Optional<StringProvider> value, Optional<BooleanProvider> cycle) implements Action {
 
 	private static final MapCodec<ModifyBlockStatePropertyAction> UNVALIDATED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("property").forGetter(ModifyBlockStatePropertyAction::property),
+		BlockProvider.CODEC.fieldOf("block").forGetter(ModifyBlockStatePropertyAction::block),
 		StringProvider.CODEC.optionalFieldOf("value").forGetter(ModifyBlockStatePropertyAction::value),
-		BooleanProvider.CODEC.optionalFieldOf("cycle").forGetter(ModifyBlockStatePropertyAction::cycle),
-		BlockProvider.CODEC.fieldOf("block").forGetter(ModifyBlockStatePropertyAction::block)
+		BooleanProvider.CODEC.optionalFieldOf("cycle").forGetter(ModifyBlockStatePropertyAction::cycle)
 	).apply(instance, ModifyBlockStatePropertyAction::new));
 
 	public static final MapCodec<ModifyBlockStatePropertyAction> CODEC = UNVALIDATED_CODEC.mapResult(new MapCodec.ResultFunction<>() {
@@ -65,9 +64,9 @@ public record ModifyBlockStatePropertyAction(StringProvider property, Optional<S
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockStatePropertyAction> STREAM_CODEC = StreamCodec.composite(
 		StringProvider.STREAM_CODEC, ModifyBlockStatePropertyAction::property,
+		BlockProvider.STREAM_CODEC, ModifyBlockStatePropertyAction::block,
 		ByteBufCodecs.optional(StringProvider.STREAM_CODEC), ModifyBlockStatePropertyAction::value,
 		ByteBufCodecs.optional(BooleanProvider.STREAM_CODEC), ModifyBlockStatePropertyAction::cycle,
-		BlockProvider.STREAM_CODEC, ModifyBlockStatePropertyAction::block,
 		ModifyBlockStatePropertyAction::new
 	);
 
@@ -79,40 +78,35 @@ public record ModifyBlockStatePropertyAction(StringProvider property, Optional<S
 	@Override
 	public void execute(Context context) {
 
-		if (!(context.level() instanceof ServerLevel serverLevel)) {
+		if (context.level().isClientSide()) {
 			return;
 		}
 
-		CachedBlock block = block().getBlock(context.forChild(".block")).orElse(null);
+		CachedBlock block = block()
+			.getBlock(context.forChild(".block"))
+			.orElse(null);
 
 		if (block == null) {
 			return;
 		}
 
-		BlockPos pos = block.pos();
-		BlockState state = block.state();
+		String propertyName = property()
+			.getString(context.forChild(".property"))
+			.orElse(null);
 
-		String propertyName = property().getString(context.forChild(".property"));
+		if (propertyName == null) {
+			return;
+		}
+
+		BlockState state = block.state();
 		Property<?> property = state.getBlock().getStateDefinition().getProperty(propertyName);
 
 		if (property == null) {
-			context.reportProblem("Block \"" + Util.getRegisteredName(BuiltInRegistries.BLOCK, state.getBlock()) + "\" did not have the state property: \"" + propertyName + "\"");
+			context.reportProblem("Block \"" + Util.getRegisteredName(BuiltInRegistries.BLOCK, state.getBlock()) + "\" didn't have the \"" + propertyName + "\" state property!");
 		}
 
 		else {
-
-			boolean cycle = cycle()
-				.map(self -> self.getBoolean(context.forChild(".cycle")))
-				.orElse(false);
-
-			if (cycle) {
-				serverLevel.setBlockAndUpdate(pos, state.cycle(property));
-			}
-
-			else {
-				this.setValue(serverLevel, context, pos, state, property);
-			}
-
+			this.cycleOrSetValue(context, block.pos(), state, property);
 		}
 
 	}
@@ -121,29 +115,30 @@ public record ModifyBlockStatePropertyAction(StringProvider property, Optional<S
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		property().validate(validator.forChild(".property"));
+		block().validate(validator.forChild(".block"));
 		value().ifPresent(value -> value.validate(validator.forChild(".value")));
 		cycle().ifPresent(cycle -> cycle.validate(validator.forChild(".cycle")));
-		block().validate(validator.forChild(".block"));
 	}
 
-	private <T extends Comparable<T>> void setValue(ServerLevel serverLevel, Context context, BlockPos pos, BlockState state, Property<T> property) {
+	private <T extends Comparable<T>> void cycleOrSetValue(Context context, BlockPos pos, BlockState state, Property<T> property) {
 
-		Optional<T> value = value()
-			.map(self -> self.getString(context.forChild(".value")))
-			.flatMap(property::getValue);
+		Optional<String> value = value().flatMap(self -> self.getString(context.forChild(".value")));
+		Optional<Boolean> cycle = cycle().map(self -> self.getBoolean(context.forChild(".cycle")));
 
-		if (value.isPresent()) {
+		if (cycle.isPresent() != value.isPresent()) {
 
-			try {
-				serverLevel.setBlockAndUpdate(pos, state.setValue(property, value.get()));
+			if (value.isPresent()) {
+				property.getValue(value.get()).ifPresent(t -> context.level().setBlockAndUpdate(pos, state.setValue(property, t)));
 			}
 
-			catch (IllegalArgumentException e) {
-				context.reportProblem(e.getMessage());
+			else if (cycle.get()) {
+				context.level().setBlockAndUpdate(pos, state.cycle(property));
+
 			}
 
 		}
 
 	}
+
 
 }

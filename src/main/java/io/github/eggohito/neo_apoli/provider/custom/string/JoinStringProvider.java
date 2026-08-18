@@ -16,6 +16,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
 
@@ -36,7 +37,7 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
+	public Optional<String> getString(Context context) {
 
 		StringBuilder result = new StringBuilder();
 		MutableBoolean init = new MutableBoolean(false);
@@ -45,19 +46,16 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 			strings(),
 			(index, provider) -> {
 
-				Context stringContext = context.forChild(".strings[" + index + "]");
-				String string = provider.getString(stringContext);
+				String string = provider
+					.getString(context.forChild(".strings[" + index + "]"))
+					.orElse(null);
 
-				if (!stringContext.hasErrors()) {
+				if (string != null) {
 
 					if (init.isTrue()) {
-
-						Context separatorContext = context.forChild(".separator");
-						String separator = separator().getString(separatorContext);
-
-						if (!separatorContext.hasErrors()) {
-							result.append(separator).append(string);
-						}
+						separator()
+							.getString(context.forChild(".separator"))
+							.ifPresent(separator -> result.append(separator).append(string));
 
 					}
 
@@ -71,7 +69,9 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 			}
 		);
 
-		return result.toString();
+		return init.isTrue()
+			? Optional.of(result.toString())
+			: Optional.empty();
 
 	}
 

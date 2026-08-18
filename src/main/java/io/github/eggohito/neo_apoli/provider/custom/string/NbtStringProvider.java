@@ -14,6 +14,7 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements StringProvider {
 
@@ -34,14 +35,14 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
+	public Optional<String> getString(Context context) {
 
 		Tag source = source()
 			.getTag(context.forChild(".source"))
 			.orElse(null);
 
 		if (source == null) {
-			return "";
+			return Optional.empty();
 		}
 
 		try {
@@ -51,24 +52,20 @@ public record NbtStringProvider(NbtProvider source, NbtPathArgument.NbtPath path
 
 			if (size == 1) {
 				Tag element = elements.getFirst();
-				return element.asString().orElseGet(element::toString);
+				return element.asString().or(() -> Optional.of(element.toString()));
 			}
 
 			else if (size > 1) {
-				return Integer.toString(path().countMatching(source));
-			}
-
-			else {
-				return "";
+				return Optional.of(Integer.toString(path().countMatching(source)));
 			}
 
 		}
 
 		catch (CommandSyntaxException e) {
-			context.reportProblem("Error trying to get string in NBT path \"" + this.path() + "\" from NBT \"" + source + "\": " + e.getMessage());
+			context.reportProblem("Error transforming NBT \"" + source + "\" in NBT path \"" + path() + "\": " + e.getMessage());
 		}
 
-		return "";
+		return Optional.empty();
 
 	}
 

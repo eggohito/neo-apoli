@@ -117,17 +117,10 @@ public record TogglePower(Optional<Condition> activeCondition, Action action, Ke
 		}
 
 		public boolean shouldToggle(Context context, KeyState previous, KeyState current) {
-
-			if (!current.pressed() || !super.isActive(context)) {
-				return false;
-			}
-
-			String id = key().id(context);
-			boolean continuous = key().continuous(context);
-
-			return current.id().equals(id)
-				&& (continuous || !previous.pressed());
-
+			return previous.equals(current)
+				&& current.pressed()
+				&& super.isActive(context)
+				&& power.key().continuouslyPressed(context, previous, current);
 		}
 
 		public void toggle(Entity holder, Context context) {

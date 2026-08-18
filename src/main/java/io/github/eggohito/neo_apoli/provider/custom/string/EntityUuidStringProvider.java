@@ -10,6 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record EntityUuidStringProvider(EntityProvider entity) implements StringProvider {
 
 	public static final MapCodec<EntityUuidStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -28,10 +30,10 @@ public record EntityUuidStringProvider(EntityProvider entity) implements StringP
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
-		return entity().getEntity(context.forChild(".entity"))
-			.map(Entity::getStringUUID)
-			.orElse("");
+	public Optional<String> getString(Context context) {
+		return entity()
+			.getEntity(context.forChild(".entity"))
+			.map(Entity::getStringUUID);
 	}
 
 	@Override

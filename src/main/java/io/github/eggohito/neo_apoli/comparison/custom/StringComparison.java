@@ -39,17 +39,19 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 	@Override
 	public boolean compare(Context context) {
 
-		Context firstContext = context.forChild(".first");
-		String firstValue = first().getString(firstContext);
+		String first = first()
+			.getString(context.forChild(".first"))
+			.orElse(null);
 
-		if (firstContext.hasErrors()) {
+		if (first == null) {
 			return false;
 		}
 
-		Context secondContext = context.forChild(".second");
-		String secondValue = second().getString(secondContext);
+		String second = second()
+			.getString(context.forChild(".second"))
+			.orElse(null);
 
-		if (secondContext.hasErrors()) {
+		if (second == null) {
 			return false;
 		}
 
@@ -57,11 +59,11 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 		boolean caseSensitive = caseSensitive().getBoolean(caseSensitiveContext);
 
 		if (!caseSensitiveContext.hasErrors() && !caseSensitive) {
-			firstValue = firstValue.toLowerCase(Locale.ROOT);
-			secondValue = secondValue.toLowerCase(Locale.ROOT);
+			first = first.toLowerCase(Locale.ROOT);
+			second = second.toLowerCase(Locale.ROOT);
 		}
 
-		return comparator().compare(firstValue, secondValue);
+		return comparator().compare(first, second);
 
 	}
 

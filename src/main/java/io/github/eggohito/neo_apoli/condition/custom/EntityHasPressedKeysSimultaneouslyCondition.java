@@ -45,32 +45,32 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 	@Override
 	public boolean test(Context context) {
 
-		Context offsetContext = context.forChild(".time_window");
+		Context offsetContext = context.forChild(".offset");
 		long offset = offset().getLong(offsetContext);
 
 		if (offsetContext.hasErrors()) {
 			return false;
 		}
 
-		UUID uuid = entity().getEntity(context.forChild(".entity")).map(Entity::getUUID).orElse(null);
-		long previousPressedTime = Long.MIN_VALUE;
+		UUID uuid = entity().getEntity(context.forChild(".entity"))
+			.map(Entity::getUUID)
+			.orElse(null);
 
 		if (uuid == null) {
 			return false;
 		}
 
 		ListIterator<StringProvider> listIterator = keys().listIterator();
-		boolean result = false;
+		long previousPressedTime = Long.MIN_VALUE;
 
 		while (listIterator.hasNext()) {
 
 			Context keyContext = context.forChild(".keys[" + listIterator.nextIndex() + "]");
-			StringProvider key = listIterator.next();
+			Optional<KeyState> optState = listIterator.next()
+				.getString(keyContext)
+				.flatMap(id -> KeyStateManager.getInstance().getState(uuid, id));
 
-			String id = key.getString(keyContext);
-			Optional<KeyState> optState = KeyStateManager.getInstance().getState(uuid, id);
-
-			if (keyContext.hasErrors() || optState.isEmpty()) {
+			if (optState.isEmpty()) {
 				continue;
 			}
 
@@ -87,15 +87,11 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 					return false;
 				}
 
-				else {
-					result = true;
-				}
-
 			}
 
 		}
 
-		return result;
+		return true;
 
 	}
 
@@ -103,7 +99,7 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 	public void validate(Context.Validator validator) {
 		Condition.super.validate(validator);
 		ContextValidatable.validate(keys(), validator.forChild(".keys"), index -> ".keys[" + index + "]");
-		offset().validate(validator.forChild(".time_window"));
+		offset().validate(validator.forChild(".offset"));
 		entity().validate(validator.forChild(".entity"));
 	}
 

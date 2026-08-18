@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.command_source.CommandSourceProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -33,22 +32,17 @@ public record CommandResultNumberProvider(CommandSourceProvider source, StringPr
 
 	@Override
 	public double getDouble(Context context) {
+		return this.getLong(context);
+	}
+
+	@Override
+	public long getLong(Context context) {
 
 		AtomicInteger result = new AtomicInteger();
-		CommandSourceStack source = source().getSource(context.forChild(".source"))
-			.map(self -> self.withCallback((ignored, resultValue) -> result.set(resultValue)))
-			.orElse(null);
-
-		if (source != null) {
-
-			Context commandContext = context.forChild(".command");
-			String command = command().getString(commandContext);
-
-			if (!commandContext.hasErrors()) {
-				source.getServer().getCommands().performPrefixedCommand(source, command);
-			}
-
-		}
+		source().getSource(context.forChild(".source"))
+			.map(self -> self.withCallback((succeeded, resultValue) -> result.set(resultValue)))
+			.ifPresent(source -> command().getString(context.forChild(".command"))
+				.ifPresent(command -> source.getServer().getCommands().performPrefixedCommand(source, command)));
 
 		return result.get();
 

@@ -10,10 +10,7 @@ import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public record KeyPressedTimeNumberProvider(StringProvider id, EntityProvider entity) implements NumberProvider {
 
@@ -40,31 +37,10 @@ public record KeyPressedTimeNumberProvider(StringProvider id, EntityProvider ent
 
 	@Override
 	public long getLong(Context context) {
-
-		if (!context.hasAllParameters(this.getRequiredParameters())) {
-			return 0L;
-		}
-
-		Context idContext = context.forChild(".id");
-		String id = id().getString(idContext);
-
-		if (idContext.hasErrors() || id.isEmpty()) {
-			return 0L;
-		}
-
-		UUID uuid = entity().getEntity(context.forChild(".entity"))
-			.map(Entity::getUUID)
-			.orElse(null);
-
-		if (uuid == null) {
-			return 0L;
-		}
-
-		return KeyStateManager.getInstance().getState(uuid, id)
-			.filter(KeyState::pressed)
-			.map(KeyState::pressedTime)
-			.orElse(0L);
-
+		return id().getString(context.forChild(".id"))
+			.flatMap(id -> entity().getEntity(context.forChild(".entity"))
+				.flatMap(entity -> KeyStateManager.getInstance().getState(entity.getUUID(), id)
+					.map(KeyState::pressedTime))).orElse(0L);
 	}
 
 	@Override

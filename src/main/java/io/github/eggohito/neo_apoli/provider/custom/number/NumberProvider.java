@@ -48,7 +48,7 @@ public interface NumberProvider extends ValueProvider {
 		return (byte) this.getInt(context);
 	}
 
-	default Number getAs(NumberType type, Context context) {
+	default Number getAsType(NumberType type, Context context) {
 		return switch (type) {
 			case DOUBLE ->
 				this.getDouble(context);

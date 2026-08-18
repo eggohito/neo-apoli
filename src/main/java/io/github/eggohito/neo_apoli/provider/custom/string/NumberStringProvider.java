@@ -10,6 +10,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public record NumberStringProvider(NumberProvider number, NumberType as) implements StringProvider {
 
 	public static final MapCodec<NumberStringProvider> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -29,8 +31,15 @@ public record NumberStringProvider(NumberProvider number, NumberType as) impleme
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
-		return number().getAs(as(), context.forChild(".number")).toString();
+	public Optional<String> getString(Context context) {
+
+		Context numberContext = context.forChild(".number");
+		Number number = number().getAsType(as(), numberContext);
+
+		return !numberContext.hasErrors()
+			? Optional.of(number.toString())
+			: Optional.empty();
+
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record SwitchStringProvider(List<Case<Condition, StringProvider>> cases, StringProvider defaultValue) implements StringProvider, SwitchValueProvider<StringProvider> {
 
@@ -25,7 +26,7 @@ public record SwitchStringProvider(List<Case<Condition, StringProvider>> cases, 
 	}
 
 	@Override
-	public @NotNull String getString(Context context) {
+	public Optional<String> getString(Context context) {
 		return getOrDefault(context, StringProvider::getString);
 	}
 
