@@ -12,7 +12,7 @@ public class KeyStateEvents {
 		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.onPress(player, previous, current);
+				callback.onPressed(player, previous, current);
 			}
 
 		}
@@ -23,7 +23,7 @@ public class KeyStateEvents {
 		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.onRelease(player, previous, current);
+				callback.onReleased(player, previous, current);
 			}
 
 		}
@@ -34,22 +34,22 @@ public class KeyStateEvents {
 		callbacks -> (player, previous, current) -> {
 
 			for (var callback : callbacks) {
-				callback.onHold(player, previous, current);
+				callback.onHeld(player, previous, current);
 			}
 
 		}
 	);
 
 	public interface Pressed {
-		void onPress(Player player, KeyState previous, KeyState current);
+		void onPressed(Player player, KeyState previous, KeyState current);
 	}
 
 	public interface Released {
-		void onRelease(Player player, KeyState previous, KeyState current);
+		void onReleased(Player player, KeyState previous, KeyState current);
 	}
 
 	public interface Held {
-		void onHold(Player player, KeyState previous, KeyState current);
+		void onHeld(Player player, KeyState previous, KeyState current);
 	}
 
 }

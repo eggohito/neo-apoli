@@ -39,7 +39,7 @@ public record KeyPressedTimeNumberProvider(StringProvider id, EntityProvider ent
 	public long getLong(Context context) {
 		return id().getString(context.forChild(".id"))
 			.flatMap(id -> entity().getEntity(context.forChild(".entity"))
-				.flatMap(entity -> KeyStateManager.getInstance().getState(entity.getUUID(), id)
+				.flatMap(entity -> KeyStateManager.getInstance().getCurrentState(entity.getUUID(), id)
 					.map(KeyState::pressedTime))).orElse(0L);
 	}
 

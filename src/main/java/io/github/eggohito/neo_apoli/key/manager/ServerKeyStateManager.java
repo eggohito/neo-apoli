@@ -26,9 +26,14 @@ public class ServerKeyStateManager implements KeyStateManager {
 	protected final ThreadLocal<Map<UUID, Map<String, KeyState>>> currentStates = ThreadLocal.withInitial(Object2ObjectLinkedOpenHashMap::new);
 
 	@Override
-	public Optional<KeyState> getState(UUID uuid, String key) {
-		return Optional
-			.ofNullable(currentStates.get().get(uuid))
+	public Optional<KeyState> getCurrentState(UUID uuid, String key) {
+		return Optional.ofNullable(currentStates.get().get(uuid))
+			.flatMap(states -> Optional.ofNullable(states.get(key)));
+	}
+
+	@Override
+	public Optional<KeyState> getPreviousState(UUID uuid, String key) {
+		return Optional.ofNullable(previousStates.get().get(uuid))
 			.flatMap(states -> Optional.ofNullable(states.get(key)));
 	}
 
@@ -77,11 +82,11 @@ public class ServerKeyStateManager implements KeyStateManager {
 				current.put(id, currentState);
 
 				if (pressed) {
-					KeyStateEvents.PRESSED.invoker().onPress(player, previousState, currentState);
+					KeyStateEvents.PRESSED.invoker().onPressed(player, previousState, currentState);
 				}
 
 				else {
-					KeyStateEvents.RELEASED.invoker().onRelease(player, previousState, currentState);
+					KeyStateEvents.RELEASED.invoker().onReleased(player, previousState, currentState);
 				}
 
 			}
@@ -105,7 +110,7 @@ public class ServerKeyStateManager implements KeyStateManager {
 				KeyState previousState = previous.computeIfAbsent(id, k -> new KeyState(id, 0));
 
 				if (currentState.pressed()) {
-					KeyStateEvents.HELD.invoker().onHold(player, previousState, currentState);
+					KeyStateEvents.HELD.invoker().onHeld(player, previousState, currentState);
 				}
 
 			}

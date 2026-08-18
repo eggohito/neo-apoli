@@ -38,7 +38,7 @@ public record KeyPressedTicksNumberProvider(StringProvider id, EntityProvider en
 	public long getLong(Context context) {
 		return id().getString(context.forChild(".id"))
 			.flatMap(id -> entity().getEntity(context.forChild(".entity"))
-				.flatMap(entity -> KeyStateManager.getInstance().getState(entity.getUUID(), id)
+				.flatMap(entity -> KeyStateManager.getInstance().getCurrentState(entity.getUUID(), id)
 					.map(state -> context.level().getGameTime() - state.pressedTime()))).orElse(0L);
 	}
 

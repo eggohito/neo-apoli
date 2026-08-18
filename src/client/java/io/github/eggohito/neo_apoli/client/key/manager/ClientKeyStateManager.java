@@ -75,17 +75,17 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 			if (changed) {
 
 				if (pressed) {
-					KeyStateEvents.PRESSED.invoker().onPress(player, previousState, currentState);
+					KeyStateEvents.PRESSED.invoker().onPressed(player, previousState, currentState);
 				}
 
 				else {
-					KeyStateEvents.RELEASED.invoker().onRelease(player, previousState, currentState);
+					KeyStateEvents.RELEASED.invoker().onReleased(player, previousState, currentState);
 				}
 
 			}
 
 			if (currentState.pressed()) {
-				KeyStateEvents.HELD.invoker().onHold(player, previousState, currentState);
+				KeyStateEvents.HELD.invoker().onHeld(player, previousState, currentState);
 			}
 
 		}

@@ -17,7 +17,9 @@ public interface KeyStateManager {
 
 	Supplier<KeyStateManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(KeyStateManager.class, ServerKeyStateManager::new);
 
-	Optional<KeyState> getState(UUID uuid, String key);
+	Optional<KeyState> getCurrentState(UUID uuid, String key);
+
+	Optional<KeyState> getPreviousState(UUID uuid, String key);
 
 	@ApiStatus.Internal
 	void init();

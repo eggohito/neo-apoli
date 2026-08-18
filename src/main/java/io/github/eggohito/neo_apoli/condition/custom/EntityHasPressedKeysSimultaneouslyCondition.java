@@ -68,7 +68,7 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 			Context keyContext = context.forChild(".keys[" + listIterator.nextIndex() + "]");
 			Optional<KeyState> optState = listIterator.next()
 				.getString(keyContext)
-				.flatMap(id -> KeyStateManager.getInstance().getState(uuid, id));
+				.flatMap(id -> KeyStateManager.getInstance().getCurrentState(uuid, id));
 
 			if (optState.isEmpty()) {
 				continue;
