@@ -1,13 +1,13 @@
-package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
+package io.github.eggohito.neo_apoli.client.util.registry;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.HudElementHelper;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
-import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.NauseaOverlayHudElementRenderer;
-import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.ResourceBarHudElementRenderer;
-import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.TextureOverlayHudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.renderer.custom.NauseaOverlayHudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.renderer.custom.ResourceBarHudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.renderer.custom.TextureOverlayHudElementRenderer;
 
-public final class HudElementRenderers {
+public final class NeoApoliHudElementRenderers {
 
 	public static void registerAll() {
 		registerInternal("overlay/nausea", NauseaOverlayHudElementRenderer.INSTANCE);

@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.util;
+package io.github.eggohito.neo_apoli.client.util.registry;
 
 import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -8,7 +8,7 @@ import net.minecraft.util.TriState;
 
 import java.util.function.Function;
 
-public class NeoApoliRenderTypes {
+public final class NeoApoliRenderTypes {
 
 	public static final Function<ResourceLocation, RenderType> GUI_NAUSEA_OVERLAY = Util.memoize(id -> RenderType.create(
 		"neo-apoli:gui_overlay/nausea",

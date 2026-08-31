@@ -1,4 +1,4 @@
 @ApiStatus.Internal
-package io.github.eggohito.neo_apoli.client.impl.hud;
+package io.github.eggohito.neo_apoli.client.hud.internal;
 
 import org.jetbrains.annotations.ApiStatus;

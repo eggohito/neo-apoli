@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.util;
+package io.github.eggohito.neo_apoli.client.util.registry;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 /**
  *	Render pipelines for overlays that has depth test/writing enabled, relevant for rendering overlays below/above the HUD
  */
-public class NeoApoliRenderPipelines {
+public final class NeoApoliRenderPipelines {
 
 	public static final RenderPipeline GUI_NAUSEA_OVERLAY = RenderPipelines.register(
 		RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)

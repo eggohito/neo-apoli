@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
+package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.context.Context;

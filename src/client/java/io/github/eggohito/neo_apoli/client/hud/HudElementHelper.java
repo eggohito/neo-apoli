@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.hud;
 
+import io.github.eggohito.neo_apoli.client.hud.internal.HudElementHelperImpl;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.client.hud.source.HudElementSource;
-import io.github.eggohito.neo_apoli.client.impl.hud.HudElementHelperImpl;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 

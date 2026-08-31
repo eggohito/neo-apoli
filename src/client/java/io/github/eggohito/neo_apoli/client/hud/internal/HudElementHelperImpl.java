@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.client.impl.hud;
+package io.github.eggohito.neo_apoli.client.hud.internal;
 
 import com.google.common.collect.Iterators;
 import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;

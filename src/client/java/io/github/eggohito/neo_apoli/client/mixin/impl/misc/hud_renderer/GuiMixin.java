@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.misc.hud_renderer;
 
-import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementLayer;
+import io.github.eggohito.neo_apoli.client.hud.HudElementLayer;
 import io.github.eggohito.neo_apoli.client.mixin.access.LayeredDrawAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;

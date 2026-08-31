@@ -1,9 +1,9 @@
-package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
+package io.github.eggohito.neo_apoli.client.hud.renderer.custom;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.eggohito.neo_apoli.client.hud.renderer.OverlayHudElementRenderer;
-import io.github.eggohito.neo_apoli.client.util.NeoApoliRenderTypes;
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
+import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliRenderTypes;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.element.OverlayHudElement;
 import io.github.eggohito.neo_apoli.hud.element.custom.TextureOverlayHudElement;

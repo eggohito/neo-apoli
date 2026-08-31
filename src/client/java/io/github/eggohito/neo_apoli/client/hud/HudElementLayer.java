@@ -1,7 +1,7 @@
-package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
+package io.github.eggohito.neo_apoli.client.hud;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.client.impl.hud.HudElementHelperImpl;
+import io.github.eggohito.neo_apoli.client.hud.internal.HudElementHelperImpl;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;

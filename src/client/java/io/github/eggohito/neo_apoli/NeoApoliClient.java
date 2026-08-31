@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli;
 
-import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers;
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
-import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
+import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliAtlases;
+import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliHudElementRenderers;
 import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
@@ -28,7 +28,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliAtlases.registerAll();
 		NeoApoliColorResolvers.registerAll(ColorResolverRegistry::register);
 
-		HudElementRenderers.registerAll();
+		NeoApoliHudElementRenderers.registerAll();
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			((CommandStorageHolder) client).neo_apoli$clear();
