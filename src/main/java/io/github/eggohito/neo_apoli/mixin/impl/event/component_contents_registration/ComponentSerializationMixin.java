@@ -1,27 +1,38 @@
 package io.github.eggohito.neo_apoli.mixin.impl.event.component_contents_registration;
 
-import com.google.common.collect.ImmutableList;
 import io.github.eggohito.neo_apoli.event.ComponentContentsRegistration;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.util.StringRepresentable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+
+import java.util.List;
 
 @Mixin(ComponentSerialization.class)
 public abstract class ComponentSerializationMixin {
 
-	@ModifyArg(method = "createCodec", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/ComponentSerialization;createLegacyComponentMatcher([Lnet/minecraft/util/StringRepresentable;Ljava/util/function/Function;Ljava/util/function/Function;Ljava/lang/String;)Lcom/mojang/serialization/MapCodec;"))
-	private static StringRepresentable[] addCustomComponentContents(StringRepresentable[] original) {
+	@ModifyVariable(method = "createCodec", at = @At("STORE"))
+	private static ComponentContents.Type<?>[] modify(ComponentContents.Type<?>[] original) {
 
-		ImmutableList.Builder<StringRepresentable> typesBuilder = ImmutableList.builder();
+		List<ComponentContents.Type<?>> modified = new ObjectArrayList<>(original);
 
-		for (var type : original) {
-			typesBuilder.add(type);
-		}
+		ComponentContentsRegistration.EVENT.invoker().register(type -> {
 
-		ComponentContentsRegistration.EVENT.invoker().register(typesBuilder::add);
-		return typesBuilder.build().toArray(StringRepresentable[]::new);
+			for (var registeredType : modified) {
+
+				if (registeredType.id().equals(type.id())) {
+					throw new IllegalArgumentException("Component content type with ID \"" + type.id() + "\" was already registered!");
+				}
+
+			}
+
+			modified.add(type);
+
+		});
+
+		return modified.toArray(ComponentContents.Type[]::new);
 
 	}
 

@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.mixin.access.TranslatableContentsAccessor;
+import io.github.eggohito.neo_apoli.registry.NeoApoliComponentContents;
 import lombok.Getter;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -26,8 +27,6 @@ public class TranslatableContentsWithTextFallback extends TranslatableContents {
 		TranslatableContentsAccessor.getArgumentCodec().listOf().optionalFieldOf("with").forGetter(textContent -> TranslatableContentsAccessor.callAdjustArgs(textContent.getArgs()))
 	).apply(instance, TranslatableContentsWithTextFallback::new));
 
-	public static final Type<TranslatableContentsWithTextFallback> TYPE = new Type<>(CODEC, "neo-apoli:translatable_with_text_fallback");
-
 	private final Component textFallback;
 
 	public TranslatableContentsWithTextFallback(String key, Component textFallback, Object... args) {
@@ -41,7 +40,7 @@ public class TranslatableContentsWithTextFallback extends TranslatableContents {
 
 	@Override
 	public @NotNull Type<?> type() {
-		return TYPE;
+		return NeoApoliComponentContents.TRANSLATABLE_WITH_TEXT_FALLBACK;
 	}
 
 	@Override
