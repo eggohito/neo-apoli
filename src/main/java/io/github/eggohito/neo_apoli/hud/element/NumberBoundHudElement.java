@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.v0.hud.element;
+package io.github.eggohito.neo_apoli.hud.element;
 
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;

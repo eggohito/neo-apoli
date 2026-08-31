@@ -1,15 +1,15 @@
-package io.github.eggohito.neo_apoli.api.v0.hud.element;
+package io.github.eggohito.neo_apoli.hud.element;
 
 import com.mojang.datafixers.util.Function7;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.v0.hud.Sprite;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.color.custom.Argb;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.hud.Sprite;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;

@@ -6,7 +6,7 @@ import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import io.github.eggohito.neo_apoli.client.event.ConfigCategoryRegistrant;
-import io.github.eggohito.neo_apoli.impl.hud.element.ResourceBarHudElement;
+import io.github.eggohito.neo_apoli.hud.element.custom.ResourceBarHudElement;
 import io.github.eggohito.neo_apoli.power.custom.ModifyPlayerSpawnPower;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import net.minecraft.network.chat.Component;

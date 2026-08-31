@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.v0.hud;
+package io.github.eggohito.neo_apoli.hud;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

@@ -1,10 +1,10 @@
-package io.github.eggohito.neo_apoli.client.api.v0.hud.renderer;
+package io.github.eggohito.neo_apoli.client.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
-import io.github.eggohito.neo_apoli.api.v0.hud.element.OverlayHudElement;
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.hud.element.OverlayHudElement;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;

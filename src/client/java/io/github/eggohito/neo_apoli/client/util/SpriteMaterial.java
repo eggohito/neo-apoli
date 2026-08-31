@@ -1,9 +1,10 @@
 package io.github.eggohito.neo_apoli.client.util;
 
 import com.mojang.serialization.DataResult;
-import io.github.eggohito.neo_apoli.api.v0.hud.Sprite;
+import io.github.eggohito.neo_apoli.hud.Sprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
+import org.jetbrains.annotations.NotNull;
 
 public class SpriteMaterial extends Material {
 
@@ -16,7 +17,7 @@ public class SpriteMaterial extends Material {
 	 */
 	@Deprecated
 	@Override
-	public TextureAtlasSprite sprite() {
+	public @NotNull TextureAtlasSprite sprite() {
 		return super.sprite();
 	}
 

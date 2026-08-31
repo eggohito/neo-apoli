@@ -2,8 +2,8 @@ package io.github.eggohito.neo_apoli.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
 import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;

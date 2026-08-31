@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.impl.hud;
 
 import com.google.common.collect.Iterators;
-import io.github.eggohito.neo_apoli.client.api.v0.hud.renderer.HudElementRenderer;
-import io.github.eggohito.neo_apoli.client.api.v0.hud.source.HudElementSource;
+import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.source.HudElementSource;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 

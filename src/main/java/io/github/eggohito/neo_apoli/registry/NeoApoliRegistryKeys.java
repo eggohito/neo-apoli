@@ -2,12 +2,12 @@ package io.github.eggohito.neo_apoli.registry;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.container_menu.ContainerMenu;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;

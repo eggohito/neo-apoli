@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.client.api.v0.hud.HudElementHelper;
-import io.github.eggohito.neo_apoli.client.api.v0.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.HudElementHelper;
+import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.NauseaOverlayHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.ResourceBarHudElementRenderer;
 import io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom.TextureOverlayHudElementRenderer;

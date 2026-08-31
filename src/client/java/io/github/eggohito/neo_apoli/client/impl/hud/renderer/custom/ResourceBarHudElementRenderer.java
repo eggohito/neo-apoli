@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
 
-import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
-import io.github.eggohito.neo_apoli.client.api.v0.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.impl.hud.element.ResourceBarHudElement;
+import io.github.eggohito.neo_apoli.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.hud.element.custom.ResourceBarHudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
