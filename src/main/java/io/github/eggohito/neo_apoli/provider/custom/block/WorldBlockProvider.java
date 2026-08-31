@@ -3,8 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.block;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.exception.PosOutOfBoundsException;
-import io.github.eggohito.neo_apoli.exception.PosUnloadedException;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBlockProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
@@ -34,17 +32,9 @@ public record WorldBlockProvider(Vec3Provider position) implements BlockProvider
 
 	@Override
 	public Optional<CachedBlock> getBlock(Context context) {
-
-		try {
-			return position().getVec3(context.forChild(".position"))
-				.map(BlockPos::containing)
-				.map(position -> CachedBlock.fromLoadedPos(context.level(), position));
-		}
-
-		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
-			return Optional.empty();
-		}
-
+		return position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.flatMap(position -> CachedBlock.optionallyFromLoadedPos(context.level(), position));
 	}
 
 	@Override
