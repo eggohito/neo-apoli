@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.hud;
+package io.github.eggohito.neo_apoli.api.v0.hud.element;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -16,6 +16,7 @@ import lombok.Setter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
 
 public interface HudElement extends ContextUser {
 
@@ -42,7 +43,16 @@ public interface HudElement extends ContextUser {
 		int y;
 	}
 
-	record Type<G extends HudElement>(MapCodec<G> mapCodec, StreamCodec<RegistryFriendlyByteBuf, G> streamCodec) {
+	record WithContext(Context context, HudElement element) implements Comparable<WithContext> {
+
+		@Override
+		public int compareTo(@NotNull WithContext that) {
+			return Integer.compare(this.element().order(), that.element().order());
+		}
+
+	}
+
+	record Type<E extends HudElement>(MapCodec<E> mapCodec, StreamCodec<RegistryFriendlyByteBuf, E> streamCodec) {
 
 		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.HUD_ELEMENT_TYPE);
 
@@ -55,11 +65,9 @@ public interface HudElement extends ContextUser {
 	enum RenderPhase {
 
 		BELOW_HUD,
-
 		ABOVE_HUD;
 
 		public static final Codec<RenderPhase> CODEC = CodecUtil.enumType(RenderPhase.class);
-
 		public static final StreamCodec<ByteBuf, RenderPhase> STREAM_CODEC = StreamCodecUtil.enumType(RenderPhase.class);
 
 	}

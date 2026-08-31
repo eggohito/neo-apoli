@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.util;
 
 import com.mojang.serialization.DataResult;
-import io.github.eggohito.neo_apoli.hud.Sprite;
+import io.github.eggohito.neo_apoli.api.v0.hud.Sprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
 

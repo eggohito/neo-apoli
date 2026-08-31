@@ -1,28 +1,24 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
-import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.power.entity.Powers;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.client.impl.hud.HudElementHelperImpl;
+import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public enum HudElementLayer implements IdentifiedLayer {
 
-	ABOVE_HUD("hud_element/above_hud", HudElement.RenderPhase.ABOVE_HUD),
-	BELOW_HUD("hud_element/below_hud", HudElement.RenderPhase.BELOW_HUD);
+	ABOVE_HUD("hud_element/above", HudElement.RenderPhase.ABOVE_HUD),
+	BELOW_HUD("hud_element/below", HudElement.RenderPhase.BELOW_HUD);
 
 	private final ResourceLocation id;
 	private final HudElement.RenderPhase renderPhase;
@@ -41,51 +37,34 @@ public enum HudElementLayer implements IdentifiedLayer {
 	public void render(GuiGraphics graphics, DeltaTracker delta) {
 
 		Player player = Minecraft.getInstance().player;
-		Powers powers = Powers.getNullable(player);
+		Map<HudElement.Type<?>, Set<HudElement.WithContext>> batches = new Reference2ObjectArrayMap<>();
 
-		if (powers == null) {
+		if (player == null) {
 			return;
 		}
 
-		Map<HudElement.Type<?>, List<Instance>> queue = new Reference2ObjectArrayMap<>();
+		for (var source : HudElementHelperImpl.getSources()) {
 
-		for (var instance : powers.getAllInstances()) {
-			HudElementRendererEvents.PREPARE.invoker().prepare(
-				player,
-				instance,
-				renderPhase,
-				(context, element) -> queue
-					.computeIfAbsent(element.getType(), k -> new ObjectArrayList<>())
-					.add(new Instance(context, element))
-			);
-		}
-
-		for (var entry : queue.entrySet()) {
-
-			List<Instance> instances = entry.getValue();
-			instances.sort(Instance::compareTo);
-
-			HudElementRendererEvents.RENDER.invoker().init(graphics, delta);
-			instances.forEach(instance -> instance.render(graphics, delta));
+			for (var layerInstance : source.get(player, renderPhase)) {
+				batches
+					.computeIfAbsent(layerInstance.element().getType(), k -> new ObjectAVLTreeSet<>(HudElement.WithContext::compareTo))
+					.add(layerInstance);
+			}
 
 		}
 
-	}
-
-	public record Instance(Context context, HudElement element) implements Comparable<Instance>, LayeredDraw.Layer {
-
-		@Override
-		public int compareTo(@NotNull HudElementLayer.Instance that) {
-			return Integer.compare(this.element().order(), that.element().order());
-		}
-
-		@Override
-		public void render(GuiGraphics graphics, DeltaTracker delta) {
+		for (var batch : batches.entrySet()) {
 
 			graphics.pose().pushPose();
-
-			HudElementRendererEvents.RENDER.invoker().render(context(), element(), graphics, delta);
 			graphics.pose().translate(0.0F, 0.0F, 200.0F);
+
+			for (var elementWithContext : batch.getValue()) {
+
+				for (var renderer : HudElementHelperImpl.getRenderers()) {
+					renderer.render(elementWithContext.context(), elementWithContext.element(), graphics, delta);
+				}
+
+			}
 
 			graphics.pose().popPose();
 

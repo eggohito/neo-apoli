@@ -1,15 +1,17 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
-import io.github.eggohito.neo_apoli.client.event.HudElementRendererEvents;
+import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.client.api.v0.hud.HudElementHelper;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.hud.HudElement;
 import io.github.eggohito.neo_apoli.impl.misc.CustomClearable;
 import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
 import io.github.eggohito.neo_apoli.mixin.access.DefaultAttributesAccessor;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.HudRenderPower;
 import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
@@ -20,12 +22,12 @@ import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
+import java.util.List;
 import java.util.ListIterator;
-import java.util.function.BiConsumer;
 
 public class PowerClientIntegrations {
 
@@ -41,8 +43,8 @@ public class PowerClientIntegrations {
 			clearAttributeEntityCache();
 		});
 
-		HudElementRendererEvents.PREPARE.register(PowerClientIntegrations::prepareCooldownElements);
-		HudElementRendererEvents.PREPARE.register(PowerClientIntegrations::prepareHudElements);
+		HudElementHelper.registerSource(NeoApoli.id("cooldown"), PowerClientIntegrations::prepareCooldownElements);
+		HudElementHelper.registerSource(NeoApoli.id("hud_render"), PowerClientIntegrations::prepareHudElements);
 
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(PowerClientIntegrations::preparePowerWingLayer);
 
@@ -64,40 +66,48 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static void prepareHudElements(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static List<HudElement.WithContext> prepareHudElements(Player viewer, HudElement.RenderPhase renderPhase) {
 
-		if (!(instance instanceof HudRenderPower.Instance hudRender)) {
-			return;
-		}
+		List<HudElement.WithContext> result = new ObjectArrayList<>();
 
-		Context context = instance.createHolderContext(holder);
-		ListIterator<HudElement> listIterator = hudRender.hudElements().listIterator();
+		for (var instance : Powers.getInstances(viewer, HudRenderPower.Instance.class)) {
 
-		while (listIterator.hasNext()) {
+			Context context = instance.createHolderContext(viewer);
+			ListIterator<HudElement> listIterator = instance.hudElements().listIterator();
 
-			Context hudContext = context.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
-			HudElement hudElement = listIterator.next();
+			while (listIterator.hasNext()) {
 
-			if (dontHide(context, hudElement) && hudElement.shouldRender(hudContext, renderPhase)) {
-				adder.accept(hudContext, hudElement);
+				Context hudContext = context.forChild(".hud_elements[" + listIterator.nextIndex() + "]");
+				HudElement hudElement = listIterator.next();
+
+				if (showWithHud(hudContext, hudElement) && hudElement.shouldRender(hudContext, renderPhase)) {
+					result.add(new HudElement.WithContext(hudContext, hudElement));
+				}
+
 			}
 
 		}
 
+		return result;
+
 	}
 
-	private static void prepareCooldownElements(Entity holder, Power.Instance<?> instance, HudElement.RenderPhase renderPhase, BiConsumer<Context, HudElement> adder) {
+	private static List<HudElement.WithContext> prepareCooldownElements(Player viewer, HudElement.RenderPhase renderPhase) {
 
-		if (!(instance instanceof CooldownPower.Instance<?> cooldown)) {
-			return;
+		List<HudElement.WithContext> result = new ObjectArrayList<>();
+
+		for (var instance : Powers.getInstances(viewer, CooldownPower.Instance.class)) {
+
+			Context hudContext = instance.createContext(viewer).forChild(".hud_element");
+			HudElement hudElement = instance.hudElement();
+
+			if (showWithHud(hudContext, hudElement) && instance.shouldRender(hudContext, renderPhase)) {
+				result.add(new HudElement.WithContext(hudContext, hudElement));
+			}
+
 		}
 
-		Context hudContext = cooldown.createContext(holder).forChild(".hud_element");
-		HudElement hudElement = cooldown.hudElement();
-
-		if (dontHide(hudContext, hudElement) && cooldown.shouldRender(hudContext, renderPhase)) {
-			adder.accept(hudContext, hudElement);
-		}
+		return result;
 
 	}
 
@@ -125,9 +135,8 @@ public class PowerClientIntegrations {
 
 	}
 
-	private static boolean dontHide(Context context, HudElement element) {
-		return !Minecraft.getInstance().options.hideGui
-			|| !element.hideWithHud(context);
+	private static boolean showWithHud(Context context, HudElement element) {
+		return !Minecraft.getInstance().options.hideGui || !element.hideWithHud(context);
 	}
 
 }

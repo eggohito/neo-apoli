@@ -2,10 +2,10 @@ package io.github.eggohito.neo_apoli.registry;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.custom.NauseaOverlayHudElement;
-import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
-import io.github.eggohito.neo_apoli.hud.custom.TextureOverlayHudElement;
+import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.impl.hud.element.NauseaOverlayHudElement;
+import io.github.eggohito.neo_apoli.impl.hud.element.ResourceBarHudElement;
+import io.github.eggohito.neo_apoli.impl.hud.element.TextureOverlayHudElement;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

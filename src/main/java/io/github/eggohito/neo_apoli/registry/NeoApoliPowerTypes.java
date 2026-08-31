@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.registry;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.hud.NumberBoundHudElement;
+import io.github.eggohito.neo_apoli.api.v0.hud.element.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.*;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;

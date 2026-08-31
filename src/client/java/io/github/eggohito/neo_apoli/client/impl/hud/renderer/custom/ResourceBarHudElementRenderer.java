@@ -1,9 +1,9 @@
 package io.github.eggohito.neo_apoli.client.impl.hud.renderer.custom;
 
-import io.github.eggohito.neo_apoli.client.api.hud.renderer.HudElementRenderer;
+import io.github.eggohito.neo_apoli.api.v0.hud.element.HudElement;
+import io.github.eggohito.neo_apoli.client.api.v0.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.hud.HudElement;
-import io.github.eggohito.neo_apoli.hud.custom.ResourceBarHudElement;
+import io.github.eggohito.neo_apoli.impl.hud.element.ResourceBarHudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,6 +21,7 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 	INSTANCE;
 
 	private static final HudElement.Position ANCHOR = new HudElement.Position();
+
 	private static final int BAR_HEIGHT = 8;
 	private static final int BAR_WIDTH = 72;
 	private static final int ICON_SIZE = 8;
@@ -78,7 +79,7 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 
 	}
 
-	private boolean withinAnchorSpace(int x, int y) {
+	private static boolean withinAnchorSpace(int x, int y) {
 		return x + BAR_WIDTH >= ANCHOR.getX() && x <= ANCHOR.getX() + BAR_WIDTH
 			&& y + BAR_HEIGHT >= ANCHOR.getY() && y <= ANCHOR.getY() + BAR_HEIGHT;
 	}

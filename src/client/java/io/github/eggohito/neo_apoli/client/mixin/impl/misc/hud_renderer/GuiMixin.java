@@ -12,7 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Gui.class)
+//  Priority is lower than Fabric API for compatibility reasons (if addons ever want to add a layer before or after
+//  the hardcoded HUD element layers.)
+//
+//  TODO:   Migrate to Fabric API's HUD layer registration API once it can add before/after a layer without inheriting
+//          its render condition.
+@Mixin(value = Gui.class, priority = 999)
 public abstract class GuiMixin {
 
 	@Shadow

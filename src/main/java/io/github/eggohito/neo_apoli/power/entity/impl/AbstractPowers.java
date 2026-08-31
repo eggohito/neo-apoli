@@ -97,7 +97,8 @@ public sealed class AbstractPowers implements Powers permits PowersImpl, Mutable
 	public <I extends Power.Instance<?>> List<I> getInstances(Class<I> instanceClass, Predicate<I> instanceFilter) {
 
 		List<I> result = new ObjectArrayList<>();
-		instances.values().forEach(instance -> {
+
+		for (var instance : instances.values()) {
 
 			if (instanceClass.isInstance(instance)) {
 
@@ -109,7 +110,7 @@ public sealed class AbstractPowers implements Powers permits PowersImpl, Mutable
 
 			}
 
-		});
+		}
 
 		return result;
 

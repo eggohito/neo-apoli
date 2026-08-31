@@ -1,10 +1,11 @@
-package io.github.eggohito.neo_apoli.hud;
+package io.github.eggohito.neo_apoli.api.v0.hud.element;
 
 import com.mojang.datafixers.util.Function7;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.api.v0.hud.Sprite;
 import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.color.custom.Argb;
@@ -22,7 +23,7 @@ public interface OverlayHudElement extends HudElement {
 
 	ResourceLocation ATLAS_SHEET = ATLAS_NAME.withPath(path -> "textures/atlas/" + path + ".png");
 
-	Codec<Sprite> OVERLAY_SPRITE_CODEC = new MultiAlternativeCodec<>(Sprite.CODEC, ResourceLocation.CODEC.xmap(id -> new Sprite(ATLAS_SHEET, id), Sprite::id));
+	Codec<Sprite> SPRITE_CODEC = new MultiAlternativeCodec<>(Sprite.CODEC, ResourceLocation.CODEC.xmap(id -> new Sprite(ATLAS_SHEET, id), Sprite::id));
 
 	Sprite sprite();
 
@@ -58,7 +59,7 @@ public interface OverlayHudElement extends HudElement {
 
 	static <H extends OverlayHudElement> MapCodec<H> createCommonOverlayCodec(Function7<Sprite, Color, RenderPhase, BooleanProvider, BooleanProvider, BooleanProvider, Integer, H> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-			OVERLAY_SPRITE_CODEC.fieldOf("sprite").forGetter(OverlayHudElement::sprite),
+			SPRITE_CODEC.fieldOf("sprite").forGetter(OverlayHudElement::sprite),
 			Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(OverlayHudElement::color),
 			RenderPhase.CODEC.fieldOf("render_phase").forGetter(OverlayHudElement::renderPhase),
 			BooleanProvider.CODEC.optionalFieldOf("should_render", new ConstantBooleanProvider(true)).forGetter(OverlayHudElement::shouldRender),
