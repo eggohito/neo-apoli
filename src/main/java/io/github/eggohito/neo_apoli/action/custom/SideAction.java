@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.action.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
@@ -31,7 +30,7 @@ public record SideAction(Environment side, Action action) implements Action {
 	@Override
 	public void execute(Context context) {
 
-		if ((side() == Environment.CLIENT) != NeoApoli.onServerThread()) {
+		if ((side() == Environment.CLIENT) == context.level().isClientSide()) {
 			action().execute(context.forChild(".action"));
 		}
 
