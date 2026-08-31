@@ -12,6 +12,8 @@ import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.Objects;
+
 public record KeyReference(StringProvider id, BooleanProvider continuous) implements ContextUser {
 
 	public static final MapCodec<KeyReference> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -40,23 +42,14 @@ public record KeyReference(StringProvider id, BooleanProvider continuous) implem
 
 	}
 
-	//  TODO: Change and improve the events for tracking whether keys are pressed/held/released
-	@Deprecated(forRemoval = true)
 	public boolean continuouslyPressed(Context context, KeyState previous, KeyState current) {
 
 		String id = id()
 			.getString(context.forChild(".id"))
 			.orElse(null);
 
-		if (id == null) {
-			return false;
-		}
-
-		Context continuousContext = context.forChild(".continuous");
-		boolean continuous = continuous().getBoolean(continuousContext);
-
-		return current.id().equals(id)
-			&& (continuous || !previous.pressed());
+		return Objects.equals(id, current.id())
+			&& (continuous().getBoolean(context.forChild(".continuous")) || !previous.pressed());
 
 	}
 

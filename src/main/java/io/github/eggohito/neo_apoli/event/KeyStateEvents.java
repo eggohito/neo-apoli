@@ -9,10 +9,10 @@ public class KeyStateEvents {
 
 	public static final Event<Pressed> PRESSED = EventFactory.createArrayBacked(
 		Pressed.class,
-		callbacks -> (player, previous, current) -> {
+		callbacks -> (player, state) -> {
 
 			for (var callback : callbacks) {
-				callback.onPressed(player, previous, current);
+				callback.onPressed(player, state);
 			}
 
 		}
@@ -20,10 +20,10 @@ public class KeyStateEvents {
 
 	public static final Event<Released> RELEASED = EventFactory.createArrayBacked(
 		Released.class,
-		callbacks -> (player, previous, current) -> {
+		callbacks -> (player, state) -> {
 
 			for (var callback : callbacks) {
-				callback.onReleased(player, previous, current);
+				callback.onReleased(player, state);
 			}
 
 		}
@@ -41,11 +41,11 @@ public class KeyStateEvents {
 	);
 
 	public interface Pressed {
-		void onPressed(Player player, KeyState previous, KeyState current);
+		void onPressed(Player player, KeyState state);
 	}
 
 	public interface Released {
-		void onReleased(Player player, KeyState previous, KeyState current);
+		void onReleased(Player player, KeyState state);
 	}
 
 	public interface Held {

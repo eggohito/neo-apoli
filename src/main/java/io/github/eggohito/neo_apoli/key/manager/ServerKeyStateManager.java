@@ -82,11 +82,11 @@ public class ServerKeyStateManager implements KeyStateManager {
 				current.put(id, currentState);
 
 				if (pressed) {
-					KeyStateEvents.PRESSED.invoker().onPressed(player, previousState, currentState);
+					KeyStateEvents.PRESSED.invoker().onPressed(player, currentState);
 				}
 
 				else {
-					KeyStateEvents.RELEASED.invoker().onReleased(player, previousState, currentState);
+					KeyStateEvents.RELEASED.invoker().onReleased(player, currentState);
 				}
 
 			}

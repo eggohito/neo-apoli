@@ -56,7 +56,7 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 			String id = keyMapping.getName();
 			boolean pressed = keyMapping.isDown();
 
-			KeyState previousState = previous.computeIfAbsent(id, k -> new KeyState(id, 0));
+			KeyState previousState = previous.computeIfAbsent(id, KeyState::new);
 			KeyState currentState = previousState;
 
 			boolean changed = previousState.pressed() != pressed;
@@ -75,11 +75,11 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 			if (changed) {
 
 				if (pressed) {
-					KeyStateEvents.PRESSED.invoker().onPressed(player, previousState, currentState);
+					KeyStateEvents.PRESSED.invoker().onPressed(player, currentState);
 				}
 
 				else {
-					KeyStateEvents.RELEASED.invoker().onReleased(player, previousState, currentState);
+					KeyStateEvents.RELEASED.invoker().onReleased(player, currentState);
 				}
 
 			}

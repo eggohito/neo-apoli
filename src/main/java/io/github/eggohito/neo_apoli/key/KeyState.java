@@ -6,6 +6,10 @@ import java.util.Objects;
 
 public record KeyState(String id, long pressedTime) {
 
+	public KeyState(String id) {
+		this(id, 0);
+	}
+
 	public KeyState {
 		pressedTime = Mth.clamp(0, pressedTime, Long.MAX_VALUE);
 	}
