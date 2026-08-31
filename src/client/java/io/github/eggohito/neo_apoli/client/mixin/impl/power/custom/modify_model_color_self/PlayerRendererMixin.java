@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
+import io.github.eggohito.neo_apoli.duck.internal.EntityCache;
 import io.github.eggohito.neo_apoli.power.custom.ModifyModelColorSelfPower;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
 import net.minecraft.client.model.geom.ModelPart;

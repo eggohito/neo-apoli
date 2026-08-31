@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.mixin.impl.command.storage_holder;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
-import io.github.eggohito.neo_apoli.impl.misc.ServerAccess;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.ServerAccess;
 import io.github.eggohito.neo_apoli.mixin.access.CommandStorageAccessor;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;

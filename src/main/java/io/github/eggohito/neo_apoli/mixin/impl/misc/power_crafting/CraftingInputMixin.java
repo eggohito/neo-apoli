@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.misc.power_crafting;
 
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
+import io.github.eggohito.neo_apoli.duck.internal.PowerCrafting;
 import io.github.eggohito.neo_apoli.power.Power;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.inventory.TransientCraftingContainer;

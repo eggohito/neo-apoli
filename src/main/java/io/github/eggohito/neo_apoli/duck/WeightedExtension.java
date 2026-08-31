@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.misc;
+package io.github.eggohito.neo_apoli.duck;
 
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import net.minecraft.util.RandomSource;

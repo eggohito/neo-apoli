@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.replace_loot_table;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.impl.misc.KeyableLootTable;
+import io.github.eggohito.neo_apoli.duck.internal.KeyableLootTable;
 import io.github.eggohito.neo_apoli.power.custom.ReplaceLootTablePower;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;

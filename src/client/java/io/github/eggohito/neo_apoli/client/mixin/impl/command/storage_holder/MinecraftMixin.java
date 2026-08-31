@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.command.storage_holder;
 
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;

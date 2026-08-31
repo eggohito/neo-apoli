@@ -1,6 +1,6 @@
-package io.github.eggohito.neo_apoli.client.api.misc;
+package io.github.eggohito.neo_apoli.client.duck;
 
-import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
+import io.github.eggohito.neo_apoli.duck.internal.EntityCache;
 
 /**
  *  An interface injected to {@link net.minecraft.client.renderer.entity.state.EntityRenderState} for storing a reference

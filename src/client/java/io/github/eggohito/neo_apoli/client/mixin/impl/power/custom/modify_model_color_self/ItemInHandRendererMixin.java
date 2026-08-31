@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.power.custom.modify_model_color_self;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
+import io.github.eggohito.neo_apoli.duck.internal.EntityCache;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;

@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.replace_loot_table;
 
-import io.github.eggohito.neo_apoli.impl.misc.ContextKeySetHolder;
-import io.github.eggohito.neo_apoli.impl.misc.ReplacingLootContext;
+import io.github.eggohito.neo_apoli.duck.internal.ContextKeySetHolder;
+import io.github.eggohito.neo_apoli.duck.internal.ReplacingLootContext;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.context.ContextKeySet;

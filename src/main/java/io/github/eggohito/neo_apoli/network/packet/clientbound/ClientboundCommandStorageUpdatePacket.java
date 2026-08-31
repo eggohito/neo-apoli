@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.network.packet.clientbound;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

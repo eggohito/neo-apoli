@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.recipe;
 
-import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.CraftingRecipePower;
 import io.github.eggohito.neo_apoli.power.entity.Powers;

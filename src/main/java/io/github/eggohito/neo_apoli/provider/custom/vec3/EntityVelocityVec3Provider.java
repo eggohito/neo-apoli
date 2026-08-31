@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.impl.misc.MovingEntity;
+import io.github.eggohito.neo_apoli.duck.internal.MovingEntity;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;

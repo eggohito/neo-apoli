@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.crafting_recipe;
 
-import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
+import io.github.eggohito.neo_apoli.duck.internal.PowerCrafting;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.inventory.CraftingContainer;

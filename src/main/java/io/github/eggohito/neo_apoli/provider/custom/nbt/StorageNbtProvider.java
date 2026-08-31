@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.nbt;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.misc.render_cache;
 
-import io.github.eggohito.neo_apoli.client.api.misc.EntityRenderCache;
+import io.github.eggohito.neo_apoli.client.duck.EntityRenderCache;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;

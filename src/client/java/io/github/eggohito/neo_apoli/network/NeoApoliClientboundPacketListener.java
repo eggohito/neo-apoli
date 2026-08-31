@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.network;
 
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
-import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.packet.HandshakePacket;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundPowerDataUpdatePacket;

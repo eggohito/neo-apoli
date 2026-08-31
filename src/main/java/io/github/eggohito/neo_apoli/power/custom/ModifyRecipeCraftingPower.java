@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.context.parameter.ItemContextParameter;
 import io.github.eggohito.neo_apoli.context.parameter.SlotAccessContextParameter;
-import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
+import io.github.eggohito.neo_apoli.duck.internal.PowerCrafting;
 import io.github.eggohito.neo_apoli.mixin.access.CraftingMenuAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;

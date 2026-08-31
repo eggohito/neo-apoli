@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.network.packet.clientbound;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

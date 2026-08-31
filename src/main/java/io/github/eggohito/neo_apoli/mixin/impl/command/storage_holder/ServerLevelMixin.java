@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.command.storage_holder;
 
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;

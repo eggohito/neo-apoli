@@ -14,6 +14,6 @@ accessible  class   net/minecraft/client/resources/model/AtlasSet$AtlasEntry
 accessible  class   net/minecraft/util/random/WeightedList$Selector
 accessible  class   net/minecraft/resources/RegistryOps$HolderLookupAdapter
 
-transitive-inject-interface net/minecraft/client/renderer/entity/state/EntityRenderState    io/github/eggohito/neo_apoli/client/api/misc/EntityRenderCache
-transitive-inject-interface net/minecraft/commands/CommandSourceStack   io/github/eggohito/neo_apoli/api/misc/ContextBuilderHolder
-transitive-inject-interface net/minecraft/util/random/WeightedList  io/github/eggohito/neo_apoli/api/misc/WeightedExtension<TE;>
+transitive-inject-interface net/minecraft/client/renderer/entity/state/EntityRenderState    io/github/eggohito/neo_apoli/client/duck/EntityRenderCache
+transitive-inject-interface net/minecraft/commands/CommandSourceStack   io/github/eggohito/neo_apoli/duck/ContextBuilderHolder
+transitive-inject-interface net/minecraft/util/random/WeightedList  io/github/eggohito/neo_apoli/duck/WeightedExtension<TE;>

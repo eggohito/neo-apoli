@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.misc.server_access;
 
-import io.github.eggohito.neo_apoli.impl.misc.ServerAccess;
+import io.github.eggohito.neo_apoli.duck.internal.ServerAccess;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.CompoundTag;

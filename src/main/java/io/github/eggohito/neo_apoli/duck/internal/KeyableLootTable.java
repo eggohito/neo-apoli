@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.impl.misc;
+package io.github.eggohito.neo_apoli.duck.internal;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.ReloadableServerRegistries;

@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.mixin.impl.power.custom.modify_entity_type_
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.impl.misc.EntityCache;
+import io.github.eggohito.neo_apoli.duck.internal.EntityCache;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.objectweb.asm.Opcodes;

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.power.custom.replace_loot_table;
 
-import io.github.eggohito.neo_apoli.impl.misc.ContextKeySetHolder;
+import io.github.eggohito.neo_apoli.duck.internal.ContextKeySetHolder;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.storage.loot.LootParams;
 import org.spongepowered.asm.mixin.Mixin;

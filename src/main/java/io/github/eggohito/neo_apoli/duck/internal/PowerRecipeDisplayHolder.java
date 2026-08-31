@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.impl.misc;
+package io.github.eggohito.neo_apoli.duck.internal;
 
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;

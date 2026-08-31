@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.impl.misc;
+package io.github.eggohito.neo_apoli.duck.internal;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;

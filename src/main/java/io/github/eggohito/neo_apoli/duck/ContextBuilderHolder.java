@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.api.misc;
+package io.github.eggohito.neo_apoli.duck;
 
 import io.github.eggohito.neo_apoli.context.Context;
 

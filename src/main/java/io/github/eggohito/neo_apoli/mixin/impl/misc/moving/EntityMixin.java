@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.misc.moving;
 
-import io.github.eggohito.neo_apoli.impl.misc.MovingEntity;
+import io.github.eggohito.neo_apoli.duck.internal.MovingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;

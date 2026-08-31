@@ -1,7 +1,7 @@
 package io.github.eggohito.neo_apoli.mixin.impl.misc.power_crafting;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import io.github.eggohito.neo_apoli.impl.misc.PowerCrafting;
+import io.github.eggohito.neo_apoli.duck.internal.PowerCrafting;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.crafting.CraftingInput;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.power.custom.crafting_recipe;
 
-import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

@@ -4,8 +4,8 @@ import io.github.eggohito.neo_apoli.client.impl.hud.renderer.HudElementRenderers
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
 import io.github.eggohito.neo_apoli.client.util.atlas.NeoApoliAtlases;
-import io.github.eggohito.neo_apoli.impl.misc.CommandStorageHolder;
-import io.github.eggohito.neo_apoli.impl.misc.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorResolvers;
