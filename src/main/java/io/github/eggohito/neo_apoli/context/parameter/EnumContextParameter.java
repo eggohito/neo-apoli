@@ -12,8 +12,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import static net.minecraft.commands.Commands.argument;
 
@@ -29,8 +28,8 @@ public class EnumContextParameter<E extends Enum<E>> extends Context.Parameter<E
 	}
 
 	@Override
-	public boolean checkType(Predicate<Class<E>> tester) {
-		return tester.test(enumClass);
+	public @NotNull Class<E> getTypeClass() {
+		return enumClass;
 	}
 
 	@Override

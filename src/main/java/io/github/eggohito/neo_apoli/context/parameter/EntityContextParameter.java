@@ -10,8 +10,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-
-import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 public final class EntityContextParameter extends Context.Parameter<Entity> {
 
@@ -20,8 +19,8 @@ public final class EntityContextParameter extends Context.Parameter<Entity> {
 	}
 
 	@Override
-	public boolean checkType(Predicate<Class<Entity>> tester) {
-		return tester.test(Entity.class);
+	public @NotNull Class<Entity> getTypeClass() {
+		return Entity.class;
 	}
 
 	@Override

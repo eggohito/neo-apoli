@@ -12,8 +12,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 public final class BlockContextParameter extends Context.Parameter<CachedBlock> {
 
@@ -22,8 +21,8 @@ public final class BlockContextParameter extends Context.Parameter<CachedBlock> 
 	}
 
 	@Override
-	public boolean checkType(Predicate<Class<CachedBlock>> tester) {
-		return tester.test(CachedBlock.class);
+	public @NotNull Class<CachedBlock> getTypeClass() {
+		return CachedBlock.class;
 	}
 
 	@Override

@@ -30,7 +30,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class Context implements ContextParamsHolder {
@@ -275,8 +274,8 @@ public final class Context implements ContextParamsHolder {
 		return new Parameter<>(name) {
 
 			@Override
-			public boolean checkType(Predicate<Class<T>> tester) {
-				return tester.test(typeClass);
+			public @NotNull Class<T> getTypeClass() {
+				return typeClass;
 			}
 
 			@Override
@@ -304,7 +303,7 @@ public final class Context implements ContextParamsHolder {
 	public static <T> Function<Parameter<?>, DataResult<Parameter<T>>> parameterValidator(String name, Class<T> typeClass) {
 		return key -> {
 
-			if (key.checkType(typeClass::isAssignableFrom)) {
+			if (typeClass.isAssignableFrom(key.getTypeClass())) {
 				return DataResult.success((Parameter<T>) key);
 			}
 
@@ -321,7 +320,9 @@ public final class Context implements ContextParamsHolder {
 			super(name);
 		}
 
-		public abstract boolean checkType(Predicate<Class<T>> tester);
+		@NotNull
+		public abstract Class<T> getTypeClass();
 
 	}
+
 }

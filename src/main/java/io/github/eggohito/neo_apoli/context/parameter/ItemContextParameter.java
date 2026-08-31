@@ -18,8 +18,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -31,8 +30,8 @@ public final class ItemContextParameter extends Context.Parameter<ItemStack> {
 	}
 
 	@Override
-	public boolean checkType(Predicate<Class<ItemStack>> tester) {
-		return tester.test(ItemStack.class);
+	public @NotNull Class<ItemStack> getTypeClass() {
+		return ItemStack.class;
 	}
 
 	@Override

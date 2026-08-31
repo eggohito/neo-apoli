@@ -17,8 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
-
-import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -30,8 +29,8 @@ public final class SlotAccessContextParameter extends Context.Parameter<SlotAcce
 	}
 
 	@Override
-	public boolean checkType(Predicate<Class<SlotAccess>> tester) {
-		return tester.test(SlotAccess.class);
+	public @NotNull Class<SlotAccess> getTypeClass() {
+		return SlotAccess.class;
 	}
 
 	@Override
