@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.player.Player;
 
-public class KeyStateEvents {
+public final class KeyStateEvents {
 
 	public static final Event<Pressed> PRESSED = EventFactory.createArrayBacked(
 		Pressed.class,
