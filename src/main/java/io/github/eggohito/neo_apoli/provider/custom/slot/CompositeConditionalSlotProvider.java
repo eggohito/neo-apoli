@@ -1,0 +1,33 @@
+package io.github.eggohito.neo_apoli.provider.custom.slot;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.CompositeConditionalValueProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliSlotProviderTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import io.github.eggohito.neo_apoli.util.conditional.CompositeConditional;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.SlotAccess;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Optional;
+
+public record CompositeConditionalSlotProvider(List<CompositeConditional.Entry<SlotProvider>> entries, SlotProvider defaultValue) implements SlotProvider, CompositeConditionalValueProvider<SlotProvider> {
+
+	public static final MapCodec<CompositeConditionalSlotProvider> CODEC = MapCodecUtil.lazy(CompositeConditionalSlotProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.mapCodec(SlotProvider.CODEC, CompositeConditionalSlotProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompositeConditionalSlotProvider> STREAM_CODEC = StreamCodecUtil.lazy(CompositeConditionalSlotProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.streamCodec(SlotProvider.STREAM_CODEC, CompositeConditionalSlotProvider::new));
+
+	@Override
+	public SlotProvider.@NotNull Type<?> getType() {
+		return NeoApoliSlotProviderTypes.COMPOSITE_CONDITIONAL;
+	}
+
+	@Override
+	public Optional<SlotAccess> getSlot(Context context) {
+		return this.getOrDefault(context, SlotProvider::getSlot);
+	}
+
+}

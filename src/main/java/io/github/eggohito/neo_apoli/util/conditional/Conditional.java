@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.util;
+package io.github.eggohito.neo_apoli.util.conditional;
 
 import io.github.eggohito.neo_apoli.condition.Condition;
 

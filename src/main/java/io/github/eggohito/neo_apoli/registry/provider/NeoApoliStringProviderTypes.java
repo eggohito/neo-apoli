@@ -11,10 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class NeoApoliStringProviderTypes {
 
+	public static final StringProvider.Type<CompositeConditionalStringProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalStringProvider.MAP_CODEC, CompositeConditionalStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<ConditionalStringProvider> CONDITIONAL = registerInternal("conditional", ConditionalStringProvider.MAP_CODEC, ConditionalStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<ConstantStringProvider> CONSTANT = registerInternal("constant", ConstantStringProvider.MAP_CODEC, ConstantStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<JoinStringProvider> JOIN = registerInternal("join", JoinStringProvider.MAP_CODEC, JoinStringProvider.STREAM_CODEC);
-	public static final StringProvider.Type<SwitchStringProvider> SWITCH = registerInternal("switch", SwitchStringProvider.MAP_CODEC, SwitchStringProvider.STREAM_CODEC);
 
 	public static final StringProvider.Type<EntityUuidStringProvider> ENTITY_UUID = registerInternal("entity/uuid", EntityUuidStringProvider.MAP_CODEC, EntityUuidStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<NbtStringProvider> NBT = registerInternal("nbt", NbtStringProvider.MAP_CODEC, NbtStringProvider.STREAM_CODEC);

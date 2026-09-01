@@ -12,7 +12,7 @@ import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
-import io.github.eggohito.neo_apoli.util.Case;
+import io.github.eggohito.neo_apoli.util.conditional.CompositeConditional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -26,13 +26,13 @@ import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots) implements Power {
+public record ModifyItemWearablePower(EnumMap<EquipmentSlot, CompositeConditional.Entry<BooleanProvider>> slots) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final Context.Parameter<ItemStack> WORN_ITEM = NeoApoliContextParams.registerInternal("worn_item", ItemContextParameter::new);
 
-	private static final Codec<EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, Case.codec(Condition.CODEC.fieldOf("condition"), BooleanProvider.CODEC.fieldOf("allow")))).xmap(EnumMap::new, Function.identity());
-	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Case.streamCodec(Condition.STREAM_CODEC, BooleanProvider.STREAM_CODEC));
+	private static final Codec<EnumMap<EquipmentSlot, CompositeConditional.Entry<BooleanProvider>>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(EquipmentSlot.CODEC, CompositeConditional.Entry.codec(Condition.CODEC.fieldOf("condition"), BooleanProvider.CODEC.fieldOf("allow")))).xmap(EnumMap::new, Function.identity());
+	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, CompositeConditional.Entry<BooleanProvider>>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(size -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, CompositeConditional.Entry.streamCodec(Condition.STREAM_CODEC, BooleanProvider.STREAM_CODEC));
 
 	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::slots))
@@ -60,15 +60,14 @@ public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, Boo
 		Power.super.validate(validator);
 		Context.Validator slotsValidator = validator.forChild(".slots");
 
-		for (var entry : this.slots().entrySet()) {
+		this.slots().forEach((slot, entry) -> {
 
-			Context.Validator caseValidator = slotsValidator.forChild("." + entry.getKey().getSerializedName());
-			Case<Condition, BooleanProvider> aCase = entry.getValue();
+			Context.Validator entryValidator = slotsValidator.forChild("." + slot.getSerializedName());
 
-			aCase.condition().validate(caseValidator.forChild(".condition"));
-			aCase.value().validate(caseValidator.forChild(".allow"));
+			entry.condition().validate(entryValidator.forChild(".condition"));
+			entry.value().validate(entryValidator.forChild(".allow"));
 
-		}
+		});
 
 	}
 
@@ -85,7 +84,7 @@ public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, Boo
 				.build(holder.level());
 		}
 
-		public EnumMap<EquipmentSlot, Case<Condition, BooleanProvider>> slots() {
+		public EnumMap<EquipmentSlot, CompositeConditional.Entry<BooleanProvider>> slots() {
 			return power.slots();
 		}
 
@@ -107,17 +106,18 @@ public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Case<Condition, Boo
 				for (var entry : instance.slots().entrySet()) {
 
 					EquipmentSlot slot = entry.getKey();
-					Case<Condition, BooleanProvider> aCase = entry.getValue();
+					CompositeConditional.Entry<BooleanProvider> aEntry = entry.getValue();
 
 					if (slot != targetSlot) {
 						continue;
 					}
 
-					Context caseContext = instanceContext.forChild(".slots").forChild("." + slot.getSerializedName());
+					Context slotsContext = instanceContext.forChild(".slots");
+					Context entryContext = slotsContext.forChild("." + slot.getSerializedName());
 
-					if (aCase.condition().test(caseContext.forChild(".condition"))) {
+					if (aEntry.condition().test(entryContext.forChild(".condition"))) {
 
-						if (aCase.value().getBoolean(caseContext.forChild(".allow"))) {
+						if (aEntry.value().getBoolean(entryContext.forChild(".allow"))) {
 							allowed = true;
 						}
 

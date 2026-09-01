@@ -16,6 +16,7 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<AreaOfEffectAction> AREA_OF_EFFECT = registerInternal("area_of_effect", AreaOfEffectAction.CODEC, AreaOfEffectAction.STREAM_CODEC);
 	public static final Action.Type<BoneMealAction> BONE_MEAL = registerInternal("bone_meal", BoneMealAction.CODEC, BoneMealAction.STREAM_CODEC);
 	public static final Action.Type<ClearPowersAction> CLEAR_POWERS = registerInternal("clear_powers", ClearPowersAction.CODEC, ClearPowersAction.STREAM_CODEC);
+	public static final Action.Type<CompositeConditionalAction> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalAction.CODEC, CompositeConditionalAction.STREAM_CODEC);
 	public static final Action.Type<ConditionalAction> CONDITIONAL = registerInternal("conditional", ConditionalAction.CODEC, ConditionalAction.STREAM_CODEC);
 	public static final Action.Type<ConsumeItemAction> CONSUME_ITEM = registerInternal("consume_item", ConsumeItemAction.CODEC, ConsumeItemAction.STREAM_CODEC);
 	public static final Action.Type<DamageEntityAction> DAMAGE_ENTITY = registerInternal("damage_entity", DamageEntityAction.CODEC, DamageEntityAction.STREAM_CODEC);
@@ -47,7 +48,6 @@ public final class NeoApoliActionTypes {
 	public static final Action.Type<SideAction> SIDE = registerInternal("side", SideAction.CODEC, SideAction.STREAM_CODEC);
 	public static final Action.Type<SpawnParticlesAction> SPAWN_PARTICLES = registerInternal("spawn_particles", SpawnParticlesAction.CODEC, SpawnParticlesAction.STREAM_CODEC);
 	public static final Action.Type<SwingHandAction> SWING_HAND = registerInternal("swing_hand", SwingHandAction.CODEC, SwingHandAction.STREAM_CODEC);
-	public static final Action.Type<SwitchAction> SWITCH = registerInternal("switch", SwitchAction.CODEC, SwitchAction.STREAM_CODEC);
 	public static final Action.Type<TameAction> TAME = registerInternal("tame", TameAction.CODEC, TameAction.STREAM_CODEC);
 	public static final Action.Type<TogglePowerAction> TOGGLE_POWER = registerInternal("toggle_power", TogglePowerAction.CODEC, TogglePowerAction.STREAM_CODEC);
 	public static final Action.Type<TriggerPowerCooldownAction> TRIGGER_POWER_COOLDOWN = registerInternal("trigger_power_cooldown", TriggerPowerCooldownAction.CODEC, TriggerPowerCooldownAction.STREAM_CODEC);

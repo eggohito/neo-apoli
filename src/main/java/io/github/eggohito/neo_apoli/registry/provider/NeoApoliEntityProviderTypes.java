@@ -11,9 +11,9 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class NeoApoliEntityProviderTypes {
 
+	public static final EntityProvider.Type<CompositeConditionalEntityProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalEntityProvider.CODEC, CompositeConditionalEntityProvider.STREAM_CODEC);
 	public static final EntityProvider.Type<ConditionalEntityProvider> CONDITIONAL = registerInternal("conditional", ConditionalEntityProvider.CODEC, ConditionalEntityProvider.STREAM_CODEC);
 	public static final EntityProvider.Type<ContextEntityProvider> CONTEXT = registerInternal("context", ContextEntityProvider.CODEC, ContextEntityProvider.STREAM_CODEC);
-	public static final EntityProvider.Type<SwitchEntityProvider> SWITCH = registerInternal("switch", SwitchEntityProvider.CODEC, SwitchEntityProvider.STREAM_CODEC);
 
 	public static final EntityProvider.Type<SelectorEntityProvider> SELECTOR = registerInternal("selector", SelectorEntityProvider.CODEC, SelectorEntityProvider.STREAM_CODEC);
 

@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NeoApoliVec3ProviderTypes {
 
 	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<CompositeConditionalVec3Provider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalVec3Provider.CODEC, CompositeConditionalVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConditionalVec3Provider> CONDITIONAL = registerInternal("conditional", ConditionalVec3Provider.CODEC, ConditionalVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<DirectionVec3Provider> DIRECTION = registerInternal("direction", DirectionVec3Provider.CODEC, DirectionVec3Provider.STREAM_CODEC);
@@ -20,7 +21,6 @@ public final class NeoApoliVec3ProviderTypes {
 	public static final Vec3Provider.Type<EntityVelocityVec3Provider> ENTITY_VELOCITY = registerInternal("entity/velocity", EntityVelocityVec3Provider.CODEC, EntityVelocityVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<EntityViewVec3Provider> ENTITY_VIEW = registerInternal("entity/view", EntityViewVec3Provider.CODEC, EntityViewVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
-	public static final Vec3Provider.Type<SwitchVec3Provider> SWITCH = registerInternal("switch", SwitchVec3Provider.CODEC, SwitchVec3Provider.STREAM_CODEC);
 
 	public static void registerAll() {
 

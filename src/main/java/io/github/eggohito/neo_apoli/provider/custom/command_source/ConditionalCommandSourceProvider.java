@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.command_source;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
+import io.github.eggohito.neo_apoli.provider.ConditionalValueProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliCommandSourceProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;

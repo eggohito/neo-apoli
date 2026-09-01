@@ -11,11 +11,11 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class NeoApoliBoxProviderTypes {
 
+	public static final BoxProvider.Type<CompositeConditionalBoxProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalBoxProvider.MAP_CODEC, CompositeConditionalBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<ConditionalBoxProvider> CONDITIONAL = registerInternal("conditional", ConditionalBoxProvider.MAP_CODEC, ConditionalBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<ConstantBoxProvider> CONSTANT = registerInternal("constant", ConstantBoxProvider.MAP_CODEC, ConstantBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<DynamicBoxProvider> DYNAMIC = registerInternal("dynamic", DynamicBoxProvider.MAP_CODEC, DynamicBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<OffsetBoxProvider> OFFSET = registerInternal("offset", OffsetBoxProvider.MAP_CODEC, OffsetBoxProvider.STREAM_CODEC);
-	public static final BoxProvider.Type<SwitchBoxProvider> SWITCH = registerInternal("switch", SwitchBoxProvider.MAP_CODEC, SwitchBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<TranslateBoxProvider> TRANSLATE = registerInternal("translate", TranslateBoxProvider.MAP_CODEC, TranslateBoxProvider.STREAM_CODEC);
 
 	public static final BoxProvider.Type<BlockBoundsBoxProvider> BLOCK_BOUNDS = registerInternal("block/bounds", BlockBoundsBoxProvider.MAP_CODEC, BlockBoundsBoxProvider.STREAM_CODEC);

@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.provider.custom.meta;
+package io.github.eggohito.neo_apoli.provider;
 
 import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.Codec;
@@ -6,8 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.ValueProvider;
-import io.github.eggohito.neo_apoli.util.Conditional;
+import io.github.eggohito.neo_apoli.util.conditional.Conditional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;

@@ -11,9 +11,9 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class NeoApoliBlockProviderTypes {
 
+	public static final BlockProvider.Type<CompositeConditionalBlockProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalBlockProvider.CODEC, CompositeConditionalBlockProvider.STREAM_CODEC);
 	public static final BlockProvider.Type<ConditionalBlockProvider> CONDITIONAL = registerInternal("conditional", ConditionalBlockProvider.CODEC, ConditionalBlockProvider.STREAM_CODEC);
 	public static final BlockProvider.Type<ContextBlockProvider> CONTEXT = registerInternal("context", ContextBlockProvider.CODEC, ContextBlockProvider.STREAM_CODEC);
-	public static final BlockProvider.Type<SwitchBlockProvider> SWITCH = registerInternal("switch", SwitchBlockProvider.CODEC, SwitchBlockProvider.STREAM_CODEC);
 
 	public static final BlockProvider.Type<WorldBlockProvider> WORLD = registerInternal("world", WorldBlockProvider.CODEC, WorldBlockProvider.STREAM_CODEC);
 

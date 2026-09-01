@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
-import io.github.eggohito.neo_apoli.util.Conditional;
+import io.github.eggohito.neo_apoli.util.conditional.Conditional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 

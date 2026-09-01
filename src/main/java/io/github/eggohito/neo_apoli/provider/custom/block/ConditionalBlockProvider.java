@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.block;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.meta.ConditionalValueProvider;
+import io.github.eggohito.neo_apoli.provider.ConditionalValueProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBlockProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
