@@ -23,6 +23,7 @@ public final class NeoApoliNumberProviderTypes {
 	public static final NumberProvider.Type<MaxNumberProvider> MAX = registerInternal("max", MaxNumberProvider.CODEC, MaxNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<MinNumberProvider> MIN = registerInternal("min", MinNumberProvider.CODEC, MinNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<NbtNumberProvider> NBT = registerInternal("nbt", NbtNumberProvider.CODEC, NbtNumberProvider.STREAM_CODEC);
+	public static final NumberProvider.Type<NegateNumberProvider> NEGATE = registerInternal("negate", NegateNumberProvider.CODEC, NegateNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<PowerNumberProvider> POWER = registerInternal("power", PowerNumberProvider.CODEC, PowerNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<ProductNumberProvider> PRODUCT = registerInternal("product", ProductNumberProvider.CODEC, ProductNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<QuotientNumberProvider> QUOTIENT = registerInternal("quotient", QuotientNumberProvider.CODEC, QuotientNumberProvider.STREAM_CODEC);
