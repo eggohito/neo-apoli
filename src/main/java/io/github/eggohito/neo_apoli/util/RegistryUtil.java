@@ -34,23 +34,23 @@ public final class RegistryUtil {
 
 	public static <T> void validateKeyOrTag(Context.Validator validator, Either<ResourceKey<T>, TagKey<T>> keyOrTag) {
 
-		ResourceKey<? extends Registry<T>> registryKey = keyOrTag.map(ResourceKey::registryKey, TagKey::registry);
 		if (!validator.allowsReferences()) {
-			validator.reportProblem("Couldn't access registry " + registryKey + "!");
+			validator.reportProblem("Validator doesn't allow resolving of references!");
 		}
 
 		else {
 
+			ResourceKey<? extends Registry<T>> registryKey = keyOrTag.map(ResourceKey::registryKey, TagKey::registry);
 			HolderLookup.RegistryLookup<T> lookup = validator.resolver()
 				.lookup(registryKey)
 				.orElse(null);
 
 			if (lookup == null) {
-				validator.reportProblem("Registry " + registryKey + " doesn't exist!");
+				validator.reportProblem("Registry '" + registryKey.location() + "' doesn't exist!");
 			}
 
 			else if (keyOrTag.map(lookup::get, lookup::get).isEmpty()) {
-				validator.reportProblem(keyOrTag.map(ResourceKey::toString, TagKey::toString) + " doesn't exist!");
+				validator.reportProblem(keyOrTag.map(key -> "Element \"" + key.location() + "\"", tag -> "Tag \"" + tag.location() + "\"") + " from registry \"" + registryKey.location() + "\" doesn't exist!");
 			}
 
 		}
