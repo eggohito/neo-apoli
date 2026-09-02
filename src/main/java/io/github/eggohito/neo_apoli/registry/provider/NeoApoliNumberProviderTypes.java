@@ -28,6 +28,7 @@ public final class NeoApoliNumberProviderTypes {
 	public static final NumberProvider.Type<QuotientNumberProvider> QUOTIENT = registerInternal("quotient", QuotientNumberProvider.CODEC, QuotientNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<SumNumberProvider> SUM = registerInternal("sum", SumNumberProvider.CODEC, SumNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<UniformNumberProvider> UNIFORM = registerInternal("uniform", UniformNumberProvider.CODEC, UniformNumberProvider.STREAM_CODEC);
+	public static final NumberProvider.Type<WeightedNumberProvider> WEIGHTED = registerInternal("weighted", WeightedNumberProvider.CODEC, WeightedNumberProvider.STREAM_CODEC);
 
 	public static final NumberProvider.Type<AdjacentBlocksNumberProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksNumberProvider.CODEC, AdjacentBlocksNumberProvider.STREAM_CODEC);
 	public static final NumberProvider.Type<BlocksCollidingBoxNumberProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxNumberProvider.CODEC, BlocksCollidingBoxNumberProvider.STREAM_CODEC);
