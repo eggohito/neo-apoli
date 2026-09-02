@@ -31,25 +31,27 @@ public record RevokeAllPowersAction(ResourceLocation source, EntityProvider enti
 
 	@Override
 	public void execute(Context context) {
-
-		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
+		entity().getEntity(context.forChild(".entity"))
 			.flatMap(MutablePowers::getOptional)
-			.orElse(null);
-
-		if (mutablePowers == null) {
-			return;
-		}
-
-		for (var holder : mutablePowers.getAllFromSource(source())) {
-			mutablePowers.revoke(holder.id(), source());
-		}
-
+			.ifPresent(this::revokeAll);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		entity().validate(validator.forChild(".entity"));
+	}
+
+	private void revokeAll(MutablePowers mutable) {
+
+		try (mutable) {
+
+			for (var holder : mutable.getAllFromSource(source())) {
+				mutable.revoke(holder.id(), source());
+			}
+
+		}
+
 	}
 
 }

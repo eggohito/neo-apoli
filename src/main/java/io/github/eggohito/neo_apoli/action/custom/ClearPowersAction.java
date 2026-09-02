@@ -28,29 +28,31 @@ public record ClearPowersAction(EntityProvider entity) implements Action {
 
 	@Override
 	public void execute(Context context) {
-
-		MutablePowers mutablePowers = entity().getEntity(context.forChild(".entity"))
+		entity().getEntity(context.forChild(".entity"))
 			.flatMap(MutablePowers::getOptional)
-			.orElse(null);
-
-		if (mutablePowers == null) {
-			return;
-		}
-
-		for (var holder : mutablePowers.getAll()) {
-
-			for (var source : mutablePowers.getSources(holder.id())) {
-				mutablePowers.revoke(holder.id(), source);
-			}
-
-		}
-
+			.ifPresent(this::clear);
 	}
 
 	@Override
 	public void validate(Context.Validator validator) {
 		Action.super.validate(validator);
 		entity().validate(validator.forChild(".entity"));
+	}
+
+	private void clear(MutablePowers mutable) {
+
+		try (mutable) {
+
+			for (var holder : mutable.getAll()) {
+
+				for (var source : mutable.getSources(holder.id())) {
+					mutable.revoke(holder.id(), source);
+				}
+
+			}
+
+		}
+
 	}
 
 }
