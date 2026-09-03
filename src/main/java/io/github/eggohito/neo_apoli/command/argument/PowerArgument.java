@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
+import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
@@ -121,7 +122,7 @@ public record PowerArgument(boolean allowTags) implements ArgumentType<PowerArgu
 
 		}
 
-		record Collection(TagKey<PowerHolder<?>> tag) implements Result {
+		record Collection(TagKey<Power> tag) implements Result {
 
 			@Override
 			public List<PowerHolder<?>> get() throws CommandSyntaxException {

@@ -379,7 +379,7 @@ public class PowerCommand {
 					}
 
 				}
-				case PowerArgument.Result.Collection(TagKey<PowerHolder<?>> tag) -> {
+				case PowerArgument.Result.Collection(TagKey<Power> tag) -> {
 
 					Component tagName = Component.literal("#" + tag.location());
 

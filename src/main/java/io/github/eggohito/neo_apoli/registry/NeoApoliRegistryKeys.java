@@ -10,7 +10,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSet;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -30,7 +29,7 @@ import net.minecraft.resources.ResourceKey;
 
 public final class NeoApoliRegistryKeys {
 
-	public static final ResourceKey<Registry<PowerHolder<?>>> POWER = create("power");
+	public static final ResourceKey<Registry<Power>> POWER = create("power");
 	public static final ResourceKey<Registry<GlobalPowerSet>> GLOBAL_POWER_SET = create("global_power_set");
 
 	public static final ResourceKey<Registry<Action>> ACTION = create("action");
