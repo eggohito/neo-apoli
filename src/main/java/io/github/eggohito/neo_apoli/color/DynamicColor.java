@@ -8,7 +8,7 @@ public interface DynamicColor extends Color {
 
 	static float getValue(Context context, FloatFunction<Context> getter, FloatSupplier defaultValue) {
 		float value = getter.apply(context);
-		return context.hasErrors()
+		return context.hasProblems()
 			? defaultValue.getAsFloat()
 			: value;
 	}

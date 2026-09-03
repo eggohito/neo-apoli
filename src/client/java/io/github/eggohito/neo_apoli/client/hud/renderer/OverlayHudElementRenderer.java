@@ -29,17 +29,12 @@ public interface OverlayHudElementRenderer extends HudElementRenderer {
 		Reporter reporter = context.reporter();
 		SpriteMaterial material = new SpriteMaterial(overlay.sprite());
 
-		TextureAtlasSprite sprite = material.spriteAsResult()
-			.resultOrPartial(reporter::report)
-			.orElse(null);
+		material
+			.spriteAsResult()
+			.resultOrPartial(reporter::report).ifPresent(sprite -> this.renderOverlay(context, overlay, material, sprite, graphics, delta));
 
-		if (sprite == null || reporter.hasErrors()) {
-			reporter.getErrorsFlattened().ifPresent(error -> NeoApoli.logOnce(Level.ERROR, "Error trying to render overlay HUD element(s) due to error(s) " + error));
-		}
-
-		else {
-			this.renderOverlay(context, overlay, material, sprite, graphics, delta);
-			reporter.getErrorsFlattened().ifPresent(warning -> NeoApoli.logOnce(Level.WARN, "Found warnings while rendering overlay HUD element(s) " + warning));
+		if (reporter.hasProblems()) {
+			NeoApoli.logOnce(Level.WARN, "Found warnings while rendering overlay HUD elements\n" + reporter.getReport());
 		}
 
 	}

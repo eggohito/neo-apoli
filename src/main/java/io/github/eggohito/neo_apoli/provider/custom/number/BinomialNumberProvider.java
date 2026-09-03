@@ -46,7 +46,7 @@ public record BinomialNumberProvider(NumberProvider attempts, NumberProvider pro
 		Context probabilityContext = context.forChild(".probability");
 		double probability = probability().getDouble(probabilityContext);
 
-		for (int i = 0; !attemptsContext.hasErrors() && !probabilityContext.hasErrors() && i < attempts; i++) {
+		for (int i = 0; !attemptsContext.hasProblems() && !probabilityContext.hasProblems() && i < attempts; i++) {
 
 			if (random.nextDouble() < probability) {
 				result++;

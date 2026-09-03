@@ -42,7 +42,7 @@ public interface MultiNumberProvider extends NumberProvider {
 
 				try {
 
-					if (numberContext.visitor().push(number) && !numberContext.hasErrors()) {
+					if (numberContext.visitor().push(number) && !numberContext.hasProblems()) {
 
 						if (init.isTrue()) {
 							result.setValue(processor.apply(result.getValue(), value));

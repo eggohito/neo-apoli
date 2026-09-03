@@ -63,14 +63,14 @@ public record ClampedNumberProvider(NumberProvider value, NumberProvider min, Nu
 		Context minContext = context.forChild(".min");
 		N min = getter.apply(min(), minContext);
 
-		if (minContext.hasErrors()) {
+		if (minContext.hasProblems()) {
 			return value;
 		}
 
 		Context maxContext = context.forChild(".max");
 		N max = getter.apply(max(), maxContext);
 
-		if (maxContext.hasErrors()) {
+		if (maxContext.hasProblems()) {
 			return value;
 		}
 

@@ -93,7 +93,7 @@ public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, L
 			Context context = createHolderContext(holder);
 			int tickRate = power.tickRate().getInt(context.forChild(".tick_rate"));
 
-			if (context.hasAnyErrors()) {
+			if (context.hasProblems()) {
 
 				this.startTicks = null;
 				this.endTicks = null;

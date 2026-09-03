@@ -36,7 +36,7 @@ public record NumberStringProvider(NumberProvider number, NumberType as) impleme
 		Context numberContext = context.forChild(".number");
 		Number number = number().getAsType(as(), numberContext);
 
-		return !numberContext.hasErrors()
+		return !numberContext.hasProblems()
 			? Optional.of(number.toString())
 			: Optional.empty();
 

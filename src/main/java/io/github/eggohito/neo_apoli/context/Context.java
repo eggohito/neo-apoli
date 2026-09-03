@@ -88,12 +88,8 @@ public final class Context implements ContextParamsHolder {
 		this.reporter.report(message);
 	}
 
-	public boolean hasErrors() {
-		return reporter().hasErrors();
-	}
-
-	public boolean hasAnyErrors() {
-		return reporter().hasAnyErrors();
+	public boolean hasProblems() {
+		return reporter().hasProblems();
 	}
 
 	public static final class Builder implements ContextParamsHolder {

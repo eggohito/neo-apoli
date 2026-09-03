@@ -50,7 +50,7 @@ public record EntityHasItemEquippedCondition(Condition equippedCondition, Equipm
 		Context entityContext = context.forChild(".entity");
 		Entity entity = entity().getEntity(entityContext).orElse(null);
 
-		if (entityContext.hasErrors() || !(entity instanceof LivingEntity livingEntity)) {
+		if (entityContext.hasProblems() || !(entity instanceof LivingEntity livingEntity)) {
 			return false;
 		}
 

@@ -41,7 +41,7 @@ public record TimeNumberProvider(Optional<NumberProvider> period) implements Num
 			Context periodContext = context.forChild(".period");
 			long period = period().get().getLong(periodContext);
 
-			if (!periodContext.hasErrors()) {
+			if (!periodContext.hasProblems()) {
 				time %= period;
 			}
 

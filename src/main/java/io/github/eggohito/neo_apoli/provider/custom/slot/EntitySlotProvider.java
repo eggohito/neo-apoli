@@ -37,7 +37,7 @@ public record EntitySlotProvider(EntityProvider entity, NumberProvider slot) imp
 		Context slotContext = context.forChild(".slot");
 		int slot = slot().getInt(slotContext);
 
-		if (slotContext.hasErrors()) {
+		if (slotContext.hasProblems()) {
 			return Optional.empty();
 		}
 

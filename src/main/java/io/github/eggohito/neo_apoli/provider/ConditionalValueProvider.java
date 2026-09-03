@@ -21,7 +21,7 @@ public interface ConditionalValueProvider<Provider extends ValueProvider> extend
 		Context conditionContext = context.forChild(".condition");
 		boolean provides = condition().test(conditionContext);
 
-		if (conditionContext.hasErrors()) {
+		if (conditionContext.hasProblems()) {
 			return fallback;
 		}
 

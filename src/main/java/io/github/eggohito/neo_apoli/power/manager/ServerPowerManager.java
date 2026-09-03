@@ -176,18 +176,21 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 		LOGGER.info("Validating {} power(s)...", prevSize);
 
-		for (var holder : contents.values()) {
+		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following powers:\n{}", errors))) {
 
-			Power power = holder.value();
-			Reporter reporter = new Reporter("{\"" + holder.id() + "\"}");
+			for (var holder : contents.values()) {
 
-			Context.Validator validator = new Context.Validator(power.getType().requirements(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
-			power.validate(validator);
+				Power power = holder.value();
+				Reporter powerReporter = reporter.forChild("{\"" + holder.id() + "\"}");
 
-			reporter.getErrorsFlattened().ifPresentOrElse(
-				error -> LOGGER.error("Found error(s) while validating {} {}", holder.id().asDisplayString(false), error),
-				() -> validatedContents.put(holder.id(), holder)
-			);
+				Context.Validator validator = new Context.Validator(power.getType().requirements(), powerReporter).withResolver(MiscUtil.getLookupProvider(resources));
+				power.validate(validator);
+
+				if (!powerReporter.hasProblems()) {
+					validatedContents.put(holder.id(), holder);
+				}
+
+			}
 
 		}
 

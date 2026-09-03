@@ -33,7 +33,7 @@ public record ItemCountNumberProvider(ItemProvider item) implements NumberProvid
 		Context itemContext = context.forChild(".item");
 		ItemStack item = item().getItem(itemContext);
 
-		if (itemContext.hasErrors()) {
+		if (itemContext.hasProblems()) {
 			return 0;
 		}
 

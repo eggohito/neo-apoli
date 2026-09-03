@@ -41,7 +41,7 @@ public interface AttributeModifyingPower extends Power {
 			Context sendUpdateContext = context.forChild(".send_update");
 			boolean sendUpdate = power.sendUpdate().getBoolean(sendUpdateContext);
 
-			if (!sendUpdateContext.hasErrors()) {
+			if (!sendUpdateContext.hasProblems()) {
 
 				for (var attributeModifier: power.modifiers()) {
 

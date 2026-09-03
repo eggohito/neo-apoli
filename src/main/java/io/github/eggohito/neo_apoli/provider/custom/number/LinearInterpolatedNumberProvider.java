@@ -63,14 +63,14 @@ public record LinearInterpolatedNumberProvider(NumberProvider delta, NumberProvi
 		Context deltaContext = context.forChild(".delta");
 		float delta = delta().getFloat(deltaContext);
 
-		if (deltaContext.hasErrors()) {
+		if (deltaContext.hasProblems()) {
 			return start;
 		}
 
 		Context endContext = context.forChild(".end");
 		N end = getter.apply(end(), endContext);
 
-		if (endContext.hasErrors()) {
+		if (endContext.hasProblems()) {
 			return start;
 		}
 

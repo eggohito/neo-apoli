@@ -116,9 +116,9 @@ public abstract class LootTableMixin implements KeyableLootTable {
 
 			}
 
-			reporter
-				.getErrorsFlattened()
-				.ifPresent(errors -> NeoApoli.logOnce(Level.WARN, "Found error(s) while trying to replace loot table \"" + key.location() + "\" " + errors));
+			if (reporter.hasProblems()) {
+				NeoApoli.logOnce(Level.WARN, "Found errors while trying to replace loot table \"" + key.location() + "\"\n" + reporter.getReport());
+			}
 
 		}
 

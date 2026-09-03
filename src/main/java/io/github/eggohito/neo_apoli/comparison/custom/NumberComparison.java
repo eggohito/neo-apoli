@@ -36,14 +36,14 @@ public record NumberComparison(Comparator comparator, NumberProvider first, Numb
 		Context firstContext = context.forChild(".first");
 		double firstValue = first().getDouble(firstContext);
 
-		if (firstContext.hasErrors()) {
+		if (firstContext.hasProblems()) {
 			return false;
 		}
 
 		Context secondContext = context.forChild(".second");
 		double secondValue = second().getDouble(secondContext);
 
-		if (secondContext.hasErrors()) {
+		if (secondContext.hasProblems()) {
 			return false;
 		}
 

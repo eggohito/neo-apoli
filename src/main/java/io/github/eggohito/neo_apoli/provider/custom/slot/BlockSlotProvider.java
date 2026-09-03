@@ -40,7 +40,7 @@ public record BlockSlotProvider(BlockProvider block, NumberProvider slot) implem
 		Context slotContext = context.forChild(".slot");
 		int slot = slot().getInt(slotContext);
 
-		if (slotContext.hasErrors()) {
+		if (slotContext.hasProblems()) {
 			return Optional.empty();
 		}
 

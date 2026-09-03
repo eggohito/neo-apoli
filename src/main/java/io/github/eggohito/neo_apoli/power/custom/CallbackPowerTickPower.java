@@ -77,7 +77,7 @@ public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action
 			Context context = createHolderContext(holder);
 			int interval = power.interval().getInt(context.forChild(".interval"));
 
-			if (context.hasAnyErrors()) {
+			if (context.hasProblems()) {
 
 				this.startTicks = null;
 				this.endTicks = null;

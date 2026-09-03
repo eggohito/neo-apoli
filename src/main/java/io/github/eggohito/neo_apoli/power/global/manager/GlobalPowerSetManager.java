@@ -197,27 +197,28 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 			return;
 		}
 
-		var iterator = contents.entrySet().stream().iterator();
+		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
 		int size = contents.size();
 
-		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
 		LOGGER.info("Validating {} global power set(s)...", size);
 
-		while (iterator.hasNext()) {
+		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following global power sets:\n{}", errors))) {
 
-			var entry = iterator.next();
+			for (var entry : contents.entrySet()) {
 
-			ResourceLocation id = entry.getKey();
-			GlobalPowerSet set = entry.getValue();
+				ResourceLocation id = entry.getKey();
+				GlobalPowerSet set = entry.getValue();
 
-			Reporter reporter = new Reporter("{\"" + id + "\"}");
-			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
+				Reporter setReporter = reporter.forChild("{\"" + id + "\"}");
+				Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), setReporter).withResolver(MiscUtil.getLookupProvider(resources));
 
-			set.validate(validator);
-			reporter.getErrorsFlattened().ifPresentOrElse(
-				error -> LOGGER.warn("Found error(s) while validating global power set \"{}\" {}", id, error),
-				() -> builder.put(id, set)
-			);
+				set.validate(validator);
+
+				if (!setReporter.hasProblems()) {
+					builder.put(id, set);
+				}
+
+			}
 
 		}
 

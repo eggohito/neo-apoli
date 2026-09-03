@@ -129,23 +129,15 @@ public class ConditionCommand {
 
 			condition.validate(validator);
 
-			var validationException = validator.reporter().getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while validating condition ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (validationException.isPresent()) {
-				throw validationException.get();
+			if (reporter.hasProblems()) {
+				throw MiscUtil.createCommandException(Component.literal("Found errors while validating the condition\n" + reporter.getReport()));
 			}
 
 			Context context = contextBuilder.withReporter(reporter).build(source.getLevel());
 			boolean result = condition.test(context);
 
-			var testException = context.reporter().getErrorsFlattened()
-				.map(error -> Component.literal("Found errors while testing condition ").append(error))
-				.map(MiscUtil::createCommandException);
-
-			if (testException.isPresent()) {
-				throw testException.get();
+			if (reporter.hasProblems()) {
+				throw MiscUtil.createCommandException(Component.literal("Found errors while testing the condition\n" + reporter.getReport()));
 			}
 
 			return result;

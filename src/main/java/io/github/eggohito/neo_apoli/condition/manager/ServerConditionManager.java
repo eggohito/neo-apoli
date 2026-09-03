@@ -120,20 +120,23 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 
 		LOGGER.info("Validating {} condition(s)...", prevSize);
 
-		for (var entry : contents.entrySet()) {
+		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following conditions:\n{}", errors))) {
 
-			ResourceLocation id = entry.getKey();
-			Condition condition = entry.getValue();
+			for (var entry : contents.entrySet()) {
 
-			Reporter reporter = new Reporter("{\"" + id + "\"}");
+				ResourceLocation id = entry.getKey();
+				Condition condition = entry.getValue();
 
-			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
-			condition.validate(validator);
+				Reporter conditionReporter = reporter.forChild("{\"" + id + "\"}");
 
-			reporter.getErrorsFlattened().ifPresentOrElse(
-				error -> LOGGER.error("Found error(s) while validating condition \"{}\" {}", id, error),
-				() -> validated.put(id, condition)
-			);
+				Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), conditionReporter).withResolver(MiscUtil.getLookupProvider(resources));
+				condition.validate(validator);
+
+				if (!conditionReporter.hasProblems()) {
+					validated.put(id, condition);
+				}
+
+			}
 
 		}
 

@@ -34,14 +34,14 @@ public record QuotientNumberProvider(NumberProvider dividend, NumberProvider div
 		Context dividendContext = context.forChild(".dividend");
 		double dividend = dividend().getDouble(dividendContext);
 
-		if (dividendContext.hasErrors()) {
+		if (dividendContext.hasProblems()) {
 			return 0.0d;
 		}
 
 		Context divisorContext = context.forChild(".divisor");
 		double divisor = divisor().getDouble(divisorContext);
 
-		if (divisorContext.hasErrors()) {
+		if (divisorContext.hasProblems()) {
 			return 0.0d;
 		}
 

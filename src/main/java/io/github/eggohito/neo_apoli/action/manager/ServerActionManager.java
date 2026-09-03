@@ -154,18 +154,21 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 		LOGGER.info("Validating {} action(s)...", prevSize);
 
-		for (var holder : contents.values()) {
+		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following actions:\n{}", errors))) {
 
-			Action action = holder.value();
-			Reporter reporter = new Reporter("{\"" + holder.id() + "\"}");
+			for (var holder : contents.values()) {
 
-			Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), reporter).withResolver(MiscUtil.getLookupProvider(resources));
-			action.validate(validator);
+				Action action = holder.value();
+				Reporter actionReporter = reporter.forChild("{\"" + holder.id() + "\"}");
 
-			reporter.getErrorsFlattened().ifPresentOrElse(
-				error -> LOGGER.error("Found error(s) while validating action \"{}\" {}", holder.id(), error),
-				() -> validatedContents.put(holder.id(), holder)
-			);
+				Context.Validator validator = new Context.Validator(NeoApoliContextParamSets.all(), actionReporter).withResolver(MiscUtil.getLookupProvider(resources));
+				action.validate(validator);
+
+				if (!actionReporter.hasProblems()) {
+					validatedContents.put(holder.id(), holder);
+				}
+
+			}
 
 		}
 

@@ -58,7 +58,7 @@ public record StringComparison(Comparator comparator, StringProvider first, Stri
 		Context caseSensitiveContext = context.forChild(".case_sensitive");
 		boolean caseSensitive = caseSensitive().getBoolean(caseSensitiveContext);
 
-		if (!caseSensitiveContext.hasErrors() && !caseSensitive) {
+		if (!caseSensitiveContext.hasProblems() && !caseSensitive) {
 			first = first.toLowerCase(Locale.ROOT);
 			second = second.toLowerCase(Locale.ROOT);
 		}

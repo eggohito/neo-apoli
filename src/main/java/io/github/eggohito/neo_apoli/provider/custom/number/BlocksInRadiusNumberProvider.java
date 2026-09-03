@@ -63,7 +63,7 @@ public record BlocksInRadiusNumberProvider(Condition condition, Vec3Provider pos
 		Context radiusContext = context.forChild(".radius");
 		int radius = radius().getInt(radiusContext);
 
-		if (radiusContext.hasErrors()) {
+		if (radiusContext.hasProblems()) {
 			return matches;
 		}
 

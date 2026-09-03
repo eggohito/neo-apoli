@@ -111,7 +111,7 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 					double value = modifier.apply(context, currentBase, currentTotal);
 
-					if (!context.hasErrors()) {
+					if (!context.hasProblems()) {
 						currentTotal = value;
 					}
 

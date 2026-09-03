@@ -48,7 +48,7 @@ public record EntityHasPressedKeysSimultaneouslyCondition(List<StringProvider> k
 		Context offsetContext = context.forChild(".offset");
 		long offset = offset().getLong(offsetContext);
 
-		if (offsetContext.hasErrors()) {
+		if (offsetContext.hasProblems()) {
 			return false;
 		}
 

@@ -104,14 +104,14 @@ public record ExplodeAction(Condition damageableCondition, Condition destructibl
 		Context powerContext = context.forChild(".power");
 		float power = property().power().getFloat(powerContext);
 
-		if (powerContext.hasErrors()) {
+		if (powerContext.hasProblems()) {
 			return;
 		}
 
 		Context createFireContext = context.forChild(".create_fire");
 		boolean createFire = property().createFire().getBoolean(createFireContext);
 
-		if (createFireContext.hasErrors()) {
+		if (createFireContext.hasProblems()) {
 			return;
 		}
 

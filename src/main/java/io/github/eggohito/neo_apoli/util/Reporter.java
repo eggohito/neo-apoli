@@ -1,26 +1,58 @@
 package io.github.eggohito.neo_apoli.util;
 
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import net.minecraft.util.ProblemReporter;
+import org.apache.commons.lang3.function.Consumers;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class Reporter implements ProblemReporter {
 
-	private final Multimap<String, String> errors;
-	private final Supplier<String> pathCache;
+	public static Reporter NO_OP = new Reporter() {
 
-	protected Reporter(Multimap<String, String> errors, Supplier<String> path) {
-		this.errors = errors;
-		this.pathCache = Suppliers.memoize(path::get);
+		@Override
+		public @NotNull Reporter forChild(String name) {
+			return this;
+		}
+
+		@Override
+		public void report(String message) {
+
+		}
+
+	};
+
+	@Nullable
+	private final Reporter parent;
+	private final List<Reporter> children;
+
+	private final Set<String> problems;
+	private final int depth;
+
+	private final String fullPath;
+	private final String path;
+
+	protected Reporter(Reporter parent, String path) {
+		this.parent = parent;
+		this.children = new ObjectArrayList<>();
+		this.problems = new ObjectLinkedOpenHashSet<>();
+		this.depth = parent.depth + 1;
+		this.fullPath = parent.fullPath + path;
+		this.path = path;
 	}
 
 	public Reporter(String path) {
-		this(LinkedHashMultimap.create(), () -> path);
+		this.parent = null;
+		this.children = new ObjectArrayList<>();
+		this.problems = new ObjectLinkedOpenHashSet<>();
+		this.fullPath = path;
+		this.path = path;
+		this.depth = 0;
 	}
 
 	public Reporter() {
@@ -28,56 +60,127 @@ public class Reporter implements ProblemReporter {
 	}
 
 	@Override
-	public Reporter forChild(String name) {
-		return new Reporter(this.errors, () -> this.getPath() + name);
+	public @NotNull Reporter forChild(String name) {
+
+		var child = new Reporter(this, name);
+		this.children.add(child);
+
+		return child;
+
 	}
 
 	@Override
 	public void report(String message) {
-		this.errors.put(this.getPath(), message);
+		this.problems.add(message);
 	}
 
-	public ImmutableMultimap<String, String> getErrors() {
-		return ImmutableMultimap.copyOf(this.errors);
-	}
+	public Reporter getRoot() {
 
-	public Optional<String> getErrorsFlattened() {
+		Reporter root = this;
 
-		if (errors.isEmpty()) {
-			return Optional.empty();
+		while (root.parent != null) {
+			root = root.parent;
 		}
 
-		boolean moreThanOnePaths = this.errors.size() > 1;
-		StringBuilder resultBuilder = new StringBuilder()
-			.append("at")
-			.append(moreThanOnePaths ? " these paths: " : " path ");
-
-		errors.asMap().forEach((path, errors) -> {
-
-			resultBuilder
-				.append(moreThanOnePaths ? "\n\t - " : "")
-				.append(path).append(": ");
-
-			errors.forEach(error -> resultBuilder
-				.append(errors.size() > 1 ? "\n\t\t * " : "")
-				.append(error));
-
-		});
-
-		return Optional.of(resultBuilder.toString());
+		return root;
 
 	}
 
-	public boolean hasErrors() {
-		return this.errors.containsKey(this.getPath());
+	public List<String> getTreeReport() {
+
+		List<String> lines = new ObjectArrayList<>();
+		boolean oneLined = false, prependPath = false;
+
+		if (this.problems.size() == 1 && !this.path.isEmpty()) {
+			oneLined = lines.add(this.indent(this.getPathForTree() + ": " + this.problems.iterator().next()));
+		}
+
+		else {
+
+			for (var problem : this.problems) {
+				lines.add(this.indent("    * " + problem));
+			}
+
+		}
+
+		for (var child : this.children) {
+			prependPath |= lines.addAll(child.getTreeReport());
+		}
+
+		if (!oneLined && prependPath && !this.path.isEmpty()) {
+			lines.addFirst(this.indent(this.getPathForTree() + ": "));
+		}
+
+		return lines;
+
 	}
 
-	public boolean hasAnyErrors() {
-		return !this.errors.isEmpty();
+	public String getReport() {
+		return String.join("\n", this.getTreeReport());
 	}
 
-	public String getPath() {
-		return this.pathCache.get();
+	public boolean hasProblems() {
+
+		if (!this.problems.isEmpty()) {
+			return true;
+		}
+
+		for (var child : children) {
+
+			if (child.hasProblems()) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
+	protected String indent(String line) {
+		return "  ".repeat(this.depth) + line;
+	}
+
+	protected String getPathForTree() {
+		return this.depth > 0 ? "|-" + this.path : this.path;
+	}
+
+	public static class Scoped extends Reporter implements AutoCloseable {
+
+		public static final Scoped NO_OP = new Scoped(Consumers.nop()) {
+
+			@Override
+			public @NotNull Reporter forChild(String name) {
+				return this;
+			}
+
+			@Override
+			public void report(String message) {
+
+			}
+
+		};
+
+		private final Consumer<String> handler;
+
+		public Scoped(String path, Consumer<String> handler) {
+			super(path);
+			this.handler = handler;
+		}
+
+		public Scoped(Consumer<String> handler) {
+			this.handler = handler;
+		}
+
+		@Override
+		public void close() {
+
+			if (this.hasProblems()) {
+				handler.accept(this.getReport());
+			}
+
+		}
+
 	}
 
 }

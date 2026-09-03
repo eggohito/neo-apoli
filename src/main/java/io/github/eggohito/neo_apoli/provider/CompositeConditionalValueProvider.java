@@ -31,7 +31,7 @@ public interface CompositeConditionalValueProvider<Provider extends ValueProvide
 			Context conditionContext = entryContext.forChild(".condition");
 			boolean provides = entry.condition().test(conditionContext);
 
-			if (!conditionContext.hasErrors() && provides) {
+			if (!conditionContext.hasProblems() && provides) {
 				return getter.apply(entry.value(), entryContext.forChild(".value"));
 			}
 

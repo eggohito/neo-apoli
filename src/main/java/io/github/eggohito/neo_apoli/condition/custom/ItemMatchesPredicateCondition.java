@@ -38,7 +38,7 @@ public record ItemMatchesPredicateCondition(ParsedArgument<ItemPredicateArgument
 		Context itemContext = context.forChild(".item");
 		ItemStack item = item().getItem(itemContext);
 
-		return !itemContext.hasErrors()
+		return !itemContext.hasProblems()
 			&& predicate().argument().test(item);
 
 	}

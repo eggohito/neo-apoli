@@ -35,7 +35,7 @@ public record ItemMatchesIngredientCondition(Ingredient ingredient, ItemProvider
 		Context itemContext = context.forChild(".item");
 		ItemStack item = item().getItem(itemContext);
 
-		return !itemContext.hasErrors()
+		return !itemContext.hasProblems()
 			&& ingredient().test(item);
 
 	}

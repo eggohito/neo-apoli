@@ -83,7 +83,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			.or(() -> context.getOptional(NumberBoundHudElement.MIN_VALUE))
 			.orElse(0.0D);
 
-		if (minContext.hasErrors()) {
+		if (minContext.hasProblems()) {
 			return 0.0D;
 		}
 
@@ -93,7 +93,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			.or(() -> context.getOptional(NumberBoundHudElement.MAX_VALUE))
 			.orElse(min + 1.0);
 
-		if (maxContext.hasErrors()) {
+		if (maxContext.hasProblems()) {
 			return 0.0D;
 		}
 
@@ -103,7 +103,7 @@ public record ResourceBarHudElement(Properties properties, NumberProvider x, Num
 			.or(() -> context.getOptional(NumberBoundHudElement.CURRENT_VALUE))
 			.orElse(min);
 
-		if (valueContext.hasErrors()) {
+		if (valueContext.hasProblems()) {
 			return 0.0D;
 		}
 

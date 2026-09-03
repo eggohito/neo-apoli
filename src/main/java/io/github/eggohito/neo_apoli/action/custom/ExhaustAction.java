@@ -39,7 +39,7 @@ public record ExhaustAction(NumberProvider amount, EntityProvider entity) implem
 		Context amountContext = context.forChild(".amount");
 		float amount = amount().getFloat(amountContext);
 
-		if (!amountContext.hasErrors() && Math.signum(amount) >= 1.0) {
+		if (!amountContext.hasProblems() && Math.signum(amount) >= 1.0) {
 			serverPlayer.causeFoodExhaustion(amount);
 		}
 

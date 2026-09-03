@@ -34,14 +34,14 @@ public record PowerNumberProvider(NumberProvider base, NumberProvider exponent) 
 		Context baseContext = context.forChild(".base");
 		double base = base().getDouble(baseContext);
 
-		if (baseContext.hasErrors()) {
+		if (baseContext.hasProblems()) {
 			return 0.0d;
 		}
 
 		Context exponentContext = context.forChild(".exponent");
 		double exponent = exponent().getDouble(exponentContext);
 
-		if (exponentContext.hasErrors()) {
+		if (exponentContext.hasProblems()) {
 			return 0.0d;
 		}
 

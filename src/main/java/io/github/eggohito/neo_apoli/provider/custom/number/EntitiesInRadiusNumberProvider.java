@@ -61,7 +61,7 @@ public record EntitiesInRadiusNumberProvider(Condition condition, Vec3Provider p
 		Context radiusContext = context.forChild(".radius");
 		double radius = radius().getDouble(radiusContext);
 
-		if (radiusContext.hasErrors()) {
+		if (radiusContext.hasProblems()) {
 			return matches;
 		}
 

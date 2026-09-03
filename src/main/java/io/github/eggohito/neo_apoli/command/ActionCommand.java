@@ -114,29 +114,21 @@ public class ActionCommand {
 
 			for (var action : actions) {
 
-				String path = ActionManager.getInstance().getKeyAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
+				String path = ActionManager.getInstance().getKeyAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", ignored -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
 				Reporter reporter = new Reporter(path);
 
 				Context.Validator validator = new Context.Validator(contextBuilder.toKeySet(), reporter).withResolver(source.registryAccess());
 				action.validate(validator);
 
-				var validationException = validator.reporter().getErrorsFlattened()
-					.map(error -> Component.literal("Found errors while validating action ").append(error))
-					.map(MiscUtil::createCommandException);
-
-				if (validationException.isPresent()) {
-					throw validationException.get();
+				if (reporter.hasProblems()) {
+					throw MiscUtil.createCommandException(Component.literal("Found errors while validating the action\n" + reporter.getReport()));
 				}
 
 				Context context = contextBuilder.withReporter(reporter).build(source.getLevel());
 				action.execute(context);
 
-				var executionException = context.reporter().getErrorsFlattened()
-					.map(error -> Component.literal("Found errors while executing action ").append(error))
-					.map(MiscUtil::createCommandException);
-
-				if (executionException.isPresent()) {
-					throw executionException.get();
+				if (reporter.hasProblems()) {
+					throw MiscUtil.createCommandException(Component.literal("Found errors while executing the action\n" + reporter.getReport()));
 				}
 
 				executed++;
