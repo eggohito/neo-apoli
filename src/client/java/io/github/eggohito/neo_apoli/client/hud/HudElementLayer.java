@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.client.hud;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.internal.HudElementHelperImpl;
+import io.github.eggohito.neo_apoli.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
@@ -45,25 +46,25 @@ public enum HudElementLayer implements IdentifiedLayer {
 
 		for (var source : HudElementHelperImpl.getSources()) {
 
-			for (var layerInstance : source.get(player, renderPhase)) {
+			for (var elementWithContext : source.get(player, renderPhase)) {
 				batches
-					.computeIfAbsent(layerInstance.element().getType(), k -> new ObjectAVLTreeSet<>(HudElement.WithContext::compareTo))
-					.add(layerInstance);
+					.computeIfAbsent(elementWithContext.element().getType(), ignored -> new ObjectAVLTreeSet<>(HudElement.WithContext::compareTo))
+					.add(elementWithContext);
 			}
 
 		}
 
 		for (var batch : batches.entrySet()) {
 
+			//noinspection unchecked
+			HudElementRenderer<HudElement> renderer = (HudElementRenderer<HudElement>) HudElementHelperImpl.getRenderer(batch.getKey());
+			renderer.init(graphics, delta);
+
 			graphics.pose().pushPose();
 			graphics.pose().translate(0.0F, 0.0F, 200.0F);
 
 			for (var elementWithContext : batch.getValue()) {
-
-				for (var renderer : HudElementHelperImpl.getRenderers()) {
-					renderer.render(elementWithContext.context(), elementWithContext.element(), graphics, delta);
-				}
-
+				renderer.render(elementWithContext.context(), elementWithContext.element(), graphics, delta);
 			}
 
 			graphics.pose().popPose();

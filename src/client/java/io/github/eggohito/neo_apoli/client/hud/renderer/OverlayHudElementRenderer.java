@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.hud.renderer;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.hud.element.OverlayHudElement;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import net.minecraft.client.DeltaTracker;
@@ -12,7 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.slf4j.event.Level;
 
-public interface OverlayHudElementRenderer extends HudElementRenderer {
+public interface OverlayHudElementRenderer<E extends OverlayHudElement> extends HudElementRenderer<E> {
 
 	@Override
 	default void init(GuiGraphics graphics, DeltaTracker delta) {
@@ -20,18 +19,18 @@ public interface OverlayHudElementRenderer extends HudElementRenderer {
 	}
 
 	@Override
-	default void render(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
+	default void render(Context context, E element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof OverlayHudElement overlay) || thouShouldNotRender(context, overlay)) {
+		if (thouShouldNotRender(context, element)) {
 			return;
 		}
 
 		Reporter reporter = context.reporter();
-		SpriteMaterial material = new SpriteMaterial(overlay.sprite());
+		SpriteMaterial material = new SpriteMaterial(element.sprite());
 
-		material
-			.spriteAsResult()
-			.resultOrPartial(reporter::report).ifPresent(sprite -> this.renderOverlay(context, overlay, material, sprite, graphics, delta));
+		material.spriteAsResult()
+			.resultOrPartial(reporter::report)
+			.ifPresent(sprite -> this.renderOverlay(context, element, material, sprite, graphics, delta));
 
 		if (reporter.hasProblems()) {
 			NeoApoli.logOnce(Level.WARN, "Found warnings while rendering overlay HUD elements\n" + reporter.getReport());
@@ -39,7 +38,7 @@ public interface OverlayHudElementRenderer extends HudElementRenderer {
 
 	}
 
-	void renderOverlay(Context context, OverlayHudElement element, SpriteMaterial material, TextureAtlasSprite sprite, GuiGraphics graphics, DeltaTracker delta);
+	void renderOverlay(Context context, E element, SpriteMaterial material, TextureAtlasSprite sprite, GuiGraphics graphics, DeltaTracker delta);
 
 	private static boolean thouShouldNotRender(Context context, OverlayHudElement overlay) {
 		return !Minecraft.getInstance().options.getCameraType().isFirstPerson()

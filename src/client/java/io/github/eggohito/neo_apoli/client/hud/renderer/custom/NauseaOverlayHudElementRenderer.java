@@ -5,7 +5,6 @@ import io.github.eggohito.neo_apoli.client.hud.renderer.OverlayHudElementRendere
 import io.github.eggohito.neo_apoli.client.util.SpriteMaterial;
 import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliRenderTypes;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.hud.element.OverlayHudElement;
 import io.github.eggohito.neo_apoli.hud.element.custom.NauseaOverlayHudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -15,22 +14,18 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
-public enum NauseaOverlayHudElementRenderer implements OverlayHudElementRenderer {
+public enum NauseaOverlayHudElementRenderer implements OverlayHudElementRenderer<NauseaOverlayHudElement> {
 
 	INSTANCE;
 
 	@Override
-	public void renderOverlay(Context context, OverlayHudElement element, SpriteMaterial material, TextureAtlasSprite sprite, GuiGraphics graphics, DeltaTracker delta) {
-
-		if (!(element instanceof NauseaOverlayHudElement nauseaOverlay)) {
-			return;
-		}
+	public void renderOverlay(Context context, NauseaOverlayHudElement element, SpriteMaterial material, TextureAtlasSprite sprite, GuiGraphics graphics, DeltaTracker delta) {
 
 		float scaledWidth = graphics.guiWidth();
 		float scaledHeight = graphics.guiHeight();
 
 		Context colorContext = context.forChild(".color");
-		int color = nauseaOverlay.color().intValue(colorContext);
+		int color = element.color().intValue(colorContext);
 
 		float intensity = ARGB.alphaFloat(color);
 		float red = ARGB.redFloat(color) * intensity;

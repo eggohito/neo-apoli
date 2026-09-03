@@ -1,6 +1,5 @@
 package io.github.eggohito.neo_apoli.client.integration;
 
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.client.hud.HudElementHelper;
 import io.github.eggohito.neo_apoli.client.renderer.entity.layers.PowerWingsLayer;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -43,8 +42,8 @@ public class PowerClientIntegrations {
 			clearAttributeEntityCache();
 		});
 
-		HudElementHelper.registerSource(NeoApoli.id("cooldown"), PowerClientIntegrations::prepareCooldownElements);
-		HudElementHelper.registerSource(NeoApoli.id("hud_render"), PowerClientIntegrations::prepareHudElements);
+		HudElementHelper.registerSource(PowerClientIntegrations::prepareCooldownElements);
+		HudElementHelper.registerSource(PowerClientIntegrations::prepareHudElements);
 
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(PowerClientIntegrations::preparePowerWingLayer);
 

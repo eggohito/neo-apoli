@@ -16,7 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import java.util.Objects;
 
 @SuppressWarnings("UnstableApiUsage")
-public enum ResourceBarHudElementRenderer implements HudElementRenderer {
+public enum ResourceBarHudElementRenderer implements HudElementRenderer<ResourceBarHudElement> {
 
 	INSTANCE;
 
@@ -51,28 +51,24 @@ public enum ResourceBarHudElementRenderer implements HudElementRenderer {
 	}
 
 	@Override
-	public void render(Context context, HudElement element, GuiGraphics graphics, DeltaTracker delta) {
+	public void render(Context context, ResourceBarHudElement element, GuiGraphics graphics, DeltaTracker delta) {
 
-		if (!(element instanceof ResourceBarHudElement resourceBar)) {
-			return;
-		}
-
-		ResourceBarHudElement.Properties properties = resourceBar.properties();
+		ResourceBarHudElement.Properties properties = element.properties();
 		ResourceBarHudElement.SpriteLocation spriteLocation = properties.spriteLocation();
 
-		int x = ANCHOR.getX() + resourceBar.x().getInt(context.forChild(".x"));
-		int y = ANCHOR.getY() + resourceBar.y().getInt(context.forChild(".y"));
+		int x = ANCHOR.getX() + element.x().getInt(context.forChild(".x"));
+		int y = ANCHOR.getY() + element.y().getInt(context.forChild(".y"));
 
-		//	Draw the background texture of the bar
+		//  Draw the background texture of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.background(), x, y - 2, BAR_WIDTH, BAR_HEIGHT);
 
-		//	Draw the fill portion of the bar
-		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BAR_WIDTH, BAR_HEIGHT, 0, 0, x, y - 2, (int) (resourceBar.getFill(context) * BAR_WIDTH), BAR_HEIGHT);
+		//  Draw the fill portion of the bar
+		graphics.blitSprite(RenderType::guiTextured, spriteLocation.fill(), BAR_WIDTH, BAR_HEIGHT, 0, 0, x, y - 2, (int) (element.getFill(context) * BAR_WIDTH), BAR_HEIGHT);
 
-		//	Draw the icon of the bar
+		//  Draw the icon of the bar
 		graphics.blitSprite(RenderType::guiTextured, spriteLocation.icon(), x - ICON_SIZE - 2, y - 2, ICON_SIZE, ICON_SIZE);
 
-		//	Shift the Y anchor position upwards by the height of the rendered bar if a bar sprite is within the anchor space
+		//  Shift the Y anchor position upwards by the height of the rendered bar if a bar sprite is within the anchor space
 		if (withinAnchorSpace(x, y)) {
 			ANCHOR.setY(ANCHOR.getY() - BAR_HEIGHT);
 		}
