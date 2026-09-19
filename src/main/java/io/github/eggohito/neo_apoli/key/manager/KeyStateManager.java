@@ -2,7 +2,7 @@ package io.github.eggohito.neo_apoli.key.manager;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.key.KeyState;
-import io.github.eggohito.neo_apoli.util.services.Services;
+import io.github.eggohito.neo_apoli.util.services.NeoApoliServices;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -15,7 +15,7 @@ public interface KeyStateManager {
 
 	ResourceLocation ID = NeoApoli.id("manager/key_state");
 
-	Supplier<KeyStateManager> DEFERRED_INSTANCE = Services.lazyLoadSideSpecific(KeyStateManager.class, ServerKeyStateManager::new);
+	Supplier<KeyStateManager> DEFERRED_INSTANCE = NeoApoliServices.deferredLoadPhysicalSideSpecific(KeyStateManager.class, ServerKeyStateManager::new);
 
 	Optional<KeyState> getCurrentState(UUID uuid, String key);
 
