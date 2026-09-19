@@ -20,30 +20,19 @@ public class JsonTextFormatter {
 	private static final ChatFormatting TYPE_SUFFIX_COLOR = ChatFormatting.RED;
 
 	private final String indent;
-	private final boolean root;
+	private final int depth;
 
-	private final int offset;
-
-	protected JsonTextFormatter(String indent, int offset, boolean root) {
+	protected JsonTextFormatter(String indent, int depth) {
 		this.indent = indent;
-		this.offset = Math.max(0, offset);
-		this.root = root;
+		this.depth = Math.max(1, depth);
 	}
 
 	protected JsonTextFormatter(char indent, int size) {
-		this(Strings.repeat(String.valueOf(indent), size), 1, true);
+		this(Strings.repeat(String.valueOf(indent), size), 1);
 	}
 
 	protected JsonTextFormatter(int size) {
 		this(' ', size);
-	}
-
-	public static Component format(JsonElement jsonElement, char ch, int indent) {
-		return new JsonTextFormatter(ch, indent).apply(jsonElement);
-	}
-
-	public static Component format(JsonElement jsonElement, int indent) {
-		return new JsonTextFormatter(indent).apply(jsonElement);
 	}
 
 	public Component apply(JsonElement jsonElement) {
@@ -97,8 +86,8 @@ public class JsonTextFormatter {
 		while (iterator.hasNext()) {
 
 			JsonElement jsonElement = iterator.next();
-			DataResult<Component> jsonText = new JsonTextFormatter(indent, offset + 1, false).applyInternal(jsonElement).ifSuccess(text -> result
-				.append(Strings.repeat(indent, offset))
+			DataResult<Component> jsonText = new JsonTextFormatter(indent, depth + 1).applyInternal(jsonElement).ifSuccess(text -> result
+				.append(Strings.repeat(indent, depth))
 				.append(text));
 
 			if (iterator.hasNext() && jsonText.isSuccess()) {
@@ -111,8 +100,8 @@ public class JsonTextFormatter {
 			result.append("\n");
 		}
 
-		if (!root) {
-			result.append(Strings.repeat(indent, offset - 1));
+		if (!this.isRoot()) {
+			result.append(Strings.repeat(indent, depth - 1));
 		}
 
 		return result.append("]");
@@ -136,8 +125,8 @@ public class JsonTextFormatter {
 			Map.Entry<String, JsonElement> entry = iterator.next();
 
 			Component name = Component.literal(entry.getKey()).withStyle(NAME_COLOR);
-			DataResult<Component> value = new JsonTextFormatter(indent, offset + 1, false).applyInternal(entry.getValue()).ifSuccess(text -> result
-				.append(Strings.repeat(indent, offset))
+			DataResult<Component> value = new JsonTextFormatter(indent, depth + 1).applyInternal(entry.getValue()).ifSuccess(text -> result
+				.append(Strings.repeat(indent, depth))
 				.append(name).append(": ").append(text));
 
 			if (iterator.hasNext() && value.isSuccess()) {
@@ -150,8 +139,8 @@ public class JsonTextFormatter {
 			result.append("\n");
 		}
 
-		if (!root) {
-			result.append(Strings.repeat(indent, offset - 1));
+		if (!this.isRoot()) {
+			result.append(Strings.repeat(indent, depth - 1));
 		}
 
 		return result.append("}");
@@ -170,23 +159,22 @@ public class JsonTextFormatter {
 
 		else if (jsonPrimitive.isNumber()) {
 
-			Number number = jsonPrimitive.getAsNumber();
-			MutableComponent numberText = Component.empty().withStyle(NUMBER_COLOR);
+			Component numberText = switch (jsonPrimitive.getAsNumber()) {
+				case Long l ->
+					numberAsText(l, "L");
+				case Float f ->
+					numberAsText(f, "F");
+				case Double d ->
+					numberAsText(d, "D");
+				case Byte b ->
+					numberAsText(b, "B");
+				case Short s ->
+					numberAsText(s, "S");
+				case Number n ->
+					numberAsText(n, "");
+			};
 
-			return numberText.append(switch (number) {
-				case Long ignored ->
-					numberAsText(number, "L");
-				case Float ignored ->
-					numberAsText(number, "F");
-				case Double ignored ->
-					numberAsText(number, "D");
-				case Byte ignored ->
-					numberAsText(number, "B");
-				case Short ignored ->
-					numberAsText(number, "S");
-				default ->
-					numberAsText(number, "");
-			});
+			return Component.empty().withStyle(NUMBER_COLOR).append(numberText);
 
 		}
 
@@ -194,6 +182,18 @@ public class JsonTextFormatter {
 			throw new JsonParseException("JSON primitive " + jsonPrimitive + " is not supported!");
 		}
 
+	}
+
+	public boolean isRoot() {
+		return depth <= 1;
+	}
+
+	public static Component format(JsonElement jsonElement, char ch, int indent) {
+		return new JsonTextFormatter(ch, indent).apply(jsonElement);
+	}
+
+	public static Component format(JsonElement jsonElement, int indent) {
+		return new JsonTextFormatter(indent).apply(jsonElement);
 	}
 
 	private static Component numberAsText(Number number, String suffix) {
