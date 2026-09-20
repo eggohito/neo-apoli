@@ -4,8 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,16 +14,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record EntityViewVec3Provider(EntityProvider entity, NumberProvider delta) implements Vec3Provider {
+public record EntityViewVec3Provider(EntityProvider entity, FloatProvider delta) implements Vec3Provider {
 
 	public static final MapCodec<EntityViewVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityProvider.CODEC.fieldOf("entity").forGetter(EntityViewVec3Provider::entity),
-		NumberProvider.CODEC.optionalFieldOf("delta", new ConstantNumberProvider(1.0)).forGetter(EntityViewVec3Provider::delta)
+		FloatProvider.CODEC.optionalFieldOf("delta", new ConstantFloatProvider(1.0F)).forGetter(EntityViewVec3Provider::delta)
 	).apply(instance, EntityViewVec3Provider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityViewVec3Provider> STREAM_CODEC = StreamCodec.composite(
 		EntityProvider.STREAM_CODEC, EntityViewVec3Provider::entity,
-		NumberProvider.STREAM_CODEC, EntityViewVec3Provider::delta,
+		FloatProvider.STREAM_CODEC, EntityViewVec3Provider::delta,
 		EntityViewVec3Provider::new
 	);
 

@@ -18,7 +18,8 @@ public final class NeoApoliStringProviderTypes {
 
 	public static final StringProvider.Type<EntityUuidStringProvider> ENTITY_UUID = registerInternal("entity/uuid", EntityUuidStringProvider.MAP_CODEC, EntityUuidStringProvider.STREAM_CODEC);
 	public static final StringProvider.Type<NbtStringProvider> NBT = registerInternal("nbt", NbtStringProvider.MAP_CODEC, NbtStringProvider.STREAM_CODEC);
-	public static final StringProvider.Type<NumberStringProvider> NUMBER = registerInternal("number", NumberStringProvider.MAP_CODEC, NumberStringProvider.STREAM_CODEC);
+	public static final StringProvider.Type<FromIntStringProvider> FROM_INT = registerInternal("from_int", FromIntStringProvider.CODEC, FromIntStringProvider.STREAM_CODEC);
+	public static final StringProvider.Type<FromFloatStringProvider> FROM_FLOAT = registerInternal("from_float", FromFloatStringProvider.CODEC, FromFloatStringProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

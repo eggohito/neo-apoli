@@ -10,7 +10,7 @@ import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.modifier.custom.AddModifier;
 import io.github.eggohito.neo_apoli.modifier.custom.MultiplyAdditiveModifier;
 import io.github.eggohito.neo_apoli.modifier.custom.MultiplyMultiplicativeModifier;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
@@ -67,15 +67,15 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 	static Modifier fromVanilla(AttributeModifier vanillaModifier) {
 
 		AttributeModifier.Operation operation = vanillaModifier.operation();
-		double amount = vanillaModifier.amount();
+		float amount = (float) vanillaModifier.amount();
 
 		return switch (operation) {
 			case ADD_VALUE ->
-				new AddModifier(Modifier.Phase.BASE, new ConstantNumberProvider(amount));
+				new AddModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount));
 			case ADD_MULTIPLIED_BASE ->
-				new MultiplyAdditiveModifier(Modifier.Phase.BASE, new ConstantNumberProvider(amount));
+				new MultiplyAdditiveModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount));
 			case ADD_MULTIPLIED_TOTAL ->
-				new MultiplyMultiplicativeModifier(Modifier.Phase.TOTAL, new ConstantNumberProvider(amount));
+				new MultiplyMultiplicativeModifier(Modifier.Phase.TOTAL, new ConstantFloatProvider(amount));
 		};
 
 	}

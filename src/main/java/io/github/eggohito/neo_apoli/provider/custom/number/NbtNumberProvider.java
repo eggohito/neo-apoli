@@ -5,45 +5,40 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
-import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNumberProviderTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
-public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path) implements NumberProvider {
-
-	public static final MapCodec<NbtNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NbtProvider.CODEC.fieldOf("source").forGetter(NbtNumberProvider::source),
-		NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtNumberProvider::path)
-	).apply(instance, NbtNumberProvider::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, NbtNumberProvider> STREAM_CODEC = StreamCodec.composite(
-		NbtProvider.STREAM_CODEC, NbtNumberProvider::source,
-		NeoApoliStreamCodecs.NBT_PATH, NbtNumberProvider::path,
-		NbtNumberProvider::new
-	);
+public interface NbtNumberProvider extends ValueProvider {
 
 	@Override
-	public @NotNull NumberProvider.Type<?> getType() {
-		return NeoApoliNumberProviderTypes.NBT;
+	default void validate(Context.Validator validator) {
+		ValueProvider.super.validate(validator);
+		source().validate(validator.forChild(".source"));
 	}
 
-	@Override
-	public double getDouble(Context context) {
+	NbtProvider source();
+
+	NbtPathArgument.NbtPath path();
+
+	default void processTag(Context context, Consumer<NumericTag> numeric, IntConsumer other) {
 
 		Tag source = source()
 			.getTag(context.forChild(".source"))
 			.orElse(null);
 
 		if (source == null) {
-			return 0.0D;
+			return;
 		}
 
 		try {
@@ -52,26 +47,22 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 			int size = tags.size();
 
 			if (size == 1) {
-				return switch (tags.getFirst()) {
+				switch (tags.getFirst()) {
 					case NumericTag numericTag ->
-						numericTag.doubleValue();
+						numeric.accept(numericTag);
 					case CollectionTag collectionTag ->
-						collectionTag.size();
+						other.accept(collectionTag.size());
 					case CompoundTag compoundTag ->
-						compoundTag.size();
+						other.accept(compoundTag.size());
 					case StringTag(String value) ->
-						value.length();
+						other.accept(value.length());
 					default ->
 						throw MiscUtil.createCommandException(Component.translatableEscape("commands.data.get.unknown", this.path()));
-				};
+				}
 			}
 
 			else if (size > 1) {
-				return path().countMatching(source);
-			}
-
-			else {
-				return 0;
+				other.accept(path().countMatching(source));
 			}
 
 		}
@@ -80,14 +71,21 @@ public record NbtNumberProvider(NbtProvider source, NbtPathArgument.NbtPath path
 			context.reportProblem("Error trying to get a numeric value in NBT path \"" + this.path() + " from NBT \"" + source + "\": " + e.getMessage());
 		}
 
-		return 0;
-
 	}
 
-	@Override
-	public void validate(Context.Validator validator) {
-		NumberProvider.super.validate(validator);
-		source().validate(validator.forChild(".source"));
+	static <M extends NbtNumberProvider> MapCodec<M> mapCodec(BiFunction<NbtProvider, NbtPathArgument.NbtPath, M> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			NbtProvider.CODEC.fieldOf("source").forGetter(NbtNumberProvider::source),
+			NbtPathArgument.NbtPath.CODEC.fieldOf("path").forGetter(NbtNumberProvider::path)
+		).apply(instance, constructor));
+	}
+
+	static <M extends NbtNumberProvider> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<NbtProvider, NbtPathArgument.NbtPath, M> constructor) {
+		return StreamCodec.composite(
+			NbtProvider.STREAM_CODEC, NbtNumberProvider::source,
+			NeoApoliStreamCodecs.NBT_PATH, NbtNumberProvider::path,
+			constructor
+		);
 	}
 
 }

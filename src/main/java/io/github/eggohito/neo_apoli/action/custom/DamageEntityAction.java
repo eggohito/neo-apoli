@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,18 +18,18 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.Optional;
 
-public record DamageEntityAction(Holder<DamageType> damageType, NumberProvider amount, EntityProvider victim, Optional<EntityProvider> attacker) implements Action {
+public record DamageEntityAction(Holder<DamageType> damageType, FloatProvider amount, EntityProvider victim, Optional<EntityProvider> attacker) implements Action {
 
 	public static final MapCodec<DamageEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		DamageType.CODEC.fieldOf("damage_type").forGetter(DamageEntityAction::damageType),
-		NumberProvider.CODEC.fieldOf("amount").forGetter(DamageEntityAction::amount),
+		FloatProvider.CODEC.fieldOf("amount").forGetter(DamageEntityAction::amount),
 		EntityProvider.CODEC.fieldOf("victim").forGetter(DamageEntityAction::victim),
 		EntityProvider.CODEC.optionalFieldOf("attacker").forGetter(DamageEntityAction::attacker)
 	).apply(instance, DamageEntityAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DamageEntityAction> STREAM_CODEC = StreamCodec.composite(
 		DamageType.STREAM_CODEC, DamageEntityAction::damageType,
-		NumberProvider.STREAM_CODEC, DamageEntityAction::amount,
+		FloatProvider.STREAM_CODEC, DamageEntityAction::amount,
 		EntityProvider.STREAM_CODEC, DamageEntityAction::victim,
 		ByteBufCodecs.optional(EntityProvider.STREAM_CODEC), DamageEntityAction::attacker,
 		DamageEntityAction::new

@@ -3,19 +3,20 @@ package io.github.eggohito.neo_apoli.modifier.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.modifier.AmountBasedModifier;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliModifierTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record MultiplyAdditiveModifier(Modifier.Phase phase, int order, NumberProvider amount) implements AmountBasedModifier {
+public record MultiplyAdditiveModifier(Modifier.Phase phase, int order, FloatProvider amount) implements AmountBasedModifier {
 
-	public static final MapCodec<MultiplyAdditiveModifier> CODEC = AmountBasedModifier.createValueBasedCodec(MultiplyAdditiveModifier::new, 1000);
-	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyAdditiveModifier> STREAM_CODEC = AmountBasedModifier.createValueBasedStreamCodec(MultiplyAdditiveModifier::new);
+	private static final int DEFAULT_ORDER = 1000;
 
-	public MultiplyAdditiveModifier(Phase phase, ConstantNumberProvider amount) {
-		this(phase, 1000, amount);
+	public static final MapCodec<MultiplyAdditiveModifier> CODEC = AmountBasedModifier.mapCodec(MultiplyAdditiveModifier::new, DEFAULT_ORDER);
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyAdditiveModifier> STREAM_CODEC = AmountBasedModifier.streamCodec(MultiplyAdditiveModifier::new);
+
+	public MultiplyAdditiveModifier(Phase phase, FloatProvider amount) {
+		this(phase, DEFAULT_ORDER, amount);
 	}
 
 	@Override

@@ -1,0 +1,32 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.floats;
+
+import com.mojang.serialization.MapCodec;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.CompositeConditionalValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
+import io.github.eggohito.neo_apoli.util.FloatConsumer;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public record CompositeConditionalFloatProvider(List<Entry<FloatProvider>> entries, FloatProvider defaultValue) implements FloatProvider, CompositeConditionalValueProvider<FloatProvider> {
+
+	public static final MapCodec<CompositeConditionalFloatProvider> CODEC = MapCodecUtil.lazy(CompositeConditionalFloatProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.mapCodec(FloatProvider.CODEC, CompositeConditionalFloatProvider::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompositeConditionalFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(CompositeConditionalFloatProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.streamCodec(FloatProvider.STREAM_CODEC, CompositeConditionalFloatProvider::new));
+
+	@Override
+	public @NotNull FloatProvider.Type<?> getType() {
+		return NeoApoliFloatProviderTypes.COMPOSITE_CONDITIONAL;
+	}
+
+	@Override
+	public void provideFloat(Context context, FloatConsumer setter) {
+		this.onSelect(context, selected -> selected.value().provideFloat(selected.context(), setter));
+	}
+
+}

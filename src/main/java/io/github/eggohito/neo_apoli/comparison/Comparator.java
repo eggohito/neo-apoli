@@ -47,4 +47,26 @@ public enum Comparator implements StringRepresentable {
 		};
 	}
 
+	public int getIntThreshold(int base) {
+		return switch (this) {
+			case EQUALS, LESS_THAN_OR_EQUAL, GREATER_THAN ->
+				base + 1;
+			case LESS_THAN, GREATER_THAN_OR_EQUAL ->
+				base;
+			default ->
+				-1;
+		};
+	}
+
+	public float getFloatThreshold(float base) {
+		return switch (this) {
+			case EQUALS, LESS_THAN_OR_EQUAL, GREATER_THAN ->
+				base + 1.0F;
+			case LESS_THAN, GREATER_THAN_OR_EQUAL ->
+				base;
+			default ->
+				-1.0F;
+		};
+	}
+
 }

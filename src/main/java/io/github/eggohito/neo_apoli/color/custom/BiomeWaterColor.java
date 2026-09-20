@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorResolvers;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorTypes;
@@ -14,16 +14,16 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
 
-public record BiomeWaterColor(Vec3Provider position, NumberProvider alpha) implements Color {
+public record BiomeWaterColor(Vec3Provider position, FloatProvider alpha) implements Color {
 
 	public static final MapCodec<BiomeWaterColor> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("position").forGetter(BiomeWaterColor::position),
-		NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(BiomeWaterColor::alpha)
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(BiomeWaterColor::alpha)
 	).apply(instance, BiomeWaterColor::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BiomeWaterColor> STREAM_CODEC = StreamCodec.composite(
 		Vec3Provider.STREAM_CODEC, BiomeWaterColor::position,
-		NumberProvider.STREAM_CODEC, BiomeWaterColor::alpha,
+		FloatProvider.STREAM_CODEC, BiomeWaterColor::alpha,
 		BiomeWaterColor::new
 	);
 

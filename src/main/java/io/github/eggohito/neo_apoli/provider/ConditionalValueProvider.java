@@ -11,26 +11,33 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 public interface ConditionalValueProvider<Provider extends ValueProvider> extends ValueProvider, Conditional<Provider> {
 
 	@NotNull
 	default <Value> Value getValue(Context context, BiFunction<Provider, Context, Value> getter, @NotNull Value fallback) {
+		return this.select(context)
+			.map(selected -> getter.apply(selected.provider(), selected.context()))
+			.orElse(fallback);
+	}
+
+	default Optional<Selected<Provider>> select(Context context) {
 
 		Context conditionContext = context.forChild(".condition");
-		boolean provides = condition().test(conditionContext);
+		boolean provide = condition().test(conditionContext);
 
 		if (conditionContext.hasProblems()) {
-			return fallback;
+			return Optional.empty();
 		}
 
-		else if (provides) {
-			return getter.apply(onTrue(), context.forChild(".on_true"));
+		else if (provide) {
+			return Optional.of(new Selected<>(this.onTrue(), context.forChild(".on_true")));
 		}
 
 		else {
-			return getter.apply(onFalse(), context.forChild(".on_false"));
+			return Optional.of(new Selected<>(this.onFalse(), context.forChild(".on_false")));
 		}
 
 	}
@@ -61,6 +68,10 @@ public interface ConditionalValueProvider<Provider extends ValueProvider> extend
 			providerCodec, ConditionalValueProvider::onFalse,
 			constructor
 		);
+	}
+
+	record Selected<P extends ValueProvider>(P provider, Context context) {
+
 	}
 
 }

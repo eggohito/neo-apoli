@@ -8,8 +8,8 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -27,16 +27,16 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public record PlaySoundAction(Holder<SoundEvent> sound, SoundSource category, List<EntityProvider> targets, Vec3Provider position, NumberProvider volume, NumberProvider pitch, NumberProvider minVolume) implements Action {
+public record PlaySoundAction(Holder<SoundEvent> sound, SoundSource category, List<EntityProvider> targets, Vec3Provider position, FloatProvider volume, FloatProvider pitch, FloatProvider minVolume) implements Action {
 
 	public static final MapCodec<PlaySoundAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		SoundEvent.CODEC.fieldOf("sound").forGetter(PlaySoundAction::sound),
 		NeoApoliCodecs.SOUND_SOURCE.optionalFieldOf("category", SoundSource.MASTER).forGetter(PlaySoundAction::category),
 		EntityProvider.CODEC.listOf().optionalFieldOf("targets", List.of()).forGetter(PlaySoundAction::targets),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(PlaySoundAction::position),
-		NumberProvider.clamped(0.0F, Float.MAX_VALUE).optionalFieldOf("volume", new ConstantNumberProvider(1.0F)).forGetter(PlaySoundAction::pitch),
-		NumberProvider.clamped(0.0F, 2.0F).optionalFieldOf("pitch", new ConstantNumberProvider(1.0F)).forGetter(PlaySoundAction::pitch),
-		NumberProvider.clamped(0.0F, 1.0F).optionalFieldOf("min_volume", new ConstantNumberProvider(0.0)).forGetter(PlaySoundAction::minVolume)
+		FloatProvider.clamped(0.0F, Float.MAX_VALUE).optionalFieldOf("volume", new ConstantFloatProvider(1.0F)).forGetter(PlaySoundAction::pitch),
+		FloatProvider.clamped(0.0F, 2.0F).optionalFieldOf("pitch", new ConstantFloatProvider(1.0F)).forGetter(PlaySoundAction::pitch),
+		FloatProvider.clamped(0.0F, 1.0F).optionalFieldOf("min_volume", new ConstantFloatProvider(0.0F)).forGetter(PlaySoundAction::minVolume)
 	).apply(instance, PlaySoundAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PlaySoundAction> STREAM_CODEC = StreamCodec.composite(
@@ -44,9 +44,9 @@ public record PlaySoundAction(Holder<SoundEvent> sound, SoundSource category, Li
 		NeoApoliStreamCodecs.SOUND_SOURCE, PlaySoundAction::category,
 		EntityProvider.STREAM_CODEC.apply(ByteBufCodecs.list()), PlaySoundAction::targets,
 		Vec3Provider.STREAM_CODEC, PlaySoundAction::position,
-		NumberProvider.STREAM_CODEC, PlaySoundAction::volume,
-		NumberProvider.STREAM_CODEC, PlaySoundAction::pitch,
-		NumberProvider.STREAM_CODEC, PlaySoundAction::minVolume,
+		FloatProvider.STREAM_CODEC, PlaySoundAction::volume,
+		FloatProvider.STREAM_CODEC, PlaySoundAction::pitch,
+		FloatProvider.STREAM_CODEC, PlaySoundAction::minVolume,
 		PlaySoundAction::new
 	);
 

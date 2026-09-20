@@ -5,20 +5,20 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record SetEntityOnFireAction(NumberProvider ticks, EntityProvider entity) implements Action {
+public record SetEntityOnFireAction(IntProvider ticks, EntityProvider entity) implements Action {
 
 	public static final MapCodec<SetEntityOnFireAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.fieldOf("ticks").forGetter(SetEntityOnFireAction::ticks),
+		IntProvider.CODEC.fieldOf("ticks").forGetter(SetEntityOnFireAction::ticks),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(SetEntityOnFireAction::entity)
 	).apply(instance, SetEntityOnFireAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SetEntityOnFireAction> STREAM_CODEC = StreamCodec.composite(
-		NumberProvider.STREAM_CODEC, SetEntityOnFireAction::ticks,
+		IntProvider.STREAM_CODEC, SetEntityOnFireAction::ticks,
 		EntityProvider.STREAM_CODEC, SetEntityOnFireAction::entity,
 		SetEntityOnFireAction::new
 	);

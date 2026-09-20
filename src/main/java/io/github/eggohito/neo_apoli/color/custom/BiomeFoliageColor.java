@@ -6,7 +6,7 @@ import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorResolvers;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorTypes;
@@ -16,17 +16,17 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.ColorResolver;
 
-public record BiomeFoliageColor(Vec3Provider position, NumberProvider alpha, BooleanProvider dry) implements Color {
+public record BiomeFoliageColor(Vec3Provider position, FloatProvider alpha, BooleanProvider dry) implements Color {
 
 	public static final MapCodec<BiomeFoliageColor> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Vec3Provider.CODEC.fieldOf("position").forGetter(BiomeFoliageColor::position),
-		NumberProvider.clamped(0.0, 1.0).fieldOf("alpha").forGetter(BiomeFoliageColor::alpha),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(BiomeFoliageColor::alpha),
 		BooleanProvider.CODEC.fieldOf("dry").forGetter(BiomeFoliageColor::dry)
 	).apply(instance, BiomeFoliageColor::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BiomeFoliageColor> STREAM_CODEC = StreamCodec.composite(
 		Vec3Provider.STREAM_CODEC, BiomeFoliageColor::position,
-		NumberProvider.STREAM_CODEC, BiomeFoliageColor::alpha,
+		FloatProvider.STREAM_CODEC, BiomeFoliageColor::alpha,
 		BooleanProvider.STREAM_CODEC, BiomeFoliageColor::dry,
 		BiomeFoliageColor::new
 	);

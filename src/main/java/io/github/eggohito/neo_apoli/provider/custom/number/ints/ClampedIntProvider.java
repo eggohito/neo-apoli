@@ -1,0 +1,79 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.ints;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.IntConsumer;
+
+public record ClampedIntProvider(IntProvider value, IntProvider min, IntProvider max) implements IntProvider {
+
+	public static final MapCodec<ClampedIntProvider> CODEC = MapCodecUtil.lazy(ClampedIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		IntProvider.CODEC.fieldOf("value").forGetter(ClampedIntProvider::value),
+		IntProvider.CODEC.fieldOf("min").forGetter(ClampedIntProvider::min),
+		IntProvider.CODEC.fieldOf("max").forGetter(ClampedIntProvider::max)
+	).apply(instance, ClampedIntProvider::new)));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClampedIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(ClampedIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		IntProvider.STREAM_CODEC, ClampedIntProvider::value,
+		IntProvider.STREAM_CODEC, ClampedIntProvider::min,
+		IntProvider.STREAM_CODEC, ClampedIntProvider::max,
+		ClampedIntProvider::new
+	));
+
+	@Override
+	public @NotNull IntProvider.Type<?> getType() {
+		return NeoApoliIntProviderTypes.CLAMPED;
+	}
+
+	@Override
+	public void provideInt(Context context, IntConsumer setter) {
+
+		Context valueContext = context.forChild(".value");
+		int value = value().getInt(valueContext);
+
+		if (valueContext.hasProblems()) {
+			return;
+		}
+
+		Context minContext = context.forChild(".min");
+		int min = min().getInt(minContext);
+
+		if (minContext.hasProblems()) {
+			setter.accept(value);
+		}
+
+		else {
+
+			Context maxContext = context.forChild(".max");
+			int max = max().getInt(maxContext);
+
+			if (maxContext.hasProblems()) {
+				setter.accept(Math.max(value, min));
+			}
+
+			else {
+				setter.accept(Mth.clamp(value, min, max));
+			}
+
+		}
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		IntProvider.super.validate(validator);
+		value().validate(validator.forChild(".value"));
+		min().validate(validator.forChild(".min"));
+		max().validate(validator.forChild(".max"));
+	}
+
+}

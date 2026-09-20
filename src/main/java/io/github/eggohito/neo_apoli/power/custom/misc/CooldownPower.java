@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.hud.element.NumberBoundHudElement;
 import io.github.eggohito.neo_apoli.power.Power;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,7 @@ public interface CooldownPower extends Power {
 
 	HudElement hudElement();
 
-	NumberProvider cooldown();
+	IntProvider cooldown();
 
 	@Override
 	default void validate(Context.Validator validator) {
@@ -26,10 +26,10 @@ public interface CooldownPower extends Power {
 		cooldown().validate(validator.forChild(".cooldown"));
 	}
 
-	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, NumberProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
+	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
 			HudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::hudElement),
-			NumberProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
+			IntProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
 		);
 	}
 
@@ -58,7 +58,7 @@ public interface CooldownPower extends Power {
 			return power.hudElement();
 		}
 
-		public NumberProvider cooldown() {
+		public IntProvider cooldown() {
 			return power.cooldown();
 		}
 
@@ -67,9 +67,9 @@ public interface CooldownPower extends Power {
 			Context holderContext = this.createHolderContext(holder);
 
 			return new Context.Builder(holderContext)
-				.withRequired(NumberBoundHudElement.CURRENT_VALUE, (double) this.getRemainingTicks(holderContext))
-				.withRequired(NumberBoundHudElement.MIN_VALUE, 0.0D)
-				.withRequired(NumberBoundHudElement.MAX_VALUE, power.cooldown().getDouble(holderContext))
+				.withRequired(NumberBoundHudElement.CURRENT_VALUE, this.getRemainingTicks(holderContext))
+				.withRequired(NumberBoundHudElement.MIN_VALUE, 0)
+				.withRequired(NumberBoundHudElement.MAX_VALUE, cooldown().getInt(holderContext))
 				.build(holderContext.level());
 
 		}
@@ -87,7 +87,7 @@ public interface CooldownPower extends Power {
 		public double getProgress(Context context) {
 
 			double diff = context.level().getGameTime() - lastUseTime;
-			double progress = diff / cooldown().getDouble(context.forChild(".cooldown"));
+			double progress = diff / (double) cooldown().getInt(context.forChild(".cooldown"));
 
 			return Mth.clamp(progress, 0D, 1D);
 
@@ -96,7 +96,7 @@ public interface CooldownPower extends Power {
 		public int getRemainingTicks(Context context) {
 
 			long diff = context.level().getGameTime() - lastUseTime;
-			long remainingTicks = cooldown().getLong(context.forChild(".cooldown")) - diff;
+			long remainingTicks = cooldown().getInt(context.forChild(".cooldown")) - diff;
 
 			return (int) Math.max(0, remainingTicks);
 

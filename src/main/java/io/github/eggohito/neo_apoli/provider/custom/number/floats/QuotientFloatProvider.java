@@ -1,0 +1,59 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.floats;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
+import io.github.eggohito.neo_apoli.util.FloatConsumer;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
+
+public record QuotientFloatProvider(FloatProvider dividend, FloatProvider divisor) implements FloatProvider {
+
+	public static final MapCodec<QuotientFloatProvider> CODEC = MapCodecUtil.lazy(QuotientFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		FloatProvider.CODEC.fieldOf("dividend").forGetter(QuotientFloatProvider::dividend),
+		FloatProvider.CODEC.fieldOf("divisor").forGetter(QuotientFloatProvider::divisor)
+	).apply(instance, QuotientFloatProvider::new)));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, QuotientFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(QuotientFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, QuotientFloatProvider::dividend,
+		FloatProvider.STREAM_CODEC, QuotientFloatProvider::divisor,
+		QuotientFloatProvider::new
+	));
+
+	@Override
+	public @NotNull FloatProvider.Type<?> getType() {
+		return NeoApoliFloatProviderTypes.QUOTIENT;
+	}
+
+	@Override
+	public void provideFloat(Context context, FloatConsumer setter) {
+
+		Context dividendContext = context.forChild(".dividend");
+		float dividend = dividend().getFloat(dividendContext);
+
+		if (dividendContext.hasProblems()) {
+			return;
+		}
+
+		Context divisorContext = context.forChild(".divisor");
+		float divisor = divisor().getFloat(divisorContext);
+
+		if (!divisorContext.hasProblems()) {
+			setter.accept(dividend / divisor);
+		}
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		FloatProvider.super.validate(validator);
+		dividend().validate(validator.forChild(".dividend"));
+		divisor().validate(validator.forChild(".divisor"));
+	}
+
+}

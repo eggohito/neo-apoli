@@ -1,24 +1,24 @@
 package io.github.eggohito.neo_apoli.hud.element;
 
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import net.minecraft.util.context.ContextKey;
 
 import java.util.Optional;
 
 public interface NumberBoundHudElement extends HudElement {
 
-	Context.Parameter<Double> CURRENT_VALUE = Context.simpleParameterInternal("hud/value", Double.class);
+	Context.Parameter<Integer> CURRENT_VALUE = Context.simpleParameterInternal("hud/value", Integer.class);
 
-	Context.Parameter<Double> MAX_VALUE = Context.simpleParameterInternal("hud/max_value", Double.class);
+	Context.Parameter<Integer> MAX_VALUE = Context.simpleParameterInternal("hud/max_value", Integer.class);
 
-	Context.Parameter<Double> MIN_VALUE = Context.simpleParameterInternal("hud/min_value", Double.class);
+	Context.Parameter<Integer> MIN_VALUE = Context.simpleParameterInternal("hud/min_value", Integer.class);
 
-	Optional<NumberProvider> value();
+	Optional<IntProvider> value();
 
-	Optional<NumberProvider> min();
+	Optional<IntProvider> min();
 
-	Optional<NumberProvider> max();
+	Optional<IntProvider> max();
 
 	@Override
 	default void validate(Context.Validator validator) {
@@ -31,7 +31,7 @@ public interface NumberBoundHudElement extends HudElement {
 
 	}
 
-	static void validateKeyAndField(Context.Validator validator, ContextKey<?> key, Optional<NumberProvider> fieldMethod, String fieldName) {
+	static void validateKeyAndField(Context.Validator validator, ContextKey<?> key, Optional<IntProvider> fieldMethod, String fieldName) {
 
 		boolean keyIsAllowed = validator.keySet().allowed().contains(key);
 		boolean fieldIsPresent = fieldMethod.isPresent();

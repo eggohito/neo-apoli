@@ -5,25 +5,25 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.color.custom.Hsv;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record DynamicHsv(NumberProvider hue, NumberProvider saturation, NumberProvider value, NumberProvider alpha) implements DynamicColor {
+public record DynamicHsv(FloatProvider hue, FloatProvider saturation, FloatProvider value, FloatProvider alpha) implements DynamicColor {
 
 	public static final MapCodec<DynamicHsv> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.clamped(0.0F, 360.0F).fieldOf("hue").forGetter(DynamicHsv::hue),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("saturation").forGetter(DynamicHsv::saturation),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("value").forGetter(DynamicHsv::value),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicHsv::alpha)
+		FloatProvider.clamped(0.0F, 360.0F).fieldOf("hue").forGetter(DynamicHsv::hue),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("saturation").forGetter(DynamicHsv::saturation),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("value").forGetter(DynamicHsv::value),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicHsv::alpha)
 	).apply(instance, DynamicHsv::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicHsv> STREAM_CODEC = StreamCodec.composite(
-		NumberProvider.STREAM_CODEC, DynamicHsv::hue,
-		NumberProvider.STREAM_CODEC, DynamicHsv::saturation,
-		NumberProvider.STREAM_CODEC, DynamicHsv::value,
-		NumberProvider.STREAM_CODEC, DynamicHsv::alpha,
+		FloatProvider.STREAM_CODEC, DynamicHsv::hue,
+		FloatProvider.STREAM_CODEC, DynamicHsv::saturation,
+		FloatProvider.STREAM_CODEC, DynamicHsv::value,
+		FloatProvider.STREAM_CODEC, DynamicHsv::alpha,
 		DynamicHsv::new
 	);
 

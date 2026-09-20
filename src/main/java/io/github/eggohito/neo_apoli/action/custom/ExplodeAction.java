@@ -12,8 +12,8 @@ import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
@@ -150,19 +150,19 @@ public record ExplodeAction(Condition damageableCondition, Condition destructibl
 		emitter().ifPresent(emitter -> emitter.validate(validator.forChild(".emitter")));
 	}
 
-	public record Property(Explosion.BlockInteraction blockInteraction, NumberProvider power, NumberProvider knockbackMultiplier, BooleanProvider createFire) implements ContextUser {
+	public record Property(Explosion.BlockInteraction blockInteraction, FloatProvider power, FloatProvider knockbackMultiplier, BooleanProvider createFire) implements ContextUser {
 
 		public static final MapCodec<Property> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			NeoApoliCodecs.BLOCK_INTERACTION.fieldOf("block_interaction").forGetter(Property::blockInteraction),
-			NumberProvider.CODEC.fieldOf("power").forGetter(Property::power),
-			NumberProvider.CODEC.optionalFieldOf("knockback_multiplier", new ConstantNumberProvider(1.0)).forGetter(Property::knockbackMultiplier),
+			FloatProvider.CODEC.fieldOf("power").forGetter(Property::power),
+			FloatProvider.CODEC.optionalFieldOf("knockback_multiplier", new ConstantFloatProvider(1.0F)).forGetter(Property::knockbackMultiplier),
 			BooleanProvider.CODEC.optionalFieldOf("create_fire", new ConstantBooleanProvider(true)).forGetter(Property::createFire)
 		).apply(instance, Property::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Property> STREAM_CODEC = StreamCodec.composite(
 			NeoApoliStreamCodecs.BLOCK_INTERACTION, Property::blockInteraction,
-			NumberProvider.STREAM_CODEC, Property::power,
-			NumberProvider.STREAM_CODEC, Property::knockbackMultiplier,
+			FloatProvider.STREAM_CODEC, Property::power,
+			FloatProvider.STREAM_CODEC, Property::knockbackMultiplier,
 			BooleanProvider.STREAM_CODEC, Property::createFire,
 			Property::new
 		);

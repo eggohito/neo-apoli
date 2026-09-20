@@ -15,30 +15,40 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public interface CompositeConditionalValueProvider<Provider extends ValueProvider> extends ValueProvider, CompositeConditional<Provider> {
 
 	@NotNull
 	default <Value> Value getOrDefault(Context context, BiFunction<Provider, Context, Value> getter) {
+		var selected = this.select(context);
+		return getter.apply(selected.value(), selected.context());
+	}
 
-		var entriesIterator = entries().listIterator();
+	default Selected<Provider> select(Context context) {
 
-		while (entriesIterator.hasNext()) {
+		var entryIterator = entries().listIterator();
 
-			Context entryContext = context.forChild(".entries[" + entriesIterator.nextIndex() + "]");
-			var entry = entriesIterator.next();
+		while (entryIterator.hasNext()) {
+
+			Context entryContext = context.forChild(".entries[" + entryIterator.nextIndex() + "]");
+			var entry = entryIterator.next();
 
 			Context conditionContext = entryContext.forChild(".condition");
 			boolean provides = entry.condition().test(conditionContext);
 
 			if (!conditionContext.hasProblems() && provides) {
-				return getter.apply(entry.value(), entryContext.forChild(".value"));
+				return new Selected<>(entry.value(), context.forChild(".value"));
 			}
 
 		}
 
-		return getter.apply(defaultValue(), context.forChild(".default"));
+		return new Selected<>(defaultValue(), context.forChild(".default"));
 
+	}
+
+	default void onSelect(Context context, Consumer<Selected<Provider>> consumer) {
+		consumer.accept(this.select(context));
 	}
 
 	@Override
@@ -75,6 +85,10 @@ public interface CompositeConditionalValueProvider<Provider extends ValueProvide
 			providerCodec, CompositeConditionalValueProvider::defaultValue,
 			constructor
 		);
+	}
+
+	record Selected<V>(V value, Context context) {
+
 	}
 
 }

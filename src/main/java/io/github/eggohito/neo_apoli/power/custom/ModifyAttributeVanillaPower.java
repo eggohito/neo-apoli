@@ -8,8 +8,8 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.AttributeModifyingPower;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import io.github.eggohito.neo_apoli.util.AttributedModifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,12 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate, NumberProvider tickRate) implements AttributeModifyingPower {
+public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate, IntProvider tickRate) implements AttributeModifyingPower {
 
 	public static final MapCodec<ModifyAttributeVanillaPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
 		.and(AttributeModifyingPower.addFields(instance))
-		.and(NumberProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantNumberProvider(20)).forGetter(ModifyAttributeVanillaPower::tickRate))
+		.and(IntProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantIntProvider(20)).forGetter(ModifyAttributeVanillaPower::tickRate))
 		.apply(instance, ModifyAttributeVanillaPower::new)
 	);
 
@@ -34,7 +34,7 @@ public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, L
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		NeoApoliStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifyingPower::modifiers,
 		BooleanProvider.STREAM_CODEC, AttributeModifyingPower::sendUpdate,
-		NumberProvider.STREAM_CODEC, ModifyAttributeVanillaPower::tickRate,
+		IntProvider.STREAM_CODEC, ModifyAttributeVanillaPower::tickRate,
 		ModifyAttributeVanillaPower::new
 	);
 

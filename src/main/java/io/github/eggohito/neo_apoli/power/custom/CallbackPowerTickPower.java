@@ -8,8 +8,8 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CallbackPower;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -19,14 +19,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action action, Action risingAction, Action fallingAction, NumberProvider interval) implements CallbackPower {
+public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action action, Action risingAction, Action fallingAction, IntProvider interval) implements CallbackPower {
 
 	public static final MapCodec<CallbackPowerTickPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
 		.and(CallbackPower.addOptionalActionField(instance).t1())
 		.and(Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::risingAction))
 		.and(Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::fallingAction))
-		.and(NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantNumberProvider(20)).forGetter(CallbackPowerTickPower::interval))
+		.and(IntProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantIntProvider(20)).forGetter(CallbackPowerTickPower::interval))
 		.apply(instance, CallbackPowerTickPower::new)
 	);
 
@@ -35,7 +35,7 @@ public record CallbackPowerTickPower(Optional<Condition> activeCondition, Action
 		Action.STREAM_CODEC, CallbackPowerTickPower::action,
 		Action.STREAM_CODEC, CallbackPowerTickPower::risingAction,
 		Action.STREAM_CODEC, CallbackPowerTickPower::fallingAction,
-		NumberProvider.STREAM_CODEC, CallbackPowerTickPower::interval,
+		IntProvider.STREAM_CODEC, CallbackPowerTickPower::interval,
 		CallbackPowerTickPower::new
 	);
 

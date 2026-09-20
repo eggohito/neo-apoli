@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliSlotProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
@@ -16,16 +16,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record BlockSlotProvider(BlockProvider block, NumberProvider slot) implements SlotProvider {
+public record BlockSlotProvider(BlockProvider block, IntProvider slot) implements SlotProvider {
 
 	public static final MapCodec<BlockSlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		BlockProvider.CODEC.fieldOf("block").forGetter(BlockSlotProvider::block),
-		NumberProvider.CODEC.fieldOf("slot").forGetter(BlockSlotProvider::slot)
+		IntProvider.CODEC.fieldOf("slot").forGetter(BlockSlotProvider::slot)
 	).apply(instance, BlockSlotProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlockSlotProvider> STREAM_CODEC = StreamCodec.composite(
 		BlockProvider.STREAM_CODEC, BlockSlotProvider::block,
-		NumberProvider.STREAM_CODEC, BlockSlotProvider::slot,
+		IntProvider.STREAM_CODEC, BlockSlotProvider::slot,
 		BlockSlotProvider::new
 	);
 

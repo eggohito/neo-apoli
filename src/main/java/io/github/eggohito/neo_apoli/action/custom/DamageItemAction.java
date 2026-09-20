@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.slot.SlotProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,17 +22,17 @@ import org.apache.commons.lang3.function.Consumers;
 
 import java.util.Optional;
 
-public record DamageItemAction(NumberProvider amount, SlotProvider slot, BooleanProvider ignoreEnchantments, Optional<EntityProvider> itemHolder) implements Action {
+public record DamageItemAction(IntProvider amount, SlotProvider slot, BooleanProvider ignoreEnchantments, Optional<EntityProvider> itemHolder) implements Action {
 
 	public static final MapCodec<DamageItemAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.optionalFieldOf("amount", new ConstantNumberProvider(1)).forGetter(DamageItemAction::amount),
+		IntProvider.CODEC.optionalFieldOf("amount", new ConstantIntProvider(1)).forGetter(DamageItemAction::amount),
 		SlotProvider.CODEC.fieldOf("slot").forGetter(DamageItemAction::slot),
 		BooleanProvider.CODEC.optionalFieldOf("ignore_enchantments", new ConstantBooleanProvider(false)).forGetter(DamageItemAction::ignoreEnchantments),
 		EntityProvider.CODEC.optionalFieldOf("item_holder").forGetter(DamageItemAction::itemHolder)
 	).apply(instance, DamageItemAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DamageItemAction> STREAM_CODEC = StreamCodec.composite(
-		NumberProvider.STREAM_CODEC, DamageItemAction::amount,
+		IntProvider.STREAM_CODEC, DamageItemAction::amount,
 		SlotProvider.STREAM_CODEC, DamageItemAction::slot,
 		BooleanProvider.STREAM_CODEC, DamageItemAction::ignoreEnchantments,
 		ByteBufCodecs.optional(EntityProvider.STREAM_CODEC), DamageItemAction::itemHolder,

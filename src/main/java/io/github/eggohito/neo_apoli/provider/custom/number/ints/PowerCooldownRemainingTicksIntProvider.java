@@ -1,0 +1,74 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.ints;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.power.PowerIdentifier;
+import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
+import io.github.eggohito.neo_apoli.power.entity.Powers;
+import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.IntConsumer;
+
+public record PowerCooldownRemainingTicksIntProvider(PowerIdentifier power, EntityProvider entity) implements IntProvider {
+
+	public static final MapCodec<PowerCooldownRemainingTicksIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		PowerIdentifier.CODEC.fieldOf("power").forGetter(PowerCooldownRemainingTicksIntProvider::power),
+		EntityProvider.CODEC.fieldOf("entity").forGetter(PowerCooldownRemainingTicksIntProvider::entity)
+	).apply(instance, PowerCooldownRemainingTicksIntProvider::new));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, PowerCooldownRemainingTicksIntProvider> STREAM_CODEC = StreamCodec.composite(
+		PowerIdentifier.STREAM_CODEC, PowerCooldownRemainingTicksIntProvider::power,
+		EntityProvider.STREAM_CODEC, PowerCooldownRemainingTicksIntProvider::entity,
+		PowerCooldownRemainingTicksIntProvider::new
+	);
+
+	@Override
+	public @NotNull IntProvider.Type<?> getType() {
+		return NeoApoliIntProviderTypes.POWER_COOLDOWN_REMAINING_TICKS;
+	}
+
+	@Override
+	public void provideInt(Context context, IntConsumer setter) {
+
+		Context entityContext = context.forChild(".entity");
+		Entity entity = entity().getEntity(entityContext).orElse(null);
+
+		CooldownPower.Instance<?> cooldownInstance = Powers.getOptional(entity)
+			.flatMap(powers -> powers.getOptionalInstance(power()))
+			.filter(CooldownPower.Instance.class::isInstance)
+			.map(CooldownPower.Instance.class::cast)
+			.orElse(null);
+
+		if (entity == null || cooldownInstance == null) {
+
+			if (entity == null) {
+				entityContext.reportProblem("Entity doesn't exist!");
+			}
+
+			if (cooldownInstance == null) {
+				context.reportProblem(power().asDisplayString() + " does not have a cooldown!");
+			}
+
+		}
+
+		else {
+			setter.accept(cooldownInstance.getRemainingTicks(context.forChild(".power")));
+		}
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		IntProvider.super.validate(validator);
+		power().validate(validator.forChild(".power"), CooldownPower.class, () -> power.asDisplayString() + " doesn't have a cooldown!");
+		entity().validate(validator.forChild(".entity"));
+	}
+
+}

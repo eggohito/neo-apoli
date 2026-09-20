@@ -10,8 +10,10 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.parameter.EntityContextParameter;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.ConstantBooleanProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.ConstantVec3Provider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
@@ -25,7 +27,7 @@ import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-public record SpawnParticlesAction(ParticleOptions particle, Condition viewCondition, Vec3Provider position, Vec3Provider spread, NumberProvider speed, NumberProvider count, BooleanProvider force) implements Action {
+public record SpawnParticlesAction(ParticleOptions particle, Condition viewCondition, Vec3Provider position, Vec3Provider spread, FloatProvider speed, IntProvider count, BooleanProvider force) implements Action {
 
 	public static final Context.Parameter<Entity> VIEWER_ENTITY = NeoApoliContextParams.registerInternal("viewer_entity", EntityContextParameter::new);
 	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(VIEWER_ENTITY).build();
@@ -35,8 +37,8 @@ public record SpawnParticlesAction(ParticleOptions particle, Condition viewCondi
 		Condition.CODEC.optionalFieldOf("view_condition", new ConstantCondition(true)).forGetter(SpawnParticlesAction::viewCondition),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(SpawnParticlesAction::position),
 		Vec3Provider.CODEC.optionalFieldOf("spread", new ConstantVec3Provider(0.5, 0.5, 0.5)).forGetter(SpawnParticlesAction::spread),
-		NumberProvider.CODEC.optionalFieldOf("speed", new ConstantNumberProvider(0.0)).forGetter(SpawnParticlesAction::speed),
-		NumberProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("count", new ConstantNumberProvider(1)).forGetter(SpawnParticlesAction::count),
+		FloatProvider.CODEC.optionalFieldOf("speed", new ConstantFloatProvider(0.0F)).forGetter(SpawnParticlesAction::speed),
+		IntProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("count", new ConstantIntProvider(1)).forGetter(SpawnParticlesAction::count),
 		BooleanProvider.CODEC.optionalFieldOf("force", new ConstantBooleanProvider(false)).forGetter(SpawnParticlesAction::force)
 	).apply(instance, SpawnParticlesAction::new));
 
@@ -45,8 +47,8 @@ public record SpawnParticlesAction(ParticleOptions particle, Condition viewCondi
 		Condition.STREAM_CODEC, SpawnParticlesAction::viewCondition,
 		Vec3Provider.STREAM_CODEC, SpawnParticlesAction::position,
 		Vec3Provider.STREAM_CODEC, SpawnParticlesAction::spread,
-		NumberProvider.STREAM_CODEC, SpawnParticlesAction::speed,
-		NumberProvider.STREAM_CODEC, SpawnParticlesAction::count,
+		FloatProvider.STREAM_CODEC, SpawnParticlesAction::speed,
+		IntProvider.STREAM_CODEC, SpawnParticlesAction::count,
 		BooleanProvider.STREAM_CODEC, SpawnParticlesAction::force,
 		SpawnParticlesAction::new
 	);

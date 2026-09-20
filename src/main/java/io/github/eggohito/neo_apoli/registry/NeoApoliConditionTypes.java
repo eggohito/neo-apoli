@@ -15,7 +15,6 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<AnyOfCondition> ANY_OF = registerInternal("any_of", AnyOfCondition.CODEC, AnyOfCondition.STREAM_CODEC);
 	public static final Condition.Type<BlockStatePropertyCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyCondition.CODEC, BlockStatePropertyCondition.STREAM_CODEC);
 	public static final Condition.Type<CompareCondition> COMPARE = registerInternal("compare", CompareCondition.CODEC, CompareCondition.STREAM_CODEC);
-	public static final Condition.Type<CompareToRangeCondition> COMPARE_TO_RANGE = registerInternal("compare_to_range", CompareToRangeCondition.CODEC, CompareToRangeCondition.STREAM_CODEC);
 	public static final Condition.Type<ConstantCondition> CONSTANT = registerInternal("constant", ConstantCondition.CODEC, ConstantCondition.STREAM_CODEC);
 	public static final Condition.Type<DifficultyCondition> DIFFICULTY = registerInternal("difficulty", DifficultyCondition.CODEC, DifficultyCondition.STREAM_CODEC);
 	public static final Condition.Type<DynamicCondition> DYNAMIC = registerInternal("dynamic", DynamicCondition.CODEC, DynamicCondition.STREAM_CODEC);

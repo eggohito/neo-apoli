@@ -109,9 +109,10 @@ public final class NeoApoliContextParams {
 		public static final Codec<Context.Parameter<DamageSource>> DAMAGE_SOURCE = Context.parameterCodec("damage source", DamageSource.class);
 		public static final Codec<Context.Parameter<Direction>> DIRECTION = Context.parameterCodec("direction", Direction.class);
 		public static final Codec<Context.Parameter<Entity>> ENTITY = Context.parameterCodec("entity", Entity.class);
+		public static final Codec<Context.Parameter<Float>> FLOAT = Context.parameterCodec("float", Float.class);
+		public static final Codec<Context.Parameter<Integer>> INT = Context.parameterCodec("int", Integer.class);
 		public static final Codec<Context.Parameter<ItemStack>> ITEM = Context.parameterCodec("item", ItemStack.class);
 		public static final Codec<Context.Parameter<MobEffectInstance>> EFFECT = Context.parameterCodec("effect", MobEffectInstance.class);
-		public static final Codec<Context.Parameter<Number>> NUMBER = Context.parameterCodec("number", Number.class);
 		public static final Codec<Context.Parameter<SlotAccess>> SLOT = Context.parameterCodec("slot", SlotAccess.class);
 
 	}
@@ -122,9 +123,10 @@ public final class NeoApoliContextParams {
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<DamageSource>> DAMAGE_SOURCE = Context.parameterStreamCodec("damage source", DamageSource.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Direction>> DIRECTION = Context.parameterStreamCodec("direction", Direction.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Entity>> ENTITY = Context.parameterStreamCodec("entity", Entity.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Float>> FLOAT = Context.parameterStreamCodec("float", Float.class);
+		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Integer>> INT = Context.parameterStreamCodec("float", Integer.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<ItemStack>> ITEM = Context.parameterStreamCodec("item", ItemStack.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<MobEffectInstance>> EFFECT = Context.parameterStreamCodec("effect", MobEffectInstance.class);
-		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<Number>> NUMBER = Context.parameterStreamCodec("number", Number.class);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Context.Parameter<SlotAccess>> SLOT = Context.parameterStreamCodec("slot", SlotAccess.class);
 
 	}

@@ -1,0 +1,81 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.floats;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
+import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
+import io.github.eggohito.neo_apoli.util.FloatConsumer;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.util.Locale;
+
+public record RoundFloatProvider(FloatProvider value, IntProvider places, RoundingMode mode) implements FloatProvider {
+
+	public static final MapCodec<RoundFloatProvider> CODEC = MapCodecUtil.lazy(RoundFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		FloatProvider.CODEC.fieldOf("value").forGetter(RoundFloatProvider::value),
+		IntProvider.CODEC.fieldOf("places").forGetter(RoundFloatProvider::places),
+		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode", RoundingMode.HALF_UP).forGetter(RoundFloatProvider::mode)
+	).apply(instance, RoundFloatProvider::new)));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, RoundFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(RoundFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, RoundFloatProvider::value,
+		IntProvider.STREAM_CODEC, RoundFloatProvider::places,
+		NeoApoliStreamCodecs.ROUNDING_MODE, RoundFloatProvider::mode,
+		RoundFloatProvider::new
+	));
+
+	@Override
+	public @NotNull FloatProvider.Type<?> getType() {
+		return NeoApoliFloatProviderTypes.ROUND;
+	}
+
+	@Override
+	public void provideFloat(Context context, FloatConsumer setter) {
+
+		Context valueContext = context.forChild(".value");
+		float value = value().getFloat(valueContext);
+
+		if (valueContext.hasProblems()) {
+			return;
+		}
+
+		int places = places().getInt(context.forChild(".places"));
+		StringBuilder pattern = new StringBuilder("#");
+
+		if (places > 0) {
+			pattern.append(".").repeat("#", places);
+		}
+
+		DecimalFormat formatter = new DecimalFormat(pattern.toString(), DecimalFormatSymbols.getInstance(Locale.ROOT));
+		formatter.setRoundingMode(mode());
+
+		try {
+			setter.accept(formatter.parse(formatter.format(value)).floatValue());
+		}
+
+		catch (ArithmeticException | ParseException e) {
+			context.reportProblem(e.getMessage());
+		}
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		FloatProvider.super.validate(validator);
+		value().validate(validator.forChild(".value"));
+		places().validate(validator.forChild(".places"));
+	}
+
+}

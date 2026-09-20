@@ -4,26 +4,26 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
 
-public record DynamicArgb(NumberProvider alpha, NumberProvider red, NumberProvider green, NumberProvider blue) implements DynamicColor {
+public record DynamicArgb(FloatProvider alpha, FloatProvider red, FloatProvider green, FloatProvider blue) implements DynamicColor {
 
 	public static final MapCodec<DynamicArgb> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicArgb::alpha),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicArgb::red),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("green").forGetter(DynamicArgb::green),
-		NumberProvider.clamped(0.0F, 1.0F).fieldOf("blue").forGetter(DynamicArgb::blue)
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("alpha").forGetter(DynamicArgb::alpha),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicArgb::red),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("green").forGetter(DynamicArgb::green),
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("blue").forGetter(DynamicArgb::blue)
 	).apply(instance, DynamicArgb::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicArgb> STREAM_CODEC = StreamCodec.composite(
-		NumberProvider.STREAM_CODEC, DynamicArgb::alpha,
-		NumberProvider.STREAM_CODEC, DynamicArgb::red,
-		NumberProvider.STREAM_CODEC, DynamicArgb::green,
-		NumberProvider.STREAM_CODEC, DynamicArgb::blue,
+		FloatProvider.STREAM_CODEC, DynamicArgb::alpha,
+		FloatProvider.STREAM_CODEC, DynamicArgb::red,
+		FloatProvider.STREAM_CODEC, DynamicArgb::green,
+		FloatProvider.STREAM_CODEC, DynamicArgb::blue,
 		DynamicArgb::new
 	);
 

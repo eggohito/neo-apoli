@@ -6,12 +6,12 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record CooldownStandalonePower(HudElement hudElement, NumberProvider cooldown) implements CooldownPower {
+public record CooldownStandalonePower(HudElement hudElement, IntProvider cooldown) implements CooldownPower {
 
 	public static final MapCodec<CooldownStandalonePower> CODEC = RecordCodecBuilder.mapCodec(instance -> CooldownPower
 		.addFields(instance)
@@ -20,7 +20,7 @@ public record CooldownStandalonePower(HudElement hudElement, NumberProvider cool
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownStandalonePower> STREAM_CODEC = StreamCodec.composite(
 		HudElement.STREAM_CODEC, CooldownStandalonePower::hudElement,
-		NumberProvider.STREAM_CODEC, CooldownStandalonePower::cooldown,
+		IntProvider.STREAM_CODEC, CooldownStandalonePower::cooldown,
 		CooldownStandalonePower::new
 	);
 

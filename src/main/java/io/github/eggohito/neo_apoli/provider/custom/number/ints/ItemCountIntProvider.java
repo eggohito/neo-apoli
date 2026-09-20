@@ -1,0 +1,43 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.ints;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.item.ItemProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.IntConsumer;
+
+public record ItemCountIntProvider(ItemProvider item) implements IntProvider {
+
+	public static final MapCodec<ItemCountIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ItemProvider.CODEC.fieldOf("item").forGetter(ItemCountIntProvider::item))
+		.apply(instance, ItemCountIntProvider::new)
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ItemCountIntProvider> STREAM_CODEC = StreamCodec.composite(
+		ItemProvider.STREAM_CODEC, ItemCountIntProvider::item,
+		ItemCountIntProvider::new
+	);
+
+	@Override
+	public @NotNull IntProvider.Type<?> getType() {
+		return NeoApoliIntProviderTypes.ITEM_COUNT;
+	}
+
+	@Override
+	public void provideInt(Context context, IntConsumer setter) {
+		item().getItem(context.forChild(".item")).ifPresent(item -> setter.accept(item.getCount()));
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		IntProvider.super.validate(validator);
+		item().validate(validator.forChild(".item"));
+	}
+
+}

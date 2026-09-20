@@ -4,23 +4,23 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record RandomChanceAction(Action successAction, Action failAction, NumberProvider chance) implements Action {
+public record RandomChanceAction(Action successAction, Action failAction, FloatProvider chance) implements Action {
 
 	public static final MapCodec<RandomChanceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Action.CODEC.fieldOf("success_action").forGetter(RandomChanceAction::successAction),
 		Action.CODEC.optionalFieldOf("fail_action", NothingAction.INSTANCE).forGetter(RandomChanceAction::failAction),
-		NumberProvider.clamped(0.0, 1.0).fieldOf("chance").forGetter(RandomChanceAction::chance)
+		FloatProvider.clamped(0.0F, 1.0F).fieldOf("chance").forGetter(RandomChanceAction::chance)
 	).apply(instance, RandomChanceAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, RandomChanceAction> STREAM_CODEC = StreamCodec.composite(
 		Action.STREAM_CODEC, RandomChanceAction::successAction,
 		Action.STREAM_CODEC, RandomChanceAction::failAction,
-		NumberProvider.STREAM_CODEC, RandomChanceAction::chance,
+		FloatProvider.STREAM_CODEC, RandomChanceAction::chance,
 		RandomChanceAction::new
 	);
 

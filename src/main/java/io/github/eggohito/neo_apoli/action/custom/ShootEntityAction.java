@@ -7,8 +7,10 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.ConstantNbtProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
@@ -30,16 +32,16 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3Provider position, Vec3Provider direction, NumberProvider velocity, NumberProvider inaccuracy, NumberProvider count, Optional<EntityProvider> shooter) implements Action {
+public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3Provider position, Vec3Provider direction, FloatProvider velocity, FloatProvider inaccuracy, IntProvider count, Optional<EntityProvider> shooter) implements Action {
 
 	public static final MapCodec<ShootEntityAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityType.CODEC.fieldOf("entity_type").forGetter(ShootEntityAction::entityType),
 		NbtProvider.CODEC.optionalFieldOf("tag", new ConstantNbtProvider(new CompoundTag())).forGetter(ShootEntityAction::tag),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(ShootEntityAction::position),
 		Vec3Provider.CODEC.fieldOf("direction").forGetter(ShootEntityAction::direction),
-		NumberProvider.CODEC.optionalFieldOf("velocity", new ConstantNumberProvider(1.0F)).forGetter(ShootEntityAction::velocity),
-		NumberProvider.CODEC.optionalFieldOf("inaccuracy", new ConstantNumberProvider(1.0F)).forGetter(ShootEntityAction::inaccuracy),
-		NumberProvider.CODEC.optionalFieldOf("count", new ConstantNumberProvider(1)).forGetter(ShootEntityAction::count),
+		FloatProvider.CODEC.optionalFieldOf("velocity", new ConstantFloatProvider(1.0F)).forGetter(ShootEntityAction::velocity),
+		FloatProvider.CODEC.optionalFieldOf("inaccuracy", new ConstantFloatProvider(1.0F)).forGetter(ShootEntityAction::inaccuracy),
+		IntProvider.CODEC.optionalFieldOf("count", new ConstantIntProvider(1)).forGetter(ShootEntityAction::count),
 		EntityProvider.CODEC.optionalFieldOf("shooter").forGetter(ShootEntityAction::shooter)
 	).apply(instance, ShootEntityAction::new));
 
@@ -48,9 +50,9 @@ public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3P
 		NbtProvider.STREAM_CODEC, ShootEntityAction::tag,
 		Vec3Provider.STREAM_CODEC, ShootEntityAction::position,
 		Vec3Provider.STREAM_CODEC, ShootEntityAction::direction,
-		NumberProvider.STREAM_CODEC, ShootEntityAction::velocity,
-		NumberProvider.STREAM_CODEC, ShootEntityAction::inaccuracy,
-		NumberProvider.STREAM_CODEC, ShootEntityAction::count,
+		FloatProvider.STREAM_CODEC, ShootEntityAction::velocity,
+		FloatProvider.STREAM_CODEC, ShootEntityAction::inaccuracy,
+		IntProvider.STREAM_CODEC, ShootEntityAction::count,
 		ByteBufCodecs.optional(EntityProvider.STREAM_CODEC), ShootEntityAction::shooter,
 		ShootEntityAction::new
 	);

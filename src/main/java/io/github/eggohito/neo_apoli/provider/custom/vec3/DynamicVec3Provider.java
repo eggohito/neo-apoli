@@ -3,7 +3,7 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.provider.custom.number.NumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,18 +12,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProvider z) implements Vec3Provider {
+public record DynamicVec3Provider(FloatProvider x, FloatProvider y, FloatProvider z) implements Vec3Provider {
 
 	public static final MapCodec<DynamicVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NumberProvider.CODEC.fieldOf("x").forGetter(DynamicVec3Provider::x),
-		NumberProvider.CODEC.fieldOf("y").forGetter(DynamicVec3Provider::y),
-		NumberProvider.CODEC.fieldOf("z").forGetter(DynamicVec3Provider::z)
+		FloatProvider.CODEC.fieldOf("x").forGetter(DynamicVec3Provider::x),
+		FloatProvider.CODEC.fieldOf("y").forGetter(DynamicVec3Provider::y),
+		FloatProvider.CODEC.fieldOf("z").forGetter(DynamicVec3Provider::z)
 	).apply(instance, DynamicVec3Provider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, DynamicVec3Provider> STREAM_CODEC = StreamCodec.composite(
-		NumberProvider.STREAM_CODEC, DynamicVec3Provider::x,
-		NumberProvider.STREAM_CODEC, DynamicVec3Provider::y,
-		NumberProvider.STREAM_CODEC, DynamicVec3Provider::z,
+		FloatProvider.STREAM_CODEC, DynamicVec3Provider::x,
+		FloatProvider.STREAM_CODEC, DynamicVec3Provider::y,
+		FloatProvider.STREAM_CODEC, DynamicVec3Provider::z,
 		DynamicVec3Provider::new
 	);
 
@@ -35,9 +35,9 @@ public record DynamicVec3Provider(NumberProvider x, NumberProvider y, NumberProv
 	@Override
 	public Optional<Vec3> getVec3(Context context) {
 		return Optional.of(new Vec3(
-			x().getDouble(context.forChild(".x")),
-			y().getDouble(context.forChild(".y")),
-			z().getDouble(context.forChild(".z"))
+			x().getFloat(context.forChild(".x")),
+			y().getFloat(context.forChild(".y")),
+			z().getFloat(context.forChild(".z"))
 		));
 	}
 

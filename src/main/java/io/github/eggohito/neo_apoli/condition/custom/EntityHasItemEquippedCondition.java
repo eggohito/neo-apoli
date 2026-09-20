@@ -3,13 +3,13 @@ package io.github.eggohito.neo_apoli.condition.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.comparison.Comparator;
-import io.github.eggohito.neo_apoli.comparison.custom.NumberComparison;
+import io.github.eggohito.neo_apoli.comparison.custom.IntComparison;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.item.ContextItemProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ConstantNumberProvider;
-import io.github.eggohito.neo_apoli.provider.custom.number.ItemCountNumberProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.ints.ItemCountIntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -27,7 +27,7 @@ public record EntityHasItemEquippedCondition(Condition equippedCondition, Equipm
 	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(EQUIPPED_ITEM).build();
 
 	public static final MapCodec<EntityHasItemEquippedCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Condition.CODEC.optionalFieldOf("equipped_condition", new CompareCondition(new NumberComparison(Comparator.GREATER_THAN, new ItemCountNumberProvider(new ContextItemProvider(EQUIPPED_ITEM)), new ConstantNumberProvider(0)))).forGetter(EntityHasItemEquippedCondition::equippedCondition),
+		Condition.CODEC.optionalFieldOf("equipped_condition", new CompareCondition(new IntComparison(Comparator.GREATER_THAN, new ItemCountIntProvider(new ContextItemProvider(EQUIPPED_ITEM)), new ConstantIntProvider(0)))).forGetter(EntityHasItemEquippedCondition::equippedCondition),
 		EquipmentSlotGroup.CODEC.fieldOf("slot").forGetter(EntityHasItemEquippedCondition::slot),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(EntityHasItemEquippedCondition::entity)
 	).apply(instance, EntityHasItemEquippedCondition::new));

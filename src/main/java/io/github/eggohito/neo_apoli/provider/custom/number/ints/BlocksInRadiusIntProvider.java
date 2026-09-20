@@ -1,0 +1,99 @@
+package io.github.eggohito.neo_apoli.provider.custom.number.ints;
+
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.condition.Condition;
+import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
+import io.github.eggohito.neo_apoli.util.CachedBlock;
+import io.github.eggohito.neo_apoli.util.MapCodecUtil;
+import io.github.eggohito.neo_apoli.util.Shape;
+import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.context.ContextKeySet;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.function.IntConsumer;
+
+public record BlocksInRadiusIntProvider(Condition condition, Vec3Provider position, Shape shape, IntProvider radius) implements IntProvider {
+
+	public static final Context.Parameter<CachedBlock> BLOCK_IN_RADIUS = NeoApoliContextParams.registerSimpleInternal("block_in_radius", CachedBlock.class);
+	public static final ContextKeySet CONDITION_PARAMETER_SET = new ContextKeySet.Builder().required(BLOCK_IN_RADIUS).build();
+
+	public static final MapCodec<BlocksInRadiusIntProvider> CODEC = MapCodecUtil.lazy(BlocksInRadiusIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.fieldOf("condition").forGetter(BlocksInRadiusIntProvider::condition),
+		Vec3Provider.CODEC.fieldOf("position").forGetter(BlocksInRadiusIntProvider::position),
+		Shape.CODEC.fieldOf("shape").forGetter(BlocksInRadiusIntProvider::shape),
+		IntProvider.CODEC.fieldOf("radius").forGetter(BlocksInRadiusIntProvider::radius)
+	).apply(instance, BlocksInRadiusIntProvider::new)));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksInRadiusIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(BlocksInRadiusIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+		Condition.STREAM_CODEC, BlocksInRadiusIntProvider::condition,
+		Vec3Provider.STREAM_CODEC, BlocksInRadiusIntProvider::position,
+		Shape.STREAM_CODEC, BlocksInRadiusIntProvider::shape,
+		IntProvider.STREAM_CODEC, BlocksInRadiusIntProvider::radius,
+		BlocksInRadiusIntProvider::new
+	));
+
+	@Override
+	public @NotNull Type<?> getType() {
+		return NeoApoliIntProviderTypes.BLOCKS_IN_RADIUS;
+	}
+
+	@Override
+	public void provideInt(Context context, IntConsumer setter) {
+
+		BlockPos position = position().getVec3(context.forChild(".position"))
+			.map(BlockPos::containing)
+			.orElse(null);
+
+		if (position == null) {
+			return;
+		}
+
+		Level level = context.level();
+		int matches = 0;
+
+		int radius = radius().getInt(context.forChild(".radius"));
+		List<BlockPos> areaPositions = shape().getBlockPositions(position, radius);
+
+		for (var areaPosition : areaPositions) {
+
+			CachedBlock blockInRadius = CachedBlock
+				.optionallyFromLoadedPos(level, areaPosition)
+				.orElse(null);
+
+			if (blockInRadius == null) {
+				continue;
+			}
+
+			Context blockContext = new Context.Builder(context)
+				.withRequired(BLOCK_IN_RADIUS, blockInRadius)
+				.build(level);
+
+			if (condition().test(blockContext.forChild(".condition"))) {
+				matches++;
+			}
+
+		}
+
+		setter.accept(matches);
+
+	}
+
+	@Override
+	public void validate(Context.Validator validator) {
+		IntProvider.super.validate(validator);
+		condition().validate(validator.withAdditionalKeysFromSets(CONDITION_PARAMETER_SET).forChild(".condition"));
+		position().validate(validator.forChild(".position"));
+		radius().validate(validator.forChild(".radius"));
+	}
+
+}
