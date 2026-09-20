@@ -79,8 +79,8 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 	public void validate(Context.Validator validator) {
 		PrioritizedPower.super.validate(validator);
 		RegistryUtil.validateKey(validator.forChild(".dimension"), this.dimension());
-		this.biome().ifPresent(biome -> RegistryUtil.validateKeyOrTag(validator.forChild(".biome_tag"), biome));
-		this.structure().ifPresent(structure -> RegistryUtil.validateKeyOrTag(validator.forChild(".structure_tag"), structure));
+		this.biome().ifPresent(biome -> RegistryUtil.validateKeyOrTag(validator.forChild(".biome"), biome));
+		this.structure().ifPresent(structure -> RegistryUtil.validateKeyOrTag(validator.forChild(".structure"), structure));
 	}
 
 	public static class Instance extends Power.Instance<ModifyPlayerSpawnPower> {
