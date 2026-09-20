@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.power.global.manager;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
@@ -49,13 +50,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 public final class GlobalPowerSetManager extends AbstractContentManager<ResourceLocation, GlobalPowerSet> implements IdentifiableResourceReloadListener {
 
 	private static final GlobalPowerSetManager INSTANCE = new GlobalPowerSetManager();
 
 	public static final ResourceLocation ID = NeoApoli.id("manager/global_power_set");
-	public static final ImmutableSet<ResourceLocation> DEPENDENCIES = Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build();
+	public static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build());
 
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
@@ -80,7 +82,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES;
+		return DEPENDENCIES.get();
 	}
 
 	public List<GlobalPowerSet> getApplicableSets(Entity entity) {
