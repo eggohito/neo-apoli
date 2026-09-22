@@ -3,12 +3,11 @@ package io.github.eggohito.neo_apoli.provider.custom.vec3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.duck.internal.MovingEntity;
+import io.github.eggohito.neo_apoli.duck.MovingEntity;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliVec3ProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,19 +33,13 @@ public record EntityVelocityVec3Provider(EntityProvider entity) implements Vec3P
     public Optional<Vec3> getVec3(Context context) {
 
         Context entityContext = context.forChild(".entity");
-        Entity entity = entity().getEntity(entityContext).orElse(null);
+        Optional<Vec3> velocity = entity().getEntity(entityContext).map(MovingEntity::neo_apoli$getVelocity);
 
-        switch (entity) {
-            case MovingEntity movingEntity -> {
-                return Optional.of(movingEntity.neo_apoli$getVelocity());
-            }
-            case null ->
-                entityContext.reportProblem("Entity doesn't exist!");
-            default ->
-                entityContext.reportProblem("Entity is not considered a moving entity!");
+        if (velocity.isEmpty()) {
+            entityContext.reportProblem("Entity doesn't exist!");
         }
 
-        return Optional.empty();
+        return velocity;
 
     }
 

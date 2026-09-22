@@ -17,3 +17,4 @@ accessible  class   net/minecraft/resources/RegistryOps$HolderLookupAdapter
 transitive-inject-interface net/minecraft/client/renderer/entity/state/EntityRenderState    io/github/eggohito/neo_apoli/client/duck/EntityRenderCache
 transitive-inject-interface net/minecraft/commands/CommandSourceStack   io/github/eggohito/neo_apoli/duck/ContextBuilderHolder
 transitive-inject-interface net/minecraft/util/random/WeightedList  io/github/eggohito/neo_apoli/duck/WeightedExtension<TE;>
+transitive-inject-interface net/minecraft/world/entity/Entity   io/github/eggohito/neo_apoli/duck/MovingEntity

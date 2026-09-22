@@ -1,4 +1,4 @@
-package io.github.eggohito.neo_apoli.duck.internal;
+package io.github.eggohito.neo_apoli.duck;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
