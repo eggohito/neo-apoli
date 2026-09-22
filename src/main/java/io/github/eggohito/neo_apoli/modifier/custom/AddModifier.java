@@ -8,16 +8,10 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliModifierTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record AddModifier(Modifier.Phase phase, int order, FloatProvider amount) implements AmountBasedModifier {
+public record AddModifier(Modifier.Phase phase, FloatProvider amount) implements AmountBasedModifier {
 
-	private static final int DEFAULT_ORDER = 4000;
-
-	public static final MapCodec<AddModifier> CODEC = AmountBasedModifier.mapCodec(AddModifier::new, DEFAULT_ORDER);
+	public static final MapCodec<AddModifier> CODEC = AmountBasedModifier.mapCodec(AddModifier::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, AddModifier> STREAM_CODEC = AmountBasedModifier.streamCodec(AddModifier::new);
-
-	public AddModifier(Phase phase, FloatProvider amount) {
-		this(phase, DEFAULT_ORDER, amount);
-	}
 
 	@Override
 	public Type<?> getType() {

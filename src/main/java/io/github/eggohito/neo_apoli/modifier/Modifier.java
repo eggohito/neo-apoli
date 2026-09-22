@@ -18,13 +18,16 @@ import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.IntConsumer;
 
 public interface Modifier extends ContextUser, Comparable<Modifier> {
 
@@ -36,7 +39,7 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 	default int compareTo(@NotNull Modifier that) {
 
 		if (this.phase() == that.phase()) {
-			return Integer.compare(this.order(), that.order());
+			return Orderer.INSTANCE.compare(this, that);
 		}
 
 		else {
@@ -49,19 +52,14 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	Phase phase();
 
-	int order();
-
 	double apply(Context context, double base, double total);
 
 	default Operation asOperation(Context context) {
 		return new Operation(this, context);
 	}
 
-	static <M extends Modifier> Products.P2<RecordCodecBuilder.Mu<M>, Phase, Integer> addPhaseAndOrderFields(RecordCodecBuilder.Instance<M> instance, int defaultOrder) {
-		return instance.group(
-			Phase.CODEC.fieldOf("phase").forGetter(Modifier::phase),
-			Codec.INT.optionalFieldOf("order", defaultOrder).forGetter(Modifier::order)
-		);
+	static <M extends Modifier> Products.P1<RecordCodecBuilder.Mu<M>, Phase> addPhaseField(RecordCodecBuilder.Instance<M> instance) {
+		return instance.group(Phase.CODEC.fieldOf("phase").forGetter(Modifier::phase));
 	}
 
 	static Modifier fromVanilla(AttributeModifier vanillaModifier) {
@@ -159,6 +157,150 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.MODIFIER_TYPE);
+
+		@Override
+		public @NotNull String toString() {
+			return Util.getRegisteredName(NeoApoliRegistries.MODIFIER_TYPE, this);
+		}
+
+	}
+
+	final class Orderer implements AutoCloseable {
+
+		public static final Orderer INSTANCE = new Orderer();
+
+		private final List<Modifier.Type<?>> order = new ObjectArrayList<>();
+		private boolean frozen = false;
+
+		private Orderer() {
+
+		}
+
+		@Override
+		public void close() {
+
+			List<Modifier.Type<?>> unordered = new ObjectArrayList<>();
+
+			for (var registered : NeoApoliRegistries.MODIFIER_TYPE) {
+
+				if (!order.contains(registered)) {
+					unordered.add(registered);
+				}
+
+			}
+
+			if (!unordered.isEmpty()) {
+				throw new IllegalStateException("The following modifier types weren't added to the orderer: " + unordered);
+			}
+
+			this.frozen = true;
+
+		}
+
+		public Orderer addBefore(Modifier.Type<?> target, Modifier.Type<?> type) {
+
+			validateChange();
+			this.findIndex(target, index -> {
+
+				order.remove(type);
+
+				if (index <= 0) {
+					order.addFirst(type);
+				}
+
+				else {
+					order.add(index - 1, type);
+				}
+
+			});
+
+			return this;
+
+		}
+
+		public Orderer addAfter(Modifier.Type<?> target, Modifier.Type<?> type) {
+
+			validateChange();
+			this.findIndex(target, index -> {
+
+				order.remove(type);
+
+				if (index >= order.size()) {
+					order.addLast(type);
+				}
+
+				else {
+					order.add(index + 1, type);
+				}
+
+			});
+
+			return this;
+
+		}
+
+		public Orderer addFirst(Modifier.Type<?> type) {
+
+			validateChange();
+
+			order.remove(type);
+			order.addFirst(type);
+
+			return this;
+
+		}
+
+		public Orderer addLast(Modifier.Type<?> type) {
+
+			validateChange();
+
+			order.remove(type);
+			order.addLast(type);
+
+			return this;
+
+		}
+
+		public int compare(Modifier first, Modifier second) {
+
+			int firstIndex = this.getIndex(first.getType());
+			int secondIndex = this.getIndex(second.getType());
+
+			return Integer.compare(firstIndex, secondIndex);
+
+		}
+
+		private int getIndex(Modifier.Type<?> type) {
+
+			MutableInt index = new MutableInt(0);
+			this.findIndex(type, index::setValue);
+
+			return index.intValue();
+
+		}
+
+		private void findIndex(Modifier.Type<?> target, IntConsumer visitor) {
+
+			for (int i = 0; i < order.size(); i++) {
+
+				var type = order.get(i);
+
+				if (type == target) {
+					visitor.accept(i);
+					break;
+				}
+
+			}
+
+		}
+
+		private void validateChange() {
+
+			if (this.frozen) {
+				throw new IllegalStateException("Modifier orderer is already frozen!");
+			}
+
+		}
 
 	}
 

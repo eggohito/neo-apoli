@@ -1,13 +1,13 @@
 package io.github.eggohito.neo_apoli.modifier;
 
-import com.mojang.datafixers.util.Function3;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+
+import java.util.function.BiFunction;
 
 public interface AmountBasedModifier extends Modifier {
 
@@ -29,18 +29,17 @@ public interface AmountBasedModifier extends Modifier {
 
 	double calculate(double amount, double base, double total);
 
-	static <M extends AmountBasedModifier> MapCodec<M> mapCodec(Function3<Phase, Integer, FloatProvider, M> constructor, int defaultOrder) {
+	static <M extends AmountBasedModifier> MapCodec<M> mapCodec(BiFunction<Phase, FloatProvider, M> constructor) {
 		return RecordCodecBuilder.mapCodec(instance -> Modifier
-			.addPhaseAndOrderFields(instance, defaultOrder)
+			.addPhaseField(instance)
 			.and(FloatProvider.CODEC.fieldOf("amount").forGetter(AmountBasedModifier::amount))
 			.apply(instance, constructor)
 		);
 	}
 
-	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(Function3<Phase, Integer, FloatProvider, M> constructor) {
+	static <M extends AmountBasedModifier> StreamCodec<RegistryFriendlyByteBuf, M> streamCodec(BiFunction<Phase, FloatProvider, M> constructor) {
 		return StreamCodec.composite(
 			Phase.STREAM_CODEC, AmountBasedModifier::phase,
-			ByteBufCodecs.INT, AmountBasedModifier::order,
 			FloatProvider.STREAM_CODEC, AmountBasedModifier::amount,
 			constructor
 		);

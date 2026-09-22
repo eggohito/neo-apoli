@@ -32,6 +32,7 @@
 		"impl.event.component_contents_registration.ComponentSerializationMixin",
 		"impl.event.component_contents_registration.ComponentSerializationStrictEitherMixin",
 		"impl.event.data_provider_registration.DataCommandsMixin",
+		"impl.event.modifier_order_callback.MappedRegistryMixin",
 		"impl.event.reloadable_server_resources.ReloadableServerResourcesMixin",
 		"impl.event.tags_built.TagLoaderMixin",
 		"impl.misc.better_codec_errors.DataResultMixin",

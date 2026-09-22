@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.registry;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
+import io.github.eggohito.neo_apoli.event.ModifierOrderCallback;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.modifier.custom.*;
 import net.minecraft.core.Registry;
@@ -21,9 +22,22 @@ public final class NeoApoliModifierTypes {
 	public static final Modifier.Type<SetModifier> SET = registerInternal("set", SetModifier.CODEC, SetModifier.STREAM_CODEC);
 
 	public static void registerAll() {
+
 		Modifier.Type.ALIASES.addPathAlias("multiplication", MULTIPLY);
 		Modifier.Type.ALIASES.addPathAlias("division", DIVIDE);
 		Modifier.Type.ALIASES.addPathAlias("addition", ADD);
+
+		ModifierOrderCallback.EVENT.register(NeoApoli.MODIFIER_ORDER_PHASE, orderer -> orderer
+			.addLast(MULTIPLY)
+			.addLast(MULTIPLY_ADDITIVE)
+			.addLast(MULTIPLY_MULTIPLICATIVE)
+			.addLast(DIVIDE)
+			.addLast(ADD)
+			.addLast(MIN)
+			.addLast(MAX)
+			.addLast(SET)
+		);
+
 	}
 
 	private static <M extends Modifier> Modifier.Type<M> registerInternal(String path, MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {

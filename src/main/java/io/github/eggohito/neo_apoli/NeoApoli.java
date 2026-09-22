@@ -49,6 +49,7 @@ public class NeoApoli implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
 	public static final ResourceLocation HANDSHAKE_PHASE = id("handshake");
+	public static final ResourceLocation MODIFIER_ORDER_PHASE = id("modifier_order");
 
 	static final IntSet CACHED_LOGS = new IntOpenHashSet();
 
