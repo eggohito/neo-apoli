@@ -10,7 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-public record MultiplyMultiplicativeModifier(Modifier.Phase phase, FloatProvider amount, List<Modifier> modifiers) implements AmountBasedModifier {
+public record MultiplyMultiplicativeModifier(List<Modifier> modifiers, Modifier.Phase phase, FloatProvider amount) implements AmountBasedModifier {
 
 	public static final MapCodec<MultiplyMultiplicativeModifier> CODEC = AmountBasedModifier.mapCodec(MultiplyMultiplicativeModifier::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyMultiplicativeModifier> STREAM_CODEC = AmountBasedModifier.streamCodec(MultiplyMultiplicativeModifier::new);

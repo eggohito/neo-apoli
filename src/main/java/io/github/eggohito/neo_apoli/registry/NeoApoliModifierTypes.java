@@ -28,11 +28,11 @@ public final class NeoApoliModifierTypes {
 		Modifier.Type.ALIASES.addPathAlias("addition", ADD);
 
 		ModifierOrderCallback.EVENT.register(NeoApoli.MODIFIER_ORDER_PHASE, orderer -> orderer
+			.addLast(ADD)
 			.addLast(MULTIPLY)
 			.addLast(MULTIPLY_ADDITIVE)
 			.addLast(MULTIPLY_MULTIPLICATIVE)
 			.addLast(DIVIDE)
-			.addLast(ADD)
 			.addLast(MIN)
 			.addLast(MAX)
 			.addLast(SET)
