@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.provider.ConditionalValueProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBooleanProviderTypes;
 import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +23,8 @@ public record ConditionalBooleanProvider(Condition condition, BooleanProvider on
 	}
 
 	@Override
-	public boolean getBoolean(Context context) {
-		return getValue(context, BooleanProvider::getBoolean, false);
+	public void provideBoolean(Context context, BooleanConsumer setter) {
+		this.select(context).ifPresent(selected -> selected.provider().provideBoolean(selected.context(), setter));
 	}
 
 }
