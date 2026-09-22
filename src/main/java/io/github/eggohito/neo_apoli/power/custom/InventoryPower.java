@@ -88,8 +88,8 @@ public record InventoryPower(Optional<Condition> activeCondition, Component titl
 			super(power);
 			this.menu = power.menu();
 			this.container = new SimpleContainer(this.menu.size());
-			this.changed = new MutableBoolean(false);
-			this.container.addListener(container -> changed.setTrue());
+			this.changed = new MutableBoolean(true);
+			this.container.addListener(ignored -> changed.setTrue());
 		}
 
 		@Override
