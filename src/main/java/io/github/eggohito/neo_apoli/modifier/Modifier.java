@@ -52,6 +52,10 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	Phase phase();
 
+	List<Modifier> modifiers();
+
+	List<Operation> collectNestedOps(Operation parent);
+
 	double apply(Context context, double base, double total);
 
 	default Operation asOperation(Context context) {
@@ -69,11 +73,11 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 		return switch (operation) {
 			case ADD_VALUE ->
-				new AddModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount));
+				new AddModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount), List.of());
 			case ADD_MULTIPLIED_BASE ->
-				new MultiplyAdditiveModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount));
+				new MultiplyAdditiveModifier(Modifier.Phase.BASE, new ConstantFloatProvider(amount), List.of());
 			case ADD_MULTIPLIED_TOTAL ->
-				new MultiplyMultiplicativeModifier(Modifier.Phase.TOTAL, new ConstantFloatProvider(amount));
+				new MultiplyMultiplicativeModifier(Modifier.Phase.TOTAL, new ConstantFloatProvider(amount), List.of());
 		};
 
 	}
@@ -107,7 +111,8 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 				if (context.visitor().push(modifier)) {
 
-					double value = modifier.apply(context, currentBase, currentTotal);
+					List<Operation> nestedOps = modifier.collectNestedOps(operation);
+					double value = applyAll(nestedOps, modifier.apply(context, currentBase, currentTotal));
 
 					if (!context.hasProblems()) {
 						currentTotal = value;

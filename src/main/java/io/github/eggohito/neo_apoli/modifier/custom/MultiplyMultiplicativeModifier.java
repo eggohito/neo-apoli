@@ -8,7 +8,9 @@ import io.github.eggohito.neo_apoli.registry.NeoApoliModifierTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record MultiplyMultiplicativeModifier(Modifier.Phase phase, FloatProvider amount) implements AmountBasedModifier {
+import java.util.List;
+
+public record MultiplyMultiplicativeModifier(Modifier.Phase phase, FloatProvider amount, List<Modifier> modifiers) implements AmountBasedModifier {
 
 	public static final MapCodec<MultiplyMultiplicativeModifier> CODEC = AmountBasedModifier.mapCodec(MultiplyMultiplicativeModifier::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplyMultiplicativeModifier> STREAM_CODEC = AmountBasedModifier.streamCodec(MultiplyMultiplicativeModifier::new);
