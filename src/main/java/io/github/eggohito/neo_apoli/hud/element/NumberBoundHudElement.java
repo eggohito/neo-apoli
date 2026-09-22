@@ -2,17 +2,18 @@ package io.github.eggohito.neo_apoli.hud.element;
 
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import net.minecraft.util.context.ContextKey;
 
 import java.util.Optional;
 
 public interface NumberBoundHudElement extends HudElement {
 
-	Context.Parameter<Integer> CURRENT_VALUE = Context.simpleParameterInternal("hud/value", Integer.class);
+	Context.Parameter<Integer> CURRENT_VALUE = NeoApoliContextParams.registerSimpleInternal("hud/value", Integer.class);
 
-	Context.Parameter<Integer> MAX_VALUE = Context.simpleParameterInternal("hud/max_value", Integer.class);
+	Context.Parameter<Integer> MAX_VALUE = NeoApoliContextParams.registerSimpleInternal("hud/max_value", Integer.class);
 
-	Context.Parameter<Integer> MIN_VALUE = Context.simpleParameterInternal("hud/min_value", Integer.class);
+	Context.Parameter<Integer> MIN_VALUE = NeoApoliContextParams.registerSimpleInternal("hud/min_value", Integer.class);
 
 	Optional<IntProvider> value();
 

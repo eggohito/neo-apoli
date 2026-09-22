@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.visitor.Visitor;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParams;
 import io.github.eggohito.neo_apoli.util.CommandParameter;
@@ -22,7 +21,6 @@ import net.minecraft.util.context.ContextKey;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -280,11 +278,6 @@ public final class Context implements ContextParamsHolder {
 			}
 
 		};
-	}
-
-	@ApiStatus.Internal
-	public static <T> Parameter<T> simpleParameterInternal(String name, Class<T> typeClass) {
-		return simpleParameter(NeoApoli.id(name), typeClass);
 	}
 
 	public static <T> Codec<Parameter<T>> parameterCodec(String name, Class<T> typeClass) {
